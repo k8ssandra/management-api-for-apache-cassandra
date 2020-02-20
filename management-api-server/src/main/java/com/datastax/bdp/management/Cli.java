@@ -109,10 +109,10 @@ public class Cli implements Runnable
     private String dse_unix_socket_file = "/var/run/dse.sock";
 
     @Path(executable = true)
-    @Option(name = {"-E", "--dse-exec"},
+    @Option(name = {"-C", "--cassandra-home"},
             arity = 1,
-            description = "Path to the DSE executable, if missing will use $PATH")
-    private String dse_exec_file;
+            description = "Path to the cassandra root directory, if missing will use $CASSANDRA_HOME")
+    private String cassandra_home;
 
     @Option(name = {"-K", "--no-keep-alive"},
             arity = 1,
@@ -145,7 +145,7 @@ public class Cli implements Runnable
 
     private boolean useTls = false;
     private File dseUnixSocketFile = null;
-    private File dseCmdFile = null;
+    private File cassandraHomeDir = null;
     private Collection<String> dseExtraArgs = Collections.emptyList();
     private ManagementApplication application = null;
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
@@ -157,17 +157,17 @@ public class Cli implements Runnable
     }
 
     @VisibleForTesting
-    public Cli(List<String> listenAddresses, String dseExecFileStr, String dseUnixSocketFile, boolean keepAlive, Collection<String> dseExtraArgs)
+    public Cli(List<String> listenAddresses, String cassandraHomeDir, String dseUnixSocketFile, boolean keepAlive, Collection<String> dseExtraArgs)
     {
-        this(listenAddresses, dseExecFileStr, dseUnixSocketFile, keepAlive, dseExtraArgs, null, null, null);
+        this(listenAddresses, cassandraHomeDir, dseUnixSocketFile, keepAlive, dseExtraArgs, null, null, null);
     }
 
     @VisibleForTesting
-    public Cli(List<String> listenAddresses, String dseExecFileStr, String dseUnixSocketFile, boolean keepAlive,
+    public Cli(List<String> listenAddresses, String cassandraHomeDir, String dseUnixSocketFile, boolean keepAlive,
             Collection<String> dseExtraArgs, String caCertFile, String certFile, String certKeyFile)
     {
         this.listen_address = listenAddresses;
-        this.dse_exec_file = dseExecFileStr;
+        this.cassandra_home = cassandraHomeDir;
         this.dse_unix_socket_file = dseUnixSocketFile;
         this.no_keep_alive = !keepAlive;
         this.dseExtraArgs = dseExtraArgs;
@@ -187,7 +187,7 @@ public class Cli implements Runnable
 
         preflightChecks();
 
-        application = new ManagementApplication(dseCmdFile, dseUnixSocketFile, new CqlService(), dseExtraArgs);
+        application = new ManagementApplication(cassandraHomeDir, dseUnixSocketFile, new CqlService(), dseExtraArgs);
 
         try
         {
@@ -296,30 +296,26 @@ public class Cli implements Runnable
     {
         try
         {
-            if (dse_exec_file != null)
+            if (cassandra_home != null)
             {
-                dseCmdFile = new File(dse_exec_file);
-
-                if (!dseCmdFile.exists() || !dseCmdFile.canExecute())
-                    throw new IllegalArgumentException("DSE command file does not exist or is not executable: " + dseCmdFile);
+                cassandraHomeDir = new File(cassandra_home);
             }
-            else
+            else if (System.getenv("CASSANDRA_HOME") != null)
             {
-                Optional<File> maybeDseCmd = UnixCmds.which("dse");
-                if (!maybeDseCmd.isPresent())
-                    throw new IllegalArgumentException("dse command not found in path");
-
-                dseCmdFile = maybeDseCmd.get();
+                cassandraHomeDir = new File(System.getenv("CASSANDRA_HOME"));
             }
+
+            if (cassandraHomeDir == null || !cassandraHomeDir.exists() || !cassandraHomeDir.isDirectory())
+                throw new IllegalArgumentException("Cassandra home does not exist or is not a directory: " + cassandraHomeDir);
 
             //Verify DSE cmd works
             List<String> errorOutput = new ArrayList<>();
             String dseVersion = ShellUtils.executeShellWithHandlers(
-                    dseCmdFile.getCanonicalPath() + " -v",
+                    cassandraHomeDir.getCanonicalPath() + "/bin/cassandra -v",
                     (input, err) -> input.readLine(),
                     (exitCode, err) -> {
                         String s;
-                        errorOutput.add("'dse -v' exit code: " + exitCode);
+                        errorOutput.add("'cassandra -v' exit code: " + exitCode);
                         while ((s = err.readLine()) != null)
                             errorOutput.add(s);
                         return null;
@@ -329,12 +325,12 @@ public class Cli implements Runnable
             if (dseVersion == null)
                 throw new IllegalArgumentException("Version check failed. stderr: " + String.join("\n", errorOutput));
 
-            logger.info("DSE Version {}", dseVersion);
+            logger.info("Cassandra Version {}", dseVersion);
         }
         catch (IllegalArgumentException e)
         {
             logger.error("Error encountered:", e);
-            logger.error("Unable to start: unable to find or execute dse " + (dse_exec_file == null ? "use --dse-exec" : dse_exec_file));
+            logger.error("Unable to start: unable to find or execute dse " + (cassandra_home == null ? "use -C" : cassandra_home));
             System.exit(3);
         }
         catch (IOException io)

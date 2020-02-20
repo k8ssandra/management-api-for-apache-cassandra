@@ -16,15 +16,12 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import com.datastax.bdp.management.helpers.IntegrationTestUtils;
-import com.datastax.bdp.util.ShellUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -76,7 +73,7 @@ public class NonDestructiveOpsIntegrationTest
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(NonDestructiveOpsIntegrationTest.class, "", temporaryFolder.getRoot());
 
-        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraExe(), DSE_SOCK, false, extraArgs);
+        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), DSE_SOCK, false, extraArgs);
 
         CLI.preflightChecks();
         Thread cliThread = new Thread(CLI);

@@ -35,7 +35,7 @@ public class ManagementApplication extends Application
     private static final Logger logger = LoggerFactory.getLogger(ManagementApplication.class);
 
     public final File dseUnixSocketFile;
-    public final File dseCmdFile;
+    public final File cassandraHome;
     public final Collection<String> dseExtraArgs;
     public final CqlService cqlService;
 
@@ -43,11 +43,12 @@ public class ManagementApplication extends Application
     private final LifecycleResources lifecycle;
     private final Set<Object> resources;
     private final AtomicReference<STATE> requestedState = new AtomicReference<>(STATE.UNKNOWN);
+    private final AtomicReference<String> activeProfile = new AtomicReference<>(null);
 
-    public ManagementApplication(File dseCmdFile, File dseUnixSocketFile, CqlService cqlService, Collection<String> dseExtraArgs)
+    public ManagementApplication(File cassandraHome, File dseUnixSocketFile, CqlService cqlService, Collection<String> dseExtraArgs)
     {
         this.dseUnixSocketFile = dseUnixSocketFile;
-        this.dseCmdFile = dseCmdFile;
+        this.cassandraHome = cassandraHome;
         this.dseExtraArgs = dseExtraArgs;
         this.lifecycle = new LifecycleResources(this);
         this.cqlService = cqlService;
@@ -79,7 +80,7 @@ public class ManagementApplication extends Application
             logger.debug("Current Requested State is {}", currentState);
             if (currentState != STATE.STOPPED)
             {
-                Response r = lifecycle.startNode();
+                Response r = lifecycle.startNode(getActiveProfile());
                 return r.getStatus() >= 200 && r.getStatus() < 300;
             }
 
@@ -100,6 +101,16 @@ public class ManagementApplication extends Application
     public void setRequestedState(STATE state)
     {
         requestedState.set(state);
+    }
+
+    public String getActiveProfile()
+    {
+        return activeProfile.get();
+    }
+
+    public void setActiveProfile(String profile)
+    {
+        activeProfile.set(profile);
     }
 
     public enum STATE {

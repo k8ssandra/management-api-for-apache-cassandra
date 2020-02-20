@@ -2,6 +2,8 @@
 package com.datastax.bdp.management.helpers;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -48,18 +50,31 @@ public class IntegrationTestUtils
     public static List<String> getExtraArgs(Class testClass, String suffix, File tempDir, int offset)
     {
         logger.info("Test OFFSET is {}", offset);
-        File logDir = new File(System.getProperty("dse.test.log.dir"), testClass.getName() + "." + suffix + "." + offset);
+        File logDir = new File("/tmp", testClass.getName() + "." + suffix + "." + offset);
         logDir.mkdirs();
 
         return ImmutableList.of(
                 "-Dcassandra.jmx.remote.port=" + (7199 + offset),
                 "-Dcassandra.native_transport_port=" + (9042 + offset),
-                "-Dcassandra.logdir=" + tempDir.getAbsolutePath(),
+                "-Dcassandra.storagedir=" + tempDir.getAbsolutePath(),
+                "-Dcassandra.logdir=" + logDir.getAbsolutePath(),
+                "-Dcassandra.superuser_setup_delay_ms=100",
                 "-Dstart_native_transport=false");
     }
 
-    public static String getCassandraExe()
+    public static String getCassandraHome()
     {
-        return System.getProperty("CASSANDRA_HOME") + "/bin/cassandra";
+        return System.getProperty("CASSANDRA_HOME");
+    }
+
+    public static File getFile(Class resourceClass, String fileName){
+        try
+        {
+            return new File(URLDecoder.decode(resourceClass.getResource(fileName).getFile(), "UTF-8"));
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            return new File(resourceClass.getResource(fileName).getFile());
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.datastax.mgmtapi;
 
 import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
+import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
 import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
@@ -21,25 +22,19 @@ public class Agent {
 
     public static void premain(String arg, Instrumentation inst) throws Exception {
 
-        File temp = Files.createTempDirectory("tmp").toFile();
-        temp.deleteOnExit();
-
-        Map<TypeDescription, byte[]> injected = new HashMap<>();
-
-        injected.put(new TypeDescription.ForLoadedType(CassandraDaemonInterceptor.class), ClassFileLocator.ForClassLoader.read(CassandraDaemonInterceptor.class));
-        ClassInjector.UsingInstrumentation.of(temp, ClassInjector.UsingInstrumentation.Target.BOOTSTRAP, inst).inject(injected);
-
         new AgentBuilder.Default()
                 //.disableClassFormatChanges()
                 //.with(AgentBuilder.Listener.StreamWriting.toSystemOut().withTransformationsOnly()) //For debug
                 .ignore(new AgentBuilder.RawMatcher.ForElementMatchers(nameStartsWith("net.bytebuddy.").or(isSynthetic()), any(), any()))
-                //.enableBootstrapInjection(inst, temp)
                 //Cassandra Daemon
                 .type(CassandraDaemonInterceptor.type())
                 .transform(CassandraDaemonInterceptor.transformer())
                 //Query Handler
                 .type(QueryHandlerInterceptor.type())
                 .transform(QueryHandlerInterceptor.transformer())
+                //Auth Setup
+                .type(CassandraRoleManagerInterceptor.type())
+                .transform(CassandraRoleManagerInterceptor.transformer())
                 .installOn(inst);
     }
 }

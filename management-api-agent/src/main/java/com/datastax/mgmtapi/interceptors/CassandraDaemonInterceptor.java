@@ -3,8 +3,6 @@ package com.datastax.mgmtapi.interceptors;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
@@ -12,10 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.bdp.ipc.IPCController;
 import com.datastax.mgmtapi.NodeOpsProvider;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
@@ -27,18 +22,8 @@ import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
-import org.apache.cassandra.auth.IAuthenticator;
-import org.apache.cassandra.service.ClientState;
-import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.transport.CBUtil;
-import org.apache.cassandra.transport.Connection;
-import org.apache.cassandra.transport.Frame;
-import org.apache.cassandra.transport.Message;
-import org.apache.cassandra.transport.ProtocolException;
-import org.apache.cassandra.transport.ProtocolVersion;
-import org.apache.cassandra.transport.ProtocolVersionLimit;
 import org.apache.cassandra.transport.Server;
-import org.apache.cassandra.transport.ServerConnection;
 import org.apache.cassandra.transport.UnixSocketServer;
 
 public class CassandraDaemonInterceptor
@@ -112,6 +97,4 @@ public class CassandraDaemonInterceptor
             logger.warn("Problem starting DataStax Management API for Apache Cassandra", e);
         }
     }
-
-
 }

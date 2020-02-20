@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -33,6 +34,7 @@ import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
 import org.apache.http.HttpStatus;
 
+import static com.datastax.bdp.management.helpers.IntegrationTestUtils.getFile;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_PROVIDER_CLASS;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_PROVIDER_PASSWORD;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_PROVIDER_USER_NAME;
@@ -62,7 +64,7 @@ public class IntegrationTest
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testKeepAlive", temporaryFolder.getRoot());
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraExe(), dseSock, true, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, true, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -192,7 +194,7 @@ public class IntegrationTest
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testLifecycle", temporaryFolder.getRoot());
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraExe(), dseSock, false, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -289,7 +291,7 @@ public class IntegrationTest
         int offset = ThreadLocalRandom.current().nextInt(1024);
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testSuperuserWasNotSet", temporaryFolder.getRoot(), offset);
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraExe(), dseSock, false, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -299,11 +301,17 @@ public class IntegrationTest
         try
         {
             cliThread.start();
-
             client = new NettyHttpIPCClient(mgmtSock);
 
+            //Configure
+            boolean configured = client.post(URI.create("http://localhost/api/v0/lifecycle/configure?profile=authtest").toURL(),
+                    FileUtils.readFileToString(getFile(this.getClass(), "operator-sample.yaml")), "application/yaml")
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+
+            assertTrue(configured);
+
             //Startup
-            boolean started = client.post(URI.create("http://localhost/api/v0/lifecycle/start").toURL(), null)
+            boolean started = client.post(URI.create("http://localhost/api/v0/lifecycle/start?profile=authtest").toURL(), null)
                     .thenApply(r -> r.status().code() == HttpStatus.SC_CREATED).join();
 
             assertTrue(started);
@@ -328,7 +336,7 @@ public class IntegrationTest
                 CqlSession session =  new TestgCqlSessionBuilder()
                         .withConfigLoader(DriverConfigLoader.programmaticBuilder()
                                 .withString(AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
-                                .withString(AUTH_PROVIDER_USER_NAME, "cassandrajjj")
+                                .withString(AUTH_PROVIDER_USER_NAME, "cassandra")
                                 .withString(AUTH_PROVIDER_PASSWORD, "cassandra")
                                 .withString(LOAD_BALANCING_LOCAL_DATACENTER, "Cassandra")
                                 .build())

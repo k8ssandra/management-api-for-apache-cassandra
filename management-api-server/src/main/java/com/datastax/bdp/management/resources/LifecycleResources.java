@@ -5,19 +5,31 @@
  */
 package com.datastax.bdp.management.resources;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +38,10 @@ import com.datastax.bdp.management.UnixCmds;
 import com.datastax.bdp.management.UnixSocketCQLAccess;
 import com.datastax.bdp.util.ShellUtils;
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
 
@@ -37,6 +53,9 @@ public class LifecycleResources
 {
     private static final Logger logger = LoggerFactory.getLogger(LifecycleResources.class);
     private final ManagementApplication app;
+
+    static final YAMLMapper yamlMapper = new YAMLMapper();
+    static final String PROFILE_PATTERN = "[0-9a-zA-Z\\-_]+";
 
     public LifecycleResources(ManagementApplication app)
     {
@@ -58,7 +77,7 @@ public class LifecycleResources
     @Path("/start")
     @POST
     @Operation(description = "Starts DSE")
-    public synchronized Response startNode()
+    public synchronized Response startNode(@QueryParam("profile") String profile)
     {
         app.setRequestedState(STARTED);
 
@@ -95,23 +114,34 @@ public class LifecycleResources
 
         try
         {
-            Map<String,String> environment = ImmutableMap.of("JVM_EXTRA_OPTS","-javaagent:/home/jake/workspace/oss-management-api/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar");
+            //FIXME: default location
+            Map<String,String> environment = ImmutableMap.of("JVM_EXTRA_OPTS","-javaagent:../management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar");
+
+            StringBuilder profileArgs = new StringBuilder();
+
+            if (profile != null)
+            {
+                profileArgs.append("-Dcassandra.config=file:///tmp/").append(profile).append("/cassandra.yaml")
+                        .append(" -Dcassandra-rackdc.properties=file:///tmp/").append(profile).append("/node-topology.properties");
+            }
 
             boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s 1>&2",
-                            app.dseCmdFile.getAbsolutePath(), app.dseUnixSocketFile.getAbsolutePath(),
+                    String.format("nohup %s/bin/cassandra -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
+                            app.cassandraHome.getAbsolutePath(),
+                            app.dseUnixSocketFile.getAbsolutePath(),
+                            profileArgs.toString(),
                             String.join(" ", app.dseExtraArgs)),
                     (input, err) -> true,
                     (exitCode, err) -> {
-                        logger.error("Error starting DSE: {}", err.lines().collect(Collectors.joining("\n")));
+                        logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
                         return false;
                     },
                     environment);
 
             if (started)
-                logger.info("Started DSE");
+                logger.info("Started Cassandra");
             else
-                logger.warn("Error starting dse");
+                logger.warn("Error starting Cassandra");
 
             return Response.status(started ? HttpStatus.SC_CREATED : HttpStatus.SC_METHOD_FAILURE).build();
         }
@@ -189,12 +219,92 @@ public class LifecycleResources
         }
     }
 
+    private JsonNode findCassandraYaml() throws IOException
+    {
+        File cassandraConfig = null;
+
+        if (System.getenv("CASSANDRA_CONF") != null)
+        {
+            cassandraConfig = new File(System.getenv("CASSANDRA_CONF") + "/cassandra.yaml");
+        }
+        else
+        {
+            cassandraConfig = new File(app.cassandraHome, "conf/cassandra.yaml");
+        }
+
+        if (cassandraConfig.exists() && cassandraConfig.isFile())
+            return yamlMapper.readTree(cassandraConfig);
+
+        throw new IOException("cassandra.yaml not found");
+    }
+
     @Path("/configure")
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes("application/yaml")
     @Operation(description = "Configure C*. Will fail if C* is already started")
-    public synchronized Response configureNode()
+    public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
-        app.setRequestedState(STOPPED);
+        if (app.getRequestedState() == STARTED)
+            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+
+        //FIXME: Regex
+        if (profile == null)
+            return Response.status(Response.Status.BAD_REQUEST).build();
+
+        //Find cassandra yaml
+        try
+        {
+            JsonNode jn = yamlMapper.readTree(yaml.getBytes());
+
+            jn = jn.get("spec");
+            if (jn == null)
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "spec missing").build();
+
+            String clusterName = jn.get("clusterName").textValue();
+            jn = jn.get("config");
+            if (jn == null)
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "config missing").build();
+
+            JsonNode nodeTopology = jn.get("node-topology");
+            String dc = "vdc1";
+            String rack = "vrack1";
+            if (nodeTopology != null)
+            {
+                dc = nodeTopology.get("dc").asText("vdc1");
+                rack = nodeTopology.get("dc").asText("vrack1");
+            }
+
+            new File("/tmp/" + profile).mkdirs();
+
+            StringBuilder sb = new StringBuilder()
+                    .append("dc=").append(dc).append("\n")
+                    .append("rack=").append(rack).append("\n");
+
+            FileUtils.write(new File("/tmp/" + profile + "/node-topology.properties"), sb.toString(), false);
+
+            JsonNode defaultCYaml = findCassandraYaml();
+            JsonNode cassandraYaml = jn.get("cassandra-yaml");
+
+            ObjectNode customYaml = defaultCYaml.deepCopy();
+
+            Iterator<Map.Entry<String, JsonNode>> it = cassandraYaml.fields();
+            while (it.hasNext())
+            {
+                Map.Entry<String, JsonNode> e = it.next();
+                customYaml.set(e.getKey(), e.getValue());
+            }
+
+            if (clusterName != null)
+                customYaml.set("cluster_name", TextNode.valueOf(clusterName));
+
+            yamlMapper.writeValue(new File("/tmp/" + profile + "/cassandra.yaml"), customYaml);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+            return Response.serverError().build();
+        }
 
         return Response.ok().build();
     }

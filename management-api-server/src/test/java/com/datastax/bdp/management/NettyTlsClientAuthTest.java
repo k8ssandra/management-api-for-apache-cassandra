@@ -58,6 +58,7 @@ import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.jboss.resteasy.test.TestPortProvider;
 
+import static com.datastax.bdp.management.helpers.IntegrationTestUtils.getFile;
 import static org.jboss.resteasy.test.TestPortProvider.generateURL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -295,7 +296,7 @@ public class NettyTlsClientAuthTest
         File clientCrtFile = getFile(getClass(), "mutual_auth_client.crt");
         String clientKeyPassword = null;
 
-        Cli cli = new Cli(Lists.newArrayList("file://" + mgmtSock, BASE_URI), IntegrationTestUtils.getCassandraExe(), dseSock, false, extraArgs,
+        Cli cli = new Cli(Lists.newArrayList("file://" + mgmtSock, BASE_URI), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs,
                 trustCertFile.getAbsolutePath(), serverCrtFile.getAbsolutePath(), serverKeyFile.getAbsolutePath());
 
         cli.preflightChecks();
@@ -339,17 +340,6 @@ public class NettyTlsClientAuthTest
             cli.stop();
             FileUtils.deleteQuietly(new File(dseSock));
             FileUtils.deleteQuietly(new File(mgmtSock));
-        }
-    }
-
-    public static File getFile (Class resourceClass, String fileName){
-        try
-        {
-            return new File(URLDecoder.decode(resourceClass.getResource(fileName).getFile(), "UTF-8"));
-        }
-        catch (UnsupportedEncodingException e)
-        {
-            return new File(resourceClass.getResource(fileName).getFile());
         }
     }
 }

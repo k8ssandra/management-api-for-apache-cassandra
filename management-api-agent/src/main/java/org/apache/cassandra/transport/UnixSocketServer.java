@@ -16,7 +16,9 @@ import org.apache.cassandra.auth.IAuthenticator;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.ClientWarn;
 import org.apache.cassandra.service.QueryState;
+import org.apache.cassandra.transport.messages.AuthenticateMessage;
 import org.apache.cassandra.transport.messages.ErrorMessage;
+import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 
 public class UnixSocketServer
@@ -84,7 +86,11 @@ public class UnixSocketServer
                 QueryState qstate = connection.validateNewMessage(request.type, connection.getVersion(), request.getStreamId());
                 //logger.info("Executing {} {} {}", request, connection.getVersion(), request.getStreamId());
 
-                response = request.execute(qstate, queryStartNanoTime);
+                Message.Response r = request.execute(qstate, queryStartNanoTime);
+
+                //UnixSocket has no auth
+                response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
+
                 response.setStreamId(request.getStreamId());
                 response.setWarnings(ClientWarn.instance.getWarnings());
                 response.attach(connection);
