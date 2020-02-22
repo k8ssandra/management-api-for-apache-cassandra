@@ -98,6 +98,8 @@ if [ -d "/opt/mgmtapi" ] ; then
     DSE_MGMT_DSE_PATH="--cassandra-home /usr/"
     MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_DSE_PATH"
 
+	export CASSANDRA_CONF=/etc/cassandra
+
     if [ ! -z "$DSE_MGMT_NO_KEEP_ALIVE" ]; then
         DSE_MGMT_NO_KEEP_ALIVE="--no-keep-alive $DSE_MGMT_NO_KEEP_ALIVE"
         MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_NO_KEEP_ALIVE"
