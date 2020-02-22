@@ -161,6 +161,9 @@
                         <dockerFileRoot>${basedir}</dockerFileRoot>
                         <CASSANDRA_HOME>${basedir}/target/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>
+                    <environmentVariables>
+                        <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-${project.version}.jar</JVM_EXTRA_OPTS>
+                    </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>
@@ -214,9 +217,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Premain-Class>com.datastax.mgmtapi.service.Cli</Premain-Class>
-                                    </manifestEntries>
+                                    <mainClass>com.datastax.mgmtapi.Cli</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
