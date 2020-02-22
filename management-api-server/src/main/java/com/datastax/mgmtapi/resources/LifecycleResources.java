@@ -120,6 +120,8 @@ public class LifecycleResources
 
             if (profile != null)
             {
+                app.setActiveProfile(profile);
+
                 profileArgs.append("-Dcassandra.config=file:///tmp/").append(profile).append("/cassandra.yaml")
                         .append(" -Dcassandra-rackdc.properties=file:///tmp/").append(profile).append("/node-topology.properties");
             }
