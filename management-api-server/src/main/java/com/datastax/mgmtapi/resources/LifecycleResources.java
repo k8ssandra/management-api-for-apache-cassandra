@@ -273,7 +273,7 @@ public class LifecycleResources
             if (nodeTopology != null)
             {
                 dc = nodeTopology.get("dc").asText("vdc1");
-                rack = nodeTopology.get("dc").asText("vrack1");
+                rack = nodeTopology.get("rack").asText("vrack1");
             }
 
             new File("/tmp/" + profile).mkdirs();

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,9 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 public class K8SeedProvider implements SeedProvider
 {
     private static final Logger logger = LoggerFactory.getLogger(K8SeedProvider.class);
+
+    public K8SeedProvider(Map<String, String> params) {
+    }
 
     public List<InetAddress> getSeeds()
     {
