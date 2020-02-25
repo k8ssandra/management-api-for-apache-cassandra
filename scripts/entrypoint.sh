@@ -52,7 +52,7 @@ if [ -d "/opt/mgmtapi" ] ; then
 
     MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_DSE_SOCKET $DSE_MGMT_LISTEN_TCP $DSE_MGMT_LISTEN_SOCKET"
 
-    # These will generally come from the dse-operator
+    # These will generally come from the k8s operator
     if [ ! -z "$DSE_MGMT_EXPLICIT_START" ]; then
         DSE_MGMT_EXPLICIT_START="--explicit-start $DSE_MGMT_EXPLICIT_START"
         MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_EXPLICIT_START"
