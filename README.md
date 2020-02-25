@@ -16,7 +16,7 @@
    * Configuration Management
    * Health Checks
    * Per node actions (all nodetool)
-   *   
+     
 ### Design Principles
   * Secure by default
   * Simple to use and extend
@@ -46,7 +46,8 @@
     docker run --name mgmtapi -it --rm mgmtapi
     
 ### API
-   [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://gist.githubusercontent.com/datastax/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
+   [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/datastax/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
+   *(Won't work till repo is OSS)*
     
 ### Roadmap
   * CQL based configuration changes
