@@ -23,8 +23,8 @@ import org.junit.rules.TemporaryFolder;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpIPCClient;
 import com.datastax.mgmtapi.helpers.TestgCqlSessionBuilder;
-import com.datastax.bdp.util.ShellUtils;
-import com.datastax.bdp.util.SocketUtils;
+import com.datastax.mgmtapi.util.ShellUtils;
+import com.datastax.mgmtapi.util.SocketUtils;
 
 import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;

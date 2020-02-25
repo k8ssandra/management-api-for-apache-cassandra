@@ -3,7 +3,7 @@
  *
  * Please see the included license file for details.
  */
-package com.datastax.bdp.ipc;
+package com.datastax.mgmtapi.ipc;
 
 import java.io.File;
 import java.io.IOException;

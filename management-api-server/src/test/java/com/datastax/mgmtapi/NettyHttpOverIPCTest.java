@@ -22,7 +22,7 @@ import javax.ws.rs.core.MediaType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datastax.bdp.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.IPCController;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

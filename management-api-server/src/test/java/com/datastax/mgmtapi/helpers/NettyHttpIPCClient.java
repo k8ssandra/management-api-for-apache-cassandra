@@ -16,7 +16,7 @@ import javax.net.ssl.SSLException;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 
-import com.datastax.bdp.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.IPCController;
 import com.datastax.mgmtapi.Cli;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

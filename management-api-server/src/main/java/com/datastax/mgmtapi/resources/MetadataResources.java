@@ -37,7 +37,7 @@ public class MetadataResources
 
     @GET
     @Path("/versions/release")
-    @Operation(summary = "Returns the Release Version")
+    @Operation(summary = "Returns the Cassandra release version")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getReleaseVersion()
     {

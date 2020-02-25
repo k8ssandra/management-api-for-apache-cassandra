@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.ws.rs.ApplicationPath;
 
-import com.datastax.bdp.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.IPCController;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;

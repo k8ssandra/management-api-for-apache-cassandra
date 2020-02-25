@@ -33,7 +33,7 @@ import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.bdp.util.SocketUtils;
+import com.datastax.mgmtapi.util.SocketUtils;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 

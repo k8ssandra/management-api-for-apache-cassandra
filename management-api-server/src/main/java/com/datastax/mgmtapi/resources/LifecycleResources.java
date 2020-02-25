@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.UnixCmds;
 import com.datastax.mgmtapi.UnixSocketCQLAccess;
-import com.datastax.bdp.util.ShellUtils;
+import com.datastax.mgmtapi.util.ShellUtils;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -71,7 +71,7 @@ public class LifecycleResources
      */
     @Path("/start")
     @POST
-    @Operation(description = "Starts DSE")
+    @Operation(description = "Starts Cassandra")
     public synchronized Response startNode(@QueryParam("profile") String profile)
     {
         app.setRequestedState(STARTED);
@@ -154,7 +154,7 @@ public class LifecycleResources
 
     @Path("/stop")
     @POST
-    @Operation(description = "Stops DSE. Keeps node from restarting automatically until /start is called")
+    @Operation(description = "Stops Cassandra. Keeps node from restarting automatically until /start is called")
     public synchronized Response stopNode()
     {
         app.setRequestedState(STOPPED);
@@ -171,7 +171,7 @@ public class LifecycleResources
 
                 if (!maybePid.isPresent())
                 {
-                    logger.info("DSE already stopped");
+                    logger.info("Cassandra already stopped");
                     return Response.ok("OK").build();
                 }
 
@@ -181,7 +181,7 @@ public class LifecycleResources
                         (exitCode, err) -> false);
 
                 if (!stopped)
-                    logger.warn("Killing DSE failed");
+                    logger.warn("Killing Cassandra failed");
 
                 Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
             } while (tries-- > 0);
@@ -197,8 +197,8 @@ public class LifecycleResources
 
                 if (!stopped)
                 {
-                    logger.info("DSE not stopped trying with kill -9");
-                    return Response.serverError().entity(Entity.text("Killing DSE Failed")).build();
+                    logger.info("Cassandra not stopped trying with kill -9");
+                    return Response.serverError().entity(Entity.text("Killing Cassandra Failed")).build();
                 }
 
                 Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
@@ -206,8 +206,8 @@ public class LifecycleResources
                 maybePid = findPid();
                 if (maybePid.isPresent())
                 {
-                    logger.info("DSE is not able to die");
-                    return Response.serverError().entity(Entity.text("Killing DSE Failed")).build();
+                    logger.info("Cassandra is not able to die");
+                    return Response.serverError().entity(Entity.text("Killing Cassandra Failed")).build();
                 }
             }
 
@@ -243,7 +243,7 @@ public class LifecycleResources
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes("application/yaml")
-    @Operation(description = "Configure C*. Will fail if C* is already started")
+    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
         if (app.getRequestedState() == STARTED)
@@ -312,7 +312,7 @@ public class LifecycleResources
 
     @Path("/pid")
     @GET
-    @Operation(description = "The PID of DSE if it's running")
+    @Operation(description = "The PID of Cassandra, if it's running")
     public Response getPID()
     {
         try

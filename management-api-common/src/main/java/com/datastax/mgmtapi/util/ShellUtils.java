@@ -3,7 +3,7 @@
  *
  * Please see the included license file for details.
  */
-package com.datastax.bdp.util;
+package com.datastax.mgmtapi.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

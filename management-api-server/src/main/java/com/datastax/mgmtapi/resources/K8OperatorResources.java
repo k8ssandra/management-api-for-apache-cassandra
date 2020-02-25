@@ -54,7 +54,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/readiness")
-    @Operation(summary = "Indicates whether the DSE service is ready to service requests")
+    @Operation(summary = "Indicates whether the Cassandra service is ready to service requests")
     @Produces(MediaType.TEXT_PLAIN)
     public Response checkReadiness()
     {
@@ -77,7 +77,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/cluster")
-    @Operation(summary = "Indicated whether the DSE Cluster is able to achieve the specified consistency")
+    @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency")
     public Response checkClusterConsistency(@QueryParam(value="consistency_level")String consistencyLevelStr, @QueryParam(value = "rf_per_dc") Integer rfPerDcVal)
     {
         return handle(() ->

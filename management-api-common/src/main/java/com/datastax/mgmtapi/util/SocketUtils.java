@@ -4,7 +4,7 @@
  * Please see the included license file for details.
  */
 
-package com.datastax.bdp.util;
+package com.datastax.mgmtapi.util;
 
 import java.io.File;
 import java.io.IOException;

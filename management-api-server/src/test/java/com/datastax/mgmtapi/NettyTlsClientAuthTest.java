@@ -27,7 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.helpers.NettyHttpIPCClient;
-import com.datastax.bdp.util.SocketUtils;
+import com.datastax.mgmtapi.util.SocketUtils;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;

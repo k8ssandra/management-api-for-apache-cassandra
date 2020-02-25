@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.bdp.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.IPCController;
 import com.datastax.mgmtapi.NodeOpsProvider;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
