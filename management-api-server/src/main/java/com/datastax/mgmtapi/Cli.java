@@ -72,9 +72,9 @@ import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.plugins.server.netty.NettyUtil;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
-@Copyright(startYear = 2019, holder = "DataStax")
+@Copyright(startYear = 2020, holder = "DataStax")
 @License(url = "https://www.datastax.com/terms/product-specific-license-terms")
-@Command(name = "dse-management-api", description = "REST service for managing a DSE node")
+@Command(name = "cassandra-management-api", description = "REST service for managing am Apache Cassandra node")
 public class Cli implements Runnable
 {
     public static final String PROTOCOL_TLS_V1_2 = "TLSv1.2";
@@ -103,10 +103,10 @@ public class Cli implements Runnable
 
     @Path
     @Required
-    @Option(name = {"-S", "--dse-socket"},
+    @Option(name = {"-S", "--cassandra-socket"},
             arity = 1,
-            description = "Path to DSE unix socket file")
-    private String dse_unix_socket_file = "/var/run/dse.sock";
+            description = "Path to Cassandra unix socket file")
+    private String cassandra_unix_socket_file = "/var/run/cassandra.sock";
 
     @Path(executable = true)
     @Option(name = {"-C", "--cassandra-home"},
@@ -116,12 +116,12 @@ public class Cli implements Runnable
 
     @Option(name = {"-K", "--no-keep-alive"},
             arity = 1,
-            description = "Setting this flag will stop the management api from starting or keeping dse up automatically")
+            description = "Setting this flag will stop the management api from starting or keeping Cassandra up automatically")
     private boolean no_keep_alive = false;
 
     @Option(name = {"--explicit-start"},
             arity = 1,
-            description = "When using keep-alive, setting this flag will make the management api wait to start dse until /start is called via REST")
+            description = "When using keep-alive, setting this flag will make the management api wait to start Cassandra until /start is called via REST")
     private boolean explicit_start = false;
 
     @Path(writable = false)
@@ -144,10 +144,10 @@ public class Cli implements Runnable
 
 
     private boolean useTls = false;
-    private File dseUnixSocketFile = null;
+    private File cassandraUnixSocketFile = null;
     private File cassandraHomeDir = null;
     private File cassandraExe = null;
-    private Collection<String> dseExtraArgs = Collections.emptyList();
+    private Collection<String> cassandraExtraArgs = Collections.emptyList();
     private ManagementApplication application = null;
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private List<NettyJaxrsServer> servers = new ArrayList<>();
@@ -158,20 +158,20 @@ public class Cli implements Runnable
     }
 
     @VisibleForTesting
-    public Cli(List<String> listenAddresses, String cassandraHomeDir, String dseUnixSocketFile, boolean keepAlive, Collection<String> dseExtraArgs)
+    public Cli(List<String> listenAddresses, String cassandraHomeDir, String cassandraUnixSocketFile, boolean keepAlive, Collection<String> cassandraExtraArgs)
     {
-        this(listenAddresses, cassandraHomeDir, dseUnixSocketFile, keepAlive, dseExtraArgs, null, null, null);
+        this(listenAddresses, cassandraHomeDir, cassandraUnixSocketFile, keepAlive, cassandraExtraArgs, null, null, null);
     }
 
     @VisibleForTesting
-    public Cli(List<String> listenAddresses, String cassandraHomeDir, String dseUnixSocketFile, boolean keepAlive,
-            Collection<String> dseExtraArgs, String caCertFile, String certFile, String certKeyFile)
+    public Cli(List<String> listenAddresses, String cassandraHomeDir, String cassandraUnixSocketFile, boolean keepAlive,
+            Collection<String> cassandraExtraArgs, String caCertFile, String certFile, String certKeyFile)
     {
         this.listen_address = listenAddresses;
         this.cassandra_home = cassandraHomeDir;
-        this.dse_unix_socket_file = dseUnixSocketFile;
+        this.cassandra_unix_socket_file = cassandraUnixSocketFile;
         this.no_keep_alive = !keepAlive;
-        this.dseExtraArgs = dseExtraArgs;
+        this.cassandraExtraArgs = cassandraExtraArgs;
         this.tls_ca_cert_file = caCertFile;
         this.tls_cert_file = certFile;
         this.tls_key_file = certKeyFile;
@@ -188,7 +188,7 @@ public class Cli implements Runnable
 
         preflightChecks();
 
-        application = new ManagementApplication(cassandraHomeDir, cassandraExe, dseUnixSocketFile, new CqlService(), dseExtraArgs);
+        application = new ManagementApplication(cassandraHomeDir, cassandraExe, cassandraUnixSocketFile, new CqlService(), cassandraExtraArgs);
 
         try
         {
@@ -293,7 +293,7 @@ public class Cli implements Runnable
     }
 
 
-    void checkDseCmd()
+    private void checkCassandraCmd()
     {
         try
         {
@@ -323,7 +323,7 @@ public class Cli implements Runnable
 
             //Verify Cassandra cmd works
             List<String> errorOutput = new ArrayList<>();
-            String dseVersion = ShellUtils.executeShellWithHandlers(
+            String version = ShellUtils.executeShellWithHandlers(
                     cassandraExe.getAbsolutePath() + " -v",
                     (input, err) -> input.readLine(),
                     (exitCode, err) -> {
@@ -335,15 +335,15 @@ public class Cli implements Runnable
                     });
 
 
-            if (dseVersion == null)
+            if (version == null)
                 throw new IllegalArgumentException("Version check failed. stderr: " + String.join("\n", errorOutput));
 
-            logger.info("Cassandra Version {}", dseVersion);
+            logger.info("Cassandra Version {}", version);
         }
         catch (IllegalArgumentException e)
         {
             logger.error("Error encountered:", e);
-            logger.error("Unable to start: unable to find or execute dse " + (cassandra_home == null ? "use -C" : cassandra_home));
+            logger.error("Unable to start: unable to find or execute bin/cassandra " + (cassandra_home == null ? "use -C" : cassandra_home));
             System.exit(3);
         }
         catch (IOException io)
@@ -357,11 +357,11 @@ public class Cli implements Runnable
     {
         try
         {
-            dseUnixSocketFile = Paths.get(dse_unix_socket_file).toFile();
+            cassandraUnixSocketFile = Paths.get(cassandra_unix_socket_file).toFile();
         }
         catch (InvalidPathException e)
         {
-            logger.error("Unable to start: dse_unix_socket_file is not a valid file path: " + dse_unix_socket_file);
+            logger.error("Unable to start: cassandra_unix_socket_file is not a valid file path: " + cassandra_unix_socket_file);
             System.exit(3);
         }
     }
@@ -433,7 +433,7 @@ public class Cli implements Runnable
     {
         checkNettyDeps();
         checkTLSDeps();
-        checkDseCmd();
+        checkCassandraCmd();
         checkUnixSocket();
     }
 

@@ -278,8 +278,8 @@ public class NettyTlsClientAuthTest
 
         String mgmtSock = SocketUtils.makeValidUnixSocketFile(null, "management-netty-tls-mgmt");
         new File(mgmtSock).deleteOnExit();
-        String dseSock = SocketUtils.makeValidUnixSocketFile(null, "management-netty-tls-dse");
-        new File(dseSock).deleteOnExit();
+        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-netty-tls-cass");
+        new File(cassSock).deleteOnExit();
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(NettyTlsClientAuthTest.class, "", temporaryFolder.getRoot());
 
@@ -293,7 +293,7 @@ public class NettyTlsClientAuthTest
         File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.crt");
         String clientKeyPassword = null;
 
-        Cli cli = new Cli(Lists.newArrayList("file://" + mgmtSock, BASE_URI), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs,
+        Cli cli = new Cli(Lists.newArrayList("file://" + mgmtSock, BASE_URI), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs,
                 trustCertFile.getAbsolutePath(), serverCrtFile.getAbsolutePath(), serverKeyFile.getAbsolutePath());
 
         cli.preflightChecks();
@@ -335,7 +335,7 @@ public class NettyTlsClientAuthTest
         finally
         {
             cli.stop();
-            FileUtils.deleteQuietly(new File(dseSock));
+            FileUtils.deleteQuietly(new File(cassSock));
             FileUtils.deleteQuietly(new File(mgmtSock));
         }
     }

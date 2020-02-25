@@ -43,20 +43,18 @@ public class DestructiveOpsIntegrationTest
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
-    public void startDSE() throws IOException
+    public void startCassandra() throws IOException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
 
         MGMT_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-destr-mgmt");
         new File(MGMT_SOCK).deleteOnExit();
-        String dseSock = SocketUtils.makeValidUnixSocketFile(null, "management-destr-dse");
-        new File(dseSock).deleteOnExit();
-
-        String dseExe = System.getProperty("dse.bin") + "/dse";
+        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-destr-cass");
+        new File(cassSock).deleteOnExit();
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(DestructiveOpsIntegrationTest.class, "", temporaryFolder.getRoot());
 
-        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), dseExe, dseSock, false, extraArgs);
+        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
 
         CLI.preflightChecks();
         Thread cliThread = new Thread(CLI);
@@ -118,7 +116,7 @@ public class DestructiveOpsIntegrationTest
     }
 
     @After
-    public void stopDSE() throws MalformedURLException, UnsupportedEncodingException
+    public void stopCassandra() throws MalformedURLException, UnsupportedEncodingException
     {
         try
         {

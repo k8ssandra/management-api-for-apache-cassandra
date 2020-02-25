@@ -58,14 +58,13 @@ public class LifecycleResources
     }
 
     /**
-     * Starts a DSE node
+     * Starts a Cassandra node
      *
      * Handles the following:
-     *   - DSE pid found and can connect: status 202
-     *   - DSE pid not found and can not connect: status 201
-     *   - DSE pid not found but can connect: status 206
-     *   - DSE pid found but can not connect: status 204
-     *
+     *   - Cassandra pid found and can connect: status 202
+     *   - Cassandra pid not found and can not connect: status 201
+     *   - Cassandra pid not found but can connect: status 206
+     *   - Cassandra pid found but can not connect: status 204
      *
      * @return
      */
@@ -80,7 +79,7 @@ public class LifecycleResources
         boolean canConnect;
         try
         {
-            CqlSession session = UnixSocketCQLAccess.get(app.dseUnixSocketFile).get();
+            CqlSession session = UnixSocketCQLAccess.get(app.cassandraUnixSocketFile).get();
             session.execute("SELECT * FROM system.peers");
 
             canConnect = true;
@@ -129,9 +128,9 @@ public class LifecycleResources
             boolean started = ShellUtils.executeShellWithHandlers(
                     String.format("nohup %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
                             app.cassandraExe.getAbsolutePath(),
-                            app.dseUnixSocketFile.getAbsolutePath(),
+                            app.cassandraUnixSocketFile.getAbsolutePath(),
                             profileArgs.toString(),
-                            String.join(" ", app.dseExtraArgs)),
+                            String.join(" ", app.cassandraExtraArgs)),
                     (input, err) -> true,
                     (exitCode, err) -> {
                         logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
@@ -333,6 +332,6 @@ public class LifecycleResources
 
     private Optional<Integer> findPid() throws IOException
     {
-        return UnixCmds.findDseWithMatchingArg("-Dcassandra.unix_socket_file=" + app.dseUnixSocketFile.getAbsolutePath());
+        return UnixCmds.findCassandraWithMatchingArg("-Dcassandra.unix_socket_file=" + app.cassandraUnixSocketFile.getAbsolutePath());
     }
 }

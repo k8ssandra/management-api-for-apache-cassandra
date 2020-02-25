@@ -21,13 +21,13 @@ public class CqlService
 {
     private static final Logger logger = LoggerFactory.getLogger(CqlService.class);
 
-    public ResultSet executeCql(File dseUnixSocketFile, String query) throws ConnectionClosedException
+    public ResultSet executeCql(File cassandraUnixSocketFile, String query) throws ConnectionClosedException
     {
-        CqlSession session = UnixSocketCQLAccess.get(dseUnixSocketFile).orElse(null);
+        CqlSession session = UnixSocketCQLAccess.get(cassandraUnixSocketFile).orElse(null);
 
         if (session == null || session.isClosed())
         {
-            throw new ConnectionClosedException("Internal connection to DSE closed");
+            throw new ConnectionClosedException("Internal connection to Cassandra closed");
         }
 
         try
@@ -49,13 +49,13 @@ public class CqlService
         }
     }
 
-    public ResultSet executePreparedStatement(File dseUnixSocketFile, String query,  Object... values) throws ConnectionClosedException
+    public ResultSet executePreparedStatement(File cassandraUnixSocketFile, String query,  Object... values) throws ConnectionClosedException
     {
-        CqlSession session = UnixSocketCQLAccess.get(dseUnixSocketFile).orElse(null);
+        CqlSession session = UnixSocketCQLAccess.get(cassandraUnixSocketFile).orElse(null);
 
         if (session == null || session.isClosed())
         {
-            throw new ConnectionClosedException("Internal connection to DSE closed");
+            throw new ConnectionClosedException("Internal connection to Cassandra closed");
         }
 
         SimpleStatementBuilder ssb = new SimpleStatementBuilder(query);

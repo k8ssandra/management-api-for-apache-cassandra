@@ -92,7 +92,7 @@ public class NodeOpsResources
     {
         return handle(() ->
         {
-            cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.decommission(?)", force);
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.decommission(?)", force);
 
             return Response.ok("OK").build();
         });
@@ -106,7 +106,7 @@ public class NodeOpsResources
     {
         return handle(() ->
         {
-            cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.setCompactionThroughput(?)", value);
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.setCompactionThroughput(?)", value);
 
             return Response.ok("OK").build();
         });
@@ -124,7 +124,7 @@ public class NodeOpsResources
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Address must be provided").build();
             }
 
-            cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.assassinate(?)", address);
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.assassinate(?)", address);
 
             return Response.ok("OK").build();
         });
@@ -146,7 +146,7 @@ public class NodeOpsResources
 
             for (String classQualifier : classQualifiers)
             {
-                cqlService.executePreparedStatement(app.dseUnixSocketFile,
+                cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
                         "CALL NodeOps.setLoggingLevel(?, ?)", classQualifier, rawLevel);
             }
 
@@ -164,7 +164,7 @@ public class NodeOpsResources
         {
             try
             {
-                cqlService.executeCql(app.dseUnixSocketFile, "CALL NodeOps.drain()");
+                cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.drain()");
 
                 return Response.ok("OK").build();
             }
@@ -186,11 +186,11 @@ public class NodeOpsResources
         {
             if (StringUtils.isBlank(host))
             {
-                cqlService.executeCql(app.dseUnixSocketFile, "CALL NodeOps.truncateAllHints()");
+                cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.truncateAllHints()");
             }
             else
             {
-                cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.truncateHintsForHost(?)", host);
+                cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.truncateHintsForHost(?)", host);
             }
 
             return Response.ok("OK").build();
@@ -205,7 +205,7 @@ public class NodeOpsResources
     {
         return handle(() ->
         {
-            cqlService.executeCql(app.dseUnixSocketFile, "CALL NodeOps.resetLocalSchema()");
+            cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.resetLocalSchema()");
 
             return Response.ok("OK").build();
         });
@@ -219,7 +219,7 @@ public class NodeOpsResources
     {
         return handle(() ->
         {
-            cqlService.executeCql(app.dseUnixSocketFile, "CALL NodeOps.reloadLocalSchema()");
+            cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.reloadLocalSchema()");
 
             return Response.ok("OK").build();
         });
@@ -233,7 +233,7 @@ public class NodeOpsResources
         }
         catch (NoNodeAvailableException | ConnectionClosedException e)
         {
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to DSE closed").build();
+            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to Cassandra closed").build();
         }
         catch (Throwable t)
         {

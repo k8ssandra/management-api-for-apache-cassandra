@@ -8,11 +8,9 @@ package com.datastax.mgmtapi.helpers;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
-import com.datastax.dse.driver.api.core.DseSessionBuilder;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.context.DriverContext;

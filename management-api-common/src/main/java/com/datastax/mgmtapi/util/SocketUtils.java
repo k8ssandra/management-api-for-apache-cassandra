@@ -48,7 +48,7 @@ public class SocketUtils
         {
 
             // Tests create the socket files in a per-test-run directory. Withtout this hack, the socket files
-            // would land in the per-DseNode instance directory (ng/SOME-UUID), which easily exceeds the 103/107
+            // would land in the per-Node instance directory (ng/SOME-UUID), which easily exceeds the 103/107
             // character limit, so we put the socket files into the shorter built/test/tmp/xyz directories.
             f = File.createTempFile(name + "-", ".sock", fSocketDir);
             try
@@ -62,7 +62,7 @@ public class SocketUtils
 
             if (f.getAbsolutePath().length() > SocketUtils.MAX_SOCKET_NAME)
             {
-                logger.warn("System property dse.collectd.socketdir overrides the default temp directory to '{}'," +
+                logger.warn("System property cassandra.collectd.socketdir overrides the default temp directory to '{}'," +
                         "but its path name is too long. Falling back to /tmp", socketDir);
                 socketDir = "/tmp";
                 f = File.createTempFile(name + "-", ".sock", new File("/tmp"));

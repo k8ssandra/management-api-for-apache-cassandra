@@ -56,13 +56,13 @@ public class IntegrationTest
 
         String mgmtSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-keepAlive-mgmt");
         new File(mgmtSock).deleteOnExit();
-        String dseSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-keepAlive-dse");
-        new File(dseSock).deleteOnExit();
+        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-keepAlive-cass");
+        new File(cassSock).deleteOnExit();
 
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testKeepAlive", temporaryFolder.getRoot());
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, true, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, true, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -120,7 +120,7 @@ public class IntegrationTest
             assertTrue(didKill);
 
             //Cleanup the file from the kill -9
-            assertTrue(new File(dseSock).delete());
+            assertTrue(new File(cassSock).delete());
 
             ready = client.get(URI.create("http://localhost/api/v0/probes/readiness").toURL())
                     .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
@@ -175,7 +175,7 @@ public class IntegrationTest
         finally
         {
             cli.stop();
-            FileUtils.deleteQuietly(new File(dseSock));
+            FileUtils.deleteQuietly(new File(cassSock));
             FileUtils.deleteQuietly(new File(mgmtSock));
         }
     }
@@ -187,12 +187,12 @@ public class IntegrationTest
 
         String mgmtSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-mgmt");
         new File(mgmtSock).deleteOnExit();
-        String dseSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-dse");
-        new File(dseSock).deleteOnExit();
+        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-cass");
+        new File(cassSock).deleteOnExit();
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testLifecycle", temporaryFolder.getRoot());
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -271,7 +271,7 @@ public class IntegrationTest
         finally
         {
             cli.stop();
-            FileUtils.deleteQuietly(new File(dseSock));
+            FileUtils.deleteQuietly(new File(cassSock));
             FileUtils.deleteQuietly(new File(mgmtSock));
         }
     }
@@ -283,13 +283,13 @@ public class IntegrationTest
 
         String mgmtSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-mgmt");
         new File(mgmtSock).deleteOnExit();
-        String dseSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-dse");
-        new File(dseSock).deleteOnExit();
+        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-cass");
+        new File(cassSock).deleteOnExit();
 
         int offset = ThreadLocalRandom.current().nextInt(1024);
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testSuperuserWasNotSet", temporaryFolder.getRoot(), offset);
 
-        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), dseSock, false, extraArgs);
+        Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
 
         cli.preflightChecks();
         Thread cliThread = new Thread(cli);
@@ -355,7 +355,7 @@ public class IntegrationTest
             if (client != null)
                 client.post(URI.create("http://localhost/api/v0/lifecycle/stop").toURL(), null).join();
             cli.stop();
-            FileUtils.deleteQuietly(new File(dseSock));
+            FileUtils.deleteQuietly(new File(cassSock));
             FileUtils.deleteQuietly(new File(mgmtSock));
         }
     }

@@ -243,30 +243,6 @@ public class K8OperatorResourcesTest {
     }
 
     @Test
-    public void testGetDSEReleaseVersion() throws Exception {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/metadata/versions/dse");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one())
-                .thenReturn(mockRow);
-
-        when(mockRow.getString(0))
-                .thenReturn("1.2.3");
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("1.2.3"));
-
-        verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getDSEReleaseVersion()"));
-    }
-
-    @Test
     public void testGetReleaseVersion() throws Exception {
         Context context = setup();
         ResultSet mockResultSet = mock(ResultSet.class);

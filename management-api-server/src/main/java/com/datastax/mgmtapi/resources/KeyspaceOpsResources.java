@@ -67,7 +67,7 @@ public class KeyspaceOpsResources
                 return Response.ok("OK").build();
             }
 
-            cqlService.executePreparedStatement(app.dseUnixSocketFile,
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
                     "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)", keyspaceRequest.jobs, keyspaceName, tables);
 
             return Response.ok("OK").build();
@@ -92,13 +92,13 @@ public class KeyspaceOpsResources
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("table must be provided").build();
             }
 
-            cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
 
             return Response.ok("OK").build();
         }
         catch (ConnectionClosedException e)
         {
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to DSE closed").build();
+            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to Cassandra closed").build();
         }
         catch (Throwable t)
         {

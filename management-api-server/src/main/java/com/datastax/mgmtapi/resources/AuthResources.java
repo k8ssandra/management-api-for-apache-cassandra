@@ -50,7 +50,7 @@ public class AuthResources
             if (StringUtils.isBlank(password))
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Password is empty").build();
 
-            cqlService.executePreparedStatement(app.dseUnixSocketFile, "CALL NodeOps.createRole(?,?,?,?)", name, isSuperUser, canLogin, password);
+            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.createRole(?,?,?,?)", name, isSuperUser, canLogin, password);
 
             return Response.ok("OK").build();
         });

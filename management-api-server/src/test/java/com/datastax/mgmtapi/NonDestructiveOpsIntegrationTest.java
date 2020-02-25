@@ -55,25 +55,25 @@ public class NonDestructiveOpsIntegrationTest
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
     private static String BASE_PATH = "http://localhost/api/v0";
     private static String MGMT_SOCK;
-    private static String DSE_SOCK;
+    private static String CASS_SOCK;
     private static Cli CLI;
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
-    public static void startDSE() throws IOException
+    public static void startCassandra() throws IOException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
 
         MGMT_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-nd-ops-mgmt");
         new File(MGMT_SOCK).deleteOnExit();
-        DSE_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-nd-ops-dse");
-        new File(DSE_SOCK).deleteOnExit();
+        CASS_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-nd-ops-cass");
+        new File(CASS_SOCK).deleteOnExit();
 
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(NonDestructiveOpsIntegrationTest.class, "", temporaryFolder.getRoot());
 
-        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), DSE_SOCK, false, extraArgs);
+        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), CASS_SOCK, false, extraArgs);
 
         CLI.preflightChecks();
         Thread cliThread = new Thread(CLI);
@@ -107,7 +107,7 @@ public class NonDestructiveOpsIntegrationTest
             Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
         }
 
-        logger.info("DSE ALIVE: {}", ready);
+        logger.info("CASSANDRA ALIVE: {}", ready);
         assertTrue(ready);
     }
 
@@ -425,7 +425,7 @@ public class NonDestructiveOpsIntegrationTest
 
 
     @AfterClass
-    public static void stopDSE() throws MalformedURLException, UnsupportedEncodingException
+    public static void stopCassandra() throws MalformedURLException, UnsupportedEncodingException
     {
         try
         {
