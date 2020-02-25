@@ -46,7 +46,7 @@
     docker run --name mgmtapi -it --rm mgmtapi
     
 ### API
-   [The current Swagger/OpenAPI documentation](http://foo.com)
+   [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://gist.githubusercontent.com/datastax/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
     
 ### Roadmap
   * CQL based configuration changes

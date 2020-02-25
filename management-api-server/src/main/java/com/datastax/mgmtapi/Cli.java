@@ -74,7 +74,7 @@ import org.jboss.resteasy.spi.ResteasyDeployment;
 
 @Copyright(startYear = 2020, holder = "DataStax")
 @License(url = "https://www.datastax.com/terms/product-specific-license-terms")
-@Command(name = "cassandra-management-api", description = "REST service for managing am Apache Cassandra node")
+@Command(name = "cassandra-management-api", description = "REST service for managing an Apache Cassandra node")
 public class Cli implements Runnable
 {
     public static final String PROTOCOL_TLS_V1_2 = "TLSv1.2";
@@ -98,14 +98,14 @@ public class Cli implements Runnable
     private String pidfile = null;
 
     @Option(name = {"-H", "--host"},
-            description = "Daemon socket(s) to listen on.")
+            description = "Daemon socket(s) to listen on. (required)")
     private List<String> listen_address = new ArrayList<>();
 
     @Path
     @Required
     @Option(name = {"-S", "--cassandra-socket"},
             arity = 1,
-            description = "Path to Cassandra unix socket file")
+            description = "Path to Cassandra unix socket file (required)")
     private String cassandra_unix_socket_file = "/var/run/cassandra.sock";
 
     @Path(executable = true)
@@ -308,8 +308,6 @@ public class Cli implements Runnable
 
             Optional<File> exe = UnixCmds.which("cassandra");
             exe.ifPresent(file -> cassandraExe = file);
-
-            // throw new IllegalArgumentException("Cassandra home does not exist or is not a directory: " + cassandraHomeDir);
 
             if (cassandraHomeDir != null && (!cassandraHomeDir.exists() || !cassandraHomeDir.isDirectory()))
                 cassandraHomeDir = null;
