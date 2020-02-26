@@ -10,7 +10,7 @@
    and edge cases.
    
    The Management API is a sidecar service layer that attempts to build a well supported
-   set of operational actions on cassandra nodes that can be administered centrally.
+   set of operational actions on Cassandra nodes that can be administered centrally.
    
    * Lifecycle Management
    * Configuration Management
@@ -31,12 +31,12 @@
   responsible for the lifecycle of Cassandra via the API.
   
   Communication between the Management API and Cassandra is via a local unix socket using
-  CQL as it's only protocol.  This means, out of the box Cassndra can be started
+  CQL as it's only protocol.  This means, out of the box Cassandra can be started
   securely with no open ports!  Also, using CQL only means operators can
   execute operations via CQL directly if they wish.
   
   Each Management API is responsible for the local node only.  Coordination across nodes
-  is upto the caller.  That being said, complex health checks can be added via CQL.
+  is up to the caller.  That being said, complex health checks can be added via CQL.
   
 
 ### Building
