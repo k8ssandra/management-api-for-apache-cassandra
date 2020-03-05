@@ -1,5 +1,6 @@
 package com.datastax.mgmtapi;
 
+import com.datastax.mgmtapi.interceptors.AuthSchemaInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
 import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
@@ -35,6 +36,8 @@ public class Agent {
                 //Auth Setup
                 .type(CassandraRoleManagerInterceptor.type())
                 .transform(CassandraRoleManagerInterceptor.transformer())
+                .type(AuthSchemaInterceptor.type())
+                .transform(AuthSchemaInterceptor.transformer())
                 .installOn(inst);
     }
 }

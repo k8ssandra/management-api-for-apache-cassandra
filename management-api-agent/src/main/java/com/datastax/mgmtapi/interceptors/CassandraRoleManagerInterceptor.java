@@ -14,7 +14,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.auth.AuthKeyspace;
-import org.apache.cassandra.auth.CassandraRoleManager;
 import org.apache.cassandra.config.SchemaConstants;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
@@ -23,6 +22,7 @@ import org.apache.cassandra.service.StorageService;
 
 public class CassandraRoleManagerInterceptor
 {
+    private static final Boolean skipDefaultRoleSetup = Boolean.getBoolean("cassandra.skip_default_role_setup");
     private static String DEFAULT_SUPERUSER_NAME = "cassandra";
     private static final Logger logger = LoggerFactory.getLogger(CassandraRoleManagerInterceptor.class);
 
@@ -45,6 +45,12 @@ public class CassandraRoleManagerInterceptor
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception
     {
+        if (!skipDefaultRoleSetup)
+        {
+            zuper.call();
+            return;
+        }
+
         if (StorageService.instance.getTokenMetadata().sortedTokens().isEmpty())
             throw new IllegalStateException("CassandraRoleManager skipped default role setup: no known tokens in ring");
 

@@ -11,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +31,7 @@ import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.auth.AuthenticationException;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
 import org.apache.http.HttpStatus;
 
@@ -59,7 +61,7 @@ public class IntegrationTest
         String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-keepAlive-cass");
         new File(cassSock).deleteOnExit();
 
-
+        temporaryFolder.delete();
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testKeepAlive", temporaryFolder.getRoot());
 
         Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, true, extraArgs);
@@ -78,7 +80,6 @@ public class IntegrationTest
                     .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
 
             assertTrue(live);
-
 
             boolean ready = false;
             int tries = 0;
@@ -190,6 +191,7 @@ public class IntegrationTest
         String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-inttest-lifecycle-cass");
         new File(cassSock).deleteOnExit();
 
+        temporaryFolder.delete();
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testLifecycle", temporaryFolder.getRoot());
 
         Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
@@ -287,6 +289,7 @@ public class IntegrationTest
         new File(cassSock).deleteOnExit();
 
         int offset = ThreadLocalRandom.current().nextInt(1024);
+        temporaryFolder.delete();
         List<String> extraArgs = IntegrationTestUtils.getExtraArgs(IntegrationTest.class, "testSuperuserWasNotSet", temporaryFolder.getRoot(), offset);
 
         Cli cli = new Cli(Collections.singletonList("file://" + mgmtSock), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
@@ -336,7 +339,7 @@ public class IntegrationTest
                                 .withString(AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
                                 .withString(AUTH_PROVIDER_USER_NAME, "cassandra")
                                 .withString(AUTH_PROVIDER_PASSWORD, "cassandra")
-                                .withString(LOAD_BALANCING_LOCAL_DATACENTER, "Cassandra")
+                                .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
                                 .build())
                         .addContactPoint(new InetSocketAddress("127.0.0.1", 9042 + offset))
                         .build();
@@ -349,6 +352,29 @@ public class IntegrationTest
                 Throwable t = ((AllNodesFailedException) e).getErrors().values().iterator().next();
                 assertTrue(t instanceof AuthenticationException);
             }
+
+
+            //addRole
+            boolean roleAdded = client.post(URI.create("http://localhost/api/v0/ops/auth/role?username=authtest&password=authtest&is_superuser=true&can_login=true").toURL(), null)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+
+            assertTrue(roleAdded);
+
+            // verify that we can login with user authtest/authtest
+            CqlSession session =  new TestgCqlSessionBuilder()
+                    .withConfigLoader(DriverConfigLoader.programmaticBuilder()
+                            .withString(AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
+                            .withString(AUTH_PROVIDER_USER_NAME, "authtest")
+                            .withString(AUTH_PROVIDER_PASSWORD, "authtest")
+                            .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
+                            .build())
+                    .addContactPoint(new InetSocketAddress("127.0.0.1", 9042 + offset))
+                    .build();
+
+            ResultSet rs = session.execute("select replication from system_schema.keyspaces where keyspace_name='system_auth'");
+
+            Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
+            assertEquals(params.get("dc1"), "1");
         }
         finally
         {

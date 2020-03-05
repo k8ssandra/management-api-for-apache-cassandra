@@ -33,7 +33,9 @@ import com.datastax.mgmtapi.UnixCmds;
 import com.datastax.mgmtapi.UnixSocketCQLAccess;
 import com.datastax.mgmtapi.util.ShellUtils;
 import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.shaded.guava.common.collect.Streams;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -126,7 +128,8 @@ public class LifecycleResources
             }
 
             boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
+                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
+                            profile != null ? "/tmp/" + profile + "/env.sh" : "",
                             app.cassandraExe.getAbsolutePath(),
                             app.cassandraUnixSocketFile.getAbsolutePath(),
                             profileArgs.toString(),
@@ -271,8 +274,11 @@ public class LifecycleResources
             String rack = "vrack1";
             if (nodeTopology != null)
             {
-                dc = nodeTopology.get("dc").asText("vdc1");
-                rack = nodeTopology.get("rack").asText("vrack1");
+                if (nodeTopology.has("dc"))
+                    dc = nodeTopology.get("dc").asText(dc);
+
+                if (nodeTopology.has("rack"))
+                    rack = nodeTopology.get("rack").asText(rack);
             }
 
             new File("/tmp/" + profile).mkdirs();
@@ -299,6 +305,43 @@ public class LifecycleResources
                 customYaml.set("cluster_name", TextNode.valueOf(clusterName));
 
             yamlMapper.writeValue(new File("/tmp/" + profile + "/cassandra.yaml"), customYaml);
+
+            String jvmMaxHeap = null;
+            String jvmHeapNew = null;
+            String jvmExtraOpts = null;
+            JsonNode jvmOpts = jn.get("jvm-server-options");
+            if (jvmOpts != null)
+            {
+                if (jvmOpts.has("max_heap_size"))
+                    jvmMaxHeap = jvmOpts.get("max_heap_size").asText();
+
+                if (jvmOpts.has("heap_new_size"))
+                    jvmHeapNew = jvmOpts.get("heap_new_size").asText();
+
+                if ((jvmMaxHeap == null) != (jvmHeapNew == null))
+                    return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Both max_heap_size and heap_new_size must be defined").build();
+            }
+
+            if (jvmOpts.has("additional-jvm-opts"))
+                jvmExtraOpts = Streams.stream(jvmOpts.withArray("additional-jvm-opts").elements())
+                        .map(JsonNode::asText).collect(Collectors.joining(" "));
+
+            sb = new StringBuilder();
+            sb.append("#!/bin/sh\n");
+
+            if (jvmMaxHeap != null)
+                sb.append("export MAX_HEAP_SIZE=").append(jvmMaxHeap).append("\n")
+                  .append("export HEAP_NEWSIZE=").append(jvmHeapNew).append("\n");
+
+            if (jvmExtraOpts != null)
+                sb.append("export JVM_EXTRA_OPTS=\"$JVM_EXTRA_OPTS ").append(jvmExtraOpts).append("\"\n");
+
+            sb.append("exec $*\n");
+
+            File envScript = new File("/tmp/" + profile + "/env.sh");
+            FileUtils.write(envScript, sb.toString(), false);
+
+            envScript.setExecutable(true);
         }
         catch (IOException e)
         {

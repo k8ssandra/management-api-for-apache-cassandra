@@ -52,10 +52,11 @@ spec:
       num_tokens: 256 # default is 1
       phi_convict_threshold: 12 # default is 8
       role_manager: org.apache.cassandra.auth.CassandraRoleManager
+      endpoint_snitch:  org.apache.cassandra.locator.GossipingPropertyFileSnitch
     jvm-server-options:
-      initial_heap_size: 500g
-      max_heap_size: 500g
+      heap_new_size: 100M
+      max_heap_size: 500M
       additional-jvm-opts:
         - "-Dcassandra.skip_default_role_setup=true"
-        - "-Ddse.system_distributed_replication_dc_names=dc1"
-        - "-Ddse.system_distributed_replication_per_dc=3"
+        - "-Dcassandra.system_distributed_replication_dc_names=dc1"
+        - "-Dcassandra.system_distributed_replication_per_dc=1"
