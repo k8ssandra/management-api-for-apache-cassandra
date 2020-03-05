@@ -65,7 +65,7 @@ if [ -d "/opt/mgmtapi" ] ; then
     MGMT_API_ARGS=""
 
     # Hardcoding these for now
-    DSE_MGMT_DSE_SOCKET="--dse-socket /tmp/cassandra.sock"
+    DSE_MGMT_DSE_SOCKET="--cassandra-socket /tmp/cassandra.sock"
     DSE_MGMT_LISTEN_TCP="--host tcp://0.0.0.0:8080"
     DSE_MGMT_LISTEN_SOCKET="--host file:///tmp/oss-mgmt.sock"
 
