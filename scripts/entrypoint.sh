@@ -24,7 +24,7 @@ _sed-in-place() {
 
 # Copy over any config files mounted at /config
 if [ -d "/config" ] && ! [ "/config" -ef "$CASSANDRA_CONF" ]; then
-	cp -R "/config/" "${CASSANDRA_CONF:-/etc/cassandra}"
+	cp -R "/config/*" "${CASSANDRA_CONF:-/etc/cassandra}"
 fi
 
 if [ -d "/opt/mgmtapi" ] ; then
