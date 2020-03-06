@@ -46,44 +46,44 @@ if [ -d "/opt/mgmtapi" ] ; then
     MGMT_API_ARGS=""
 
     # Hardcoding these for now
-    DSE_MGMT_DSE_SOCKET="--cassandra-socket /tmp/cassandra.sock"
-    DSE_MGMT_LISTEN_TCP="--host tcp://0.0.0.0:8080"
-    DSE_MGMT_LISTEN_SOCKET="--host file:///tmp/oss-mgmt.sock"
+    MGMT_API_CASSANDRA_SOCKET="--cassandra-socket /tmp/cassandra.sock"
+    MGMT_API_LISTEN_TCP="--host tcp://0.0.0.0:8080"
+    MGMT_API_LISTEN_SOCKET="--host file:///tmp/oss-mgmt.sock"
 
-    MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_DSE_SOCKET $DSE_MGMT_LISTEN_TCP $DSE_MGMT_LISTEN_SOCKET"
+    MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_SOCKET $MGMT_API_LISTEN_TCP $MGMT_API_LISTEN_SOCKET"
 
     # These will generally come from the k8s operator
-    if [ ! -z "$DSE_MGMT_EXPLICIT_START" ]; then
-        DSE_MGMT_EXPLICIT_START="--explicit-start $DSE_MGMT_EXPLICIT_START"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_EXPLICIT_START"
+    if [ ! -z "$MGMT_API_EXPLICIT_START" ]; then
+        MGMT_API_EXPLICIT_START="--explicit-start $MGMT_API_EXPLICIT_START"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_EXPLICIT_START"
     fi
 
-    if [ ! -z "$DSE_MGMT_TLS_CA_CERT_FILE" ]; then
-        DSE_MGMT_TLS_CA_CERT_FILE="--tlscacert $DSE_MGMT_TLS_CA_CERT_FILE"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_TLS_CA_CERT_FILE"
+    if [ ! -z "$MGMT_API_TLS_CA_CERT_FILE" ]; then
+        MGMT_API_TLS_CA_CERT_FILE="--tlscacert $MGMT_API_TLS_CA_CERT_FILE"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_CA_CERT_FILE"
     fi
-    if [ ! -z "$DSE_MGMT_TLS_CERT_FILE" ]; then
-        DSE_MGMT_TLS_CERT_FILE="--tlscert $DSE_MGMT_TLS_CERT_FILE"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_TLS_CERT_FILE"
+    if [ ! -z "$MGMT_API_TLS_CERT_FILE" ]; then
+        MGMT_API_TLS_CERT_FILE="--tlscert $MGMT_API_TLS_CERT_FILE"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_CERT_FILE"
     fi
-    if [ ! -z "$DSE_MGMT_TLS_KEY_FILE" ]; then
-        DSE_MGMT_TLS_KEY_FILE="--tlskey $DSE_MGMT_TLS_KEY_FILE"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_TLS_KEY_FILE"
-    fi
-
-    if [ ! -z "$DSE_MGMT_PID_FILE" ]; then
-        DSE_MGMT_PID_FILE="--pidfile $DSE_MGMT_PID_FILE"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_PID_FILE"
+    if [ ! -z "$MGMT_API_TLS_KEY_FILE" ]; then
+        MGMT_API_TLS_KEY_FILE="--tlskey $MGMT_API_TLS_KEY_FILE"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_KEY_FILE"
     fi
 
-    DSE_MGMT_DSE_PATH="--cassandra-home /usr/"
-    MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_DSE_PATH"
+    if [ ! -z "$MGMT_API_PID_FILE" ]; then
+        MGMT_API_PID_FILE="--pidfile $MGMT_API_PID_FILE"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_PID_FILE"
+    fi
+
+    MGMT_API_CASSANDRA_HOME="--cassandra-home /usr/"
+    MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_HOME"
 
 	export CASSANDRA_CONF=/etc/cassandra
 
-    if [ ! -z "$DSE_MGMT_NO_KEEP_ALIVE" ]; then
-        DSE_MGMT_NO_KEEP_ALIVE="--no-keep-alive $DSE_MGMT_NO_KEEP_ALIVE"
-        MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_NO_KEEP_ALIVE"
+    if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
+        MGMT_API_NO_KEEP_ALIVE="--no-keep-alive $MGMT_API_NO_KEEP_ALIVE"
+        MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
     fi
 
     MGMT_API_JAR="$(find "/opt/mgmtapi" -name *.jar)"
