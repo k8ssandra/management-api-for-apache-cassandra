@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import com.datastax.mgmtapi.rpc.Rpc;
 import com.datastax.mgmtapi.rpc.RpcParam;
@@ -28,8 +30,10 @@ import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.dht.IPartitioner;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
+import org.apache.cassandra.exceptions.InvalidRequestException;
 import org.apache.cassandra.gms.EndpointState;
 import org.apache.cassandra.gms.Gossiper;
+import org.apache.cassandra.gms.GossiperInterceptor;
 import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.IEndpointSnitch;
 import org.apache.cassandra.locator.NetworkTopologyStrategy;
@@ -76,7 +80,11 @@ public class NodeOpsProvider
     public List<String> reloadSeeds()
     {
         logger.debug("Reloading Seeds");
-        return null; //Gossiper.instance.getSeeds();
+        Set<InetAddress> seeds = GossiperInterceptor.reloadSeeds();
+        if (seeds == null)
+            throw new RuntimeException("Error reloading seeds");
+
+        return seeds.stream().map(InetAddress::toString).collect(Collectors.toList());
     }
 
 

@@ -46,7 +46,7 @@ import static org.junit.Assume.assumeTrue;
 
 /**
  * Class for integration testing non-destructive actions. By non-destructive this means actions that do not leave a node
- * in an inoperable state (e.g. assassinate or decommission). The purpose of this is to speed up testing by starting the DSE
+ * in an inoperable state (e.g. assassinate or decommission). The purpose of this is to speed up testing by starting the Cassandra
  * node once, running all tests, and then stopping rather than a start/stop during each test case.
  */
 public class NonDestructiveOpsIntegrationTest

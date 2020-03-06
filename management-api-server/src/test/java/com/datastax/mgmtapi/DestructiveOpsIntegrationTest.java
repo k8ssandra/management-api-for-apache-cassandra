@@ -108,8 +108,7 @@ public class DestructiveOpsIntegrationTest
         NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
 
 
-        URI uri = new URIBuilder(BASE_PATH + "/ops/node/drain")
-                .build();
+        URI uri = new URIBuilder(BASE_PATH + "/ops/node/drain").build();
         boolean requestSuccessful = client.post(uri.toURL(), null)
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);

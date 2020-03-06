@@ -8,6 +8,8 @@ package com.datastax.mgmtapi;
 import java.io.File;
 import java.net.SocketAddress;
 import java.time.Duration;
+import java.time.Period;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +68,8 @@ import io.netty.util.concurrent.EventExecutorGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import io.netty.util.concurrent.PromiseCombiner;
+
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class UnixSocketCQLAccess
 {
@@ -128,6 +132,7 @@ public class UnixSocketCQLAccess
 
         session = new LocalSessionBuilder(unixSocketEndpoint)
                 .withConfigLoader(DriverConfigLoader.programmaticBuilder()
+                        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.of(10, SECONDS))
                         .build())
                 .build();
     }

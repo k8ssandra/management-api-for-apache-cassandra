@@ -43,7 +43,7 @@ public class AuthSchemaInterceptor
             rfOverride = Integer.getInteger(SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY, null);
             dcOverride = Arrays.stream(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY, "")
                     .split(","))
-                    .map(s -> s.trim())
+                    .map(String::trim)
                     .collect(Collectors.toList());
         }
         catch (Throwable t)
@@ -92,12 +92,9 @@ public class AuthSchemaInterceptor
     {
         KeyspaceMetadata ksm = zuper.call();
 
-        if (!SYSTEM_DISTRIBUTED_NTS_OVERRIDE.isEmpty())
+        if (SYSTEM_DISTRIBUTED_NTS_OVERRIDE.size() > 1) //1 because we add class key
             return ksm.withSwapped(KeyspaceParams.create(true, SYSTEM_DISTRIBUTED_NTS_OVERRIDE));
 
         return ksm;
     }
-
-
-
 }
