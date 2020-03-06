@@ -24,4 +24,8 @@ COPY scripts/entrypoint.sh /opt/mgmtapi/
 EXPOSE 9103
 EXPOSE 8080
 
-ENTRYPOINT ["/opt/mgmtapi/entrypoint.sh"]
+ENV TINI_VERSION v0.18.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+RUN chmod +x /tini
+
+ENTRYPOINT ["/tini", "-g", "--", "/opt/mgmtapi/entrypoint.sh"]
