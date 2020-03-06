@@ -28,6 +28,13 @@ if [ -d "/config" ] && ! [ "/config" -ef "$CASSANDRA_CONF" ]; then
 	cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
 fi
 
+# Make sure the management api agent jar is set
+# We do this here for the following reasons:
+# 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after
+# 2. We don't wan't operator or configbuilder to care so much about the version number or
+#    the fact this jar even exists.
+grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" || echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> /etc/cassandra/cassandra-env.sh
+
 if [ -d "/opt/mgmtapi" ] ; then
     echo "Starting Management API"
 
