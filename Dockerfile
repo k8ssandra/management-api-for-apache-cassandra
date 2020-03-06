@@ -10,8 +10,9 @@ COPY management-api-server/pom.xml ./management-api-server/pom.xml
 # a solid cache layer that only gets reset on pom.xml changes
 RUN mvn -T 1C install && rm -rf target
 
-COPY . .
-RUN ls -l
+COPY management-api-agent ./management-api-agent
+COPY management-api-common ./management-api-common
+COPY management-api-server ./management-api-server
 RUN mvn package -DskipTests
 
 FROM cassandra:3.11
