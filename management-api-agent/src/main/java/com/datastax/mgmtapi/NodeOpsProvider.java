@@ -96,10 +96,10 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "decommission", permission = Permission.EXECUTE)
-    public void decommission() throws InterruptedException
+    public void decommission(@RpcParam(name="force") boolean force) throws InterruptedException
     {
         logger.debug("Decommissioning");
-        ShimLoader.instance.get().decommission();
+        ShimLoader.instance.get().decommission(force);
     }
 
     @Rpc(name = "setCompactionThroughput", permission = Permission.EXECUTE)
@@ -327,4 +327,11 @@ public class NodeOpsProvider
 
         return ShimLoader.instance.get().checkConsistencyLevel(consistencyLevelName, rfPerDc);
     }
+
+    @Rpc(name = "getEndpointStates", permission = Permission.EXECUTE)
+    public List<Map<String,String>> getEndpointStates()
+    {
+        return ShimLoader.instance.get().getEndpointStates();
+    }
+
 }

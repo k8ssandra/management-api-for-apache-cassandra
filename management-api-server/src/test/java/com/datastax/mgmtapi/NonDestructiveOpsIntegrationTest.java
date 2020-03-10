@@ -309,6 +309,33 @@ public class NonDestructiveOpsIntegrationTest
     }
 
     @Test
+    public void testGetEndpoints() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+
+        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+
+        URI uri = new URIBuilder(BASE_PATH + "/metadata/endpoints")
+                .build();
+        String response = client.get(uri.toURL())
+                .thenApply(r -> {
+                    if (r.status().code() == HttpStatus.SC_OK)
+                    {
+                        byte[] versionBytes = new byte[r.content().readableBytes()];
+                        r.content().readBytes(versionBytes);
+
+                        return new String(versionBytes);
+                    }
+
+                    return null;
+                }).join();
+
+        System.err.println(response);
+        assertNotNull(response);
+        assertNotEquals("", response);
+    }
+
+    @Test
     public void testCleanup() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());

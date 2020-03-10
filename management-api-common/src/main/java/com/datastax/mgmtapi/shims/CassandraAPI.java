@@ -15,7 +15,7 @@ import org.apache.cassandra.transport.Server;
  */
 public interface CassandraAPI
 {
-    void decommission() throws InterruptedException;
+    void decommission(boolean force) throws InterruptedException;
 
     Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
 
@@ -24,4 +24,6 @@ public interface CassandraAPI
     Set<InetAddress> reloadSeeds();
 
     ChannelInitializer<Channel> makeSocketInitializer(final Server.ConnectionTracker connectionTracker);
+
+    List<Map<String,String>> getEndpointStates();
 }
