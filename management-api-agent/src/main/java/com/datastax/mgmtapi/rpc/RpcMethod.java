@@ -129,11 +129,6 @@ public class RpcMethod
         return new ColumnSpecification("system", rpcObject.getName()+"."+name, new ColumnIdentifier(argNames.get(position), false), argTypes.get(position));
     }
 
-    public void checkAccess(QueryState state) throws UnauthorizedException
-    {
-        state.getClientState().ensureHasPermission(permission, RpcResource.method(rpcObject.getName(), name));
-    }
-
     public ResultMessage execute(ClientState clientState, List<ByteBuffer> parameters)
             throws RequestExecutionException
     {

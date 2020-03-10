@@ -80,7 +80,7 @@ public class NodeOpsProvider
     public List<String> reloadSeeds()
     {
         logger.debug("Reloading Seeds");
-        Set<InetAddress> seeds = GossiperInterceptor.reloadSeeds();
+        Set<InetAddress> seeds = ShimLoader.instance.get().reloadSeeds();
         if (seeds == null)
             throw new RuntimeException("Error reloading seeds");
 
@@ -99,7 +99,7 @@ public class NodeOpsProvider
     public void decommission() throws InterruptedException
     {
         logger.debug("Decommissioning");
-        StorageService.instance.decommission();
+        ShimLoader.instance.get().decommission();
     }
 
     @Rpc(name = "setCompactionThroughput", permission = Permission.EXECUTE)
@@ -325,67 +325,6 @@ public class NodeOpsProvider
         Preconditions.checkArgument(rfPerDc != null, "rf_per_dc must be defined");
         Preconditions.checkArgument(rfPerDc > 0, "rf_per_dc must be > 0");
 
-        try
-        {
-            IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
-            IEndpointSnitch endpointSnitch = DatabaseDescriptor.getEndpointSnitch();
-            TokenMetadata tokenMetadata = StorageService.instance.getTokenMetadata().cloneOnlyTokenMap();
-
-            ConsistencyLevel cl = ConsistencyLevel.valueOf(consistencyLevelName);
-
-            Map<String, String> dcNames = new HashMap<>();
-
-            for (InetAddress endpoint : tokenMetadata.getNormalAndBootstrappingTokenToEndpointMap().values())
-            {
-                String dc = endpointSnitch.getDatacenter(endpoint);
-                assert dc != null;
-
-                dcNames.put(dc, String.valueOf(rfPerDc));
-            }
-
-            Keyspace mockKs = Keyspace.mockKS(KeyspaceMetadata.create("none", KeyspaceParams.create(true,
-                    ImmutableMap.<String, String>builder().put("class", "NetworkTopologyStrategy").putAll(dcNames).build())));
-
-            AbstractReplicationStrategy mockStrategy = mockKs.getReplicationStrategy();
-            mockStrategy.validateOptions();
-
-            Collection<Range<Token>> tokenRanges = tokenMetadata.getPrimaryRangesFor(tokenMetadata.sortedTokens());
-
-            Map<List<Long>, List<String>> results = new HashMap<>();
-
-            // For each range check the endpoints can achieve cl using the midpoint
-            for (Range<Token> range : tokenRanges)
-            {
-                Token midpoint = partitioner.midpoint(range.left, range.right);
-                List<InetAddress> endpoints = mockStrategy.calculateNaturalEndpoints(midpoint, tokenMetadata);
-
-                if (!cl.isSufficientLiveNodes(mockKs, endpoints))
-                {
-                    List<String> downEndpoints = new ArrayList<>();
-                    for (InetAddress endpoint : endpoints)
-                    {
-                        EndpointState epState = Gossiper.instance.getEndpointStateForEndpoint(endpoint);
-
-                        if (!epState.isAlive())
-                            downEndpoints.add(endpoint.toString());
-                    }
-
-                    int blockFor = cl.blockFor(mockKs);
-
-                    if (downEndpoints.isEmpty() && endpoints.size() < blockFor)
-                        downEndpoints.add(String.format("%d replicas required, but only %d nodes in the ring", blockFor, endpoints.size()));
-                    else if (downEndpoints.isEmpty())
-                        downEndpoints.add("Nodes Flapping");
-
-                    results.put(ImmutableList.of((long) range.left.getTokenValue(), (long) range.right.getTokenValue()), downEndpoints);
-                }
-            }
-            return results;
-        }
-        catch (Throwable e)
-        {
-            logger.error("Exception encountered", e);
-            throw e;
-        }
+        return ShimLoader.instance.get().checkConsistencyLevel(consistencyLevelName, rfPerDc);
     }
 }

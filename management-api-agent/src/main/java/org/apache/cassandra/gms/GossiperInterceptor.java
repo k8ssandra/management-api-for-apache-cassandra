@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 
 import org.slf4j.LoggerFactory;
 
+import com.datastax.mgmtapi.ShimLoader;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
@@ -41,48 +42,6 @@ public class GossiperInterceptor
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception
     {
-        reloadSeeds();
+        ShimLoader.instance.get().reloadSeeds();
     }
-
-    public static Set<InetAddress> reloadSeeds()
-    {
-        // Get the new set in the same that buildSeedsList does
-        Set<InetAddress> tmp = new HashSet<>();
-        try
-        {
-            for (InetAddress seed : DatabaseDescriptor.getSeeds())
-            {
-                if (seed.equals(FBUtilities.getBroadcastAddress()))
-                    continue;
-                tmp.add(seed);
-            }
-        }
-        // If using the SimpleSeedProvider invalid yaml added to the config since startup could
-        // cause this to throw. Additionally, third party seed providers may throw exceptions.
-        // Handle the error and return a null to indicate that there was a problem.
-        catch (Throwable e)
-        {
-            JVMStabilityInspector.inspectThrowable(e);
-            return null;
-        }
-
-        if (tmp.size() == 0)
-        {
-            return Gossiper.instance.seeds;
-        }
-
-        if (tmp.equals(Gossiper.instance.seeds))
-        {
-            return Gossiper.instance.seeds;
-        }
-
-        // Add the new entries
-        Gossiper.instance.seeds.addAll(tmp);
-        // Remove the old entries
-        Gossiper.instance.seeds.retainAll(tmp);
-        LoggerFactory.getLogger(GossiperInterceptor.class).debug("New seed node list after reload {}", Gossiper.instance.seeds);
-
-        return Gossiper.instance.seeds;
-    }
-
 }
