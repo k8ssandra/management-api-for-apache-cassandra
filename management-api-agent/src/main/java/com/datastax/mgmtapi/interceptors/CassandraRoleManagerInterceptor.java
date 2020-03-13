@@ -14,7 +14,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.auth.AuthKeyspace;
-import org.apache.cassandra.config.SchemaConstants;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.exceptions.RequestExecutionException;
@@ -23,7 +22,8 @@ import org.apache.cassandra.service.StorageService;
 public class CassandraRoleManagerInterceptor
 {
     private static final Boolean skipDefaultRoleSetup = Boolean.getBoolean("cassandra.skip_default_role_setup");
-    private static String DEFAULT_SUPERUSER_NAME = "cassandra";
+    private static final String DEFAULT_SUPERUSER_NAME = "cassandra";
+    private static final String AUTH_KEYSPACE_NAME = "system_auth";
     private static final Logger logger = LoggerFactory.getLogger(CassandraRoleManagerInterceptor.class);
 
     public static ElementMatcher<? super TypeDescription> type()
@@ -60,7 +60,7 @@ public class CassandraRoleManagerInterceptor
             {
                 QueryProcessor.process(String.format("INSERT INTO %s.%s (role, is_superuser, can_login, salted_hash) " +
                                 "VALUES ('%s', false, false, '%s') USING TIMESTAMP 1",
-                        SchemaConstants.AUTH_KEYSPACE_NAME,
+                        AUTH_KEYSPACE_NAME,
                         AuthKeyspace.ROLES,
                         DEFAULT_SUPERUSER_NAME,
                         ""), ConsistencyLevel.QUORUM);
@@ -76,8 +76,8 @@ public class CassandraRoleManagerInterceptor
     private static boolean hasExistingRoles() throws RequestExecutionException
     {
         // Try looking up the 'cassandra' default role first, to avoid the range query if possible.
-        String defaultSUQuery = String.format("SELECT * FROM %s.%s WHERE role = '%s'", SchemaConstants.AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES, "cassandra");
-        String allUsersQuery = String.format("SELECT * FROM %s.%s LIMIT 1", SchemaConstants.AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES);
+        String defaultSUQuery = String.format("SELECT * FROM %s.%s WHERE role = '%s'", AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES, "cassandra");
+        String allUsersQuery = String.format("SELECT * FROM %s.%s LIMIT 1", AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES);
         return !QueryProcessor.process(defaultSUQuery, ConsistencyLevel.ONE).isEmpty()
                 || !QueryProcessor.process(defaultSUQuery, ConsistencyLevel.QUORUM).isEmpty()
                 || !QueryProcessor.process(allUsersQuery, ConsistencyLevel.QUORUM).isEmpty();

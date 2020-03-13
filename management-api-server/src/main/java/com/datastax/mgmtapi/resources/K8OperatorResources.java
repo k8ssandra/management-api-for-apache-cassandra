@@ -111,9 +111,6 @@ public class K8OperatorResources
     {
         return handle(() ->
         {
-            if (true) {
-                return Response.ok().build();
-            }
             ResultSet result = cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.reloadSeeds()");
 
             List<String> response = result.one().getList("result", String.class);

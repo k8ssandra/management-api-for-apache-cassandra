@@ -21,17 +21,17 @@ import org.apache.cassandra.transport.messages.ErrorMessage;
 import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 
-public class UnixSocketServer
+public class UnixSocketServer4x
 {
-    private static final Logger logger = LoggerFactory.getLogger(UnixSocketServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(UnixSocketServer4x.class);
 
     public static ChannelInitializer<Channel> makeSocketInitializer(final Server.ConnectionTracker connectionTracker)
     {
         // Stateless handlers
         final Message.ProtocolDecoder messageDecoder = new Message.ProtocolDecoder();
-        final Message.ProtocolEncoder messageEncoder = new Message.ProtocolEncoder(ProtocolVersionLimit.SERVER_DEFAULT);
-        final Frame.Decompressor frameDecompressor = new Frame.Decompressor();
-        final Frame.Compressor frameCompressor = new Frame.Compressor();
+        final Message.ProtocolEncoder messageEncoder = new Message.ProtocolEncoder();
+        final ChannelHandler frameDecompressor = new Frame.InboundBodyTransformer();
+        final ChannelHandler frameCompressor = new Frame.OutboundBodyTransformer();
         final Frame.Encoder frameEncoder = new Frame.Encoder();
         final Message.ExceptionHandler exceptionHandler = new Message.ExceptionHandler();
         final UnixSockMessage dispatcher = new UnixSockMessage();
@@ -44,7 +44,7 @@ public class UnixSocketServer
                 ChannelPipeline pipeline = channel.pipeline();
 
                 pipeline.addLast("frameDecoder", new Frame.Decoder((channel1, version) ->
-                       new UnixSocketConnection(channel1, version, connectionTracker), ProtocolVersionLimit.SERVER_DEFAULT));
+                       new UnixSocketConnection(channel1, version, connectionTracker)));
                 pipeline.addLast("frameEncoder", frameEncoder);
 
                 pipeline.addLast("frameDecompressor", frameDecompressor);
@@ -130,20 +130,11 @@ public class UnixSocketServer
             this.state = State.UNINITIALIZED;
         }
 
-        private QueryState getQueryState(int streamId)
+        public QueryState validateNewMessage(Message.Type type, ProtocolVersion version)
         {
-            QueryState qState = queryStates.get(streamId);
-            if (qState == null)
-            {
-                // In theory we shouldn't get any race here, but it never hurts to be careful
-                QueryState newState = new QueryState(clientState);
-                if ((qState = queryStates.putIfAbsent(streamId, newState)) == null)
-                    qState = newState;
-            }
-            return qState;
+            return validateNewMessage(type, version, -1);
         }
 
-        @Override
         public QueryState validateNewMessage(Message.Type type, ProtocolVersion version, int streamId)
         {
             switch (state)
@@ -164,7 +155,7 @@ public class UnixSocketServer
                 default:
                     throw new AssertionError();
             }
-            return getQueryState(streamId);
+            return new QueryState(clientState);
         }
 
         @Override

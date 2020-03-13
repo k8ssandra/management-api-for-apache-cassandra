@@ -46,7 +46,7 @@ import static org.junit.Assume.assumeTrue;
 
 /**
  * Class for integration testing non-destructive actions. By non-destructive this means actions that do not leave a node
- * in an inoperable state (e.g. assassinate or decommission). The purpose of this is to speed up testing by starting the DSE
+ * in an inoperable state (e.g. assassinate or decommission). The purpose of this is to speed up testing by starting the Cassandra
  * node once, running all tests, and then stopping rather than a start/stop during each test case.
  */
 public class NonDestructiveOpsIntegrationTest
@@ -304,6 +304,33 @@ public class NonDestructiveOpsIntegrationTest
 
                     return null;
                 }).join();
+        assertNotNull(response);
+        assertNotEquals("", response);
+    }
+
+    @Test
+    public void testGetEndpoints() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+
+        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+
+        URI uri = new URIBuilder(BASE_PATH + "/metadata/endpoints")
+                .build();
+        String response = client.get(uri.toURL())
+                .thenApply(r -> {
+                    if (r.status().code() == HttpStatus.SC_OK)
+                    {
+                        byte[] versionBytes = new byte[r.content().readableBytes()];
+                        r.content().readBytes(versionBytes);
+
+                        return new String(versionBytes);
+                    }
+
+                    return null;
+                }).join();
+
+        System.err.println(response);
         assertNotNull(response);
         assertNotEquals("", response);
     }

@@ -95,130 +95,6 @@ public class K8OperatorResourcesTest {
     }
 
     @Test
-    public void testReadinessServerReady() throws Exception {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one()).thenReturn(mockRow);
-
-        when(mockRow.getBoolean("native_transport_active"))
-                .thenReturn(true);
-        when(mockRow.getBoolean("gossip_active"))
-                .thenReturn(true);
-        when(mockRow.getString("stop_node_exception"))
-                .thenReturn(null);
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
-        Assert.assertEquals("OK", response.getContentAsString());
-
-        verify(context.cqlService).executeCql(any(),
-                eq("SELECT native_transport_active, gossip_active, stop_node_exception, stop_node_reason FROM system_views.node_status"));
-    }
-
-    @Test
-    public void testReadinessServerDiskFailure() throws Exception
-    {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one())
-                .thenReturn(mockRow);
-
-        when(mockRow.getBoolean("native_transport_active"))
-                .thenReturn(false);
-        when(mockRow.getBoolean("gossip_active"))
-                .thenReturn(false);
-        when(mockRow.getString("stop_node_exception"))
-                .thenReturn("org.apache.cassandra.io.sstable.CorruptSSTableException: /path/to/sstable is corrupted");
-        when(mockRow.getString("stop_node_reason"))
-                .thenReturn("disk error");
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response.getStatus());
-        Assert.assertEquals("disk error", response.getContentAsString());
-
-        verify(context.cqlService).executeCql(any(),
-                eq("SELECT native_transport_active, gossip_active, stop_node_exception, stop_node_reason FROM system_views.node_status"));
-    }
-
-    @Test
-    public void testReadinessGossipDisabled() throws Throwable
-    {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one())
-                .thenReturn(mockRow);
-
-        when(mockRow.getBoolean("native_transport_active"))
-                .thenReturn(true);
-        when(mockRow.getBoolean("gossip_active"))
-                .thenReturn(false);
-        when(mockRow.getString("stop_node_exception"))
-                .thenReturn(null);
-        when(mockRow.getString("stop_node_reason"))
-                .thenReturn(null);
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response.getStatus());
-        Assert.assertEquals(0, response.getContentAsString().length());
-
-        verify(context.cqlService).executeCql(any(),
-               eq("SELECT native_transport_active, gossip_active, stop_node_exception, stop_node_reason FROM system_views.node_status"));
-    }
-
-    @Test
-    public void testReadinessNativeTransportDisabled() throws Throwable
-    {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one())
-                .thenReturn(mockRow);
-
-        when(mockRow.getBoolean("native_transport_active"))
-                .thenReturn(false);
-        when(mockRow.getBoolean("gossip_active"))
-                .thenReturn(true);
-        when(mockRow.getString("stop_node_exception"))
-                .thenReturn(null);
-        when(mockRow.getString("stop_node_reason"))
-                .thenReturn(null);
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response.getStatus());
-        Assert.assertEquals(0, response.getContentAsString().length());
-
-        verify(context.cqlService).executeCql(any(),
-               eq("SELECT native_transport_active, gossip_active, stop_node_exception, stop_node_reason FROM system_views.node_status"));
-    }
-
-    @Test
     public void testSeedReload() throws Exception {
         Context context = setup();
         ResultSet mockResultSet = mock(ResultSet.class);
@@ -989,7 +865,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.loadNewSSTables(?, ?, ?)"), eq(keyspaceName), eq(table), eq(true));
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.loadNewSSTables(?, ?)"), eq(keyspaceName), eq(table));
     }
 
     @Test
