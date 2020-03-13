@@ -1,0 +1,5 @@
+management-api-agent/target/
+management-api-common/target/
+management-api-server/target/
+management-api-shim-3.x/target/
+management-api-shim-4.x/target/
