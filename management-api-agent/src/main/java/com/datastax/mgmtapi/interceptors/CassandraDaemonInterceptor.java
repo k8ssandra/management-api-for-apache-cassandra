@@ -8,6 +8,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.ipc.IPCController;
 import com.datastax.mgmtapi.NodeOpsProvider;
 import io.netty.channel.ChannelOption;
@@ -24,7 +25,6 @@ import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.transport.CBUtil;
 import org.apache.cassandra.transport.Server;
-import org.apache.cassandra.transport.UnixSocketServer;
 
 public class CassandraDaemonInterceptor
 {
@@ -70,7 +70,7 @@ public class CassandraDaemonInterceptor
             IPCController controller = IPCController.newServer()
                     .withEventLoop(group)
                     .withSocketFile(unixSock)
-                    .withChannelHandler(UnixSocketServer.makeSocketInitializer(connectionTracker))
+                    .withChannelHandler(ShimLoader.instance.get().makeSocketInitializer(connectionTracker))
                     .withChannelOptions(
                             ImmutableMap.of(
                                     ChannelOption.ALLOCATOR, CBUtil.allocator,

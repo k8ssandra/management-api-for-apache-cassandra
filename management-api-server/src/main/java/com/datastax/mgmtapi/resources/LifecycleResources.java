@@ -73,7 +73,7 @@ public class LifecycleResources
     @Path("/start")
     @POST
     @Operation(description = "Starts Cassandra")
-    public synchronized Response startNode(@QueryParam("profile") String profile)
+    public synchronized Response startNode(@QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp)
     {
         app.setRequestedState(STARTED);
 
@@ -117,22 +117,26 @@ public class LifecycleResources
                 envArgsBuilder.put("JVM_EXTRA_OPTS", extra);
 
             Map<String, String> environment = envArgsBuilder.build();
-            StringBuilder profileArgs = new StringBuilder();
+            StringBuilder extraArgs = new StringBuilder();
 
             if (profile != null)
             {
                 app.setActiveProfile(profile);
 
-                profileArgs.append("-Dcassandra.config=file:///tmp/").append(profile).append("/cassandra.yaml")
+                extraArgs.append("-Dcassandra.config=file:///tmp/").append(profile).append("/cassandra.yaml")
                         .append(" -Dcassandra-rackdc.properties=file:///tmp/").append(profile).append("/node-topology.properties");
             }
+
+            //FIXME: Regex validate
+            if (replaceIp != null)
+                extraArgs.append("-Dcassandra.replace_address_first_boot=").append(replaceIp);
 
             boolean started = ShellUtils.executeShellWithHandlers(
                     String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
                             app.cassandraExe.getAbsolutePath(),
                             app.cassandraUnixSocketFile.getAbsolutePath(),
-                            profileArgs.toString(),
+                            extraArgs.toString(),
                             String.join(" ", app.cassandraExtraArgs)),
                     (input, err) -> true,
                     (exitCode, err) -> {
