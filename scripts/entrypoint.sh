@@ -33,7 +33,7 @@ fi
 # 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after
 # 2. We don't wan't operator or configbuilder to care so much about the version number or
 #    the fact this jar even exists.
-if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\""; then
+if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" < /etc/cassandra/cassandra-env.sh ; then
 	# ensure newline at end of file
 	echo "" >> /etc/cassandra/cassandra-env.sh
 	echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> /etc/cassandra/cassandra-env.sh
