@@ -120,7 +120,7 @@ if [ -d "/opt/mgmtapi" ] ; then
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
     fi
 
-    MGMT_API_JAR="$(find "/opt/mgmtapi" -name *.jar)"
+    MGMT_API_JAR="$(find "/opt/mgmtapi" -name *server*.jar)"
 
     echo "Running" java -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
     exec java -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
