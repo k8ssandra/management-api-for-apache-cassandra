@@ -8,6 +8,7 @@ package com.datastax.mgmtapi.resources;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -44,6 +45,15 @@ public class MetadataResources
         return executeWithStringResponse("CALL NodeOps.getReleaseVersion()");
     }
 
+    @GET
+    @Path("/endpoints")
+    @Operation(summary = "Returns this nodes view of the endpoint states of nodes")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getEndpointStates()
+    {
+        return executeWithJSONResponse("CALL NodeOps.getEndpointStates()");
+    }
+
     /**
      * Executes a CQL query with the expectation that there will be a single row returned with type String
      *
@@ -65,6 +75,30 @@ public class MetadataResources
             }
 
             return Response.ok(queryResponse).build();
+        });
+    }
+
+    /**
+     * Executes a CQL query with the expectation that there will be a single row returned with type String
+     *
+     * @param query CQL query to execute
+     *
+     * @return Returns a Response with status code 200 and body of query response on success and status code 500 on failure
+     */
+    private Response executeWithJSONResponse(String query)
+    {
+        return handle(() ->
+        {
+            ResultSet rs = cqlService.executeCql(app.cassandraUnixSocketFile, query);
+
+            Row row = rs.one();
+            Object queryResponse = null;
+            if (row != null)
+            {
+                queryResponse = row.getObject(0);
+            }
+
+            return Response.ok(Entity.json(queryResponse)).build();
         });
     }
 }

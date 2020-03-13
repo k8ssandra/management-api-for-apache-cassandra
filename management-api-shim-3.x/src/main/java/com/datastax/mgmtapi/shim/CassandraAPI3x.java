@@ -27,8 +27,10 @@ import org.apache.cassandra.db.Keyspace;
 import org.apache.cassandra.dht.IPartitioner;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
+import org.apache.cassandra.gms.ApplicationState;
 import org.apache.cassandra.gms.EndpointState;
 import org.apache.cassandra.gms.Gossiper;
+import org.apache.cassandra.gms.VersionedValue;
 import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.IEndpointSnitch;
 import org.apache.cassandra.locator.K8SeedProvider3x;
@@ -48,7 +50,7 @@ public class CassandraAPI3x implements CassandraAPI
     private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(() -> new K8SeedProvider3x());
 
     @Override
-    public void decommission() throws InterruptedException
+    public void decommission(boolean force) throws InterruptedException
     {
         StorageService.instance.decommission();
     }
@@ -183,5 +185,27 @@ public class CassandraAPI3x implements CassandraAPI
     public ChannelInitializer<Channel> makeSocketInitializer(Server.ConnectionTracker connectionTracker)
     {
         return UnixSocketServer3x.makeSocketInitializer(connectionTracker);
+    }
+
+    @Override
+    public List<Map<String, String>> getEndpointStates()
+    {
+        List<Map<String,String>> result = new ArrayList<>();
+
+        for (Map.Entry<InetAddress, EndpointState> entry : Gossiper.instance.getEndpointStates())
+        {
+            Map<String, String> states = new HashMap<>();
+            for (Map.Entry<ApplicationState, VersionedValue> s : entry.getValue().states())
+            {
+                states.put(s.getKey().name(), s.getValue().value);
+            }
+
+            states.put("ENDPOINT_IP", entry.getKey().getHostAddress());
+            states.put("IS_ALIVE", Boolean.toString(entry.getValue().isAlive()));
+
+            result.add(states);
+        }
+
+        return result;
     }
 }

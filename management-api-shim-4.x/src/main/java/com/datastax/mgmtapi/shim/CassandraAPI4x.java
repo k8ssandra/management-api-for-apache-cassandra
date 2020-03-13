@@ -28,8 +28,10 @@ import org.apache.cassandra.db.Keyspace;
 import org.apache.cassandra.dht.IPartitioner;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
+import org.apache.cassandra.gms.ApplicationState;
 import org.apache.cassandra.gms.EndpointState;
 import org.apache.cassandra.gms.Gossiper;
+import org.apache.cassandra.gms.VersionedValue;
 import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.EndpointsForRange;
 import org.apache.cassandra.locator.IEndpointSnitch;
@@ -46,16 +48,16 @@ import org.apache.cassandra.transport.UnixSocketServer4x;
 import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 
-public class Cassandra4XAPI implements CassandraAPI
+public class CassandraAPI4x implements CassandraAPI
 {
-    private static final Logger logger = LoggerFactory.getLogger(Cassandra4XAPI.class);
+    private static final Logger logger = LoggerFactory.getLogger(CassandraAPI4x.class);
 
     private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(() -> new K8SeedProvider4x());
 
     @Override
-    public void decommission() throws InterruptedException
+    public void decommission(boolean force) throws InterruptedException
     {
-        StorageService.instance.decommission(true);
+        StorageService.instance.decommission(force);
     }
 
     @Override
@@ -188,5 +190,27 @@ public class Cassandra4XAPI implements CassandraAPI
     public ChannelInitializer<Channel> makeSocketInitializer(Server.ConnectionTracker connectionTracker)
     {
         return UnixSocketServer4x.makeSocketInitializer(connectionTracker);
+    }
+
+    @Override
+    public List<Map<String, String>> getEndpointStates()
+    {
+        List<Map<String,String>> result = new ArrayList<>();
+
+        for (InetAddressAndPort endpoint : Gossiper.instance.getEndpoints())
+        {
+            EndpointState state = Gossiper.instance.getEndpointStateForEndpoint(endpoint);
+            Map<String, String> states = new HashMap<>();
+            for (Map.Entry<ApplicationState, VersionedValue> s : state.states())
+            {
+                states.put(s.getKey().name(), s.getValue().value);
+            }
+
+            states.put("ENDPOINT_IP", endpoint.address.getHostAddress());
+            states.put("IS_ALIVE", Boolean.toString(state.isAlive()));
+            result.add(states);
+        }
+
+        return result;
     }
 }

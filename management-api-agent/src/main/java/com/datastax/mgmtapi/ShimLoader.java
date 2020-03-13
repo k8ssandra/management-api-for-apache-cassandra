@@ -5,7 +5,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
 import com.datastax.mgmtapi.shim.CassandraAPI3x;
-import com.datastax.mgmtapi.shim.Cassandra4XAPI;
+import com.datastax.mgmtapi.shim.CassandraAPI4x;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import org.apache.cassandra.service.StorageService;
 
@@ -21,7 +21,7 @@ public class ShimLoader
             return new CassandraAPI3x();
 
         if (version.startsWith("4."))
-            return new Cassandra4XAPI();
+            return new CassandraAPI4x();
 
         throw new RuntimeException("No Cassandra API Shim found for version: " + version);
     }
