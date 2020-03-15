@@ -27,8 +27,6 @@ COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-
 COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 
-COPY scripts/entrypoint.sh /opt/mgmtapi/
-
 EXPOSE 9103
 EXPOSE 8080
 
@@ -36,4 +34,9 @@ ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-ENTRYPOINT ["/tini", "-g", "--", "/opt/mgmtapi/entrypoint.sh"]
+COPY scripts/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh # backwards compat
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["mgmtapi"]
