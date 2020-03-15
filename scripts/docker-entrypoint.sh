@@ -36,7 +36,26 @@ _sed-in-place() {
 	rm "$tempFile"
 }
 
-if [ "$1" = 'cassandra' ]; then
+if [ "$1" = 'mgmtapi' ]; then
+	echo "Starting Management API"
+
+	# Copy over any config files mounted at /config
+	# cp /config/cassandra.yaml /etc/cassandra/cassandra.yaml
+	if [ -d "/config" ] && ! [ "/config" -ef "$CASSANDRA_CONF" ]; then
+		cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
+	fi
+
+	# Make sure the management api agent jar is set
+	# We do this here for the following reasons:
+	# 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after
+	# 2. We don't wan't operator or configbuilder to care so much about the version number or
+	#    the fact this jar even exists.
+	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" < /etc/cassandra/cassandra-env.sh ; then
+		# ensure newline at end of file
+		echo "" >> /etc/cassandra/cassandra-env.sh
+		echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> /etc/cassandra/cassandra-env.sh
+	fi
+
 	: ${CASSANDRA_RPC_ADDRESS='0.0.0.0'}
 
 	: ${CASSANDRA_LISTEN_ADDRESS='auto'}
@@ -59,15 +78,17 @@ if [ "$1" = 'cassandra' ]; then
 	_sed-in-place "$CASSANDRA_CONF/cassandra.yaml" \
 		-r 's/(- seeds:).*/\1 "'"$CASSANDRA_SEEDS"'"/'
 
+	# Took out the following
+		# cluster_name \
+		# endpoint_snitch \
+		# num_tokens \
+		# start_rpc \
+
 	for yaml in \
 		broadcast_address \
 		broadcast_rpc_address \
-		cluster_name \
-		endpoint_snitch \
 		listen_address \
-		num_tokens \
 		rpc_address \
-		start_rpc \
 	; do
 		var="CASSANDRA_${yaml^^}"
 		val="${!var}"
@@ -77,14 +98,63 @@ if [ "$1" = 'cassandra' ]; then
 		fi
 	done
 
-	for rackdc in dc rack; do
-		var="CASSANDRA_${rackdc^^}"
-		val="${!var}"
-		if [ "$val" ]; then
-			_sed-in-place "$CASSANDRA_CONF/cassandra-rackdc.properties" \
-				-r 's/^('"$rackdc"'=).*/\1 '"$val"'/'
-		fi
-	done
+	# for rackdc in dc rack; do
+	# 	var="CASSANDRA_${rackdc^^}"
+	# 	val="${!var}"
+	# 	if [ "$val" ]; then
+	# 		_sed-in-place "$CASSANDRA_CONF/cassandra-rackdc.properties" \
+	# 			-r 's/^('"$rackdc"'=).*/\1 '"$val"'/'
+	# 	fi
+	# done
+
+	MGMT_API_ARGS=""
+
+	# Hardcoding these for now
+	MGMT_API_CASSANDRA_SOCKET="--cassandra-socket /tmp/cassandra.sock"
+	MGMT_API_LISTEN_TCP="--host tcp://0.0.0.0:8080"
+	MGMT_API_LISTEN_SOCKET="--host file:///tmp/oss-mgmt.sock"
+
+	MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_SOCKET $MGMT_API_LISTEN_TCP $MGMT_API_LISTEN_SOCKET"
+
+	# These will generally come from the k8s operator
+	if [ ! -z "$MGMT_API_EXPLICIT_START" ]; then
+		MGMT_API_EXPLICIT_START="--explicit-start $MGMT_API_EXPLICIT_START"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_EXPLICIT_START"
+	fi
+
+	if [ ! -z "$MGMT_API_TLS_CA_CERT_FILE" ]; then
+		MGMT_API_TLS_CA_CERT_FILE="--tlscacert $MGMT_API_TLS_CA_CERT_FILE"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_CA_CERT_FILE"
+	fi
+	if [ ! -z "$MGMT_API_TLS_CERT_FILE" ]; then
+		MGMT_API_TLS_CERT_FILE="--tlscert $MGMT_API_TLS_CERT_FILE"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_CERT_FILE"
+	fi
+	if [ ! -z "$MGMT_API_TLS_KEY_FILE" ]; then
+		MGMT_API_TLS_KEY_FILE="--tlskey $MGMT_API_TLS_KEY_FILE"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_KEY_FILE"
+	fi
+
+	if [ ! -z "$MGMT_API_PID_FILE" ]; then
+		MGMT_API_PID_FILE="--pidfile $MGMT_API_PID_FILE"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_PID_FILE"
+	fi
+
+	MGMT_API_CASSANDRA_HOME="--cassandra-home /var/lib/cassandra/"
+	MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_HOME"
+
+	export CASSANDRA_CONF=/etc/cassandra
+
+	if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
+		MGMT_API_NO_KEEP_ALIVE="--no-keep-alive $MGMT_API_NO_KEEP_ALIVE"
+		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
+	fi
+
+	MGMT_API_JAR="$(find "/opt/mgmtapi" -name *server*.jar)"
+
+	echo "Running" java -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+	exec /tini -g -- gosu cassandra java -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+
 fi
 
 exec "$@"
