@@ -75,8 +75,9 @@ if [ "$1" = 'mgmtapi' ]; then
 	fi
 	: ${CASSANDRA_SEEDS:="$CASSANDRA_BROADCAST_ADDRESS"}
 
-	_sed-in-place "$CASSANDRA_CONF/cassandra.yaml" \
-		-r 's/(- seeds:).*/\1 "'"$CASSANDRA_SEEDS"'"/'
+	# This breaks using the ser
+	# _sed-in-place "$CASSANDRA_CONF/cassandra.yaml" \
+	# 	-r 's/(- seeds:).*/\1 "'"$CASSANDRA_SEEDS"'"/'
 
 	# Took out the following
 		# cluster_name \
