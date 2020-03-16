@@ -53,6 +53,7 @@ public class LifecycleResources
 
     static final YAMLMapper yamlMapper = new YAMLMapper();
     static final String PROFILE_PATTERN = "[0-9a-zA-Z\\-_]+";
+    static final String IPV4_PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
 
     public LifecycleResources(ManagementApplication app)
     {
@@ -127,9 +128,13 @@ public class LifecycleResources
                         .append(" -Dcassandra-rackdc.properties=file:///tmp/").append(profile).append("/node-topology.properties");
             }
 
-            //FIXME: Regex validate
             if (replaceIp != null)
+            {
+                if (!replaceIp.matches(IPV4_PATTERN))
+                    return Response.serverError().entity(Entity.text("Invalid replace IP passed: " + replaceIp)).build();
+
                 extraArgs.append("-Dcassandra.replace_address_first_boot=").append(replaceIp);
+            }
 
             boolean started = ShellUtils.executeShellWithHandlers(
                     String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
