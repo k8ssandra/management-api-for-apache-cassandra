@@ -25,6 +25,6 @@ jobs:
       - name: Build 4.0 Docker container
         run: docker build -t cassandra:4.0 -f upstream-4.0/Dockerfile upstream-4.0
       - name: Build 4.0 Management API Docker container
-        run: docker build -t mgmtapi-4_0 -f Dockerfile-4_0.yaml
+        run: docker build -t mgmtapi-4_0 -f Dockerfile-4_0.yaml .
       - name: run tests
         run: mvn -B test --file pom.xml
