@@ -18,6 +18,7 @@ import com.datastax.mgmtapi.rpc.Rpc;
 import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
 import org.apache.cassandra.auth.AuthenticatedUser;
+import org.apache.cassandra.auth.CassandraRoleManager;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.auth.Permission;
 import org.apache.cassandra.auth.RoleOptions;
@@ -312,7 +313,7 @@ public class NodeOpsProvider
         ro.setOption(IRoleManager.Option.SUPERUSER, superUser);
         ro.setOption(IRoleManager.Option.LOGIN, login);
         ro.setOption(IRoleManager.Option.PASSWORD, password);
-
+        
         DatabaseDescriptor.getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
     }
 

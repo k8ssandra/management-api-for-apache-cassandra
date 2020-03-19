@@ -1,66 +1,42 @@
 package com.datastax.mgmtapi;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.SSLException;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
-import com.datastax.mgmtapi.helpers.NettyHttpIPCClient;
+import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.mgmtapi.util.SocketUtils;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-public class DestructiveOpsIntegrationTest
+@RunWith(Parameterized.class)
+public class DestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 {
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
-    private static String BASE_PATH = "http://localhost/api/v0";
-    private static String MGMT_SOCK;
-    private static Cli CLI;
 
-    @ClassRule
-    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public DestructiveOpsIntegrationTest(String version)
+    {
+        super(version);
+    }
 
-    @Before
-    public void startCassandra() throws IOException
+    public static void ensureStarted() throws IOException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
 
-        MGMT_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-destr-mgmt");
-        new File(MGMT_SOCK).deleteOnExit();
-        String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-destr-cass");
-        new File(cassSock).deleteOnExit();
-
-        List<String> extraArgs = IntegrationTestUtils.getExtraArgs(DestructiveOpsIntegrationTest.class, "", temporaryFolder.getRoot());
-
-        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), cassSock, false, extraArgs);
-
-        CLI.preflightChecks();
-        Thread cliThread = new Thread(CLI);
-        cliThread.start();
-
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         // Verify liveness
         boolean live = client.get(URI.create(BASE_PATH + "/probes/liveness").toURL())
@@ -72,7 +48,7 @@ public class DestructiveOpsIntegrationTest
 
         // Startup
         boolean started = client.post(URI.create(BASE_PATH + "/lifecycle/start").toURL(), null)
-                .thenApply(r -> r.status().code() == HttpStatus.SC_CREATED).join();
+                .thenApply(r -> r.status().code() == HttpStatus.SC_CREATED || r.status().code() == HttpStatus.SC_ACCEPTED ).join();
 
         assertTrue(started);
 
@@ -88,25 +64,22 @@ public class DestructiveOpsIntegrationTest
             Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
         }
 
+        logger.info("CASSANDRA ALIVE: {}", ready);
         assertTrue(ready);
     }
+
 
     // NOTE: Not testing decommission due to running the integration test against only one node and getting
     // java.lang.UnsupportedOperationException: no other normal nodes in the ring; decommission would be pointless
 
-    // NOTE: Not testing assassinate due to running the integration test against only one node and getting
-    // Caused by: java.lang.RuntimeException: Endpoint still alive: /127.0.0.1 heartbeat changed while trying to assassinate it
-    //	at org.apache.cassandra.gms.Gossiper.assassinateEndpoint(Gossiper.java:711)
-    //	at com.datastax.bdp.server.system.RpcOperationsProvider.assassinate(RpcOperationsProvider.java:90)
-    //	... 22 common frames omitted
-
+    // NOTE: Not testing assassinate due to running the integration test against only one node and hits a RTE
     @Test
     public void testDrain() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
-
+        NettyHttpClient client = getClient();
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/drain").build();
         boolean requestSuccessful = client.post(uri.toURL(), null)
@@ -114,50 +87,4 @@ public class DestructiveOpsIntegrationTest
         assertTrue(requestSuccessful);
     }
 
-    @After
-    public void stopCassandra() throws MalformedURLException, UnsupportedEncodingException
-    {
-        try
-        {
-            NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
-
-            boolean stopped = client.post(URI.create(BASE_PATH + "/lifecycle/stop").toURL(), null)
-                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-            assertTrue(stopped);
-
-            int tries = 0;
-            boolean ready = true;
-            while (tries++ < 20)
-            {
-                ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-                        .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-                if (!ready)
-                    break;
-
-                Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-            }
-
-            assertFalse(ready);
-        }
-        catch (SSLException e)
-        {
-            throw new RuntimeException(e);
-        }
-        finally
-        {
-            try
-            {
-                if (CLI != null)
-                {
-                    CLI.stop();
-                }
-            }
-            catch (Exception e)
-            {
-                logger.error("Unable to stop cli", e);
-            }
-        }
-    }
 }

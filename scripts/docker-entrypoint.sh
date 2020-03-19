@@ -7,6 +7,10 @@ if [ "$#" -eq 0 ] || [ "${1#-}" != "$1" ]; then
 	set -- cassandra -f "$@"
 fi
 
+if [ "$CASSANDRA_CONF" == "" ]; then
+  export CASSANDRA_CONF=/etc/cassandra
+fi
+
 # allow the container to be started with `--user`
 if [ "$1" = 'mgmtapi' -a "$(id -u)" = '0' ]; then
 	find "$CASSANDRA_CONF" /var/lib/cassandra /var/log/cassandra \
@@ -56,36 +60,15 @@ if [ "$1" = 'mgmtapi' ]; then
 		echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> /etc/cassandra/cassandra-env.sh
 	fi
 
-	: ${CASSANDRA_RPC_ADDRESS='0.0.0.0'}
+	CASSANDRA_RPC_ADDRESS='0.0.0.0'
+	CASSANDRA_BROADCAST_RPC_ADDRESS="$(_ip_address)"
 
-	: ${CASSANDRA_LISTEN_ADDRESS='auto'}
-	if [ "$CASSANDRA_LISTEN_ADDRESS" = 'auto' ]; then
-		CASSANDRA_LISTEN_ADDRESS="$(_ip_address)"
-	fi
-
-	: ${CASSANDRA_BROADCAST_ADDRESS="$CASSANDRA_LISTEN_ADDRESS"}
-
-	if [ "$CASSANDRA_BROADCAST_ADDRESS" = 'auto' ]; then
-		CASSANDRA_BROADCAST_ADDRESS="$(_ip_address)"
-	fi
-	: ${CASSANDRA_BROADCAST_RPC_ADDRESS:=$CASSANDRA_BROADCAST_ADDRESS}
-
-	if [ -n "${CASSANDRA_NAME:+1}" ]; then
-		: ${CASSANDRA_SEEDS:="cassandra"}
-	fi
-	: ${CASSANDRA_SEEDS:="$CASSANDRA_BROADCAST_ADDRESS"}
-
-	# This breaks using the ser
-	# _sed-in-place "$CASSANDRA_CONF/cassandra.yaml" \
-	# 	-r 's/(- seeds:).*/\1 "'"$CASSANDRA_SEEDS"'"/'
-
-	# Took out the following
-		# cluster_name \
-		# endpoint_snitch \
-		# num_tokens \
-		# start_rpc \
-
+  # Not needed as the operator will set all this but leaving for testing
 	for yaml in \
+	  cluster_name \
+		endpoint_snitch \
+		num_tokens \
+		start_rpc \
 		broadcast_address \
 		broadcast_rpc_address \
 		listen_address \
@@ -143,8 +126,6 @@ if [ "$1" = 'mgmtapi' ]; then
 
 	MGMT_API_CASSANDRA_HOME="--cassandra-home /var/lib/cassandra/"
 	MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_HOME"
-
-	export CASSANDRA_CONF=/etc/cassandra
 
 	if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
 		MGMT_API_NO_KEEP_ALIVE="--no-keep-alive $MGMT_API_NO_KEEP_ALIVE"
