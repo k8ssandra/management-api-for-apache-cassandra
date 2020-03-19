@@ -1,5 +1,7 @@
 # Management API for Apache Cassandra
 
+![Java CI](https://github.com/datastax/management-api-for-apache-cassandra/workflows/Java%20CI/badge.svg)
+
 ### Introduction
 
    Cassandra operations have historically been command line driven. 
