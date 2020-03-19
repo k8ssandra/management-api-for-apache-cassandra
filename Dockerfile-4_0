@@ -1,4 +1,4 @@
-FROM cassandra:4.0
+FROM datastax/cassandra:4.0
 
 COPY management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra/
 COPY management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra/

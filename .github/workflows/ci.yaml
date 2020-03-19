@@ -21,10 +21,8 @@ jobs:
       - name: Build with Maven
         run: mvn -B package -DskipTests --file pom.xml
       - name: Build 3.11 Management API Docker container
-        run: docker build -t mgmtapi-3_11 -f Dockerfile-3_11.yaml .
-      - name: Build 4.0 Docker container
-        run: docker build -t cassandra:4.0 -f upstream-4.0/Dockerfile upstream-4.0
+        run: docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
       - name: Build 4.0 Management API Docker container
-        run: docker build -t mgmtapi-4_0 -f Dockerfile-4_0.yaml .
+        run: docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
       - name: run tests
         run: mvn -B test --file pom.xml

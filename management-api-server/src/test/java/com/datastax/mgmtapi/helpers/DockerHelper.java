@@ -55,7 +55,7 @@ public class DockerHelper
     public void startManagementAPI(String version, List<String> envVars)
     {
         File baseDir = new File(System.getProperty("dockerFileRoot","."));
-        File dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version + ".yaml").toFile();
+        File dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version).toFile();
         if (!dockerFile.exists())
             throw new RuntimeException("Missing " + dockerFile.getAbsolutePath());
 
