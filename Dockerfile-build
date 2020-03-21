@@ -10,11 +10,11 @@ COPY management-api-shim-3.x/pom.xml ./management-api-shim-3.x/pom.xml
 COPY management-api-shim-4.x/pom.xml ./management-api-shim-4.x/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN mvn -T 1C install && rm -rf target
+RUN mvn -q -ff -T 1C install && rm -rf target
 
 COPY management-api-agent ./management-api-agent
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
 COPY management-api-shim-3.x ./management-api-shim-3.x
 COPY management-api-shim-4.x ./management-api-shim-4.x
-RUN mvn package -DskipTests
+RUN mvn -q -ff package -DskipTests
