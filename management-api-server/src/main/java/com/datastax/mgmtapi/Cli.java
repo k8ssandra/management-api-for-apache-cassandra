@@ -92,21 +92,22 @@ public class Cli implements Runnable
     HelpOption<Cli> help;
 
     @Path
-    @Option(name = {"-p", "--pidfile"},
-            arity = 1,
-            description = "Create a PID file at this file path.")
-    private String pidfile = null;
-
-    @Option(name = {"-H", "--host"},
-            description = "Daemon socket(s) to listen on. (required)")
-    private List<String> listen_address = new ArrayList<>();
-
-    @Path
     @Required
     @Option(name = {"-S", "--cassandra-socket"},
             arity = 1,
             description = "Path to Cassandra unix socket file (required)")
     private String cassandra_unix_socket_file = "/var/run/cassandra.sock";
+
+    @Required
+    @Option(name = {"-H", "--host"},
+            description = "Daemon socket(s) to listen on. (required)")
+    private List<String> listen_address = new ArrayList<>();
+
+    @Path
+    @Option(name = {"-p", "--pidfile"},
+            arity = 1,
+            description = "Create a PID file at this file path.")
+    private String pidfile = null;
 
     @Path(executable = true)
     @Option(name = {"-C", "--cassandra-home"},
@@ -319,6 +320,9 @@ public class Cli implements Runnable
                     cassandraExe = maybeCassandra;
             }
 
+            if (cassandraExe == null)
+                throw new IllegalArgumentException("Unable to locate cassandra executable, set $CASSANDRA_HOME or use -C");
+
             //Verify Cassandra cmd works
             List<String> errorOutput = new ArrayList<>();
             String version = ShellUtils.executeShellWithHandlers(
@@ -340,7 +344,7 @@ public class Cli implements Runnable
         }
         catch (IllegalArgumentException e)
         {
-            logger.error("Error encountered:", e);
+            logger.debug("Error encountered:", e);
             logger.error("Unable to start: unable to find or execute bin/cassandra " + (cassandra_home == null ? "use -C" : cassandra_home));
             System.exit(3);
         }
