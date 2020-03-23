@@ -1,12 +1,12 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package org.apache.cassandra.gms;
 
-import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
-import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.ShimLoader;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -17,9 +17,6 @@ import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
-import org.apache.cassandra.config.DatabaseDescriptor;
-import org.apache.cassandra.utils.FBUtilities;
-import org.apache.cassandra.utils.JVMStabilityInspector;
 
 public class GossiperInterceptor
 {

@@ -1,5 +1,9 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package com.datastax.mgmtapi;
-
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;

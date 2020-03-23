@@ -13,7 +13,6 @@
 
     <properties>
         <cassandra.version>3.11.5</cassandra.version>
-        <!--<cassandra.version>4.0-alpha2</cassandra.version>-->
         <bytebuddy.version>1.9.15</bytebuddy.version>
         <docker.java.version>3.1.5</docker.java.version>
         <driver.version>4.4.0</driver.version>

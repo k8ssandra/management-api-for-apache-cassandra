@@ -1,3 +1,8 @@
+/**
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package org.apache.cassandra.locator;
 
 import java.net.InetAddress;

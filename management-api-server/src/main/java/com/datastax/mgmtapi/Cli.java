@@ -73,7 +73,7 @@ import org.jboss.resteasy.plugins.server.netty.NettyUtil;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 
 @Copyright(startYear = 2020, holder = "DataStax")
-@License(url = "https://www.datastax.com/terms/product-specific-license-terms")
+@License(url = "https://www.apache.org/licenses/LICENSE-2.0")
 @Command(name = "cassandra-management-api", description = "REST service for managing an Apache Cassandra node")
 public class Cli implements Runnable
 {
