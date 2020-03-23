@@ -58,5 +58,6 @@ spec:
       max_heap_size: 500M
       additional-jvm-opts:
         - "-Dcassandra.skip_default_role_setup=true"
+        - "-Dcassandra.superuser_setup_delay_ms=100"
         - "-Dcassandra.system_distributed_replication_dc_names=dc1"
         - "-Dcassandra.system_distributed_replication_per_dc=1"

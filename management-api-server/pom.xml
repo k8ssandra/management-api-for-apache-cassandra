@@ -2,6 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <name>jcenter</name>
+            <url>https://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
+
     <parent>
         <groupId>com.datastax</groupId>
         <artifactId>datastax-mgmtapi</artifactId>
@@ -21,9 +29,8 @@
         <resteasy.version>4.0.0.Final</resteasy.version>
         <netty.version>4.1.45.Final</netty.version>
         <driver.version>4.4.0</driver.version>
-        <docker.java.version>3.1.5</docker.java.version>
-        <!--<cassandra.version>3.11.5</cassandra.version> -->
-        <cassandra.version>4.0-alpha2</cassandra.version>
+        <docker.java.version>3.1.2</docker.java.version>
+        <cassandra.version>3.11.5</cassandra.version>
     </properties>
 
     <dependencies>
@@ -88,15 +95,9 @@
             <version>${driver.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.docker-java</groupId>
-            <artifactId>docker-java</artifactId>
-            <version>${docker.java.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <groupId>com.aries</groupId>
+            <artifactId>docker-java-shaded</artifactId>
+            <version>3.1.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -105,6 +106,12 @@
             <version>${cassandra.version}</version>
             <classifier>bin</classifier>
             <type>tar.gz</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -159,7 +166,7 @@
                 <version>3.0.0-M3</version>
                 <configuration>
                     <systemPropertyVariables>
-                        <dockerFileRoot>${basedir}</dockerFileRoot>
+                        <dockerFileRoot>${basedir}/..</dockerFileRoot>
                         <CASSANDRA_HOME>${basedir}/target/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>
                     <environmentVariables>

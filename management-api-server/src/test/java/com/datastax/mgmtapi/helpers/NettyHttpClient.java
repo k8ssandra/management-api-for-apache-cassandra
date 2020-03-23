@@ -88,7 +88,7 @@ public class NettyHttpClient
                                 ch.pipeline().addFirst(finalSslContext.newHandler(ch.alloc()));
 
                             ch.pipeline().addLast(new HttpClientCodec());
-                            ch.pipeline().addLast(new HttpObjectAggregator(4096));
+                            ch.pipeline().addLast(new HttpObjectAggregator(1<<20));
                             ch.pipeline().addLast(new SimpleChannelInboundHandler<FullHttpResponse>()
                             {
                                 @Override
@@ -157,13 +157,19 @@ public class NettyHttpClient
 
     public CompletableFuture<FullHttpResponse> post(URL url, final CharSequence body) throws UnsupportedEncodingException
     {
+        return post(url, body, "application/json");
+    }
+
+
+    public CompletableFuture<FullHttpResponse> post(URL url, final CharSequence body, String contentType) throws UnsupportedEncodingException
+    {
         CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
 
         if (!activeRequestFuture.compareAndSet(null, result))
             throw new RuntimeException("outstanding request");
 
         DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, url.getFile());
-        request.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json");
+        request.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
         request.headers().set(HttpHeaderNames.HOST, url.getHost());
 
         if (body != null)

@@ -13,11 +13,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
+import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.helpers.NettyHttpIPCClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
@@ -30,6 +32,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,37 +53,22 @@ import static org.junit.Assume.assumeTrue;
  * in an inoperable state (e.g. assassinate or decommission). The purpose of this is to speed up testing by starting the Cassandra
  * node once, running all tests, and then stopping rather than a start/stop during each test case.
  */
-public class NonDestructiveOpsIntegrationTest
+@RunWith(Parameterized.class)
+public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 {
-
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
-    private static String BASE_PATH = "http://localhost/api/v0";
-    private static String MGMT_SOCK;
-    private static String CASS_SOCK;
-    private static Cli CLI;
 
-    @ClassRule
-    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @BeforeClass
-    public static void startCassandra() throws IOException
+    public NonDestructiveOpsIntegrationTest(String version)
+    {
+        super(version);
+    }
+
+    public static void ensureStarted() throws IOException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
 
-        MGMT_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-nd-ops-mgmt");
-        new File(MGMT_SOCK).deleteOnExit();
-        CASS_SOCK = SocketUtils.makeValidUnixSocketFile(null, "management-nd-ops-cass");
-        new File(CASS_SOCK).deleteOnExit();
-
-        List<String> extraArgs = IntegrationTestUtils.getExtraArgs(NonDestructiveOpsIntegrationTest.class, "", temporaryFolder.getRoot());
-
-        CLI = new Cli(Collections.singletonList("file://" + MGMT_SOCK), IntegrationTestUtils.getCassandraHome(), CASS_SOCK, false, extraArgs);
-
-        CLI.preflightChecks();
-        Thread cliThread = new Thread(CLI);
-        cliThread.start();
-
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         // Verify liveness
         boolean live = client.get(URI.create(BASE_PATH + "/probes/liveness").toURL())
@@ -91,7 +80,7 @@ public class NonDestructiveOpsIntegrationTest
 
         // Startup
         boolean started = client.post(URI.create(BASE_PATH + "/lifecycle/start").toURL(), null)
-                .thenApply(r -> r.status().code() == HttpStatus.SC_CREATED).join();
+                .thenApply(r -> r.status().code() == HttpStatus.SC_CREATED || r.status().code() == HttpStatus.SC_ACCEPTED ).join();
 
         assertTrue(started);
 
@@ -116,7 +105,9 @@ public class NonDestructiveOpsIntegrationTest
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         String requestSuccessful = client.post(URI.create(BASE_PATH + "/ops/seeds/reload").toURL(), null)
                 .thenApply(r -> {
@@ -139,8 +130,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testConsistencyCheck() throws IOException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         Integer code  = client.get(URI.create(BASE_PATH + "/probes/cluster?consistency_level=ONE").toURL())
                 .thenApply(r -> {
@@ -180,8 +172,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testSetCompactionThroughput() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/compaction")
                 .addParameter("value", "5")
@@ -192,30 +185,12 @@ public class NonDestructiveOpsIntegrationTest
     }
 
     @Test
-    public void testCreateRole() throws IOException, URISyntaxException
-    {
-        assumeTrue(IntegrationTestUtils.shouldRun());
-
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
-
-        URI uri = new URIBuilder(BASE_PATH + "/ops/auth/role")
-                .addParameter("username", "mgmtuser")
-                .addParameter( "is_superuser", "true")
-                .addParameter("can_login", "true")
-                .addParameter("password", "inttest")
-                .build();
-        boolean requestSuccessful = client.post(uri.toURL(), null)
-                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-        assertTrue(requestSuccessful);
-    }
-
-
-    @Test
     public void testSetLoggingLevel() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/logging")
                 .addParameter("target", "cql")
@@ -230,8 +205,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testTruncateWithHost() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
                 .addParameter("host", "127.0.0.1")
@@ -245,8 +221,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testTruncateWithoutHost() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-       NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+       NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
                 .build();
@@ -259,8 +236,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testResetLocalSchema() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/schema/reset")
                 .build();
@@ -273,8 +251,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testReloadLocalSchema() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/schema/reload")
                 .build();
@@ -287,8 +266,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testGetReleaseVersion() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/metadata/versions/release")
                 .build();
@@ -312,8 +292,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testGetEndpoints() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/metadata/endpoints")
                 .build();
@@ -339,8 +320,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testCleanup() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
@@ -355,8 +337,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testRefresh() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/refresh")
                 .addParameter("keyspaceName", "system_traces")
@@ -372,8 +355,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testScrub() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         ScrubRequest scrubRequest = new ScrubRequest(true, true, true, true,
                 2, "system_traces", Collections.singletonList("events"));
@@ -389,8 +373,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testCompact() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         CompactRequest compactRequest = new CompactRequest(false, false, null,
                 null, "system_traces", null, Collections.singletonList("events"));
@@ -406,8 +391,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testGarbageCollect() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
@@ -422,8 +408,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testFlush() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, null, null);
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
@@ -438,8 +425,9 @@ public class NonDestructiveOpsIntegrationTest
     public void testUpgradeSSTables() throws IOException, URISyntaxException
     {
         assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-        NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "", null);
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
@@ -448,52 +436,5 @@ public class NonDestructiveOpsIntegrationTest
         boolean requestSuccessful = client.post(uri.toURL(), keyspaceRequestAsJSON)
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);
-    }
-
-
-    @AfterClass
-    public static void stopCassandra() throws MalformedURLException, UnsupportedEncodingException
-    {
-        try
-        {
-            NettyHttpIPCClient client = new NettyHttpIPCClient(MGMT_SOCK);
-
-            boolean stopped = client.post(URI.create(BASE_PATH + "/lifecycle/stop").toURL(), null)
-                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-            assertTrue(stopped);
-
-            int tries = 0;
-            boolean ready = true;
-            while (tries++ < 20)
-            {
-                ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-                        .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-                if (!ready)
-                    break;
-
-                Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-            }
-
-            assertFalse(ready);
-        }
-        catch (SSLException e)
-        {
-            throw new RuntimeException(e);
-        }
-        finally {
-            try
-            {
-                if (CLI != null)
-                {
-                    CLI.stop();
-                }
-            }
-            catch (Exception e)
-            {
-                logger.error("Unable to stop cli", e);
-            }
-        }
     }
 }

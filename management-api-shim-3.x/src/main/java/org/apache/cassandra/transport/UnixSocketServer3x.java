@@ -166,9 +166,9 @@ public class UnixSocketServer3x
                 case UNINITIALIZED:
                     if (requestType == Message.Type.STARTUP)
                     {
-                        if (responseType == Message.Type.AUTHENTICATE)
-                            state = State.AUTHENTICATION;
-                        else if (responseType == Message.Type.READY)
+                        //if (responseType == Message.Type.AUTHENTICATE)
+                        //    state = State.AUTHENTICATION;
+                        //else if (responseType == Message.Type.READY)
                             state = State.READY;
                     }
                     break;
