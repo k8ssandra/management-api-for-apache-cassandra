@@ -1,7 +1,7 @@
 # Management API for Apache Cassandra
 
 ![Java CI](https://github.com/datastax/management-api-for-apache-cassandra/workflows/Java%20CI/badge.svg)
-
+![Docker Release](https://github.com/datastax/management-api-for-apache-cassandra/workflows/Docker%20Release/badge.svg)
 ## Introduction
 
    Cassandra operations have historically been command line driven. 
@@ -74,7 +74,11 @@
   
 ## Usage
 
-  The Management API can be used as a standalone service or along with the kubernetes 
+  The latest releases are on Docker Hub:
+     [Management API for Apache Cassandra 3.11](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11) and 
+     [Management API for Apache Cassandra 4.0](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0). 
+
+  The Management API can be run as a standalone service or along with the kubernetes 
   [cass-operator](https://github.com/datastax/cass-operator). 
   
   The Management API is configured from the CLI
