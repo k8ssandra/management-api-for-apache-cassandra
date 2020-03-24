@@ -13,21 +13,30 @@
    
    The Management API is a sidecar service layer that attempts to build a well supported
    set of operational actions on Cassandra nodes that can be administered centrally.
-   It currently works with official [Apache Cassandra](https://cassandra.apache.org) 3.11.x an 4.0 releases.
+   It currently works with official [Apache Cassandra](https://cassandra.apache.org) 3.11.x an 4.0 
+   via a drop in java agent.
    
-   * Lifecycle Management
-   * Configuration Management
-   * Health Checks
-   * Per node actions (all nodetool)
+   * Lifecycle Management 
+       * Start Node
+       * Stop Node
+   * Configuration Management (alpha)
+       * Change YAML
+       * Change jvm-opts
+   * Health Checks 
+       * Kubernetes liveness/readiness checks
+       * Consistency level checks 
+   * Per node actions 
+       * All nodetool
      
 ## Design Principles
   * Secure by default
   * Simple to use and extend
-  * CQL Only
-  * Cloud native
-
+  * CQL Only for all C* interactions
+    * Operations: Use 'CALL' method for invoking via CQL
+    * Observations: Rely on System Views 
+  
   The management api has no configuration file, rather, it can only be configured from a 
-  small list of command line flags.  Communication can be local only via unix socket 
+  small list of command line flags.  Communication by default can only be via unix socket 
   or via a http(s) endpoint with optional TLS client auth.
   
   In a containerized setting the management API represents PID 1 and will be 
@@ -199,7 +208,7 @@
 
 ## License
 
-Copyright 2014-2017, DataStax, Inc.
+Copyright DataStax, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
