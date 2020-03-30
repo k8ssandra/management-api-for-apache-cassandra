@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-    branches: 
-      - release-jar
     tags:
       - 'v*.*.*'
 
@@ -36,13 +34,18 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+<<<<<<< HEAD
 
+=======
+>>>>>>> aec1d86c2769d489781395847057e01002f1c855
       - uses: actions/checkout@master
       - name: Setup Java JDK
         uses: actions/setup-java@v1.3.0
         with:
           java-version: 13
           java-package: jdk
+      - name: Copy release URL into file
+        run: ls
       - name: Build with Maven
         run: mvn -q -ff package -DskipTests
 
