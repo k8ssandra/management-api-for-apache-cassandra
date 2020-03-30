@@ -68,7 +68,6 @@
     
 ## REST API
    [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/datastax/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
-   *(Won't work till repo is OSS)*
    
    Also readable from url root: ````/openapi.json````
   
