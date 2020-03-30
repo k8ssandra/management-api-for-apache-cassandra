@@ -34,10 +34,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-<<<<<<< HEAD
 
-=======
->>>>>>> aec1d86c2769d489781395847057e01002f1c855
       - uses: actions/checkout@master
       - name: Setup Java JDK
         uses: actions/setup-java@v1.3.0
