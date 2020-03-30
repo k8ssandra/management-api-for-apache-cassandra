@@ -86,22 +86,23 @@
      
      > docker run -p 8080:8080 -it --rm mgmtapi-4_0 
      
+     > curl http://localhost:8080/api/v0/probes/liveness
+     OK
+     
      # Check service and C* are running
      > curl http://localhost:8080/api/v0/probes/readiness
      OK
      
-     > curl http://localhost:8080/api/v0/probes/liveness
-     OK
   
   To start the service with a locally installed C* you would run the following:
     
     # REQUIRED: Add management api agent to C* startup
     > export JVM_EXTRA_OPTS="-javaagent:$PWD/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar"
         
-    > alias mgmiapi="java -jar management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar"
+    > alias mgmtapi="java -jar management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar"
     
     # Start the service with a local unix socket only, you could also pass -H http://localhost:8080 to expose a port
-    > nohup mgmtapi --cassandra-socket=/tmp/cassandra.sock --host=unix:///tmp/mgmtapi.sock &
+    > mgmtapi --cassandra-socket=/tmp/cassandra.sock --host=unix:///tmp/mgmtapi.sock --cassandra-home=<pathToCassandra>
     
     # Cassandra will be started by the service by default unless you pass --explicit-start flag
     
@@ -121,8 +122,6 @@
   The cli help covers the different options:
     
     mgmtapi --help
-    
-    Usage error: Required option '-S' is missing
     
     NAME
             cassandra-management-api - REST service for managing an Apache

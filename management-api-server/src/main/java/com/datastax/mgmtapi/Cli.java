@@ -522,8 +522,18 @@ public class Cli implements Runnable
         }
         catch (ParseException p)
         {
-            System.err.println(String.format("Usage error: %s", p.getMessage()));
-            System.err.println();
+            //noinspection StatementWithEmptyBody
+            if (args.length > 0 && (args[0].equals("-h") || args[0].equals("--help")))
+            {
+                // don't tell the user it's a usage error
+                // a bug in airline (https://github.com/airlift/airline/issues/44) prints a usage error even if
+                // a user just uses -h/--help
+            }
+            else
+            {
+                System.err.println(String.format("Usage error: %s", p.getMessage()));
+                System.err.println();
+            }
 
             try
             {
