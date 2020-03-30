@@ -45,7 +45,9 @@ jobs:
         run: ls
       - name: Build with Maven
         run: mvn -q -ff package -DskipTests
-
+      - name: zip-up
+        run: |
+          zip jars.zip management-api-agent/target/datastax-mgmtapi-agent-*.jar management-api-server/target/datastax-mgmtapi-server-*.jar management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-*-SNAPSHOT.jar management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-*.jar management-api-common/target/datastax-mgmtapi-common-*.jar
       - name: Retrieve stashed release URL
         uses: actions/download-artifact@v1
         with:
@@ -54,53 +56,12 @@ jobs:
         id: get_release_url
         run: echo ::set-output name=URL::$(cat release-url/url.txt)
 
-      - name: Upload Agent
+      - name: Upload jars 
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_url.outputs.URL }}
-          asset_path: management-api-agent/target/datastax-mgmtapi-agent-*.jar
-          asset_name: datastax-mgmtapi-agent.jar
-          asset_content_type: text/html
-
-      - name: Upload API Server
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_url.outputs.URL }}
-          asset_path: management-api-server/target/datastax-mgmtapi-server-*.jar
-          asset_name: datastax-api-server.jar
-          asset_content_type: text/html
-
-      - name: Upload 4.x Shim 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_url.outputs.URL }}
-          asset_path: management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-*-SNAPSHOT.jar
-          asset_name: datastax-mgmtapi-shim-4.x.jar
-          asset_content_type: text/html
-
-      - name: Upload 3.x Shim
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_url.outputs.URL }}
-          asset_path: management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-*.jar
-          asset_name: datastax-mgmtapi-shim-3.x.jar
-          asset_content_type: text/html
- 
-
-      - name: Upload Common
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_url.outputs.URL }}
-          asset_path: management-api-common/target/datastax-mgmtapi-common-*.jar
-          asset_name: datastax-mgmtapi-common.jar
+          asset_path: jars.zip
+          asset_name: jars.zip
           asset_content_type: text/html
