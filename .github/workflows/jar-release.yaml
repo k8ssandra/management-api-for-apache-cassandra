@@ -12,7 +12,6 @@ jobs:
     name: create release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -37,7 +36,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
+      - uses: actions/checkout@master
       - name: Setup Java JDK
         uses: actions/setup-java@v1.3.0
         with:
