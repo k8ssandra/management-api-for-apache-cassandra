@@ -76,6 +76,9 @@
   The latest releases are on Docker Hub:
      [Management API for Apache Cassandra 3.11.6](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_6) and 
      [Management API for Apache Cassandra 4.0 alpha3](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0). 
+ 
+  For running standalone the jars can be downloaded from the github release:
+     [Management API Releases Zip](https://github.com/datastax/management-api-for-apache-cassandra/releases)
 
   The Management API can be run as a standalone service or along with the kubernetes 
   [cass-operator](https://github.com/datastax/cass-operator). 

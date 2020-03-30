@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  create-release:
+    name: create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Copy release URL into file
+        run: |
+          mkdir release
+          printf "%s" "${{ steps.create_release.outputs.upload_url }}" > release/url.txt
+      - name: Stash file containing the release URL as an artifact
+        uses: actions/upload-artifact@v1
+        with:
+          name: release-url
+          path: ./release
+ 
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@master
+      - name: Setup Java JDK
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: 13
+          java-package: jdk
+      - name: Copy release URL into file
+        run: ls
+      - name: Build with Maven
+        run: mvn -q -ff package -DskipTests
+      - name: zip-up
+        run: |
+          zip jars.zip management-api-agent/target/datastax-mgmtapi-agent-*.jar management-api-server/target/datastax-mgmtapi-server-*.jar management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-*-SNAPSHOT.jar management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-*.jar management-api-common/target/datastax-mgmtapi-common-*.jar
+      - name: Retrieve stashed release URL
+        uses: actions/download-artifact@v1
+        with:
+          name: release-url
+      - name: Read release URL
+        id: get_release_url
+        run: echo ::set-output name=URL::$(cat release-url/url.txt)
+
+      - name: Upload jars 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_url.outputs.URL }}
+          asset_path: jars.zip
+          asset_name: jars.zip
+          asset_content_type: text/html
