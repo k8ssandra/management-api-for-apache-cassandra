@@ -1,19 +1,19 @@
-# Management API for Apache Cassandra
+# Management API for Apache Cassandra&reg;
 
 ![Java CI](https://github.com/datastax/management-api-for-apache-cassandra/workflows/Java%20CI/badge.svg)
 ![Docker Release](https://github.com/datastax/management-api-for-apache-cassandra/workflows/Docker%20Release/badge.svg)
 ## Introduction
 
-   Cassandra operations have historically been command line driven. 
-   The management of operational tools for Apache Cassandra have been mostly 
+   Cassandra&reg; operations have historically been command line driven. 
+   The management of operational tools for Apache Cassandra&reg; have been mostly 
    outsourced to teams who manage their specific environments.  
    
    The result is a fragmented and tribal set of best practices, workarounds,
    and edge cases.
    
    The Management API is a sidecar service layer that attempts to build a well supported
-   set of operational actions on Cassandra nodes that can be administered centrally.
-   It currently works with official [Apache Cassandra](https://cassandra.apache.org) 3.11.x an 4.0 
+   set of operational actions on Cassandra&reg; nodes that can be administered centrally.
+   It currently works with official [Apache Cassandra&reg;](https://cassandra.apache.org) 3.11.x an 4.0 
    via a drop in java agent.
    
    * Lifecycle Management 
@@ -26,24 +26,24 @@
        * Kubernetes liveness/readiness checks
        * Consistency level checks 
    * Per node actions 
-       * All nodetool
+       * All nodetool commands
      
 ## Design Principles
   * Secure by default
   * Simple to use and extend
   * CQL Only for all C* interactions
-    * Operations: Use 'CALL' method for invoking via CQL
+    * Operations: Use `CALL` method for invoking via CQL
     * Observations: Rely on System Views 
   
-  The management api has no configuration file, rather, it can only be configured from a 
-  small list of command line flags.  Communication by default can only be via unix socket 
-  or via a http(s) endpoint with optional TLS client auth.
+  The Management API has no configuration file.  Rather, it can only be configured from a 
+  small list of command line flags.  Communication by default can only be via **unix socket** 
+  or via a **http(s) endpoint** with optional TLS client auth.
   
-  In a containerized setting the management API represents PID 1 and will be 
-  responsible for the lifecycle of Cassandra via the API.
+  In a containerized setting the Management API represents **PID 1** and will be 
+  responsible for the lifecycle of Cassandra&reg; via the API.
   
-  Communication between the Management API and Cassandra is via a local unix socket using
-  CQL as it's only protocol.  This means, out of the box Cassandra can be started
+  Communication between the Management API and Cassandra&reg; is via a local **unix socket** using
+  CQL as it's only protocol.  This means, out of the box Cassandra&reg; can be started
   securely with no open ports!  Also, using CQL only means operators can
   execute operations via CQL directly if they wish.
   
@@ -74,18 +74,16 @@
 ## Usage
 
   The latest releases are on Docker Hub:
-     [Management API for Apache Cassandra 3.11.6](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_6) and 
-     [Management API for Apache Cassandra 4.0 alpha3](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0). 
+     [Management API for Apache Cassandra&reg; 3.11.6](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_6) and 
+     [Management API for Apache Cassandra&reg; 4.0 alpha3](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0).
  
   For running standalone the jars can be downloaded from the github release:
      [Management API Releases Zip](https://github.com/datastax/management-api-for-apache-cassandra/releases)
 
-  The Management API can be run as a standalone service or along with the kubernetes 
+  The Management API can be run as a standalone service or along with the Kubernetes 
   [cass-operator](https://github.com/datastax/cass-operator). 
   
-  The Management API is configured from the CLI
-  
-  To start the service with a C* version built above run:
+  The Management API is configured from the CLI. To start the service with a C* version built above, run:
      
      > docker run -p 8080:8080 -it --rm mgmtapi-4_0 
      
@@ -122,7 +120,7 @@
     OK
     
   
-  The cli help covers the different options:
+  The CLI help covers the different options:
     
     mgmtapi --help
     
