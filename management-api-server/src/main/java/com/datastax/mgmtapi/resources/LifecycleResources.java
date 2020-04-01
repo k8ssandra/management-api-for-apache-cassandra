@@ -22,6 +22,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.io.FileUtils;
@@ -42,8 +44,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
 
-import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
-import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
+import static com.datastax.mgmtapi.ManagementApplication.STATE.*;
 
 @Path("/api/v0/lifecycle")
 public class LifecycleResources
@@ -54,6 +55,7 @@ public class LifecycleResources
     static final YAMLMapper yamlMapper = new YAMLMapper();
     static final String PROFILE_PATTERN = "[0-9a-zA-Z\\-_]+";
     static final String IPV4_PATTERN = "^((0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)\\.){3}(0|1\\d?\\d?|2[0-4]?\\d?|25[0-5]?|[3-9]\\d?)$";
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     public LifecycleResources(ManagementApplication app)
     {
@@ -155,7 +157,8 @@ public class LifecycleResources
             else
                 logger.warn("Error starting Cassandra");
 
-            return Response.status(started ? HttpStatus.SC_CREATED : HttpStatus.SC_METHOD_FAILURE).build();
+            return Response.status(started ? HttpStatus.SC_CREATED : HttpStatus.SC_METHOD_FAILURE)
+                    .entity(started ? "OK\n" : "Error starting Cassandra").build();
         }
         catch (Throwable t)
         {
@@ -183,7 +186,7 @@ public class LifecycleResources
                 if (!maybePid.isPresent())
                 {
                     logger.info("Cassandra already stopped");
-                    return Response.ok("OK").build();
+                    return Response.ok("OK\n").build();
                 }
 
                 Boolean stopped = ShellUtils.executeShellWithHandlers(
@@ -222,7 +225,7 @@ public class LifecycleResources
                 }
             }
 
-            return Response.ok("OK").build();
+            return Response.ok("OK\n").build();
         }
         catch (Throwable t)
         {
@@ -252,17 +255,32 @@ public class LifecycleResources
 
     @Path("/configure")
     @POST
-    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes("application/json")
+    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
+    public synchronized Response configureNodeJson(@QueryParam("profile") String profile, String config)
+    {
+        try {
+            JsonNode jn = objectMapper.readTree(config);
+            String yaml = yamlMapper.writeValueAsString(jn);
+            return configureNode(profile, yaml);
+        } catch (IOException e) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("Invalid JSON:"+ e.getMessage()).build();
+        }
+    }
+
+    @Path("/configure")
+    @POST
     @Consumes("application/yaml")
     @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
-        if (app.getRequestedState() == STARTED)
-            return Response.status(Response.Status.NOT_ACCEPTABLE).build();
+        if (app.getRequestedState() != STARTED ) {
+            return Response.status(Response.Status.NOT_ACCEPTABLE).entity("Cassandra is running, try /api/v0/lifecycle/stop first\n").build();
+        }
 
         //FIXME: Regex
         if (profile == null)
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("The profile query parameter is required, try /api/v0/lifecycle/configure?profile=<profile>\n").build();
 
         //Find cassandra yaml
         try
@@ -270,13 +288,19 @@ public class LifecycleResources
             JsonNode jn = yamlMapper.readTree(yaml.getBytes());
 
             jn = jn.get("spec");
-            if (jn == null)
-                return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "spec missing").build();
+            if (jn == null) {
+                return Response.status(Response.Status.BAD_REQUEST).entity("spec missing\n").build();
+            }
 
-            String clusterName = jn.get("clusterName").textValue();
+            JsonNode clusterNameJsonNode = jn.get("clusterName");
+            if (clusterNameJsonNode == null){
+                return Response.status(Response.Status.BAD_REQUEST).entity("cluster name missing\n").build();
+            }
+            String clusterName = clusterNameJsonNode.textValue();
+
             jn = jn.get("config");
             if (jn == null)
-                return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "config missing").build();
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity("config missing\n").build();
 
             JsonNode nodeTopology = jn.get("node-topology");
             String dc = "vdc1";
@@ -328,7 +352,7 @@ public class LifecycleResources
                     jvmHeapNew = jvmOpts.get("heap_new_size").asText();
 
                 if ((jvmMaxHeap == null) != (jvmHeapNew == null))
-                    return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Both max_heap_size and heap_new_size must be defined").build();
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Both max_heap_size and heap_new_size must be defined").build();
             }
 
             if (jvmOpts.has("additional-jvm-opts"))
@@ -358,7 +382,7 @@ public class LifecycleResources
             return Response.serverError().build();
         }
 
-        return Response.ok().build();
+        return Response.ok().entity("OK\n").build();
     }
 
     @Path("/pid")
