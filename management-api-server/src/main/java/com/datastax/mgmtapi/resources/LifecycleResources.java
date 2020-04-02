@@ -274,7 +274,7 @@ public class LifecycleResources
     @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
-        if (app.getRequestedState() != STARTED ) {
+        if (app.getRequestedState() == STARTED ) {
             return Response.status(Response.Status.NOT_ACCEPTABLE).entity("Cassandra is running, try /api/v0/lifecycle/stop first\n").build();
         }
 
