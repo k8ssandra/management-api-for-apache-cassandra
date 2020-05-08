@@ -56,9 +56,9 @@ if [ "$1" = 'mgmtapi' ]; then
 	#    the fact this jar even exists.
 	
 	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" < /etc/cassandra/cassandra-env.sh ; then
-     	# ensure newline at end of file
+    # ensure newline at end of file
 		echo "" >> /etc/cassandra/cassandra-env.sh
-     	echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" >> /etc/cassandra/cassandra-env.sh
+    echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" >> /etc/cassandra/cassandra-env.sh
 	
 		echo "" >> /opt/mcac-agent/config/metric-collector.yaml
 		echo "data_dir_max_size_in_mb: 100" >> /opt/mcac-agent/config/metric-collector.yaml
