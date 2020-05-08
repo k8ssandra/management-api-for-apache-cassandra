@@ -54,6 +54,16 @@ if [ "$1" = 'mgmtapi' ]; then
 	# 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after
 	# 2. We don't wan't operator or configbuilder to care so much about the version number or
 	#    the fact this jar even exists.
+	
+	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" < /etc/cassandra/cassandra-env.sh ; then
+     	# ensure newline at end of file
+		echo "" >> /etc/cassandra/cassandra-env.sh
+     	echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" >> /etc/cassandra/cassandra-env.sh
+	
+		echo "" >> /opt/mcac-agent/config/metric-collector.yaml
+		echo "data_dir_max_size_in_mb: 100" >> /opt/mcac-agent/config/metric-collector.yaml
+	fi
+
 	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" < /etc/cassandra/cassandra-env.sh ; then
 		# ensure newline at end of file
 		echo "" >> /etc/cassandra/cassandra-env.sh
@@ -63,7 +73,7 @@ if [ "$1" = 'mgmtapi' ]; then
 	CASSANDRA_RPC_ADDRESS='0.0.0.0'
 	CASSANDRA_BROADCAST_RPC_ADDRESS="$(_ip_address)"
 
-  # Not needed as the operator will set all this but leaving for testing
+    # Not needed as the operator will set all this but leaving for testing
 	for yaml in \
 	  cluster_name \
 		endpoint_snitch \
