@@ -118,6 +118,29 @@
         }
       }
     },
+    "/api/v0/ops/keyspace/cleanup" : {
+      "post" : {
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces",
+        "operationId" : "cleanup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/keyspace/refresh" : {
       "post" : {
         "summary" : "Load newly placed SSTables to the system without restart",
@@ -135,29 +158,6 @@
             "type" : "string"
           }
         } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/keyspace/cleanup" : {
-      "post" : {
-        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces",
-        "operationId" : "cleanup",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
         "responses" : {
           "default" : {
             "description" : "default response",
@@ -281,10 +281,17 @@
         }
       }
     },
-    "/api/v0/ops/node/drain" : {
+    "/api/v0/ops/node/decommission" : {
       "post" : {
-        "summary" : "Drain the node (stop accepting writes and flush all tables)",
-        "operationId" : "drain",
+        "summary" : "Decommission the *node I am connecting to*",
+        "operationId" : "decommission",
+        "parameters" : [ {
+          "name" : "force",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
         "responses" : {
           "default" : {
             "description" : "default response",
@@ -414,17 +421,47 @@
         }
       }
     },
-    "/api/v0/ops/node/decommission" : {
-      "post" : {
-        "summary" : "Decommission the *node I am connecting to*",
-        "operationId" : "decommission",
-        "parameters" : [ {
-          "name" : "force",
-          "in" : "query",
-          "schema" : {
-            "type" : "boolean"
+    "/api/v0/ops/node/streaminfo" : {
+      "get" : {
+        "summary" : "Retrieve Streaming status information",
+        "operationId" : "getStreamInfo",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
           }
-        } ],
+        }
+      }
+    },
+    "/api/v0/ops/node/drain" : {
+      "post" : {
+        "summary" : "Drain the node (stop accepting writes and flush all tables)",
+        "operationId" : "drain",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/tables/flush" : {
+      "post" : {
+        "summary" : "Flush one or more tables",
+        "operationId" : "flush",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
         "responses" : {
           "default" : {
             "description" : "default response",
@@ -444,36 +481,6 @@
             "application/json" : {
               "schema" : {
                 "$ref" : "#/components/schemas/CompactRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/garbagecollect" : {
-      "post" : {
-        "summary" : "Remove deleted data from one or more tables",
-        "operationId" : "garbageCollect",
-        "parameters" : [ {
-          "name" : "tombstoneOption",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
               }
             }
           }
@@ -541,10 +548,17 @@
         }
       }
     },
-    "/api/v0/ops/tables/flush" : {
+    "/api/v0/ops/tables/garbagecollect" : {
       "post" : {
-        "summary" : "Flush one or more tables",
-        "operationId" : "flush",
+        "summary" : "Remove deleted data from one or more tables",
+        "operationId" : "garbageCollect",
+        "parameters" : [ {
+          "name" : "tombstoneOption",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "requestBody" : {
           "content" : {
             "application/json" : {

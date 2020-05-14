@@ -5,10 +5,12 @@
  */
 package com.datastax.mgmtapi.resources;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -19,6 +21,7 @@ import java.util.concurrent.Callable;
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.oss.driver.api.core.NoNodeAvailableException;
+import com.datastax.oss.driver.api.core.cql.Row;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -222,6 +225,25 @@ public class NodeOpsResources
             cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.reloadLocalSchema()");
 
             return Response.ok("OK").build();
+        });
+    }
+
+    @GET
+    @Path("/streaminfo")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Retrieve Streaming status information")
+    public Response getStreamInfo()
+    {
+        return handle(() ->
+        {
+            Row row = cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.getStreamInfo()").one();
+
+            Object queryResponse = null;
+            if (row != null)
+            {
+                queryResponse = row.getObject(0);
+            }
+            return Response.ok(Entity.json(queryResponse)).build();
         });
     }
 

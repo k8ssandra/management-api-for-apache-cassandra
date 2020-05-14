@@ -5,8 +5,10 @@
  */
 package com.datastax.mgmtapi;
 
+import javax.net.ssl.SSLException;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -422,5 +424,30 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         boolean requestSuccessful = client.post(uri.toURL(), keyspaceRequestAsJSON)
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);
+    }
+
+    @Test
+    public void testGetStreamInfo() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+        URI uri = new URIBuilder(BASE_PATH + "/ops/node/streaminfo").build();
+        String response = client.get(uri.toURL())
+                .thenApply(r -> {
+                    if (r.status().code() == HttpStatus.SC_OK)
+                    {
+                        byte[] result = new byte[r.content().readableBytes()];
+                        r.content().readBytes(result);
+
+                        return new String(result);
+                    }
+
+                    return null;
+                }).join();
+        assertNotNull(response);
+        assertNotEquals("", response);
     }
 }
