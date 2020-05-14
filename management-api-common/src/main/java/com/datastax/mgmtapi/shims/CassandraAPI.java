@@ -31,4 +31,6 @@ public interface CassandraAPI
     ChannelInitializer<Channel> makeSocketInitializer(final Server.ConnectionTracker connectionTracker);
 
     List<Map<String,String>> getEndpointStates();
+
+    List<Map<String, List<Map<String, String>>>> getStreamInfo();
 }

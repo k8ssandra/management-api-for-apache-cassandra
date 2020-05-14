@@ -8,9 +8,13 @@ package com.datastax.mgmtapi;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import com.datastax.mgmtapi.resources.K8OperatorResources;
 import com.datastax.mgmtapi.resources.KeyspaceOpsResources;
@@ -902,6 +906,88 @@ public class K8OperatorResourcesTest {
         Assert.assertTrue(response.getContentAsString().contains("Must provide a keyspace name"));
 
         verifyZeroInteractions(context.cqlService);
+    }
+
+    @Test
+    public void testGetStreamInfo() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/node/streaminfo");
+        when(context.cqlService.executeCql(any(), anyString())).thenReturn(mockResultSet);
+
+        when(mockResultSet.one()).thenReturn(mockRow);
+
+        List<Map<String, List<Map<String, String>>>> result = new ArrayList<>();
+
+        List<Map<String, String>> session1Results = new ArrayList<>();
+        session1Results.add(ImmutableMap.<String, String>builder().put("PEER", "/10.101.35.153")
+                .put("STREAM_OPERATION", "Rebuild")
+                .put("TOTAL_FILES_RECEIVED", "0")
+                .put("TOTAL_FILES_SENT", "6")
+                .put("TOTAL_FILES_TO_RECEIVE", "0")
+                .put("TOTAL_FILES_TO_SEND", "7")
+                .put("TOTAL_SIZE_RECEIVED", "0")
+                .put("TOTAL_SIZE_SENT", "104297862")
+                .put("TOTAL_SIZE_TO_RECEIVE", "0")
+                .put("TOTAL_SIZE_TO_SEND", "115157855")
+                .put("USING_CONNECTION", "/10.101.35.153")
+                .build());
+
+        session1Results.add(ImmutableMap.<String, String>builder().put("PEER", "/10.101.35.123")
+                .put("STREAM_OPERATION", "Rebuild")
+                .put("TOTAL_FILES_RECEIVED", "3")
+                .put("TOTAL_FILES_SENT", "6")
+                .put("TOTAL_FILES_TO_RECEIVE", "9")
+                .put("TOTAL_FILES_TO_SEND", "7")
+                .put("TOTAL_SIZE_RECEIVED", "0")
+                .put("TOTAL_SIZE_SENT", "104297862")
+                .put("TOTAL_SIZE_TO_RECEIVE", "0")
+                .put("TOTAL_SIZE_TO_SEND", "115157855")
+                .put("USING_CONNECTION", "/10.101.35.123")
+                .build());
+
+        List<Map<String, String>> session2Results = new ArrayList<>();
+        session2Results.add(ImmutableMap.<String, String>builder().put("PEER", "/10.101.35.111")
+                .put("STREAM_OPERATION", "Repair")
+                .put("TOTAL_FILES_RECEIVED", "0")
+                .put("TOTAL_FILES_SENT", "6")
+                .put("TOTAL_FILES_TO_RECEIVE", "0")
+                .put("TOTAL_FILES_TO_SEND", "7")
+                .put("TOTAL_SIZE_RECEIVED", "0")
+                .put("TOTAL_SIZE_SENT", "104297862")
+                .put("TOTAL_SIZE_TO_RECEIVE", "0")
+                .put("TOTAL_SIZE_TO_SEND", "115157855")
+                .put("USING_CONNECTION", "/10.101.35.111")
+                .build());
+
+        session2Results.add(ImmutableMap.<String, String>builder().put("PEER", "/10.101.35.222")
+                .put("STREAM_OPERATION", "Repair")
+                .put("TOTAL_FILES_RECEIVED", "3")
+                .put("TOTAL_FILES_SENT", "6")
+                .put("TOTAL_FILES_TO_RECEIVE", "9")
+                .put("TOTAL_FILES_TO_SEND", "7")
+                .put("TOTAL_SIZE_RECEIVED", "0")
+                .put("TOTAL_SIZE_SENT", "104297862")
+                .put("TOTAL_SIZE_TO_RECEIVE", "0")
+                .put("TOTAL_SIZE_TO_SEND", "115157855")
+                .put("USING_CONNECTION", "/10.101.35.222")
+                .build());
+
+        result.add(ImmutableMap.of("987-654-321-uuid", session1Results, "123-456-789-uuid", session2Results));
+
+        String resultAsJSON = WriterUtility.asString(result, MediaType.APPLICATION_JSON);
+
+        when(mockRow.getObject(0)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().contains(resultAsJSON));
+
+        verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getStreamInfo()"));
     }
 
     private MockHttpResponse postWithBody(String path, String body, Context context) throws URISyntaxException {

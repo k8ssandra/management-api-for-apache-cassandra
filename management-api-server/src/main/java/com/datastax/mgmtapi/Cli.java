@@ -344,7 +344,7 @@ public class Cli implements Runnable
         }
         catch (IllegalArgumentException e)
         {
-            logger.debug("Error encountered:", e);
+            logger.error("Error encountered:", e);
             logger.error("Unable to start: unable to find or execute bin/cassandra " + (cassandra_home == null ? "use -C" : cassandra_home));
             System.exit(3);
         }

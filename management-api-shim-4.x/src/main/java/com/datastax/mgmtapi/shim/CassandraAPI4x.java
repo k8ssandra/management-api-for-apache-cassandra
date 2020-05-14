@@ -48,6 +48,10 @@ import org.apache.cassandra.locator.TokenMetadata;
 import org.apache.cassandra.schema.KeyspaceMetadata;
 import org.apache.cassandra.schema.KeyspaceParams;
 import org.apache.cassandra.service.StorageService;
+import org.apache.cassandra.streaming.SessionInfo;
+import org.apache.cassandra.streaming.StreamManager;
+import org.apache.cassandra.streaming.StreamState;
+import org.apache.cassandra.streaming.management.StreamStateCompositeData;
 import org.apache.cassandra.transport.Server;
 import org.apache.cassandra.transport.UnixSocketServer4x;
 import org.apache.cassandra.utils.FBUtilities;
@@ -214,6 +218,46 @@ public class CassandraAPI4x implements CassandraAPI
             states.put("ENDPOINT_IP", endpoint.address.getHostAddress());
             states.put("IS_ALIVE", Boolean.toString(state.isAlive()));
             result.add(states);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<Map<String, List<Map<String, String>>>> getStreamInfo()
+    {
+        Set<StreamState> streams = StreamManager.instance.getCurrentStreams().stream()
+                .map(StreamStateCompositeData::fromCompositeData)
+                .collect(Collectors.toSet());
+
+        List<Map<String, List<Map<String, String>>>> result = new ArrayList<>();
+
+        for (StreamState status : streams)
+        {
+            Map<String, List<Map<String, String>>> streamInfo = new HashMap<>();
+            List<Map<String, String>> sessionResults = new ArrayList<>();
+
+            for (SessionInfo info : status.sessions)
+            {
+                Map<String, String> sessionInfo = new HashMap<>();
+                sessionInfo.put("STREAM_OPERATION", status.streamOperation.getDescription());
+                sessionInfo.put("PEER", info.peer.toString());
+                sessionInfo.put("USING_CONNECTION", info.connecting.toString());
+                sessionInfo.put("TOTAL_FILES_TO_RECEIVE", String.valueOf(info.getTotalFilesToReceive()));
+                sessionInfo.put("TOTAL_FILES_RECEIVED", String.valueOf(info.getTotalFilesReceived()));
+                sessionInfo.put("TOTAL_SIZE_TO_RECEIVE", String.valueOf(info.getTotalSizeToReceive()));
+                sessionInfo.put("TOTAL_SIZE_RECEIVED", String.valueOf(info.getTotalSizeReceived()));
+
+                sessionInfo.put("TOTAL_FILES_TO_SEND", String.valueOf(info.getTotalFilesToSend()));
+                sessionInfo.put("TOTAL_FILES_SENT", String.valueOf(info.getTotalFilesSent()));
+                sessionInfo.put("TOTAL_SIZE_TO_SEND", String.valueOf(info.getTotalSizeToSend()));
+                sessionInfo.put("TOTAL_SIZE_SENT", String.valueOf(info.getTotalSizeSent()));
+                sessionResults.add(sessionInfo);
+            }
+
+            streamInfo.put(status.planId.toString(), sessionResults);
+
+            result.add(streamInfo);
         }
 
         return result;
