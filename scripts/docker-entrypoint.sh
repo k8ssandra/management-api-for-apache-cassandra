@@ -70,36 +70,66 @@ if [ "$1" = 'mgmtapi' ]; then
 		echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/etc/cassandra/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> /etc/cassandra/cassandra-env.sh
 	fi
 
-	CASSANDRA_RPC_ADDRESS='0.0.0.0'
-	CASSANDRA_BROADCAST_RPC_ADDRESS="$(_ip_address)"
+    # Set this if you want to ignore default env variables, i.e. when running inside an operator
+    if [ $IGNORE_DEFAULTS ]; then
+        CASSANDRA_RPC_ADDRESS='0.0.0.0'
+        CASSANDRA_BROADCAST_RPC_ADDRESS="$(_ip_address)"
+    else
+        : ${CASSANDRA_RPC_ADDRESS='0.0.0.0'}
 
-    # Not needed as the operator will set all this but leaving for testing
-	for yaml in \
-	  cluster_name \
-		endpoint_snitch \
-		num_tokens \
-		start_rpc \
-		broadcast_address \
-		broadcast_rpc_address \
-		listen_address \
-		rpc_address \
-	; do
-		var="CASSANDRA_${yaml^^}"
-		val="${!var}"
-		if [ "$val" ]; then
-			_sed-in-place "$CASSANDRA_CONF/cassandra.yaml" \
-				-r 's/^(# )?('"$yaml"':).*/\2 '"$val"'/'
-		fi
-	done
+        : ${CASSANDRA_LISTEN_ADDRESS='auto'}
+        if [ "$CASSANDRA_LISTEN_ADDRESS" = 'auto' ]; then
+            CASSANDRA_LISTEN_ADDRESS="$(_ip_address)"
+        fi
 
-	# for rackdc in dc rack; do
-	# 	var="CASSANDRA_${rackdc^^}"
-	# 	val="${!var}"
-	# 	if [ "$val" ]; then
-	# 		_sed-in-place "$CASSANDRA_CONF/cassandra-rackdc.properties" \
-	# 			-r 's/^('"$rackdc"'=).*/\1 '"$val"'/'
-	# 	fi
-	# done
+        : ${CASSANDRA_BROADCAST_ADDRESS="$CASSANDRA_LISTEN_ADDRESS"}
+
+        if [ "$CASSANDRA_BROADCAST_ADDRESS" = 'auto' ]; then
+            CASSANDRA_BROADCAST_ADDRESS="$(_ip_address)"
+        fi
+        : ${CASSANDRA_BROADCAST_RPC_ADDRESS:=$CASSANDRA_BROADCAST_ADDRESS}
+
+        if [ -n "${CASSANDRA_NAME:+1}" ]; then
+            : ${CASSANDRA_SEEDS:="cassandra"}
+        fi
+        : ${CASSANDRA_SEEDS:="$CASSANDRA_BROADCAST_ADDRESS"}
+        
+        CASSANDRA_YAML="cassandra.yaml"
+        if [ $CASSANDRA_DEPLOYMENT ]; then
+            CASSANDRA_DEPLOYMENT=`echo "$CASSANDRA_DEPLOYMENT" | awk '{print tolower($0)}'`
+            CASSANDRA_YAML="cassandra-$CASSANDRA_DEPLOYMENT.yaml"
+        fi
+        
+        _sed-in-place "$CASSANDRA_CONF/$CASSANDRA_YAML" \
+            -r 's/(- seeds:).*/\1 "'"$CASSANDRA_SEEDS"'"/'
+
+        for yaml in \
+            broadcast_address \
+            broadcast_rpc_address \
+            cluster_name \
+            endpoint_snitch \
+            listen_address \
+            num_tokens \
+            rpc_address \
+            start_rpc \
+        ; do
+            var="CASSANDRA_${yaml^^}"
+            val="${!var}"
+            if [ "$val" ]; then
+                _sed-in-place "$CASSANDRA_CONF/$CASSANDRA_YAML" \
+                    -r 's/^(# )?('"$yaml"':).*/\2 '"$val"'/'
+            fi
+        done
+
+        for rackdc in dc rack; do
+            var="CASSANDRA_${rackdc^^}"
+            val="${!var}"
+            if [ "$val" ]; then
+                _sed-in-place "$CASSANDRA_CONF/cassandra-rackdc.properties" \
+                    -r 's/^('"$rackdc"'=).*/\1 '"$val"'/'
+            fi
+        done
+	fi
 
 	MGMT_API_ARGS=""
 
