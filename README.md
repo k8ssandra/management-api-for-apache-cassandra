@@ -51,17 +51,37 @@
   is up to the caller.  That being said, complex health checks can be added via CQL.
     
 ## Building
- Building for containers:
+
+### Containers
+    
+First you need to build the Management API base image:
     
     docker build -t management-api-for-apache-cassandra-builder -f ./Dockerfile-build .
+    
+Then you need to build the image based on the actual Cassandra&reg; version, either the 3.11 or 4.0:
 
     #Create a docker image with management api and C* 3.11
     docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
     
     #Create a docker image with management api and C* 4.0
     docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
+
+You can also build an image based on Datastax Astra Cassandra&reg; 4.0 sources. First checkout [sources](https://github.com/datastax/cassandra/tree/astra) and build a tgz distribution:
     
- Building for standalone:
+    ant artifacts
+    
+Then copy the tgz archive into the astra-4.0 directory of the Management API sources and run:
+    
+    cd astra-4.0
+    docker build -t datastax/astra:4.0 .
+   
+Finally build the Management API image:
+    
+    cd ..
+    docker build -t mgmtapi-astra-4_0 -f Dockerfile-astra-4_0 .
+
+    
+### Standalone
     
     mvn -DskipTests package
     mvn test
