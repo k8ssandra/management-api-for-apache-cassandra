@@ -458,6 +458,7 @@ public class Cli implements Runnable
         else
         {
             server = new NettyJaxrsServer();
+            server.setIoWorkerCount(2);
         }
 
         ResteasyDeployment deployment = new ResteasyDeploymentImpl();
