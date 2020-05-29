@@ -8,14 +8,14 @@ package com.datastax.mgmtapi;
 import java.io.File;
 import java.net.SocketAddress;
 import java.time.Duration;
-import java.time.Period;
-import java.time.temporal.TemporalUnit;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -51,6 +51,9 @@ import com.datastax.oss.driver.internal.core.cql.CqlPrepareAsyncProcessor;
 import com.datastax.oss.driver.internal.core.cql.CqlPrepareSyncProcessor;
 import com.datastax.oss.driver.internal.core.cql.CqlRequestAsyncProcessor;
 import com.datastax.oss.driver.internal.core.cql.CqlRequestSyncProcessor;
+import com.datastax.oss.driver.internal.core.metadata.DefaultTopologyMonitor;
+import com.datastax.oss.driver.internal.core.metadata.NodeInfo;
+import com.datastax.oss.driver.internal.core.metadata.TopologyMonitor;
 import com.datastax.oss.driver.internal.core.session.RequestProcessorRegistry;
 import com.datastax.oss.driver.internal.core.util.collection.QueryPlan;
 
@@ -171,6 +174,44 @@ public class UnixSocketCQLAccess
                     classLoader);
 
             this.unixSocketEndpoint = unixSocketEndpoint;
+        }
+
+        @Override
+        protected TopologyMonitor buildTopologyMonitor()
+        {
+            return new DefaultTopologyMonitor(this)
+            {
+                // This local node can have multiple endpoints (unix-sock, tcp-ip) for the same UUID
+                // The driver can't handle this so we filter the tcp-ip one out.
+                // Note only the local unix-socket connection can see these dups
+                @Override
+                public CompletionStage<Iterable<NodeInfo>> refreshNodeList()
+                {
+                    return super.refreshNodeList()
+                            .thenApply(nodeInfos -> {
+                                Map<UUID, NodeInfo> filteredNodeInfo = new LinkedHashMap<>();
+                                for (NodeInfo nodeInfo : nodeInfos)
+                                {
+                                    NodeInfo dupNode = filteredNodeInfo.get(nodeInfo.getHostId());
+
+                                    if (dupNode != null)
+                                    {
+                                        //Keep the unix socket one, otherwise overwrite the tcp-ip one.
+                                        if (dupNode.getEndPoint().resolve().equals(unixSocketEndpoint.resolve()))
+                                            continue;
+
+                                        // This means there's an actual dup UUID!
+                                        if (!nodeInfo.getEndPoint().resolve().equals(unixSocketEndpoint))
+                                            throw new IllegalArgumentException(String.format("Multiple entries with same key: %s and %s", dupNode, nodeInfo));
+                                    }
+
+                                    filteredNodeInfo.put(nodeInfo.getHostId(), nodeInfo);
+                                }
+
+                                return filteredNodeInfo.values();
+                            });
+                }
+            };
         }
 
         @Override
