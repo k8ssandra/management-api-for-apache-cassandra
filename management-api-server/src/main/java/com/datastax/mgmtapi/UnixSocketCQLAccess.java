@@ -201,7 +201,7 @@ public class UnixSocketCQLAccess
                                             continue;
 
                                         // This means there's an actual dup UUID!
-                                        if (!nodeInfo.getEndPoint().resolve().equals(unixSocketEndpoint))
+                                        if (!nodeInfo.getEndPoint().resolve().equals(unixSocketEndpoint.resolve()))
                                             throw new IllegalArgumentException(String.format("Multiple entries with same key: %s and %s", dupNode, nodeInfo));
                                     }
 
