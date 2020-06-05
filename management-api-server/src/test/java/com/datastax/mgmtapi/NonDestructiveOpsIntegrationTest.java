@@ -5,14 +5,19 @@
  */
 package com.datastax.mgmtapi;
 
-import javax.net.ssl.SSLException;
-import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import javax.ws.rs.core.MediaType;
+
+import com.google.common.util.concurrent.Uninterruptibles;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -22,13 +27,6 @@ import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.Uninterruptibles;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;

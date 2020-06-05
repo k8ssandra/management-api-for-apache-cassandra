@@ -67,7 +67,7 @@ public class KeyspaceOpsResources
                 return Response.ok("OK").build();
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)", keyspaceRequest.jobs, keyspaceName, tables);
 
             return Response.ok("OK").build();
@@ -92,7 +92,7 @@ public class KeyspaceOpsResources
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("table must be provided").build();
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
 
             return Response.ok("OK").build();
         }

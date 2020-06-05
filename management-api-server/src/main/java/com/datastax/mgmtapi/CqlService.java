@@ -21,9 +21,9 @@ public class CqlService
 {
     private static final Logger logger = LoggerFactory.getLogger(CqlService.class);
 
-    public ResultSet executeCql(File cassandraUnixSocketFile, String query) throws ConnectionClosedException
+    public ResultSet executeCql(File dbUnixSocketFile, String query) throws ConnectionClosedException
     {
-        CqlSession session = UnixSocketCQLAccess.get(cassandraUnixSocketFile).orElse(null);
+        CqlSession session = UnixSocketCQLAccess.get(dbUnixSocketFile).orElse(null);
 
         if (session == null || session.isClosed())
         {

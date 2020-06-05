@@ -12,6 +12,9 @@ import java.util.Set;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import org.apache.cassandra.cql3.QueryProcessor;
+import org.apache.cassandra.cql3.UntypedResultSet;
+import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.transport.Server;
 
@@ -33,4 +36,9 @@ public interface CassandraAPI
     List<Map<String,String>> getEndpointStates();
 
     List<Map<String, List<Map<String, String>>>> getStreamInfo();
+
+    default UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel)
+    {
+        return QueryProcessor.process(query, consistencyLevel);
+    }
 }

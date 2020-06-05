@@ -27,7 +27,6 @@ import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
 import org.apache.cassandra.auth.AuthenticatedUser;
 import org.apache.cassandra.auth.IRoleManager;
-import org.apache.cassandra.auth.Permission;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
 import org.apache.cassandra.config.DatabaseDescriptor;
@@ -61,7 +60,7 @@ public class NodeOpsProvider
         RpcRegistry.unregister(RPC_CLASS_NAME);
     }
 
-    @Rpc(name = "reloadSeeds", permission = Permission.EXECUTE)
+    @Rpc(name = "reloadSeeds")
     public List<String> reloadSeeds()
     {
         logger.debug("Reloading Seeds");
@@ -73,35 +72,35 @@ public class NodeOpsProvider
     }
 
 
-    @Rpc(name = "getReleaseVersion", permission = Permission.EXECUTE)
+    @Rpc(name = "getReleaseVersion")
     public String getReleaseVersion()
     {
         logger.debug("Getting Release Version");
         return StorageService.instance.getReleaseVersion();
     }
 
-    @Rpc(name = "decommission", permission = Permission.EXECUTE)
+    @Rpc(name = "decommission")
     public void decommission(@RpcParam(name="force") boolean force) throws InterruptedException
     {
         logger.debug("Decommissioning");
         ShimLoader.instance.get().decommission(force);
     }
 
-    @Rpc(name = "setCompactionThroughput", permission = Permission.EXECUTE)
+    @Rpc(name = "setCompactionThroughput")
     public void setCompactionThroughput(@RpcParam(name="value") int value)
     {
         logger.debug("Setting compaction throughput to {}", value);
         StorageService.instance.setCompactionThroughputMbPerSec(value);
     }
 
-    @Rpc(name = "assassinate", permission = Permission.EXECUTE)
+    @Rpc(name = "assassinate")
     public void assassinate(@RpcParam(name="address") String address) throws UnknownHostException
     {
         logger.debug("Assassinating {}", address);
         Gossiper.instance.assassinateEndpoint(address);
     }
 
-    @Rpc(name = "setLoggingLevel", permission = Permission.EXECUTE)
+    @Rpc(name = "setLoggingLevel")
     public void setLoggingLevel(@RpcParam(name="classQualifier") String classQualifier,
             @RpcParam(name="level")String level) throws Exception
     {
@@ -109,42 +108,42 @@ public class NodeOpsProvider
         StorageService.instance.setLoggingLevel(classQualifier, level);
     }
 
-    @Rpc(name = "drain", permission = Permission.EXECUTE)
+    @Rpc(name = "drain")
     public void drain() throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Draining");
         StorageService.instance.drain();
     }
 
-    @Rpc(name = "truncateAllHints", permission = Permission.EXECUTE)
+    @Rpc(name = "truncateAllHints")
     public void truncateHints()
     {
         logger.debug("Truncating all hints");
         HintedHandOffManager.instance.truncateAllHints();
     }
 
-    @Rpc(name = "truncateHintsForHost", permission = Permission.EXECUTE)
+    @Rpc(name = "truncateHintsForHost")
     public void truncateHints(@RpcParam(name="host") String host)
     {
         logger.debug("Truncating hints for host {}", host);
         HintedHandOffManager.instance.deleteHintsForEndpoint(host);
     }
 
-    @Rpc(name = "resetLocalSchema", permission = Permission.EXECUTE)
+    @Rpc(name = "resetLocalSchema")
     public void resetLocalSchema() throws IOException
     {
         logger.debug("Resetting local schema");
         StorageService.instance.resetLocalSchema();
     }
 
-    @Rpc(name = "reloadLocalSchema", permission = Permission.EXECUTE)
+    @Rpc(name = "reloadLocalSchema")
     public void reloadLocalSchema()
     {
         logger.debug("Reloading local schema");
         StorageService.instance.reloadLocalSchema();
     }
 
-    @Rpc(name = "upgradeSSTables", permission = Permission.EXECUTE)
+    @Rpc(name = "upgradeSSTables")
     public void upgradeSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="excludeCurrentVersion" ) boolean excludeCurrentVersion,
             @RpcParam(name="jobs") int jobs,
@@ -164,7 +163,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "forceKeyspaceCleanup", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCleanup")
     public void forceKeyspaceCleanup(@RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
@@ -182,7 +181,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "forceKeyspaceCompactionForTokenRange", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCompactionForTokenRange")
     public void forceKeyspaceCompactionForTokenRange(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="startToken") String startToken,
             @RpcParam(name="endToken") String endToken,
@@ -202,7 +201,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "forceKeyspaceCompaction", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCompaction")
     public void forceKeyspaceCompaction(@RpcParam(name="splitOutput") boolean splitOutput,
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tableNames") List<String> tableNames) throws InterruptedException, ExecutionException, IOException
@@ -221,7 +220,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "garbageCollect", permission = Permission.EXECUTE)
+    @Rpc(name = "garbageCollect")
     public void garbageCollect(@RpcParam(name="tombstoneOption") String tombstoneOption,
             @RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
@@ -240,7 +239,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "loadNewSSTables", permission = Permission.EXECUTE)
+    @Rpc(name = "loadNewSSTables")
     public void loadNewSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="table") String table)
     {
@@ -248,7 +247,7 @@ public class NodeOpsProvider
         StorageService.instance.loadNewSSTables(keyspaceName, table);
     }
 
-    @Rpc(name = "forceKeyspaceFlush", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceFlush")
     public void forceKeyspaceFlush(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tableNames") List<String> tableNames) throws IOException
     {
@@ -265,7 +264,7 @@ public class NodeOpsProvider
         }
     }
 
-    @Rpc(name = "scrub", permission = Permission.EXECUTE)
+    @Rpc(name = "scrub")
     public void scrub(@RpcParam(name="disableSnapshot") boolean disableSnapshot,
             @RpcParam(name="skipCorrupted") boolean skipCorrupted,
             @RpcParam(name="checkData") boolean checkData,
@@ -278,14 +277,14 @@ public class NodeOpsProvider
         StorageService.instance.scrub(disableSnapshot, skipCorrupted, checkData, reinsertOverflowedTTL, jobs, keyspaceName, tables.toArray(new String[]{}));
     }
 
-    @Rpc(name = "forceUserDefinedCompaction", permission = Permission.EXECUTE)
+    @Rpc(name = "forceUserDefinedCompaction")
     public void forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles)
     {
         logger.debug("Forcing user defined compaction");
         CompactionManager.instance.forceUserDefinedCompaction(datafiles);
     }
 
-    @Rpc(name = "createRole", permission = Permission.AUTHORIZE)
+    @Rpc(name = "createRole")
     public void createRole(@RpcParam(name="username") String username,
             @RpcParam(name = "superuser") Boolean superUser,
             @RpcParam(name = "login") Boolean login,
@@ -301,7 +300,7 @@ public class NodeOpsProvider
         DatabaseDescriptor.getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
     }
 
-    @Rpc(name = "checkConsistencyLevel", permission = Permission.EXECUTE)
+    @Rpc(name = "checkConsistencyLevel")
     public Map<List<Long>, List<String>> checkConsistencyLevel(@RpcParam(name="consistency_level") String consistencyLevelName,
             @RpcParam(name="rf_per_dc") Integer rfPerDc)
     {
@@ -313,13 +312,13 @@ public class NodeOpsProvider
         return ShimLoader.instance.get().checkConsistencyLevel(consistencyLevelName, rfPerDc);
     }
 
-    @Rpc(name = "getEndpointStates", permission = Permission.EXECUTE)
+    @Rpc(name = "getEndpointStates")
     public List<Map<String,String>> getEndpointStates()
     {
         return ShimLoader.instance.get().getEndpointStates();
     }
 
-    @Rpc(name = "getStreamInfo", permission = Permission.EXECUTE)
+    @Rpc(name = "getStreamInfo")
     public List<Map<String, List<Map<String, String>>>> getStreamInfo()
     {
         return ShimLoader.instance.get().getStreamInfo();

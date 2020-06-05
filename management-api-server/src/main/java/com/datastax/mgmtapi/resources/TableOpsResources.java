@@ -64,7 +64,7 @@ public class TableOpsResources
                 keyspaceName = "ALL";
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)", scrubRequest.disableSnapshot, scrubRequest.skipCorrupted,
                     scrubRequest.checkData, scrubRequest.reinsertOverflowedTTL, scrubRequest.jobs, keyspaceName, tables);
 
@@ -92,7 +92,7 @@ public class TableOpsResources
                 keyspaceName = "ALL";
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.upgradeSSTables(?, ?, ?, ?)", keyspaceName, !excludeCurrentVersion, keyspaceRequest.jobs, tables);
 
             return Response.ok("OK").build();
@@ -127,7 +127,7 @@ public class TableOpsResources
                     }
 
                     String userDefinedFiles = String.join(",", compactRequest.userDefinedFiles);
-                    cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+                    cqlService.executePreparedStatement(app.dbUnixSocketFile,
                             "CALL NodeOps.forceUserDefinedCompaction(?)", userDefinedFiles);
                 } catch (Exception e) {
                     throw new RuntimeException("Error occurred during user defined compaction", e);
@@ -148,13 +148,13 @@ public class TableOpsResources
 
             if (tokenProvided)
             {
-                cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+                cqlService.executePreparedStatement(app.dbUnixSocketFile,
                         "CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?)", keyspaceName,
                         compactRequest.startToken, compactRequest.endToken, tables);
             }
             else
             {
-                cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+                cqlService.executePreparedStatement(app.dbUnixSocketFile,
                         "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)", compactRequest.splitOutput, keyspaceName,
                         compactRequest.tables);
             }
@@ -193,7 +193,7 @@ public class TableOpsResources
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("tombstoneOption must be either ROW or CELL").build();
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.garbageCollect(?, ?, ?, ?)", tombstoneOption, keyspaceRequest.jobs, keyspaceName, tables);
 
             return Response.ok("OK").build();
@@ -220,7 +220,7 @@ public class TableOpsResources
                 keyspaceName = "ALL";
             }
 
-            cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.forceKeyspaceFlush(?, ?)", keyspaceName, tables);
 
             return Response.ok("OK").build();

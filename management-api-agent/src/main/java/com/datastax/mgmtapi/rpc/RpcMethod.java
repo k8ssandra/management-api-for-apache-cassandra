@@ -23,16 +23,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.cassandra.auth.Permission;
 import org.apache.cassandra.cql3.ColumnIdentifier;
 import org.apache.cassandra.cql3.ColumnSpecification;
 import org.apache.cassandra.cql3.ResultSet;
 import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.exceptions.RequestExecutionException;
-import org.apache.cassandra.exceptions.UnauthorizedException;
 import org.apache.cassandra.serializers.TypeSerializer;
 import org.apache.cassandra.service.ClientState;
-import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
 
@@ -42,7 +39,6 @@ public class RpcMethod
     private final Method method;
     private final RpcObject rpcObject;
     private final String name;
-    private final Permission permission;
     private final List<TypeSerializer> argSerializers;
     private final List<AbstractType> argTypes;
     private final List<String> argNames;
@@ -55,7 +51,6 @@ public class RpcMethod
         this.method = method;
         this.rpcObject = rpcObject;
         this.name = method.getAnnotation(Rpc.class).name();
-        this.permission = method.getAnnotation(Rpc.class).permission();
 
         Annotation[][] allAnnotations = method.getParameterAnnotations();
         params = IntStream.range(0, method.getParameterCount()).boxed()
@@ -112,11 +107,6 @@ public class RpcMethod
     public String getName()
     {
         return name;
-    }
-
-    public Permission getPermission()
-    {
-        return permission;
     }
 
     public int getArgumentCount()
