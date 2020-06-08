@@ -90,7 +90,6 @@ public class CassandraDaemonInterceptor
 
             connectionTracker.allChannels.add(controller.channel().orElseThrow(() -> new RuntimeException("Unix Socket Channel missing")));
 
-
             //Hook into things that have hooks
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 controller.stop();
