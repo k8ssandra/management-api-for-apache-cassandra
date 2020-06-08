@@ -398,13 +398,13 @@ public class UnixSocketCQLAccess
         if (Epoll.isAvailable())
         {
             Epoll.ensureAvailability();
-            return new EpollEventLoopGroup(8);
+            return new EpollEventLoopGroup(2);
         }
 
         if (KQueue.isAvailable())
         {
             KQueue.ensureAvailability();
-            return new KQueueEventLoopGroup(8);
+            return new KQueueEventLoopGroup(2);
         }
 
         throw new RuntimeException();

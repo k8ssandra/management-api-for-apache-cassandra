@@ -31,7 +31,7 @@ import org.jboss.resteasy.plugins.server.netty.RestEasyHttpResponseEncoder;
 public class NettyJaxrsTLSServer extends NettyJaxrsServer
 {
     private final SslContext sslContext;
-    private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup(8);
+    private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup(2);
     private Map<ChannelOption, Object> channelOptions = Collections.emptyMap();
     private int maxRequestSize = 1024 * 1024 * 10;
     private int maxInitialLineLength = 4096;
