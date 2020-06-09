@@ -11,14 +11,17 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-
 import javax.net.ssl.SSLException;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
 
 import com.datastax.mgmtapi.helpers.DockerHelper;
@@ -40,6 +43,26 @@ public abstract class BaseDockerIntegrationTest
             throw new RuntimeException();
         }
     }
+
+    public static class GrabSystemLogOnFailure extends TestWatcher
+    {
+
+        DockerHelper dockerHelper;
+
+        @Override
+        protected void failed(Throwable e, Description description)
+        {
+            if (null != dockerHelper)
+            {
+                int numberOfLines = 100;
+                System.out.println(String.format("=====> Test %s failed - Showing last %s entries of system.log", description.getMethodName(), numberOfLines));
+                dockerHelper.tailSystemLog(numberOfLines);
+            }
+        }
+    }
+
+    @Rule
+    public GrabSystemLogOnFailure systemLogGrabber = new GrabSystemLogOnFailure();
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -87,6 +110,12 @@ public abstract class BaseDockerIntegrationTest
         {
             //temporaryFolder.delete();
         }
+    }
+
+    @Before
+    public void before()
+    {
+        systemLogGrabber.dockerHelper = docker;
     }
 
     protected ArrayList<String> getEnvironmentVars()
