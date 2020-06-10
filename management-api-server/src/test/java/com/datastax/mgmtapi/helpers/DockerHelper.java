@@ -58,6 +58,11 @@ public class DockerHelper
         this.dataDir = dataDir;
     }
 
+    public String getIpAddressOfContainer()
+    {
+        return dockerClient.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
+    }
+
     public void startManagementAPI(String version, List<String> envVars)
     {
         File baseDir = new File(System.getProperty("dockerFileRoot","."));
