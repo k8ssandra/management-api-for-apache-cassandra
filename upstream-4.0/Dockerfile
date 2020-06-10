@@ -58,8 +58,12 @@ ENV GPG_KEYS \
 # gpg: key E91335D77E3E87CB: public key "Michael Semb Wever <mick@thelastpickle.com>" imported
 	A4C465FEA0C552561A392A61E91335D77E3E87CB
 
-ENV CASSANDRA_VERSION 4.0-alpha3
-ENV CASSANDRA_SHA512 ca179e30797f256b69e5bd3d1c015e09988eb3f5caeec36fb16576dc457319a0820af5b21d13a96ecdfb41fd08c5a1e7ca701523b61e60682bb5566e05f00574
+ENV CASSANDRA_VERSION 4.0-alpha4
+ENV CASSANDRA_SHA512 58171a002dd9d5a8f990bc485fa38c513c5a2a7dbb5adad5c19f9f09e9c7759888eef7b2790c73c7583e509b00519b20058687a65b20c0a1b9f3b8bb1d4e9d99
+
+# https://github.com/f-secure-foundry/usbarmory-debian-base_image/issues/9
+RUN mkdir ~/.gnupg
+RUN echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf
 
 RUN set -eux; \
 	savedAptMark="$(apt-mark showmanual)"; \
