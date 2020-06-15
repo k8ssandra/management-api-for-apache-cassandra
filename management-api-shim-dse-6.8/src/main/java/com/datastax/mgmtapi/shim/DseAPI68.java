@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.reactivex.Single;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
@@ -298,5 +299,11 @@ public class DseAPI68 implements CassandraAPI
     public Gossiper getGossiper()
     {
         return Gossiper.instance;
+    }
+
+    @Override
+    public Object handleRpcResult(Object rpcResult)
+    {
+        return Single.just(rpcResult);
     }
 }
