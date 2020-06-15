@@ -12,10 +12,16 @@ import java.util.Set;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
+import org.apache.cassandra.db.HintedHandOffManager;
+import org.apache.cassandra.db.compaction.CompactionManager;
+import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.locator.SeedProvider;
+import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.transport.Server;
 
 /**
@@ -41,4 +47,14 @@ public interface CassandraAPI
     {
         return QueryProcessor.process(query, consistencyLevel);
     }
+
+    StorageService getStorageService();
+
+    IRoleManager getRoleManager();
+
+    HintedHandOffManager getHintedHandoffManager();
+
+    CompactionManager getCompactionManager();
+
+    Gossiper getGossiper();
 }

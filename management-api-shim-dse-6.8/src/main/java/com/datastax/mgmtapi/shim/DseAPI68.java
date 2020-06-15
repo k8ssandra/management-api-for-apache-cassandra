@@ -26,11 +26,14 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
+import org.apache.cassandra.db.HintedHandOffManager;
 import org.apache.cassandra.db.Keyspace;
+import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.dht.IPartitioner;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
@@ -265,5 +268,35 @@ public class DseAPI68 implements CassandraAPI
     public UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel)
     {
         return QueryProcessor.processBlocking(query, consistencyLevel);
+    }
+
+    @Override
+    public StorageService getStorageService()
+    {
+        return StorageService.instance;
+    }
+
+    @Override
+    public IRoleManager getRoleManager()
+    {
+        return DatabaseDescriptor.getRoleManager();
+    }
+
+    @Override
+    public HintedHandOffManager getHintedHandoffManager()
+    {
+        return HintedHandOffManager.instance;
+    }
+
+    @Override
+    public CompactionManager getCompactionManager()
+    {
+        return CompactionManager.instance;
+    }
+
+    @Override
+    public Gossiper getGossiper()
+    {
+        return Gossiper.instance;
     }
 }

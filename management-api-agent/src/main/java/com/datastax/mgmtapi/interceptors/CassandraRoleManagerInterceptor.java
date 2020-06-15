@@ -20,10 +20,8 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.auth.AuthKeyspace;
-import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.exceptions.RequestExecutionException;
-import org.apache.cassandra.service.StorageService;
 
 public class CassandraRoleManagerInterceptor
 {
@@ -57,7 +55,7 @@ public class CassandraRoleManagerInterceptor
             return;
         }
 
-        if (StorageService.instance.getTokenMetadata().sortedTokens().isEmpty())
+        if (ShimLoader.instance.get().getStorageService().getTokenMetadata().sortedTokens().isEmpty())
             throw new IllegalStateException("CassandraRoleManager skipped default role setup: no known tokens in ring");
 
         try
