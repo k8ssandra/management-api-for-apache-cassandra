@@ -85,7 +85,7 @@ public class QueryHandlerInterceptor
         return zuper.call();
     }
 
-    private static Object handle(ClientState state, QueryOptions options, String object, String method, String[] params)
+    private static Object handle(ClientState state, QueryOptions options, String object, String method, String[] params) throws Exception
     {
         Optional<RpcMethod> rpcMethod = RpcRegistry.lookupMethod(object, method);
 
@@ -114,6 +114,6 @@ public class QueryHandlerInterceptor
                 parameters.add(spec.type.fromString(value));
         }
 
-        return ShimLoader.instance.get().handleRpcResult(rpcMethod.get().execute(state, parameters));
+        return ShimLoader.instance.get().handleRpcResult(() -> rpcMethod.get().execute(state, parameters));
     }
 }

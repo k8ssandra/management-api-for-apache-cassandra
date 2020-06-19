@@ -166,6 +166,7 @@
                 <version>3.0.0-M3</version>
                 <configuration>
                     <systemPropertyVariables>
+                        <dseIncluded>${dseIncluded}</dseIncluded>
                         <dockerFileRoot>${basedir}/..</dockerFileRoot>
                         <CASSANDRA_HOME>${basedir}/target/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>

@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.reactivex.Single;
 import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
@@ -58,6 +60,7 @@ import org.apache.cassandra.transport.Server;
 import org.apache.cassandra.transport.UnixSocketServerDse68;
 import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
+import org.apache.cassandra.utils.flow.RxThreads;
 
 public class DseAPI68 implements CassandraAPI
 {
@@ -302,8 +305,8 @@ public class DseAPI68 implements CassandraAPI
     }
 
     @Override
-    public Object handleRpcResult(Object rpcResult)
+    public Object handleRpcResult(Callable<Object> rpcResult)
     {
-        return Single.just(rpcResult);
+        return RxThreads.subscribeOnIo(Single.defer(() -> Single.fromCallable(rpcResult)), TPCTaskType.UNKNOWN);
     }
 }

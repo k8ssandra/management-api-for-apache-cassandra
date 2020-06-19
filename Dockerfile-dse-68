@@ -10,6 +10,7 @@ COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+COPY --from=builder /build/management-api-shim-dse-6.8/target/datastax-mgmtapi-shim-dse-6.8-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 
 USER root
 ENV TINI_VERSION v0.18.0

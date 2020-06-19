@@ -11,9 +11,32 @@
 
   <artifactId>datastax-mgmtapi-shim-dse-6.8</artifactId>
 
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+    <repository>
+      <id>lab-snapshots</id>
+      <url>https://repo.sjc.dsinternal.org/artifactory/datastax-snapshots-local</url>
+    </repository>
+    <repository>
+      <id>lab-releases</id>
+      <url>https://repo.sjc.dsinternal.org/artifactory/datastax-releases-local</url>
+    </repository>
+    <repository>
+      <id>artifactory-snapshots</id>
+      <url>https://repo.datastax.com/datastax-snapshots-local</url>
+    </repository>
+    <repository>
+      <id>artifactory-releases</id>
+      <url>https://repo.datastax.com/datastax-releases-local</url>
+    </repository>
+  </repositories>
+
 
   <properties>
-    <dse.version>6.8.2-SNAPSHOT</dse.version>
+    <dse.version>6.8.2-f57a220</dse.version>
     <bytebuddy.version>1.9.15</bytebuddy.version>
     <docker.java.version>3.1.5</docker.java.version>
     <driver.version>4.4.0</driver.version>

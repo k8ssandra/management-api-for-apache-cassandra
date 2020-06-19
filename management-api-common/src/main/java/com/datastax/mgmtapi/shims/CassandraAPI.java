@@ -9,6 +9,8 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -57,8 +59,8 @@ public interface CassandraAPI
 
     Gossiper getGossiper();
 
-    default Object handleRpcResult(Object rpcResult)
+    default Object handleRpcResult(Callable<Object> rpcResult) throws Exception
     {
-        return rpcResult;
+        return rpcResult.call();
     }
 }

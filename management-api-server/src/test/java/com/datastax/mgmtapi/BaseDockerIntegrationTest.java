@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import javax.net.ssl.SSLException;
 
 import com.google.common.collect.Lists;
@@ -73,10 +74,15 @@ public abstract class BaseDockerIntegrationTest
     @Parameterized.Parameters
     public static Iterable<String[]> functions()
     {
-        return Lists.newArrayList(
+        List<String[]> l =  Lists.newArrayList(
                 new String[]{"3_11"},
                 new String[]{"4_0"}
         );
+
+        if (Boolean.getBoolean("dseIncluded"))
+            l.add(new String[]{"dse-68"});
+
+        return l;
     }
 
     public BaseDockerIntegrationTest(String version)
