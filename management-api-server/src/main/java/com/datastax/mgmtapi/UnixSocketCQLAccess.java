@@ -135,7 +135,7 @@ public class UnixSocketCQLAccess
 
         session = new LocalSessionBuilder(unixSocketEndpoint)
                 .withConfigLoader(DriverConfigLoader.programmaticBuilder()
-                        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.of(10, SECONDS))
+                        .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.of(30, SECONDS))
                         .build())
                 .build();
     }
