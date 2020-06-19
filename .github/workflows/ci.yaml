@@ -42,6 +42,6 @@ jobs:
           docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
           docker build -t mgmtapi-dse-68 -f Dockerfile-dse-68 .
       - name: Build with Maven
-        run: mvn -B package -DskipTests --file pom.xml -P dse
+        run: mvn -B -q package -DskipTests --file pom.xml -P dse
       - name: run tests
         run: mvn -B test --file pom.xml -P dse

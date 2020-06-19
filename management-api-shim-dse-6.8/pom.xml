@@ -17,14 +17,6 @@
       <url>https://repo.maven.apache.org/maven2</url>
     </repository>
     <repository>
-      <id>lab-snapshots</id>
-      <url>https://repo.sjc.dsinternal.org/artifactory/datastax-snapshots-local</url>
-    </repository>
-    <repository>
-      <id>lab-releases</id>
-      <url>https://repo.sjc.dsinternal.org/artifactory/datastax-releases-local</url>
-    </repository>
-    <repository>
       <id>artifactory-snapshots</id>
       <url>https://repo.datastax.com/datastax-snapshots-local</url>
     </repository>

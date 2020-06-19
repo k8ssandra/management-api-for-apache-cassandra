@@ -1,6 +1,6 @@
 FROM management-api-for-dse-builder as builder
 
-FROM datastax/dse-server:6.8.0-ubi7-1
+FROM datastax/dse-server:6.8.0
 
 # accept the License
 ENV DS_LICENSE=accept

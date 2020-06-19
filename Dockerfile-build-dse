@@ -18,4 +18,4 @@ COPY management-api-server ./management-api-server
 COPY management-api-shim-3.x ./management-api-shim-3.x
 COPY management-api-shim-4.x ./management-api-shim-4.x
 COPY management-api-shim-dse-6.8 ./management-api-shim-dse-6.8
-RUN mvn -ff clean package -DskipTests -P dse
+RUN mvn -ff -q clean package -DskipTests -P dse
