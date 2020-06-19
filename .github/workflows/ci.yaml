@@ -20,7 +20,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build Management API in docker
         run: |
-          cat <<EOF > settings.xml
+          cat <<EOF > ~/.m2/settings.xml
           <settings>
             <servers>
               <server>
@@ -36,6 +36,7 @@ jobs:
            </servers>
           </settings>
           EOF
+          cp ~/.m2/settings.xml settings.xml
           docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
           docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
           docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
