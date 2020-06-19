@@ -17,8 +17,10 @@ ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 
-RUN microdnf update -y && rm -rf /var/cache/yum
-RUN microdnf install wget procps python iproute net-tools -y && microdnf clean all
+RUN set -eux; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends wget; \
+  rm -rf /var/lib/apt/lists/*
 
 # backwards compat with upstream ENTRYPOINT
 COPY dse-68/docker-entrypoint.sh /usr/local/bin/

@@ -1,8 +1,10 @@
-FROM datastax/dse-server:6.8.0-ubi7-1
+FROM datastax/dse-server:6.8.0
 
 USER root
-RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install libjemalloc1 procps python iproute2 numactl iproute2 net-tools && microdnf clean all
+RUN set -eux; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends wget; \
+  rm -rf /var/lib/apt/lists/*
 
 ENV DS_LICENSE=accept
 ENV PATH $DSE_HOME/bin:$PATH
