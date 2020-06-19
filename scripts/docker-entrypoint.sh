@@ -71,7 +71,7 @@ if [ "$1" = 'mgmtapi' ]; then
 	fi
 
     # Set this if you want to ignore default env variables, i.e. when running inside an operator
-    if [ $IGNORE_DEFAULTS ]; then
+    if [ $IGNORE_DEFAULTS || $USE_MGMT_API ]; then
         CASSANDRA_RPC_ADDRESS='0.0.0.0'
         CASSANDRA_BROADCAST_RPC_ADDRESS="$(_ip_address)"
     else
