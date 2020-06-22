@@ -21,6 +21,7 @@ import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.util.ShellUtils;
 import org.apache.http.HttpStatus;
+import org.awaitility.Awaitility;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,20 +54,11 @@ public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
 
         assertTrue(live);
 
-        boolean ready = false;
-        int tries = 0;
-        while (tries++ < 10)
-        {
-            ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-            if (ready)
-                break;
-
-            Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-        }
-
-        assertTrue(ready);
+        Awaitility.await("Waiting for readiness")
+                  .atMost(100, TimeUnit.SECONDS)
+                  .pollInterval(5, TimeUnit.SECONDS)
+                  .until(() -> client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
+                                     .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join());
 
         //Kill the DSE Process and check it restarts automatically
         Integer pid = client.get(URI.create(BASE_PATH + "/lifecycle/pid").toURL())
@@ -89,26 +81,15 @@ public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
 
         Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
 
-        ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-        assertFalse(ready);
+        assertFalse(client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
+                          .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join());
 
         //Wait for restart... takes a while...
-        tries = 0;
-        while (tries++ < 20)
-        {
-            ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-
-            if (ready)
-                break;
-
-            Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-        }
-
-        //Verify auto restart
-        assertTrue(ready);
+        Awaitility.await("Waiting for auto-restart readiness")
+                  .atMost(250, TimeUnit.SECONDS)
+                  .pollInterval(2, TimeUnit.SECONDS)
+                  .until(() -> client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
+                                     .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join());
 
         //Now Stop
         boolean stopped = client.post(URI.create(BASE_PATH + "/lifecycle/stop").toURL(), null)
@@ -116,7 +97,8 @@ public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
 
         assertTrue(stopped);
 
-        tries = 0;
+        int tries = 0;
+        boolean ready = false;
         while (tries++ < 6)
         {
             ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
@@ -132,7 +114,7 @@ public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
 
         Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);
 
-        //Check it's not restarted automatically when requested stopped state
+        // Check it's not restarted automatically when requested stopped state
         ready = client.get(URI.create(BASE_PATH + "/probes/readiness").toURL())
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
 
