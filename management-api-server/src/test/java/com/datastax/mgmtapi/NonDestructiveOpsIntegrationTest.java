@@ -195,12 +195,23 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 
         NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
+        // try IP of container
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
-                .addParameter("host", docker.getIpAddressOfContainer())
-                .build();
+                  .addParameter("host", docker.getIpAddressOfContainer())
+                  .build();
         boolean requestSuccessful = client.post(uri.toURL(), null)
-                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-        assertTrue(requestSuccessful);
+                                          .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+
+        if (!requestSuccessful)
+        {
+            // try 127.0.0.1
+            uri = new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
+                  .addParameter("host", "127.0.0.1")
+                  .build();
+            requestSuccessful = client.post(uri.toURL(), null)
+                                      .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            assertTrue(requestSuccessful);
+        }
     }
 
     @Test

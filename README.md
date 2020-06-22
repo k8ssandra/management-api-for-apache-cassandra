@@ -119,9 +119,7 @@ Finally build the Management API image:
 A DSE jar must be locally available before running the Management API with DSE. Details are described in the [DSE README](management-api-shim-dse-6.8/README.md).
 Once you have DSE jars published locally, follow these steps:
 ```
-# The builder image needs to have the DSE jars, poms, and the Maven settings.xml (that provides access to Artifactory) and so we have to copy them over after building DSE:
-cp $HOME/.m2/repository/com/datastax/dse/dse-db/6.8.2-SNAPSHOT/dse-db-6.8.2-SNAPSHOT.{jar,pom} $PWD
-cp $HOME/.m2/repository/com/datastax/dse/dse-commons/6.8.2-SNAPSHOT/dse-commons-6.8.2-SNAPSHOT.{jar,pom} $PWD
+# The builder image needs to have Maven settings.xml (that provides access to Artifactory):
 cp $HOME/.m2/settings.xml $PWD
 
 docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse .
