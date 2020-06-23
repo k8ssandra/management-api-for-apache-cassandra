@@ -45,4 +45,4 @@ jobs:
       - name: Build with Maven
         run: mvn -B -q package -DskipTests --file pom.xml -P dse
       - name: run tests
-        run: mvn -B test --file pom.xml -P dse
+        run: mvn -B -q test --file pom.xml -P dse

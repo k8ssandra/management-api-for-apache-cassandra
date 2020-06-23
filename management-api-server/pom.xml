@@ -179,6 +179,9 @@
                     <environmentVariables>
                         <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-${project.version}.jar</JVM_EXTRA_OPTS>
                     </environmentVariables>
+                    <forkCount>1</forkCount>
+                    <threadCount>1</threadCount>
+                    <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
             <plugin>

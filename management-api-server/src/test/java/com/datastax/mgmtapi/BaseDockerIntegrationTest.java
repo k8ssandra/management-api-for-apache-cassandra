@@ -25,11 +25,15 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.datastax.mgmtapi.helpers.DockerHelper;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 
 public abstract class BaseDockerIntegrationTest
 {
+    protected static Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
     protected static String BASE_PATH = "http://localhost:8080/api/v0";
     protected static URL BASE_URL;
 
@@ -53,6 +57,8 @@ public abstract class BaseDockerIntegrationTest
         @Override
         protected void failed(Throwable e, Description description)
         {
+            logger.warn("Failed {}", description, e);
+
             if (null != dockerHelper)
             {
                 int numberOfLines = 100;
@@ -88,7 +94,6 @@ public abstract class BaseDockerIntegrationTest
     public BaseDockerIntegrationTest(String version)
     {
         this.version = version;
-        docker.startManagementAPI(version, getEnvironmentVars());
     }
 
     @BeforeClass
@@ -122,6 +127,7 @@ public abstract class BaseDockerIntegrationTest
     public void before()
     {
         systemLogGrabber.dockerHelper = docker;
+        docker.startManagementAPI(version, getEnvironmentVars());
     }
 
     protected ArrayList<String> getEnvironmentVars()

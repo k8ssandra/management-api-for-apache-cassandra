@@ -189,7 +189,7 @@ public class DockerHelper
             @Override
             public void onNext(BuildResponseItem item)
             {
-                //System.out.println("" + item);
+                System.out.println("" + item);
                 super.onNext(item);
             }
         };
