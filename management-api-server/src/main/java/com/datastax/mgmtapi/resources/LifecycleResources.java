@@ -142,6 +142,10 @@ public class LifecycleResources
                 cassandraOrDseCommand += " cassandra";
             }
 
+            //Delete stale file if it exists
+            if (app.dbUnixSocketFile.exists())
+                FileUtils.deleteQuietly(app.dbUnixSocketFile);
+
             boolean started = ShellUtils.executeShellWithHandlers(
                     String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 1>&2",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
