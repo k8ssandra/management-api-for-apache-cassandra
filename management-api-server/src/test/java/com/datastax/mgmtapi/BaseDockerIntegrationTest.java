@@ -71,7 +71,7 @@ public abstract class BaseDockerIntegrationTest
     protected final String version;
     protected static DockerHelper docker;
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{index}: {0}")
     public static Iterable<String[]> functions()
     {
         List<String[]> l =  Lists.newArrayList(
