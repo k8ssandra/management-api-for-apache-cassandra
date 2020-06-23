@@ -11,7 +11,26 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Build Management API in docker
-        run: docker build -t management-api-for-apache-cassandra-builder -f ./Dockerfile-build ./
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
+          docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
       - name: Publish 3.11 to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
@@ -28,3 +47,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           tag_names: true
           dockerfile: Dockerfile-4_0
+      - name: Publish DSE 6.8 to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: datastax/dse-mgmtapi-6_8
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tag_names: true
+          dockerfile: Dockerfile-dse-68
