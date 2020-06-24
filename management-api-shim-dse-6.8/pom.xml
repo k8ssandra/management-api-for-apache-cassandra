@@ -5,7 +5,7 @@
   <parent>
     <artifactId>datastax-mgmtapi</artifactId>
     <groupId>com.datastax</groupId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 

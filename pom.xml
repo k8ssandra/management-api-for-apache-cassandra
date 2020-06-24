@@ -4,12 +4,13 @@
 
     <groupId>com.datastax</groupId>
     <artifactId>datastax-mgmtapi</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>DataStax Management API for Apache Cassandra</name>
 
     <properties>
         <build.version.file>build_version.sh</build.version.file>
+        <revision>0.1.0-SNAPSHOT</revision>
     </properties>
 
     <dependencies>
