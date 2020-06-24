@@ -19,12 +19,30 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build Management API in docker
-        run: docker build -t management-api-for-apache-cassandra-builder -f ./Dockerfile-build ./
-      - name: Build 3.11 Management API Docker container
-        run: docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
-      - name: Build 4.0 Management API Docker container
-        run: docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
+          docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
+          docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
+          docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
+          docker build -t mgmtapi-dse-68 -f Dockerfile-dse-68 .
       - name: Build with Maven
-        run: mvn -B package -DskipTests --file pom.xml
+        run: mvn -B -q package -DskipTests --file pom.xml -P dse
       - name: run tests
-        run: mvn -B test --file pom.xml
+        run: mvn -B -q test --file pom.xml -P dse

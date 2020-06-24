@@ -11,21 +11,29 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-
+import java.util.List;
 import javax.net.ssl.SSLException;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.helpers.DockerHelper;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 
 public abstract class BaseDockerIntegrationTest
 {
+    protected static Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
     protected static String BASE_PATH = "http://localhost:8080/api/v0";
     protected static URL BASE_URL;
 
@@ -41,25 +49,51 @@ public abstract class BaseDockerIntegrationTest
         }
     }
 
+    public static class GrabSystemLogOnFailure extends TestWatcher
+    {
+
+        DockerHelper dockerHelper;
+
+        @Override
+        protected void failed(Throwable e, Description description)
+        {
+            logger.warn("Failed {}", description, e);
+
+            if (null != dockerHelper)
+            {
+                int numberOfLines = 100;
+                System.out.println(String.format("=====> Test %s failed - Showing last %s entries of system.log", description.getMethodName(), numberOfLines));
+                dockerHelper.tailSystemLog(numberOfLines);
+            }
+        }
+    }
+
+    @Rule
+    public GrabSystemLogOnFailure systemLogGrabber = new GrabSystemLogOnFailure();
+
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     protected final String version;
     protected static DockerHelper docker;
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{index}: {0}")
     public static Iterable<String[]> functions()
     {
-        return Lists.newArrayList(
+        List<String[]> l =  Lists.newArrayList(
                 new String[]{"3_11"},
                 new String[]{"4_0"}
         );
+
+        if (Boolean.getBoolean("dseIncluded"))
+            l.add(new String[]{"dse-68"});
+
+        return l;
     }
 
     public BaseDockerIntegrationTest(String version)
     {
         this.version = version;
-        docker.startManagementAPI(version, getEnvironmentVars());
     }
 
     @BeforeClass
@@ -87,6 +121,13 @@ public abstract class BaseDockerIntegrationTest
         {
             //temporaryFolder.delete();
         }
+    }
+
+    @Before
+    public void before()
+    {
+        systemLogGrabber.dockerHelper = docker;
+        docker.startManagementAPI(version, getEnvironmentVars());
     }
 
     protected ArrayList<String> getEnvironmentVars()

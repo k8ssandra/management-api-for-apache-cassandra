@@ -14,21 +14,25 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.reactivex.Single;
 import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.cql3.QueryProcessor;
+import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.HintedHandOffManager;
 import org.apache.cassandra.db.Keyspace;
@@ -42,7 +46,7 @@ import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.VersionedValue;
 import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.IEndpointSnitch;
-import org.apache.cassandra.locator.K8SeedProvider3x;
+import org.apache.cassandra.locator.K8SeedProviderDse68;
 import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.locator.TokenMetadata;
 import org.apache.cassandra.schema.KeyspaceMetadata;
@@ -53,19 +57,21 @@ import org.apache.cassandra.streaming.StreamManager;
 import org.apache.cassandra.streaming.StreamState;
 import org.apache.cassandra.streaming.management.StreamStateCompositeData;
 import org.apache.cassandra.transport.Server;
-import org.apache.cassandra.transport.UnixSocketServer3x;
+import org.apache.cassandra.transport.UnixSocketServerDse68;
 import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
+import org.apache.cassandra.utils.flow.RxThreads;
 
-public class CassandraAPI3x implements CassandraAPI
+public class DseAPI68 implements CassandraAPI
 {
-    private static final Logger logger = LoggerFactory.getLogger(CassandraAPI3x.class);
-    private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(() -> new K8SeedProvider3x());
+    private static final Logger logger = LoggerFactory.getLogger(DseAPI68.class);
+
+    private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(K8SeedProviderDse68::new)::get;
 
     @Override
     public void decommission(boolean force) throws InterruptedException
     {
-        StorageService.instance.decommission();
+        StorageService.instance.decommission(force);
     }
 
     @Override
@@ -177,12 +183,12 @@ public class CassandraAPI3x implements CassandraAPI
 
         if (tmp.size() == 0)
         {
-            return seeds;
+            return new HashSet<>(seeds);
         }
 
         if (tmp.equals(seeds))
         {
-            return seeds;
+            return new HashSet<>(seeds);
         }
 
         // Add the new entries
@@ -191,31 +197,31 @@ public class CassandraAPI3x implements CassandraAPI
         seeds.retainAll(tmp);
         logger.debug("New seed node list after reload {}", seeds);
 
-        return seeds;
+        return new HashSet<>(seeds);
     }
 
     @Override
     public ChannelInitializer<Channel> makeSocketInitializer(Server.ConnectionTracker connectionTracker)
     {
-        return UnixSocketServer3x.makeSocketInitializer(connectionTracker);
+        return UnixSocketServerDse68.makeSocketInitializer(connectionTracker);
     }
 
     @Override
     public List<Map<String, String>> getEndpointStates()
     {
-        List<Map<String,String>> result = new ArrayList<>();
+        List<Map<String, String>> result = new ArrayList<>();
 
-        for (Map.Entry<InetAddress, EndpointState> entry : Gossiper.instance.getEndpointStates())
+        for (InetAddress endpoint : Gossiper.instance.getAllEndpoints())
         {
+            EndpointState state = Gossiper.instance.getEndpointStateForEndpoint(endpoint);
             Map<String, String> states = new HashMap<>();
-            for (Map.Entry<ApplicationState, VersionedValue> s : entry.getValue().states())
+            for (Map.Entry<ApplicationState, VersionedValue> s : state.states())
             {
                 states.put(s.getKey().name(), s.getValue().value);
             }
 
-            states.put("ENDPOINT_IP", entry.getKey().getHostAddress());
-            states.put("IS_ALIVE", Boolean.toString(entry.getValue().isAlive()));
-
+            states.put("ENDPOINT_IP", endpoint.getHostAddress());
+            states.put("IS_ALIVE", Boolean.toString(state.isAlive()));
             result.add(states);
         }
 
@@ -239,7 +245,7 @@ public class CassandraAPI3x implements CassandraAPI
             for (SessionInfo info : status.sessions)
             {
                 Map<String, String> sessionInfo = new HashMap<>();
-                sessionInfo.put("STREAM_OPERATION", status.description);
+                sessionInfo.put("STREAM_OPERATION", status.streamOperation.getDescription());
                 sessionInfo.put("PEER", info.peer.toString());
                 sessionInfo.put("USING_CONNECTION", info.connecting.toString());
                 sessionInfo.put("TOTAL_FILES_TO_RECEIVE", String.valueOf(info.getTotalFilesToReceive()));
@@ -260,6 +266,12 @@ public class CassandraAPI3x implements CassandraAPI
         }
 
         return result;
+    }
+
+    @Override
+    public UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel)
+    {
+        return QueryProcessor.processBlocking(query, consistencyLevel);
     }
 
     @Override
@@ -290,5 +302,11 @@ public class CassandraAPI3x implements CassandraAPI
     public Gossiper getGossiper()
     {
         return Gossiper.instance;
+    }
+
+    @Override
+    public Object handleRpcResult(Callable<Object> rpcResult)
+    {
+        return RxThreads.subscribeOnIo(Single.defer(() -> Single.fromCallable(rpcResult)), TPCTaskType.UNKNOWN);
     }
 }

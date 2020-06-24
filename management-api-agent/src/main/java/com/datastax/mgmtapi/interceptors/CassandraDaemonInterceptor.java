@@ -34,7 +34,7 @@ import org.apache.cassandra.transport.Server;
 public class CassandraDaemonInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(CassandraDaemonInterceptor.class);
-    private static final String socketFileStr = System.getProperty("cassandra.unix_socket_file");
+    private static final String socketFileStr = System.getProperty("db.unix_socket_file");
 
 
     public static ElementMatcher<? super TypeDescription> type()

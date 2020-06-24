@@ -5,7 +5,6 @@
  */
 package com.datastax.mgmtapi;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import org.apache.http.HttpStatus;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
 import org.jboss.resteasy.mock.MockHttpRequest;
@@ -94,7 +94,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
     }
 
@@ -116,7 +116,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("[\"127.0.0.1\"]"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.reloadSeeds()"));
@@ -140,7 +140,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("1.2.3"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
@@ -156,7 +156,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?)"), eq(true));
@@ -172,7 +172,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?)"), eq(false));
@@ -190,7 +190,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.setCompactionThroughput(?)"), eq(value));
@@ -208,7 +208,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.assassinate(?)"), eq(address));
@@ -224,7 +224,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("Address must be provided"));
 
         verifyZeroInteractions(context.cqlService);
@@ -243,7 +243,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.setLoggingLevel(?, ?)"), eq(classQualifier), eq(rawLevel));
@@ -261,7 +261,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.setLoggingLevel(?, ?)"), eq(EMPTY), eq(rawLevel));
@@ -279,7 +279,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.setLoggingLevel(?, ?)"), eq(classQualifier), eq(EMPTY));
@@ -295,7 +295,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.drain()"));
@@ -311,7 +311,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.truncateAllHints()"));
@@ -329,7 +329,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.truncateHintsForHost(?)"), eq(host));
@@ -344,7 +344,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.resetLocalSchema()"));
@@ -359,7 +359,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.reloadLocalSchema()"));
@@ -378,7 +378,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(scrubRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/scrub", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"), any());
@@ -398,7 +398,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(scrubRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/scrub", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"), any());
@@ -417,7 +417,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(scrubRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/scrub", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"),
@@ -436,7 +436,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/sstables/upgrade", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
@@ -456,7 +456,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/sstables/upgrade", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
@@ -476,7 +476,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/sstables/upgrade", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq("ALL"),
@@ -495,7 +495,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"), any());
@@ -514,7 +514,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verifyZeroInteractions(context.cqlService);
@@ -532,7 +532,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
@@ -551,7 +551,7 @@ public class K8OperatorResourcesTest {
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
@@ -571,7 +571,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
@@ -591,7 +591,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?)"),
@@ -611,7 +611,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceUserDefinedCompaction(?)"), any());
@@ -631,7 +631,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("Must provide a file if setting userDefined to true"));
 
         verifyZeroInteractions(context.cqlService);
@@ -650,7 +650,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("Invalid option combination: Can not use split-output here"));
 
         verifyZeroInteractions(context.cqlService);
@@ -669,7 +669,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("Invalid option combination: Can not provide tokens when using user-defined"));
 
         verifyZeroInteractions(context.cqlService);
@@ -689,7 +689,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
@@ -710,7 +710,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/compact", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
@@ -731,7 +731,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/garbagecollect?tombstoneOption=" + tombstoneOption, requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"), eq(tombstoneOption),
@@ -750,7 +750,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/garbagecollect", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"), any(),
@@ -769,7 +769,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/garbagecollect", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"), any(),
@@ -788,7 +788,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/garbagecollect?tombstoneOption=foo", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("tombstoneOption must be either ROW or CELL"));
 
         verifyZeroInteractions(context.cqlService);
@@ -807,7 +807,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"),
@@ -827,7 +827,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"),
@@ -846,7 +846,7 @@ public class K8OperatorResourcesTest {
         String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"),
@@ -866,7 +866,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.loadNewSSTables(?, ?)"), eq(keyspaceName), eq(table));
@@ -884,7 +884,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("table must be provided"));
 
         verifyZeroInteractions(context.cqlService);
@@ -902,7 +902,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("Must provide a keyspace name"));
 
         verifyZeroInteractions(context.cqlService);
@@ -984,7 +984,7 @@ public class K8OperatorResourcesTest {
 
         MockHttpResponse response = context.invoke(request);
 
-        Assert.assertEquals(HttpServletResponse.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains(resultAsJSON));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getStreamInfo()"));

@@ -27,14 +27,8 @@ import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
 import org.apache.cassandra.auth.AuthenticatedUser;
 import org.apache.cassandra.auth.IRoleManager;
-import org.apache.cassandra.auth.Permission;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
-import org.apache.cassandra.config.DatabaseDescriptor;
-import org.apache.cassandra.db.HintedHandOffManager;
-import org.apache.cassandra.db.compaction.CompactionManager;
-import org.apache.cassandra.gms.Gossiper;
-import org.apache.cassandra.service.StorageService;
 
 /**
  * Replace JMX calls with CQL 'CALL' methods via the the Rpc framework
@@ -61,7 +55,7 @@ public class NodeOpsProvider
         RpcRegistry.unregister(RPC_CLASS_NAME);
     }
 
-    @Rpc(name = "reloadSeeds", permission = Permission.EXECUTE)
+    @Rpc(name = "reloadSeeds")
     public List<String> reloadSeeds()
     {
         logger.debug("Reloading Seeds");
@@ -73,78 +67,78 @@ public class NodeOpsProvider
     }
 
 
-    @Rpc(name = "getReleaseVersion", permission = Permission.EXECUTE)
+    @Rpc(name = "getReleaseVersion")
     public String getReleaseVersion()
     {
         logger.debug("Getting Release Version");
-        return StorageService.instance.getReleaseVersion();
+        return ShimLoader.instance.get().getStorageService().getReleaseVersion();
     }
 
-    @Rpc(name = "decommission", permission = Permission.EXECUTE)
+    @Rpc(name = "decommission")
     public void decommission(@RpcParam(name="force") boolean force) throws InterruptedException
     {
         logger.debug("Decommissioning");
         ShimLoader.instance.get().decommission(force);
     }
 
-    @Rpc(name = "setCompactionThroughput", permission = Permission.EXECUTE)
+    @Rpc(name = "setCompactionThroughput")
     public void setCompactionThroughput(@RpcParam(name="value") int value)
     {
         logger.debug("Setting compaction throughput to {}", value);
-        StorageService.instance.setCompactionThroughputMbPerSec(value);
+        ShimLoader.instance.get().getStorageService().setCompactionThroughputMbPerSec(value);
     }
 
-    @Rpc(name = "assassinate", permission = Permission.EXECUTE)
+    @Rpc(name = "assassinate")
     public void assassinate(@RpcParam(name="address") String address) throws UnknownHostException
     {
         logger.debug("Assassinating {}", address);
-        Gossiper.instance.assassinateEndpoint(address);
+        ShimLoader.instance.get().getGossiper().assassinateEndpoint(address);
     }
 
-    @Rpc(name = "setLoggingLevel", permission = Permission.EXECUTE)
+    @Rpc(name = "setLoggingLevel")
     public void setLoggingLevel(@RpcParam(name="classQualifier") String classQualifier,
             @RpcParam(name="level")String level) throws Exception
     {
         logger.debug("Setting logging level of {} to level {}", classQualifier, level);
-        StorageService.instance.setLoggingLevel(classQualifier, level);
+        ShimLoader.instance.get().getStorageService().setLoggingLevel(classQualifier, level);
     }
 
-    @Rpc(name = "drain", permission = Permission.EXECUTE)
+    @Rpc(name = "drain")
     public void drain() throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Draining");
-        StorageService.instance.drain();
+        ShimLoader.instance.get().getStorageService().drain();
     }
 
-    @Rpc(name = "truncateAllHints", permission = Permission.EXECUTE)
+    @Rpc(name = "truncateAllHints")
     public void truncateHints()
     {
         logger.debug("Truncating all hints");
-        HintedHandOffManager.instance.truncateAllHints();
+        ShimLoader.instance.get().getHintedHandoffManager().truncateAllHints();
     }
 
-    @Rpc(name = "truncateHintsForHost", permission = Permission.EXECUTE)
+    @Rpc(name = "truncateHintsForHost")
     public void truncateHints(@RpcParam(name="host") String host)
     {
         logger.debug("Truncating hints for host {}", host);
-        HintedHandOffManager.instance.deleteHintsForEndpoint(host);
+        ShimLoader.instance.get().getHintedHandoffManager().deleteHintsForEndpoint(host);
     }
 
-    @Rpc(name = "resetLocalSchema", permission = Permission.EXECUTE)
+    @Rpc(name = "resetLocalSchema")
     public void resetLocalSchema() throws IOException
     {
         logger.debug("Resetting local schema");
-        StorageService.instance.resetLocalSchema();
+        ShimLoader.instance.get().getStorageService().resetLocalSchema();
     }
 
-    @Rpc(name = "reloadLocalSchema", permission = Permission.EXECUTE)
+    @Rpc(name = "reloadLocalSchema")
     public void reloadLocalSchema()
     {
         logger.debug("Reloading local schema");
-        StorageService.instance.reloadLocalSchema();
+        ShimLoader.instance.get().getStorageService().reloadLocalSchema();
     }
 
-    @Rpc(name = "upgradeSSTables", permission = Permission.EXECUTE)
+    @Rpc(name = "upgradeSSTables")
     public void upgradeSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="excludeCurrentVersion" ) boolean excludeCurrentVersion,
             @RpcParam(name="jobs") int jobs,
@@ -155,16 +149,16 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
         {
-            keyspaces = StorageService.instance.getKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.upgradeSSTables(keyspace, excludeCurrentVersion, jobs, tableNames.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().upgradeSSTables(keyspace, excludeCurrentVersion, jobs, tableNames.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "forceKeyspaceCleanup", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCleanup")
     public void forceKeyspaceCleanup(@RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
@@ -173,16 +167,16 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("NON_LOCAL_STRATEGY"))
         {
-            keyspaces = StorageService.instance.getNonLocalStrategyKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getNonLocalStrategyKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "forceKeyspaceCompactionForTokenRange", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCompactionForTokenRange")
     public void forceKeyspaceCompactionForTokenRange(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="startToken") String startToken,
             @RpcParam(name="endToken") String endToken,
@@ -193,16 +187,16 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
         {
-            keyspaces = StorageService.instance.getKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.forceKeyspaceCompactionForTokenRange(keyspace, startToken, endToken, tableNames.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().forceKeyspaceCompactionForTokenRange(keyspace, startToken, endToken, tableNames.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "forceKeyspaceCompaction", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceCompaction")
     public void forceKeyspaceCompaction(@RpcParam(name="splitOutput") boolean splitOutput,
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tableNames") List<String> tableNames) throws InterruptedException, ExecutionException, IOException
@@ -212,16 +206,16 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
         {
-            keyspaces = StorageService.instance.getKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.forceKeyspaceCompaction(splitOutput, keyspace, tableNames.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().forceKeyspaceCompaction(splitOutput, keyspace, tableNames.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "garbageCollect", permission = Permission.EXECUTE)
+    @Rpc(name = "garbageCollect")
     public void garbageCollect(@RpcParam(name="tombstoneOption") String tombstoneOption,
             @RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
@@ -231,24 +225,24 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
         {
-            keyspaces = StorageService.instance.getKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.garbageCollect(tombstoneOption, jobs, keyspace, tableNames.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().garbageCollect(tombstoneOption, jobs, keyspace, tableNames.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "loadNewSSTables", permission = Permission.EXECUTE)
+    @Rpc(name = "loadNewSSTables")
     public void loadNewSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="table") String table)
     {
         logger.debug("Forcing keyspace refresh on keyspace {} and table {}", keyspaceName, table);
-        StorageService.instance.loadNewSSTables(keyspaceName, table);
+        ShimLoader.instance.get().getStorageService().loadNewSSTables(keyspaceName, table);
     }
 
-    @Rpc(name = "forceKeyspaceFlush", permission = Permission.EXECUTE)
+    @Rpc(name = "forceKeyspaceFlush")
     public void forceKeyspaceFlush(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tableNames") List<String> tableNames) throws IOException
     {
@@ -256,16 +250,16 @@ public class NodeOpsProvider
         List<String> keyspaces = Collections.singletonList(keyspaceName);
         if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
         {
-            keyspaces = StorageService.instance.getKeyspaces();
+            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
         }
 
         for (String keyspace : keyspaces)
         {
-            StorageService.instance.forceKeyspaceFlush(keyspace, tableNames.toArray(new String[]{}));
+            ShimLoader.instance.get().getStorageService().forceKeyspaceFlush(keyspace, tableNames.toArray(new String[]{}));
         }
     }
 
-    @Rpc(name = "scrub", permission = Permission.EXECUTE)
+    @Rpc(name = "scrub")
     public void scrub(@RpcParam(name="disableSnapshot") boolean disableSnapshot,
             @RpcParam(name="skipCorrupted") boolean skipCorrupted,
             @RpcParam(name="checkData") boolean checkData,
@@ -275,17 +269,17 @@ public class NodeOpsProvider
             @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Scrubbing tables on keyspace {}", keyspaceName);
-        StorageService.instance.scrub(disableSnapshot, skipCorrupted, checkData, reinsertOverflowedTTL, jobs, keyspaceName, tables.toArray(new String[]{}));
+        ShimLoader.instance.get().getStorageService().scrub(disableSnapshot, skipCorrupted, checkData, reinsertOverflowedTTL, jobs, keyspaceName, tables.toArray(new String[]{}));
     }
 
-    @Rpc(name = "forceUserDefinedCompaction", permission = Permission.EXECUTE)
+    @Rpc(name = "forceUserDefinedCompaction")
     public void forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles)
     {
         logger.debug("Forcing user defined compaction");
-        CompactionManager.instance.forceUserDefinedCompaction(datafiles);
+        ShimLoader.instance.get().getCompactionManager().forceUserDefinedCompaction(datafiles);
     }
 
-    @Rpc(name = "createRole", permission = Permission.AUTHORIZE)
+    @Rpc(name = "createRole")
     public void createRole(@RpcParam(name="username") String username,
             @RpcParam(name = "superuser") Boolean superUser,
             @RpcParam(name = "login") Boolean login,
@@ -297,11 +291,11 @@ public class NodeOpsProvider
         ro.setOption(IRoleManager.Option.SUPERUSER, superUser);
         ro.setOption(IRoleManager.Option.LOGIN, login);
         ro.setOption(IRoleManager.Option.PASSWORD, password);
-        
-        DatabaseDescriptor.getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
+
+        ShimLoader.instance.get().getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
     }
 
-    @Rpc(name = "checkConsistencyLevel", permission = Permission.EXECUTE)
+    @Rpc(name = "checkConsistencyLevel")
     public Map<List<Long>, List<String>> checkConsistencyLevel(@RpcParam(name="consistency_level") String consistencyLevelName,
             @RpcParam(name="rf_per_dc") Integer rfPerDc)
     {
@@ -313,13 +307,13 @@ public class NodeOpsProvider
         return ShimLoader.instance.get().checkConsistencyLevel(consistencyLevelName, rfPerDc);
     }
 
-    @Rpc(name = "getEndpointStates", permission = Permission.EXECUTE)
+    @Rpc(name = "getEndpointStates")
     public List<Map<String,String>> getEndpointStates()
     {
         return ShimLoader.instance.get().getEndpointStates();
     }
 
-    @Rpc(name = "getStreamInfo", permission = Permission.EXECUTE)
+    @Rpc(name = "getStreamInfo")
     public List<Map<String, List<Map<String, String>>>> getStreamInfo()
     {
         return ShimLoader.instance.get().getStreamInfo();

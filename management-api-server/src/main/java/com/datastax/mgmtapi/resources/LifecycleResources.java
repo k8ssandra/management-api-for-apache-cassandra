@@ -16,14 +16,10 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.core.ObjectCodec;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.io.FileUtils;
@@ -37,14 +33,15 @@ import com.datastax.mgmtapi.util.ShellUtils;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.shaded.guava.common.collect.Streams;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
 
-import static com.datastax.mgmtapi.ManagementApplication.STATE.*;
+import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
+import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
 
 @Path("/api/v0/lifecycle")
 public class LifecycleResources
@@ -63,7 +60,7 @@ public class LifecycleResources
     }
 
     /**
-     * Starts a Cassandra node
+     * Starts a Cassandra/DSE node
      *
      * Handles the following:
      *   - Cassandra pid found and can connect: status 202
@@ -75,7 +72,7 @@ public class LifecycleResources
      */
     @Path("/start")
     @POST
-    @Operation(description = "Starts Cassandra")
+    @Operation(description = "Starts Cassandra/DSE")
     public synchronized Response startNode(@QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp)
     {
         app.setRequestedState(STARTED);
@@ -84,13 +81,14 @@ public class LifecycleResources
         boolean canConnect;
         try
         {
-            CqlSession session = UnixSocketCQLAccess.get(app.cassandraUnixSocketFile).get();
+            CqlSession session = UnixSocketCQLAccess.get(app.dbUnixSocketFile).get();
             session.execute("SELECT * FROM system.peers");
 
             canConnect = true;
         }
         catch (Throwable t)
         {
+            logger.debug("Could not connect:", t);
             canConnect = false;
         }
 
@@ -138,13 +136,23 @@ public class LifecycleResources
                 extraArgs.append("-Dcassandra.replace_address_first_boot=").append(replaceIp);
             }
 
+            String cassandraOrDseCommand = app.dbExe.getAbsolutePath();
+            if (cassandraOrDseCommand.endsWith("dse"))
+            {
+                cassandraOrDseCommand += " cassandra";
+            }
+
+            //Delete stale file if it exists
+            if (app.dbUnixSocketFile.exists())
+                FileUtils.deleteQuietly(app.dbUnixSocketFile);
+
             boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Dcassandra.unix_socket_file=%s %s %s 1>&2",
+                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 1>&2",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
-                            app.cassandraExe.getAbsolutePath(),
-                            app.cassandraUnixSocketFile.getAbsolutePath(),
+                            cassandraOrDseCommand,
+                            app.dbUnixSocketFile.getAbsolutePath(),
                             extraArgs.toString(),
-                            String.join(" ", app.cassandraExtraArgs)),
+                            String.join(" ", app.dbExtraJvmArgs)),
                     (input, err) -> true,
                     (exitCode, err) -> {
                         logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
@@ -168,7 +176,7 @@ public class LifecycleResources
 
     @Path("/stop")
     @POST
-    @Operation(description = "Stops Cassandra. Keeps node from restarting automatically until /start is called")
+    @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called")
     public synchronized Response stopNode()
     {
         app.setRequestedState(STOPPED);
@@ -244,7 +252,7 @@ public class LifecycleResources
         }
         else
         {
-            cassandraConfig = new File(app.cassandraHome, "conf/cassandra.yaml");
+            cassandraConfig = new File(app.dbHome, "conf/cassandra.yaml");
         }
 
         if (cassandraConfig.exists() && cassandraConfig.isFile())
@@ -271,7 +279,7 @@ public class LifecycleResources
     @Path("/configure")
     @POST
     @Consumes("application/yaml")
-    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
+    @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
         if (app.getRequestedState() == STARTED ) {
@@ -353,11 +361,11 @@ public class LifecycleResources
 
                 if ((jvmMaxHeap == null) != (jvmHeapNew == null))
                     return Response.status(Response.Status.BAD_REQUEST).entity("Both max_heap_size and heap_new_size must be defined").build();
-            }
 
-            if (jvmOpts.has("additional-jvm-opts"))
-                jvmExtraOpts = Streams.stream(jvmOpts.withArray("additional-jvm-opts").elements())
-                        .map(JsonNode::asText).collect(Collectors.joining(" "));
+                if (jvmOpts.has("additional-jvm-opts"))
+                    jvmExtraOpts = Streams.stream(jvmOpts.withArray("additional-jvm-opts").elements())
+                            .map(JsonNode::asText).collect(Collectors.joining(" "));
+            }
 
             sb = new StringBuilder();
             sb.append("#!/bin/sh\n");
@@ -387,7 +395,7 @@ public class LifecycleResources
 
     @Path("/pid")
     @GET
-    @Operation(description = "The PID of Cassandra, if it's running")
+    @Operation(description = "The PID of Cassandra/DSE, if it's running")
     public Response getPID()
     {
         try
@@ -405,9 +413,8 @@ public class LifecycleResources
         }
     }
 
-
     private Optional<Integer> findPid() throws IOException
     {
-        return UnixCmds.findCassandraWithMatchingArg("-Dcassandra.unix_socket_file=" + app.cassandraUnixSocketFile.getAbsolutePath());
+        return UnixCmds.findDbProcessWithMatchingArg("-Ddb.unix_socket_file=" + app.dbUnixSocketFile.getAbsolutePath());
     }
 }

@@ -10,6 +10,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.datastax.mgmtapi.ShimLoader;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
@@ -19,10 +20,8 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.auth.AuthKeyspace;
-import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.exceptions.RequestExecutionException;
-import org.apache.cassandra.service.StorageService;
 
 public class CassandraRoleManagerInterceptor
 {
@@ -56,14 +55,14 @@ public class CassandraRoleManagerInterceptor
             return;
         }
 
-        if (StorageService.instance.getTokenMetadata().sortedTokens().isEmpty())
+        if (ShimLoader.instance.get().getStorageService().getTokenMetadata().sortedTokens().isEmpty())
             throw new IllegalStateException("CassandraRoleManager skipped default role setup: no known tokens in ring");
 
         try
         {
             if (!hasExistingRoles())
             {
-                QueryProcessor.process(String.format("INSERT INTO %s.%s (role, is_superuser, can_login, salted_hash) " +
+                ShimLoader.instance.get().processQuery(String.format("INSERT INTO %s.%s (role, is_superuser, can_login, salted_hash) " +
                                 "VALUES ('%s', false, false, '%s') USING TIMESTAMP 1",
                         AUTH_KEYSPACE_NAME,
                         AuthKeyspace.ROLES,
@@ -80,12 +79,13 @@ public class CassandraRoleManagerInterceptor
 
     private static boolean hasExistingRoles() throws RequestExecutionException
     {
+
         // Try looking up the 'cassandra' default role first, to avoid the range query if possible.
         String defaultSUQuery = String.format("SELECT * FROM %s.%s WHERE role = '%s'", AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES, "cassandra");
         String allUsersQuery = String.format("SELECT * FROM %s.%s LIMIT 1", AUTH_KEYSPACE_NAME, AuthKeyspace.ROLES);
-        return !QueryProcessor.process(defaultSUQuery, ConsistencyLevel.ONE).isEmpty()
-                || !QueryProcessor.process(defaultSUQuery, ConsistencyLevel.QUORUM).isEmpty()
-                || !QueryProcessor.process(allUsersQuery, ConsistencyLevel.QUORUM).isEmpty();
+        return !ShimLoader.instance.get().processQuery(defaultSUQuery, ConsistencyLevel.ONE).isEmpty()
+                || !ShimLoader.instance.get().processQuery(defaultSUQuery, ConsistencyLevel.QUORUM).isEmpty()
+                || !ShimLoader.instance.get().processQuery(allUsersQuery, ConsistencyLevel.QUORUM).isEmpty();
     }
 
 }

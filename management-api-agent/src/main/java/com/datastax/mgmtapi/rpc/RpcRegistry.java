@@ -103,7 +103,5 @@ public class RpcRegistry
 
     private static void addRpcMethodPerm(Set<Permission> permissions, RpcMethod rpcMethod)
     {
-        Permission perm = rpcMethod.getPermission();
-        permissions.add(perm);
     }
 }

@@ -39,6 +39,7 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.command.BuildImageResultCallback;
+import com.github.dockerjava.core.command.ExecStartResultCallback;
 import com.github.dockerjava.core.command.LogContainerResultCallback;
 import org.apache.http.HttpStatus;
 
@@ -55,6 +56,11 @@ public class DockerHelper
         this.config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
         this.dockerClient = DockerClientBuilder.getInstance(config).build();
         this.dataDir = dataDir;
+    }
+
+    public String getIpAddressOfContainer()
+    {
+        return dockerClient.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
     }
 
     public void startManagementAPI(String version, List<String> envVars)
@@ -87,6 +93,15 @@ public class DockerHelper
         dockerClient.execStartCmd(execId).exec(null);
 
         return execId;
+    }
+
+    public void tailSystemLog(int numberOfLines)
+    {
+        if (container == null)
+            throw new IllegalStateException("Container not started");
+
+        String execId = dockerClient.execCreateCmd(container).withTty(true).withCmd("tail", "-n " + numberOfLines, "/var/log/cassandra/system.log").withAttachStderr(true).withAttachStdout(true).exec().getId();
+        dockerClient.execStartCmd(execId).withTty(true).exec(new ExecStartResultCallback(System.out, System.err) {});
     }
 
     public void waitTillFinished(String execId)
@@ -174,7 +189,7 @@ public class DockerHelper
             @Override
             public void onNext(BuildResponseItem item)
             {
-                //System.out.println("" + item);
+                System.out.println("" + item);
                 super.onNext(item);
             }
         };

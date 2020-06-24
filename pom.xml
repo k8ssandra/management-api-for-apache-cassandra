@@ -13,14 +13,41 @@
     </properties>
 
     <dependencies>
-        
-    </dependencies>
 
-    <modules>
-        <module>management-api-common</module>
-        <module>management-api-shim-3.x</module>
-	      <module>management-api-shim-4.x</module>
-	      <module>management-api-agent</module>
-        <module>management-api-server</module>
-    </modules>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <dseIncluded>false</dseIncluded>
+            </properties>
+            <modules>
+                <module>management-api-common</module>
+                <module>management-api-shim-3.x</module>
+                <module>management-api-shim-4.x</module>
+                <module>management-api-agent</module>
+                <module>management-api-server</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>dse</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <dseIncluded>true</dseIncluded>
+            </properties>
+            <modules>
+                <module>management-api-common</module>
+                <module>management-api-shim-3.x</module>
+                <module>management-api-shim-4.x</module>
+                <module>management-api-shim-dse-6.8</module>
+                <module>management-api-agent</module>
+                <module>management-api-server</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

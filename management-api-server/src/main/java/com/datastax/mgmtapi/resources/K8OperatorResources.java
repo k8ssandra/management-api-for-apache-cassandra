@@ -60,7 +60,7 @@ public class K8OperatorResources
     {
         return handle(() ->
         {
-            ResultSet resultSet = cqlService.executeCql(app.cassandraUnixSocketFile, "SELECT * from system.local");
+            ResultSet resultSet = cqlService.executeCql(app.dbUnixSocketFile, "SELECT * from system.local");
             Row result = resultSet.one();
 
             if (result != null)
@@ -90,7 +90,7 @@ public class K8OperatorResources
             if (rfPerDc == null)
                 rfPerDc = 3;
 
-            ResultSet result = cqlService.executePreparedStatement(app.cassandraUnixSocketFile,
+            ResultSet result = cqlService.executePreparedStatement(app.dbUnixSocketFile,
                     "CALL NodeOps.checkConsistencyLevel(?, ?)", consistencyLevel, rfPerDc);
 
             Map<List, List> response = result.one().getMap("result", List.class, List.class);
@@ -111,7 +111,7 @@ public class K8OperatorResources
     {
         return handle(() ->
         {
-            ResultSet result = cqlService.executeCql(app.cassandraUnixSocketFile, "CALL NodeOps.reloadSeeds()");
+            ResultSet result = cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadSeeds()");
 
             List<String> response = result.one().getList("result", String.class);
 

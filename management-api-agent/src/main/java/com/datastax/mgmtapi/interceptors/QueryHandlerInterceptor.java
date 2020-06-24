@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.NodeOpsProvider;
+import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.rpc.RpcMethod;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -35,7 +36,6 @@ import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.exceptions.InvalidRequestException;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
-import org.apache.cassandra.transport.messages.ResultMessage;
 
 public class QueryHandlerInterceptor
 {
@@ -60,9 +60,8 @@ public class QueryHandlerInterceptor
         };
     }
 
-
     @RuntimeType
-    public static Object intercept(@AllArguments Object[] allArguments, @SuperCall Callable<ResultMessage> zuper) throws Throwable
+    public static Object intercept(@AllArguments Object[] allArguments, @SuperCall Callable<Object> zuper) throws Throwable
     {
         if (allArguments.length > 0 && allArguments[0] != null && allArguments[0] instanceof String)
         {
@@ -86,7 +85,7 @@ public class QueryHandlerInterceptor
         return zuper.call();
     }
 
-    private static ResultMessage handle(ClientState state, QueryOptions options, String object, String method, String[] params)
+    private static Object handle(ClientState state, QueryOptions options, String object, String method, String[] params) throws Exception
     {
         Optional<RpcMethod> rpcMethod = RpcRegistry.lookupMethod(object, method);
 
@@ -115,6 +114,6 @@ public class QueryHandlerInterceptor
                 parameters.add(spec.type.fromString(value));
         }
 
-        return rpcMethod.get().execute(state, parameters);
+        return ShimLoader.instance.get().handleRpcResult(() -> rpcMethod.get().execute(state, parameters));
     }
 }

@@ -113,109 +113,129 @@ Finally build the Management API image:
      # Check service and C* are running
      > curl http://localhost:8080/api/v0/probes/readiness
      OK
-     
-  
-  To start the service with a locally installed C* you would run the following:
+
+## Usage with DSE
+
+A DSE jar must be locally available before running the Management API with DSE. Details are described in the [DSE README](management-api-shim-dse-6.8/README.md).
+Once you have DSE jars published locally, follow these steps:
+```
+# The builder image needs to have Maven settings.xml (that provides access to Artifactory):
+cp $HOME/.m2/settings.xml $PWD
+
+docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse .
+
+docker build -t mgmtapi-dse -f Dockerfile-dse-68 .
+
+docker run -p 8080:8080 -it --rm mgmtapi-dse
+
+```
+
+### Using the Service with a locally installed C* or DSE instance
+
+
+  To start the service with a locally installed C* or DSE instance, you would run the below commands. The Management API will figure out
+  through `--db-home` whether it points to a C* or DSE folder
     
-    # REQUIRED: Add management api agent to C* startup
+    # REQUIRED: Add management api agent to C*/DSE startup
     > export JVM_EXTRA_OPTS="-javaagent:$PWD/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar"
         
     > alias mgmtapi="java -jar management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar"
     
     # Start the service with a local unix socket only, you could also pass -H http://localhost:8080 to expose a port
-    > mgmtapi --cassandra-socket=/tmp/cassandra.sock --host=unix:///tmp/mgmtapi.sock --cassandra-home=<pathToCassandra>
+    > mgmtapi --db-socket=/tmp/db.sock --host=unix:///tmp/mgmtapi.sock --db-home=<pathToCassandraOrDseHome>
     
-    # Cassandra will be started by the service by default unless you pass --explicit-start flag
+    # Cassandra/DSE will be started by the service by default unless you pass --explicit-start flag
     
     # Check the service is up
     > curl --unix-socket /tmp/mgmtapi.sock http://localhost/api/v0/probes/liveness
     OK 
     
-    # Check C* is up
+    # Check C*/DSE is up
     > curl --unix-socket /tmp/mgmtapi.sock http://localhost/api/v0/probes/readiness 
     OK
     
-    # Stop C*
+    # Stop C*/DSE
     curl -XPOST --unix-socket /tmp/mgmtapi.sock http://localhost/api/v0/lifecycle/stop
     OK
-    
-  
+
+# CLI Help
   The CLI help covers the different options:
     
     mgmtapi --help
     
     NAME
             cassandra-management-api - REST service for managing an Apache
-            Cassandra node
-    
+            Cassandra or DSE node
+
     SYNOPSIS
-            cassandra-management-api [ {-C | --cassandra-home} <cassandra_home> ]
+            cassandra-management-api
+                    [ {-C | --cassandra-home | --db-home} <db_home> ]
                     [ --explicit-start <explicit_start> ] [ {-h | --help} ]
-                    [ {-H | --host} <listen_address>... ]
+                    {-H | --host} <listen_address>...
                     [ {-K | --no-keep-alive} <no_keep_alive> ]
                     [ {-p | --pidfile} <pidfile> ]
-                    {-S | --cassandra-socket} <cassandra_unix_socket_file>
+                    {-S | --cassandra-socket | --db-socket} <db_unix_socket_file>
                     [ --tlscacert <tls_ca_cert_file> ]
                     [ --tlscert <tls_cert_file> ] [ --tlskey <tls_key_file> ]
-    
+
     OPTIONS
-            -C <cassandra_home>, --cassandra-home <cassandra_home>
-                Path to the cassandra root directory, if missing will use
-                $CASSANDRA_HOME
-    
+            -C <db_home>, --cassandra-home <db_home>, --db-home <db_home>
+                Path to the Cassandra or DSE root directory, if missing will use
+                $CASSANDRA_HOME/$DSE_HOME respectively
+
                 This options value must be a path on the file system that must be
                 readable, writable and executable.
-    
-    
+
+
             --explicit-start <explicit_start>
                 When using keep-alive, setting this flag will make the management
-                api wait to start Cassandra until /start is called via REST
-    
+                api wait to start Cassandra/DSE until /start is called via REST
+
             -h, --help
                 Display help information
-    
+
             -H <listen_address>, --host <listen_address>
                 Daemon socket(s) to listen on. (required)
-    
+
             -K <no_keep_alive>, --no-keep-alive <no_keep_alive>
                 Setting this flag will stop the management api from starting or
-                keeping Cassandra up automatically
-    
+                keeping Cassandra/DSE up automatically
+
             -p <pidfile>, --pidfile <pidfile>
                 Create a PID file at this file path.
-    
+
                 This options value must be a path on the file system that must be
                 readable and writable.
-    
-    
-            -S <cassandra_unix_socket_file>, --cassandra-socket
-            <cassandra_unix_socket_file>
-                Path to Cassandra unix socket file (required)
-    
+
+
+            -S <db_unix_socket_file>, --cassandra-socket <db_unix_socket_file>,
+            --db-socket <db_unix_socket_file>
+                Path to Cassandra/DSE unix socket file (required)
+
                 This options value must be a path on the file system that must be
                 readable and writable.
-    
-    
+
+
             --tlscacert <tls_ca_cert_file>
                 Path to trust certs signed only by this CA
-    
+
                 This options value must be a path on the file system that must be
                 readable.
-    
-    
+
+
             --tlscert <tls_cert_file>
                 Path to TLS certificate file
-    
+
                 This options value must be a path on the file system that must be
                 readable.
-    
-    
+
+
             --tlskey <tls_key_file>
                 Path to TLS key file
-    
+
                 This options value must be a path on the file system that must be
                 readable.
-    
+
     
     COPYRIGHT
             Copyright (c) DataStax 2020

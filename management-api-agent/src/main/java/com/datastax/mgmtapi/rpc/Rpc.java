@@ -20,6 +20,5 @@ import org.apache.cassandra.auth.Permission;
 public @interface Rpc
 {
     String name();
-    Permission permission();
     boolean multiRow() default false;
 }

@@ -114,6 +114,12 @@
             <version>4.11</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -166,12 +172,16 @@
                 <version>3.0.0-M3</version>
                 <configuration>
                     <systemPropertyVariables>
+                        <dseIncluded>${dseIncluded}</dseIncluded>
                         <dockerFileRoot>${basedir}/..</dockerFileRoot>
                         <CASSANDRA_HOME>${basedir}/target/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>
                     <environmentVariables>
                         <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-${project.version}.jar</JVM_EXTRA_OPTS>
                     </environmentVariables>
+                    <forkCount>1</forkCount>
+                    <threadCount>1</threadCount>
+                    <reuseForks>true</reuseForks>
                 </configuration>
             </plugin>
             <plugin>

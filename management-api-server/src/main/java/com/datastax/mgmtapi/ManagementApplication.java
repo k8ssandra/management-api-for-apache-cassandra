@@ -34,10 +34,10 @@ public class ManagementApplication extends Application
 {
     private static final Logger logger = LoggerFactory.getLogger(ManagementApplication.class);
 
-    public final File cassandraUnixSocketFile;
-    public final File cassandraHome;
-    public final File cassandraExe;
-    public final Collection<String> cassandraExtraArgs;
+    public final File dbUnixSocketFile;
+    public final File dbHome;
+    public final File dbExe;
+    public final Collection<String> dbExtraJvmArgs;
     public final CqlService cqlService;
 
 
@@ -46,12 +46,12 @@ public class ManagementApplication extends Application
     private final AtomicReference<STATE> requestedState = new AtomicReference<>(STATE.UNKNOWN);
     private final AtomicReference<String> activeProfile = new AtomicReference<>(null);
 
-    public ManagementApplication(File cassandraHome, File cassandraExe, File cassandraUnixSocketFile, CqlService cqlService, Collection<String> cassandraExtraArgs)
+    public ManagementApplication(File dbHome, File dbExe, File dbUnixSocketFile, CqlService cqlService, Collection<String> dbExtraJvmArgs)
     {
-        this.cassandraUnixSocketFile = cassandraUnixSocketFile;
-        this.cassandraHome = cassandraHome;
-        this.cassandraExe = cassandraExe;
-        this.cassandraExtraArgs = cassandraExtraArgs;
+        this.dbUnixSocketFile = dbUnixSocketFile;
+        this.dbHome = dbHome;
+        this.dbExe = dbExe;
+        this.dbExtraJvmArgs = dbExtraJvmArgs;
         this.lifecycle = new LifecycleResources(this);
         this.cqlService = cqlService;
 

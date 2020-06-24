@@ -36,7 +36,7 @@ public class UnixCmds
         );
     }
 
-    public static Optional<Integer> findCassandraWithMatchingArg(String filterStr) throws IOException
+    public static Optional<Integer> findDbProcessWithMatchingArg(String filterStr) throws IOException
     {
         return ShellUtils.executeShellWithHandlers(
                 "/bin/ps -eo pid,command= | grep Dcassandra.server_process",

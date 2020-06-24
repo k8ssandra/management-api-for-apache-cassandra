@@ -65,7 +65,7 @@ public class MetadataResources
     {
         return handle(() ->
         {
-            ResultSet rs = cqlService.executeCql(app.cassandraUnixSocketFile, query);
+            ResultSet rs = cqlService.executeCql(app.dbUnixSocketFile, query);
 
             Row row = rs.one();
             String queryResponse = null;
@@ -89,7 +89,7 @@ public class MetadataResources
     {
         return handle(() ->
         {
-            ResultSet rs = cqlService.executeCql(app.cassandraUnixSocketFile, query);
+            ResultSet rs = cqlService.executeCql(app.dbUnixSocketFile, query);
 
             Row row = rs.one();
             Object queryResponse = null;

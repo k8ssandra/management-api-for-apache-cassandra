@@ -9,10 +9,20 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.cql3.QueryProcessor;
+import org.apache.cassandra.cql3.UntypedResultSet;
+import org.apache.cassandra.db.ConsistencyLevel;
+import org.apache.cassandra.db.HintedHandOffManager;
+import org.apache.cassandra.db.compaction.CompactionManager;
+import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.locator.SeedProvider;
+import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.transport.Server;
 
 /**
@@ -33,4 +43,24 @@ public interface CassandraAPI
     List<Map<String,String>> getEndpointStates();
 
     List<Map<String, List<Map<String, String>>>> getStreamInfo();
+
+    default UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel)
+    {
+        return QueryProcessor.process(query, consistencyLevel);
+    }
+
+    StorageService getStorageService();
+
+    IRoleManager getRoleManager();
+
+    HintedHandOffManager getHintedHandoffManager();
+
+    CompactionManager getCompactionManager();
+
+    Gossiper getGossiper();
+
+    default Object handleRpcResult(Callable<Object> rpcResult) throws Exception
+    {
+        return rpcResult.call();
+    }
 }
