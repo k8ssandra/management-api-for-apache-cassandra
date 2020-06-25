@@ -12,6 +12,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Build Management API in docker
         run: |
+          mkdir -p ~/.m2
           cat <<EOF > ~/.m2/settings.xml
           <settings>
             <servers>
