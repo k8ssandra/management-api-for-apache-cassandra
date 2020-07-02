@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MediaType;
@@ -22,10 +23,13 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
+import com.datastax.mgmtapi.resources.models.CreateKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
+import org.assertj.core.api.Assertions;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 
 import static org.junit.Assert.assertEquals;
@@ -458,5 +462,23 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 }).join();
         assertNotNull(response);
         assertNotEquals("", response);
+    }
+
+    @Test
+    public void testCreateKeyspace() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+        CreateKeyspaceRequest request = new CreateKeyspaceRequest("someTestKeyspace", Arrays.asList(new ReplicationSetting("Cassandra", 1)));
+        String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+
+        URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create")
+                .build();
+        boolean requestSuccessful = client.post(uri.toURL(), requestAsJSON)
+                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(requestSuccessful);
     }
 }

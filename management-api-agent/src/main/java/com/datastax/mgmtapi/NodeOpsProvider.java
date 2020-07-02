@@ -25,10 +25,12 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.rpc.Rpc;
 import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
+import com.datastax.oss.driver.api.querybuilder.SchemaBuilder;
 import org.apache.cassandra.auth.AuthenticatedUser;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
+import org.apache.cassandra.db.ConsistencyLevel;
 
 /**
  * Replace JMX calls with CQL 'CALL' methods via the the Rpc framework
@@ -317,5 +319,17 @@ public class NodeOpsProvider
     public List<Map<String, List<Map<String, String>>>> getStreamInfo()
     {
         return ShimLoader.instance.get().getStreamInfo();
+    }
+
+    @Rpc(name = "createKeyspace")
+    public void createKeyspace(@RpcParam(name="keyspaceName") String keyspaceName, @RpcParam(name="replicationSettings") Map<String, Integer> replicationSettings) throws IOException
+    {
+        logger.debug("Creating keyspace {} with replication settings {}", keyspaceName, replicationSettings);
+
+        ShimLoader.instance.get().processQuery(SchemaBuilder.createKeyspace(keyspaceName)
+                        .ifNotExists()
+                        .withNetworkTopologyStrategy(replicationSettings)
+                        .asCql(),
+                ConsistencyLevel.ONE);
     }
 }
