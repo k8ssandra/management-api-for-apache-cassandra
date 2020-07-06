@@ -27,6 +27,7 @@ import com.datastax.mgmtapi.resources.models.CreateKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.assertj.core.api.Assertions;
@@ -101,15 +102,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 
         String requestSuccessful = client.post(URI.create(BASE_PATH + "/ops/seeds/reload").toURL(), null)
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
 
         //Empty because getSeeds removes local node
@@ -275,15 +268,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 .build();
         String response = client.get(uri.toURL())
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
         assertNotNull(response);
         assertNotEquals("", response);
@@ -301,15 +286,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 .build();
         String response = client.get(uri.toURL())
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
 
         System.err.println(response);
@@ -449,17 +426,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/streaminfo").build();
         String response = client.get(uri.toURL())
-                .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] result = new byte[r.content().readableBytes()];
-                        r.content().readBytes(result);
-
-                        return new String(result);
-                    }
-
-                    return null;
-                }).join();
+                .thenApply(this::responseAsString).join();
         assertNotNull(response);
         assertNotEquals("", response);
     }
@@ -471,8 +438,11 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         ensureStarted();
 
         NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                .thenApply(this::responseAsString).join();
 
-        CreateKeyspaceRequest request = new CreateKeyspaceRequest("someTestKeyspace", Arrays.asList(new ReplicationSetting("Cassandra", 1)));
+
+        CreateKeyspaceRequest request = new CreateKeyspaceRequest("someTestKeyspace", Arrays.asList(new ReplicationSetting(localDc, 1)));
         String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create")
@@ -480,5 +450,18 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         boolean requestSuccessful = client.post(uri.toURL(), requestAsJSON)
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);
+    }
+
+    private String responseAsString(FullHttpResponse r)
+    {
+        if (r.status().code() == HttpStatus.SC_OK)
+        {
+            byte[] result = new byte[r.content().readableBytes()];
+            r.content().readBytes(result);
+
+            return new String(result);
+        }
+
+        return null;
     }
 }
