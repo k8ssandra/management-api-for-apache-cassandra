@@ -118,29 +118,6 @@
         }
       }
     },
-    "/api/v0/ops/keyspace/cleanup" : {
-      "post" : {
-        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces",
-        "operationId" : "cleanup",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
     "/api/v0/ops/keyspace/refresh" : {
       "post" : {
         "summary" : "Load newly placed SSTables to the system without restart",
@@ -168,9 +145,78 @@
         }
       }
     },
+    "/api/v0/ops/keyspace/alter" : {
+      "post" : {
+        "summary" : "Alter the replication settings of an existing keyspace",
+        "operationId" : "alter",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateOrAlterKeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/keyspace/create" : {
+      "post" : {
+        "summary" : "Create a new keyspace with the given name and replication settings",
+        "operationId" : "create",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateOrAlterKeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/keyspace/cleanup" : {
+      "post" : {
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces",
+        "operationId" : "cleanup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/lifecycle/start" : {
       "post" : {
-        "description" : "Starts Cassandra",
+        "description" : "Starts Cassandra/DSE",
         "operationId" : "startNode",
         "parameters" : [ {
           "name" : "profile",
@@ -197,7 +243,7 @@
     },
     "/api/v0/lifecycle/stop" : {
       "post" : {
-        "description" : "Stops Cassandra. Keeps node from restarting automatically until /start is called",
+        "description" : "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called",
         "operationId" : "stopNode",
         "responses" : {
           "default" : {
@@ -211,7 +257,7 @@
     },
     "/api/v0/lifecycle/configure" : {
       "post" : {
-        "description" : "Configure Cassandra. Will fail if Cassandra is already started",
+        "description" : "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
         "operationId" : "configureNode",
         "parameters" : [ {
           "name" : "profile",
@@ -233,7 +279,7 @@
           "default" : {
             "description" : "default response",
             "content" : {
-              "application/json" : { }
+              "*/*" : { }
             }
           }
         }
@@ -241,7 +287,7 @@
     },
     "/api/v0/lifecycle/pid" : {
       "get" : {
-        "description" : "The PID of Cassandra, if it's running",
+        "description" : "The PID of Cassandra/DSE, if it's running",
         "operationId" : "getPID",
         "responses" : {
           "default" : {
@@ -276,6 +322,34 @@
             "description" : "default response",
             "content" : {
               "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/metadata/localdc" : {
+      "get" : {
+        "summary" : "Returns the DataCenter the local node belongs to",
+        "operationId" : "getLocalDataCenter",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/node/drain" : {
+      "post" : {
+        "summary" : "Drain the node (stop accepting writes and flush all tables)",
+        "operationId" : "drain",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
             }
           }
         }
@@ -435,89 +509,6 @@
         }
       }
     },
-    "/api/v0/ops/node/drain" : {
-      "post" : {
-        "summary" : "Drain the node (stop accepting writes and flush all tables)",
-        "operationId" : "drain",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/flush" : {
-      "post" : {
-        "summary" : "Flush one or more tables",
-        "operationId" : "flush",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/compact" : {
-      "post" : {
-        "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables",
-        "operationId" : "compact",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CompactRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/scrub" : {
-      "post" : {
-        "summary" : "Scrub (rebuild sstables for) one or more tables",
-        "operationId" : "scrub",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ScrubRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
     "/api/v0/ops/tables/sstables/upgrade" : {
       "post" : {
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
@@ -577,14 +568,142 @@
           }
         }
       }
+    },
+    "/api/v0/ops/tables/scrub" : {
+      "post" : {
+        "summary" : "Scrub (rebuild sstables for) one or more tables",
+        "operationId" : "scrub",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ScrubRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/tables/flush" : {
+      "post" : {
+        "summary" : "Flush one or more tables",
+        "operationId" : "flush",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/tables/compact" : {
+      "post" : {
+        "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables",
+        "operationId" : "compact",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompactRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
     }
   },
   "components" : {
     "schemas" : {
+      "CreateOrAlterKeyspaceRequest" : {
+        "required" : [ "keyspace_name", "replication_settings" ],
+        "type" : "object",
+        "properties" : {
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "replication_settings" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ReplicationSetting"
+            }
+          }
+        }
+      },
+      "ReplicationSetting" : {
+        "required" : [ "dc_name", "replication_factor" ],
+        "type" : "object",
+        "properties" : {
+          "dc_name" : {
+            "type" : "string"
+          },
+          "replication_factor" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
       "KeyspaceRequest" : {
         "required" : [ "jobs", "keyspace_name", "tables" ],
         "type" : "object",
         "properties" : {
+          "jobs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "ScrubRequest" : {
+        "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ],
+        "type" : "object",
+        "properties" : {
+          "disable_snapshot" : {
+            "type" : "boolean"
+          },
+          "skip_corrupted" : {
+            "type" : "boolean"
+          },
+          "check_data" : {
+            "type" : "boolean"
+          },
+          "reinsert_overflowed_ttl" : {
+            "type" : "boolean"
+          },
           "jobs" : {
             "type" : "integer",
             "format" : "int32"
@@ -624,37 +743,6 @@
             "items" : {
               "type" : "string"
             }
-          },
-          "tables" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }
-      },
-      "ScrubRequest" : {
-        "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ],
-        "type" : "object",
-        "properties" : {
-          "disable_snapshot" : {
-            "type" : "boolean"
-          },
-          "skip_corrupted" : {
-            "type" : "boolean"
-          },
-          "check_data" : {
-            "type" : "boolean"
-          },
-          "reinsert_overflowed_ttl" : {
-            "type" : "boolean"
-          },
-          "jobs" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "keyspace_name" : {
-            "type" : "string"
           },
           "tables" : {
             "type" : "array",
