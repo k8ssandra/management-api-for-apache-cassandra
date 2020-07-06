@@ -332,4 +332,10 @@ public class NodeOpsProvider
                         .asCql(),
                 ConsistencyLevel.ONE);
     }
+
+    @Rpc(name = "getLocalDataCenter")
+    public String getLocalDataCenter()
+    {
+        return ShimLoader.instance.get().getLocalDataCenter();
+    }
 }

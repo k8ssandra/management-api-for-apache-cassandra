@@ -309,4 +309,10 @@ public class DseAPI68 implements CassandraAPI
     {
         return RxThreads.subscribeOnIo(Single.defer(() -> Single.fromCallable(rpcResult)), TPCTaskType.UNKNOWN);
     }
+
+    @Override
+    public String getLocalDataCenter()
+    {
+        return DatabaseDescriptor.getLocalDataCenter();
+    }
 }

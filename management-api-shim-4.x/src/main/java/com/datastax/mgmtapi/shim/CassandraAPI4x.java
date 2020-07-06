@@ -295,4 +295,10 @@ public class CassandraAPI4x implements CassandraAPI
     {
         return Gossiper.instance;
     }
+
+    @Override
+    public String getLocalDataCenter()
+    {
+        return DatabaseDescriptor.getLocalDataCenter();
+    }
 }
