@@ -23,14 +23,13 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
-import com.datastax.mgmtapi.resources.models.CreateKeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
-import org.assertj.core.api.Assertions;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 
 import static org.junit.Assert.assertEquals;
@@ -441,8 +440,33 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
                 .thenApply(this::responseAsString).join();
 
+        createKeyspace(client, localDc, "someTestKeyspace");
+    }
 
-        CreateKeyspaceRequest request = new CreateKeyspaceRequest("someTestKeyspace", Arrays.asList(new ReplicationSetting(localDc, 1)));
+    @Test
+    public void testAlterKeyspace() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                .thenApply(this::responseAsString).join();
+
+        String ks = "alteringKeyspaceTest";
+        createKeyspace(client, localDc, ks);
+
+        CreateOrAlterKeyspaceRequest request = new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
+        String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+
+        boolean requestSuccessful = client.post(new URIBuilder(BASE_PATH + "/ops/keyspace/alter").build().toURL(), requestAsJSON)
+                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(requestSuccessful);
+    }
+
+    private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
+    {
+        CreateOrAlterKeyspaceRequest request = new CreateOrAlterKeyspaceRequest(keyspaceName, Arrays.asList(new ReplicationSetting(localDc, 1)));
         String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create")

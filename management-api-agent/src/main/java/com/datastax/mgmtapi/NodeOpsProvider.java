@@ -338,4 +338,15 @@ public class NodeOpsProvider
     {
         return ShimLoader.instance.get().getLocalDataCenter();
     }
+
+    @Rpc(name = "alterKeyspace")
+    public void alterKeyspace(@RpcParam(name="keyspaceName") String keyspaceName, @RpcParam(name="replicationSettings") Map<String, Integer> replicationSettings) throws IOException
+    {
+        logger.debug("Creating keyspace {} with replication settings {}", keyspaceName, replicationSettings);
+
+        ShimLoader.instance.get().processQuery(SchemaBuilder.alterKeyspace(keyspaceName)
+                        .withNetworkTopologyStrategy(replicationSettings)
+                        .asCql(),
+                ConsistencyLevel.ONE);
+    }
 }

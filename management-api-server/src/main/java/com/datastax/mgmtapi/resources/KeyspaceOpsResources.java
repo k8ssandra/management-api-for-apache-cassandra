@@ -22,10 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
-import com.datastax.mgmtapi.resources.models.CreateKeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 
 @Path("/api/v0/ops/keyspace")
@@ -79,7 +78,7 @@ public class KeyspaceOpsResources
     @Operation(summary = "Load newly placed SSTables to the system without restart")
     public Response refresh(@QueryParam(value="keyspaceName")String keyspaceName, @QueryParam(value="table")String table)
     {
-        try
+        return NodeOpsResources.handle(() ->
         {
             if (StringUtils.isBlank(keyspaceName))
             {
@@ -94,16 +93,7 @@ public class KeyspaceOpsResources
             cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
 
             return Response.ok("OK").build();
-        }
-        catch (ConnectionClosedException e)
-        {
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to Cassandra closed").build();
-        }
-        catch (Throwable t)
-        {
-            logger.error("Error when executing request", t);
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(t.getLocalizedMessage()).build();
-        }
+        });
     }
 
     @POST
@@ -111,33 +101,50 @@ public class KeyspaceOpsResources
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new keyspace with the given name and replication settings")
-    public Response create(CreateKeyspaceRequest createKeyspaceRequest)
+    public Response create(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
     {
-        try
+        return NodeOpsResources.handle(() ->
         {
-            if (StringUtils.isBlank(createKeyspaceRequest.keyspaceName))
+            if (StringUtils.isBlank(createOrAlterKeyspaceRequest.keyspaceName))
             {
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Keyspace creation failed. Non-empty 'keyspace_name' must be provided").build();
             }
 
-            if (null == createKeyspaceRequest.replicationSettings || createKeyspaceRequest.replicationSettings.isEmpty())
+            if (null == createOrAlterKeyspaceRequest.replicationSettings || createOrAlterKeyspaceRequest.replicationSettings.isEmpty())
             {
                 return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Keyspace creation failed. 'replication_settings' must be provided").build();
             }
 
             cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.createKeyspace(?, ?)",
-                    createKeyspaceRequest.keyspaceName, createKeyspaceRequest.replicationSettingsAsMap());
+                    createOrAlterKeyspaceRequest.keyspaceName, createOrAlterKeyspaceRequest.replicationSettingsAsMap());
 
             return Response.ok("OK").build();
-        }
-        catch (ConnectionClosedException e)
+        });
+    }
+
+    @POST
+    @Path("/alter")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Alter the replication settings of an existing keyspace")
+    public Response alter(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
+    {
+        return NodeOpsResources.handle(() ->
         {
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity("Internal connection to Cassandra closed").build();
-        }
-        catch (Throwable t)
-        {
-            logger.error("Error when executing request", t);
-            return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(t.getLocalizedMessage()).build();
-        }
+            if (StringUtils.isBlank(createOrAlterKeyspaceRequest.keyspaceName))
+            {
+                return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Altering Keyspace failed. Non-empty 'keyspace_name' must be provided").build();
+            }
+
+            if (null == createOrAlterKeyspaceRequest.replicationSettings || createOrAlterKeyspaceRequest.replicationSettings.isEmpty())
+            {
+                return Response.status(HttpStatus.SC_BAD_REQUEST).entity("Altering Keyspace failed. 'replication_settings' must be provided").build();
+            }
+
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.alterKeyspace(?, ?)",
+                    createOrAlterKeyspaceRequest.keyspaceName, createOrAlterKeyspaceRequest.replicationSettingsAsMap());
+
+            return Response.ok("OK").build();
+        });
     }
 }

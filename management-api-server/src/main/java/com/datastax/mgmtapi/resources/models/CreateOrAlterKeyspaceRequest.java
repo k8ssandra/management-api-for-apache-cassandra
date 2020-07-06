@@ -8,7 +8,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CreateKeyspaceRequest implements Serializable
+public class CreateOrAlterKeyspaceRequest implements Serializable
 {
     @JsonProperty(value = "keyspace_name", required = true)
     public final String keyspaceName;
@@ -17,7 +17,7 @@ public class CreateKeyspaceRequest implements Serializable
     public final List<ReplicationSetting> replicationSettings;
 
     @JsonCreator
-    public CreateKeyspaceRequest(@JsonProperty("keyspace_name") String keyspaceName, @JsonProperty("replication_settings") List<ReplicationSetting> replicationSettings)
+    public CreateOrAlterKeyspaceRequest(@JsonProperty("keyspace_name") String keyspaceName, @JsonProperty("replication_settings") List<ReplicationSetting> replicationSettings)
     {
         this.keyspaceName = keyspaceName;
         this.replicationSettings = replicationSettings;
