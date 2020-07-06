@@ -54,6 +54,15 @@ public class MetadataResources
         return executeWithJSONResponse("CALL NodeOps.getEndpointStates()");
     }
 
+    @GET
+    @Path("/localdc")
+    @Operation(summary = "Returns the DataCenter the local node belongs to")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getLocalDataCenter()
+    {
+        return executeWithStringResponse("CALL NodeOps.getLocalDataCenter()");
+    }
+
     /**
      * Executes a CQL query with the expectation that there will be a single row returned with type String
      *

@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
@@ -63,4 +64,6 @@ public interface CassandraAPI
     {
         return rpcResult.call();
     }
+
+    String getLocalDataCenter();
 }
