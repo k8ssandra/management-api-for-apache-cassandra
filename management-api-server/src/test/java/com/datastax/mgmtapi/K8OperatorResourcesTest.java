@@ -23,13 +23,11 @@ import com.datastax.mgmtapi.resources.MetadataResources;
 import com.datastax.mgmtapi.resources.NodeOpsResources;
 import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
-import com.datastax.mgmtapi.resources.models.CreateKeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
-import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
-import org.assertj.core.api.Assertions;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
 import org.jboss.resteasy.mock.MockHttpRequest;
@@ -1000,7 +998,7 @@ public class K8OperatorResourcesTest {
     @Test
     public void testCreatingKeyspace() throws IOException, URISyntaxException
     {
-        CreateKeyspaceRequest keyspaceRequest = new CreateKeyspaceRequest("myKeyspace", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("myKeyspace", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
 
         Context context = setup();
 
@@ -1019,7 +1017,7 @@ public class K8OperatorResourcesTest {
     @Test
     public void testCreatingEmptyKeyspaceShouldFail() throws IOException, URISyntaxException
     {
-        CreateKeyspaceRequest keyspaceRequest = new CreateKeyspaceRequest("", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
 
         Context context = setup();
 
@@ -1036,7 +1034,7 @@ public class K8OperatorResourcesTest {
     @Test
     public void testCreatingEmptyReplicationSettingsShouldFail() throws IOException, URISyntaxException
     {
-        CreateKeyspaceRequest keyspaceRequest = new CreateKeyspaceRequest("TestKeyspace", Collections.emptyList());
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("TestKeyspace", Collections.emptyList());
 
         Context context = setup();
 
@@ -1048,6 +1046,59 @@ public class K8OperatorResourcesTest {
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
         assertThat(response.getContentAsString()).contains("Keyspace creation failed. 'replication_settings' must be provided");
+    }
+
+    @Test
+    public void testAlteringKeyspace() throws IOException, URISyntaxException
+    {
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("myKeyspace", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/keyspace/alter", keyspaceRequestAsJSON, context);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        assertThat(response.getContentAsString()).contains("OK");
+
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.alterKeyspace(?, ?)"), any());
+    }
+
+    @Test
+    public void testAlteringEmptyKeyspaceShouldFail() throws IOException, URISyntaxException
+    {
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("", Arrays.asList(new ReplicationSetting("dc1", 3), new ReplicationSetting("dc2", 3)));
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/keyspace/alter", keyspaceRequestAsJSON, context);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).contains("Altering Keyspace failed. Non-empty 'keyspace_name' must be provided");
+    }
+
+    @Test
+    public void testAlteringEmptyReplicationSettingsShouldFail() throws IOException, URISyntaxException
+    {
+        CreateOrAlterKeyspaceRequest keyspaceRequest = new CreateOrAlterKeyspaceRequest("TestKeyspace", Collections.emptyList());
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/keyspace/alter", keyspaceRequestAsJSON, context);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).contains("Altering Keyspace failed. 'replication_settings' must be provided");
     }
 
     private MockHttpResponse postWithBody(String path, String body, Context context) throws URISyntaxException {
