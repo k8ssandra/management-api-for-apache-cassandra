@@ -44,7 +44,7 @@ jobs:
   #         dockerfile: Dockerfile-dse-68
   build-oss:
     runs-on: ubuntu-latest
-    stes:
+    steps:
       - uses: actions/checkout@master
       - name: Setup Buildx
         id: buildx
