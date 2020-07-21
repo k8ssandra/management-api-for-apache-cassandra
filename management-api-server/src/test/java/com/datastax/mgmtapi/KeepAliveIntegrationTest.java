@@ -31,7 +31,7 @@ import static org.junit.Assume.assumeTrue;
 @RunWith(Parameterized.class)
 public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
 {
-    public KeepAliveIntegrationTest(String version)
+    public KeepAliveIntegrationTest(String version) throws IOException
     {
         super(version);
     }
