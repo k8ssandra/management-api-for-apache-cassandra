@@ -20,6 +20,7 @@ import com.datastax.mgmtapi.NodeOpsProvider;
 import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.rpc.RpcMethod;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
+import com.datastax.mgmtapi.shims.RpcStatementShim;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.DynamicType;
@@ -40,8 +41,8 @@ import org.apache.cassandra.service.QueryState;
 public class QueryHandlerInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(QueryHandlerInterceptor.class);
-    private static final String handlePrefix = "CALL " + NodeOpsProvider.RPC_CLASS_NAME + ".";
-    private static final Pattern opsPattern = Pattern.compile("^CALL NodeOps\\.([^\\(]+)\\(([^\\)]*)\\)");
+    static final String handlePrefix = "CALL " + NodeOpsProvider.RPC_CLASS_NAME + ".";
+    static final Pattern opsPattern = Pattern.compile("^CALL NodeOps\\.([^\\(]+)\\(([^\\)]*)\\)");
 
     public static ElementMatcher<? super TypeDescription> type()
     {
@@ -63,24 +64,36 @@ public class QueryHandlerInterceptor
     @RuntimeType
     public static Object intercept(@AllArguments Object[] allArguments, @SuperCall Callable<Object> zuper) throws Throwable
     {
-        if (allArguments.length > 0 && allArguments[0] != null && allArguments[0] instanceof String)
+        if (allArguments.length > 0 && allArguments[0] != null)
         {
-            String query = (String) allArguments[0];
-            if (query.startsWith(handlePrefix))
+            if (allArguments[0] instanceof String)
             {
-                QueryState state = (QueryState) allArguments[1];
-                QueryOptions options = (QueryOptions) allArguments[2];
-
-                if (state.getClientState().isInternal)
+                String query = (String) allArguments[0];
+                if (query.startsWith(handlePrefix))
                 {
-                    Matcher m = opsPattern.matcher(query);
-                    if (m.matches())
+                    QueryState state = (QueryState) allArguments[1];
+                    QueryOptions options = (QueryOptions) allArguments[2];
+
+                    if (state.getClientState().isInternal)
                     {
-                        return handle(state.getClientState(), options, NodeOpsProvider.RPC_CLASS_NAME, m.group(1), m.group(2).trim().isEmpty() ? new String[]{} : m.group(2).split("\\s*,\\s*"));
+                        Matcher m = opsPattern.matcher(query);
+                        if (m.matches())
+                        {
+                            return handle(state.getClientState(), options, NodeOpsProvider.RPC_CLASS_NAME, m.group(1), m.group(2).trim().isEmpty() ? new String[]{} : m.group(2).split("\\s*,\\s*"));
+                        }
                     }
                 }
             }
+            else if (allArguments[0] instanceof RpcStatementShim)
+            {
+                RpcStatementShim statement = (RpcStatementShim) allArguments[0];
+                QueryState state = (QueryState) allArguments[1];
+                QueryOptions options = (QueryOptions) allArguments[2];
+
+                return handle(state.getClientState(), options, NodeOpsProvider.RPC_CLASS_NAME, statement.getMethod(), statement.getParams());
+            }
         }
+
 
         return zuper.call();
     }
