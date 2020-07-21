@@ -43,7 +43,7 @@ import static org.junit.Assume.assumeTrue;
 @RunWith(Parameterized.class)
 public class IntegrationTest extends BaseDockerIntegrationTest
 {
-    public IntegrationTest(String version)
+    public IntegrationTest(String version) throws IOException
     {
         super(version);
     }
