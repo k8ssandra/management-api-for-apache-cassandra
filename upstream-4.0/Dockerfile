@@ -58,8 +58,8 @@ ENV GPG_KEYS \
 # gpg: key E91335D77E3E87CB: public key "Michael Semb Wever <mick@thelastpickle.com>" imported
 	A4C465FEA0C552561A392A61E91335D77E3E87CB
 
-ENV CASSANDRA_VERSION 4.0-alpha4
-ENV CASSANDRA_SHA512 58171a002dd9d5a8f990bc485fa38c513c5a2a7dbb5adad5c19f9f09e9c7759888eef7b2790c73c7583e509b00519b20058687a65b20c0a1b9f3b8bb1d4e9d99
+ENV CASSANDRA_VERSION 4.0-beta1
+ENV CASSANDRA_SHA512 240ae95f78de172333eee865f01b838433845fbd0dceea0eb91ea3a419873f74c5e266cfb62553fa0260849afa7ec5cc65335d037d1455e36b96ddc0f18effc7
 
 # https://github.com/f-secure-foundry/usbarmory-debian-base_image/issues/9
 RUN mkdir ~/.gnupg
@@ -98,7 +98,7 @@ RUN set -eux; \
 	ddist 'cassandra-bin.tgz.asc' "cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.asc"; \
 	export GNUPGHOME="$(mktemp -d)"; \
 	for key in $GPG_KEYS; do \
-		gpg --batch --keyserver ha.pool.sks-keyservers.net --recv-keys "$key"; \
+		gpg --batch --keyserver ipv4.pool.sks-keyservers.net --recv-keys "$key"; \
 	done; \
 	gpg --batch --verify cassandra-bin.tgz.asc cassandra-bin.tgz; \
 	rm -rf "$GNUPGHOME"; \
