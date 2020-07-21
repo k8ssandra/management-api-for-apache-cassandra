@@ -147,7 +147,7 @@ public class LifecycleResources
                 FileUtils.deleteQuietly(app.dbUnixSocketFile);
 
             boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 1>&2",
+                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 2>&1",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
                             cassandraOrDseCommand,
                             app.dbUnixSocketFile.getAbsolutePath(),
