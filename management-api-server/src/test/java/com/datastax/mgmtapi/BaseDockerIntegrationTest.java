@@ -91,9 +91,17 @@ public abstract class BaseDockerIntegrationTest
         return l;
     }
 
-    public BaseDockerIntegrationTest(String version)
+    public BaseDockerIntegrationTest(String version) throws IOException
     {
         this.version = version;
+
+        //If run without forking we need to start a new version
+        if (docker != null)
+        {
+            temporaryFolder.delete();
+            temporaryFolder.create();
+            docker.startManagementAPI(version, getEnvironmentVars());
+        }
     }
 
     @BeforeClass
@@ -126,8 +134,11 @@ public abstract class BaseDockerIntegrationTest
     @Before
     public void before()
     {
-        systemLogGrabber.dockerHelper = docker;
-        docker.startManagementAPI(version, getEnvironmentVars());
+        if (!docker.started())
+        {
+            systemLogGrabber.dockerHelper = docker;
+            docker.startManagementAPI(version, getEnvironmentVars());
+        }
     }
 
     protected ArrayList<String> getEnvironmentVars()

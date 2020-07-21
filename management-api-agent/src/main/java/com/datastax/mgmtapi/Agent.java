@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi;
 
+import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor4x;
 import com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
@@ -32,6 +33,9 @@ public class Agent {
                 //Query Handler
                 .type(QueryHandlerInterceptor.type())
                 .transform(QueryHandlerInterceptor.transformer())
+                //Query Handler 4.0
+                .type(QueryHandlerInterceptor4x.type())
+                .transform(QueryHandlerInterceptor4x.transformer())
                 //Seed Reload support
                 .type(GossiperInterceptor.type())
                 .transform(GossiperInterceptor.transformer())

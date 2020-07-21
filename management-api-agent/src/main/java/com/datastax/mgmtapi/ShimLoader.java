@@ -56,7 +56,8 @@ public class ShimLoader
         }
         catch (Exception e)
         {
-            LOGGER.warn(String.format("No DSE API Shim found for DSE Version %s. Error was: %s", dseVersion, e.getMessage()), e);
+            if (!(e instanceof NoSuchMethodException))
+                LOGGER.warn(String.format("No DSE API Shim found for DSE Version %s. Error was: %s", dseVersion, e.getMessage()), e);
         }
         return Optional.empty();
     }
