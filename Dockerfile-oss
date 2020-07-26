@@ -20,15 +20,18 @@ COPY management-api-shim-4.x ./management-api-shim-4.x
 RUN mvn -q -ff package -DskipTests
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
-RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
+RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-transport-native-epoll -Dversion=4.1.50.Final -Dclassifier=linux-aarch64
+# RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
 
 FROM --platform=linux/amd64 cassandra:3.11 as oss311-amd64
 
 FROM --platform=linux/arm64 cassandra:3.11 as oss311-arm64
-# Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
-# Only replace this dependency for arm64 to avoid regressions
-RUN rm /opt/cassandra/lib/netty-all-*.jar
-COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
+# The management api agent uses epoll, but Netty did not include arm64 binaries
+# until version 4.1.50 (https://github.com/netty/netty/pull/9804)
+# Only add this dependency for arm64 to avoid regressions
+COPY --from=netty4150 /root/.m2/repository/io/netty/netty-transport-native-epoll/4.1.50.Final/netty-transport-native-epoll-4.1.50.Final-linux-aarch64.jar /opt/cassandra/lib/
+# RUN rm /opt/cassandra/lib/netty-all-*.jar
+# COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
 
 FROM oss311-${TARGETARCH} as oss311
 
@@ -72,8 +75,9 @@ FROM --platform=linux/amd64 cassandra:4.0 as oss40-amd64
 FROM --platform=linux/arm64 cassandra:4.0 as oss40-arm64
 # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
 # Only replace this dependency for arm64 to avoid regressions
-RUN rm /opt/cassandra/lib/netty-all-*.jar
-COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
+# RUN rm /opt/cassandra/lib/netty-all-*.jar
+COPY --from=netty4150 /root/.m2/repository/io/netty/netty-transport-native-epoll/4.1.50.Final/netty-transport-native-epoll-4.1.50.Final-linux-aarch64.jar /opt/cassandra/lib/
+# COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
 
 FROM oss40-${TARGETARCH} as oss40
 
