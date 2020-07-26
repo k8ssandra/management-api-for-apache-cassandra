@@ -5,7 +5,7 @@ on:
     # tags:
     #   - 'v*.*.*'
     branches:
-      - cassandra-mgmtapi-multiarch-2
+      - cassandra-mgmtapi-multiarch-3
 
 jobs:
   # build-dse:
