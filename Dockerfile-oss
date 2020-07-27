@@ -67,44 +67,49 @@ ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["mgmtapi"]
 
 
-FROM --platform=linux/amd64 cassandra:4.0 as oss40-amd64
+# NOTE: Presently, OSS doesn't have official Cassandra 4.0 builds on dockerhub
+# and our build at datastax/cassandra:4.0 is not a multiarch image like the
+# official ones. Once one of those issues is fixed, the following targets can
+# be used to build Cassandra 4.0 with Management API.
 
-FROM --platform=linux/arm64 cassandra:4.0 as oss40-arm64
-# Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
-# Only replace this dependency for arm64 to avoid regressions
-RUN rm /opt/cassandra/lib/netty-all-*.jar
-COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
+# FROM --platform=linux/amd64 cassandra:4.0 as oss40-amd64
 
-FROM oss40-${TARGETARCH} as oss40
+# FROM --platform=linux/arm64 cassandra:4.0 as oss40-arm64
+# # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
+# # Only replace this dependency for arm64 to avoid regressions
+# RUN rm /opt/cassandra/lib/netty-all-*.jar
+# COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
 
-ARG TARGETARCH
+# FROM oss40-${TARGETARCH} as oss40
 
-COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra/
-COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra/
-COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+# ARG TARGETARCH
 
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
-RUN chmod +x /tini
+# COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra/
+# COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra/
+# COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+# COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+# COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
 
-RUN set -eux; \
-  apt-get update; \
-  apt-get install -y --no-install-recommends wget iproute2; \
-  rm -rf /var/lib/apt/lists/*
+# ENV TINI_VERSION v0.18.0
+# ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
+# RUN chmod +x /tini
 
-ENV MCAC_VERSION 0.1.7
-ADD https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${MCAC_VERSION}/datastax-mcac-agent-${MCAC_VERSION}.tar.gz /opt/mcac-agent.tar.gz
-RUN mkdir /opt/mcac-agent && tar zxvf /opt/mcac-agent.tar.gz -C /opt/mcac-agent --strip-components 1 && rm /opt/mcac-agent.tar.gz
+# RUN set -eux; \
+#   apt-get update; \
+#   apt-get install -y --no-install-recommends wget iproute2; \
+#   rm -rf /var/lib/apt/lists/*
 
-# backwards compat with upstream ENTRYPOINT
-COPY scripts/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
-  ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
+# ENV MCAC_VERSION 0.1.7
+# ADD https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${MCAC_VERSION}/datastax-mcac-agent-${MCAC_VERSION}.tar.gz /opt/mcac-agent.tar.gz
+# RUN mkdir /opt/mcac-agent && tar zxvf /opt/mcac-agent.tar.gz -C /opt/mcac-agent --strip-components 1 && rm /opt/mcac-agent.tar.gz
 
-EXPOSE 9103
-EXPOSE 8080
+# # backwards compat with upstream ENTRYPOINT
+# COPY scripts/docker-entrypoint.sh /usr/local/bin/
+# RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
+#   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["mgmtapi"]
+# EXPOSE 9103
+# EXPOSE 8080
+
+# ENTRYPOINT ["/docker-entrypoint.sh"]
+# CMD ["mgmtapi"]

@@ -2,46 +2,52 @@ name: Docker Release
 
 on:
   push:
-    # tags:
-    #   - 'v*.*.*'
-    branches:
-      - cassandra-mgmtapi-multiarch-3
+    tags:
+      - 'v*.*.*'
 
 jobs:
-  # build-dse:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@master
-  #     - name: Build Management API in docker
-  #       run: |
-  #         mkdir -p ~/.m2
-  #         cat <<EOF > ~/.m2/settings.xml
-  #         <settings>
-  #           <servers>
-  #             <server>
-  #               <id>artifactory-snapshots</id>
-  #               <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-  #               <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-  #             </server>
-  #             <server>
-  #               <id>artifactory-releases</id>
-  #               <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-  #               <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-  #            </server>
-  #          </servers>
-  #         </settings>
-  #         EOF
-  #         cp ~/.m2/settings.xml settings.xml
-  #         docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
-  #         docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
-  #     - name: Publish DSE 6.8 to Registry
-  #       uses: elgohr/Publish-Docker-Github-Action@master
-  #       with:
-  #         name: datastax/dse-mgmtapi-6_8
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
-  #         tag_names: true
-  #         dockerfile: Dockerfile-dse-68
+  build-dse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Build Management API in docker
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
+          docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
+      - name: Publish DSE 6.8 to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: datastax/dse-mgmtapi-6_8
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tag_names: true
+          dockerfile: Dockerfile-dse-68
+      - name: Publish 4.0 to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: datastax/cassandra-mgmtapi-4_0_0
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          tag_names: true
+          dockerfile: Dockerfile-4_0
   build-oss:
     runs-on: ubuntu-latest
     steps:
@@ -55,18 +61,9 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Publish 3.11 to Registry
         run: |
-          # RELEASE_VERSION="${GITHUB_REF##*/}"
-          RELEASE_VERSION="latest"
+          RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --tag johntrimble/cassandra-mgmtapi-multiarch:$RELEASE_VERSION \
+            --tag datastax/cassandra-mgmtapi-3_11_6:$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64,linux/arm64 .
-      # - name: Publish 4.0 to Registry
-      #   run: |
-      #     RELEASE_VERSION="${GITHUB_REF##*/}"
-      #     docker buildx build --push \
-      #       --tag johntrimble/cassandra-mgmtapi-multiarch:$RELEASE_VERSION \
-      #       --file Dockerfile-oss \
-      #       --target oss40
-      #       --platform linux/amd64,linux/arm64 .
