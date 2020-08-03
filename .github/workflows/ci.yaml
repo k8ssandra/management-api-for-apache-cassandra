@@ -18,11 +18,6 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Setup Buildx
-        id: buildx
-        uses: crazy-max/ghaction-docker-buildx@v3
-        with:
-          version: latest
       - name: Build Management API in docker
         run: |
           cat <<EOF > ~/.m2/settings.xml
@@ -44,11 +39,7 @@ jobs:
           cp ~/.m2/settings.xml settings.xml
           docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
           docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
-          docker buildx build --load \
-            --tag mgmtapi-3_11 \
-            --file Dockerfile-oss \
-            --target oss311 \
-            --platform linux/amd64 .
+          docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
           docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
           docker build -t mgmtapi-dse-68 -f Dockerfile-dse-68 .
       - name: Build with Maven
