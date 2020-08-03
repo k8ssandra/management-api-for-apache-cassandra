@@ -25,12 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
+import com.datastax.mgmtapi.shims.RpcStatementShim;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.reactivex.Single;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.cql3.CQLStatement;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
@@ -308,5 +310,17 @@ public class DseAPI68 implements CassandraAPI
     public Object handleRpcResult(Callable<Object> rpcResult)
     {
         return RxThreads.subscribeOnIo(Single.defer(() -> Single.fromCallable(rpcResult)), TPCTaskType.UNKNOWN);
+    }
+
+    @Override
+    public String getLocalDataCenter()
+    {
+        return DatabaseDescriptor.getLocalDataCenter();
+    }
+
+    @Override
+    public RpcStatementShim makeRpcStatement(String method, String[] params)
+    {
+        throw new UnsupportedOperationException();
     }
 }

@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +43,7 @@ import static org.junit.Assume.assumeTrue;
 @RunWith(Parameterized.class)
 public class IntegrationTest extends BaseDockerIntegrationTest
 {
-    public IntegrationTest(String version)
+    public IntegrationTest(String version) throws IOException
     {
         super(version);
     }
@@ -204,10 +205,14 @@ public class IntegrationTest extends BaseDockerIntegrationTest
                     .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
                     .build();
 
-            ResultSet rs = session.execute("select replication from system_schema.keyspaces where keyspace_name='system_auth'");
+            for (String systemKeyspace : Arrays.asList("system_auth", "system_distributed", "system_traces"))
+            {
+                ResultSet rs = session.execute(String.format("select replication from system_schema.keyspaces where keyspace_name='%s'", systemKeyspace));
 
-            Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
-            assertEquals(params.get("dc1"), "1");
+                Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
+                assertEquals(params.get("dc1"), "1");
+            }
+
         }
         finally
         {

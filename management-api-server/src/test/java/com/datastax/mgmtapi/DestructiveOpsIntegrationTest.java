@@ -32,7 +32,7 @@ public class DestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 {
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
 
-    public DestructiveOpsIntegrationTest(String version)
+    public DestructiveOpsIntegrationTest(String version) throws IOException
     {
         super(version);
     }

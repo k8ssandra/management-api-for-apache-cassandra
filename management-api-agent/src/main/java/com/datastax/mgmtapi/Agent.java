@@ -5,21 +5,15 @@
  */
 package com.datastax.mgmtapi;
 
-import com.datastax.mgmtapi.interceptors.AuthSchemaInterceptor;
+import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor4x;
+import com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
 import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.ClassFileLocator;
-import net.bytebuddy.dynamic.loading.ClassInjector;
 import org.apache.cassandra.gms.GossiperInterceptor;
 
-import java.io.File;
 import java.lang.instrument.Instrumentation;
-import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
 
 import static net.bytebuddy.matcher.ElementMatchers.any;
 import static net.bytebuddy.matcher.ElementMatchers.isSynthetic;
@@ -39,14 +33,17 @@ public class Agent {
                 //Query Handler
                 .type(QueryHandlerInterceptor.type())
                 .transform(QueryHandlerInterceptor.transformer())
+                //Query Handler 4.0
+                .type(QueryHandlerInterceptor4x.type())
+                .transform(QueryHandlerInterceptor4x.transformer())
                 //Seed Reload support
                 .type(GossiperInterceptor.type())
                 .transform(GossiperInterceptor.transformer())
                 //Auth Setup
                 .type(CassandraRoleManagerInterceptor.type())
                 .transform(CassandraRoleManagerInterceptor.transformer())
-                .type(AuthSchemaInterceptor.type())
-                .transform(AuthSchemaInterceptor.transformer())
+                .type(SystemDistributedReplicationInterceptor.type())
+                .transform(SystemDistributedReplicationInterceptor.transformer())
                 .installOn(inst);
     }
 }

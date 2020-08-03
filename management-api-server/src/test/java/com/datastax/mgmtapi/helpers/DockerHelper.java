@@ -154,6 +154,11 @@ public class DockerHelper
         return false;
     }
 
+    public boolean started()
+    {
+        return container != null;
+    }
+
     private String startDocker(File dockerFile, File baseDir, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
     {
         ListContainersCmd listContainersCmd = dockerClient.listContainersCmd();
@@ -281,6 +286,7 @@ public class DockerHelper
         {
             dockerClient.stopContainerCmd(container).exec();
             dockerClient.removeContainerCmd(container).exec();
+            container = null;
         }
     }
 }

@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MediaType;
@@ -22,8 +23,11 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
+import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
@@ -45,7 +49,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
 
 
-    public NonDestructiveOpsIntegrationTest(String version)
+    public NonDestructiveOpsIntegrationTest(String version) throws IOException
     {
         super(version);
     }
@@ -97,15 +101,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 
         String requestSuccessful = client.post(URI.create(BASE_PATH + "/ops/seeds/reload").toURL(), null)
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
 
         //Empty because getSeeds removes local node
@@ -271,15 +267,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 .build();
         String response = client.get(uri.toURL())
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
         assertNotNull(response);
         assertNotEquals("", response);
@@ -297,15 +285,7 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 .build();
         String response = client.get(uri.toURL())
                 .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] versionBytes = new byte[r.content().readableBytes()];
-                        r.content().readBytes(versionBytes);
-
-                        return new String(versionBytes);
-                    }
-
-                    return null;
+                    return responseAsString(r);
                 }).join();
 
         System.err.println(response);
@@ -445,18 +425,67 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
 
         URI uri = new URIBuilder(BASE_PATH + "/ops/node/streaminfo").build();
         String response = client.get(uri.toURL())
-                .thenApply(r -> {
-                    if (r.status().code() == HttpStatus.SC_OK)
-                    {
-                        byte[] result = new byte[r.content().readableBytes()];
-                        r.content().readBytes(result);
-
-                        return new String(result);
-                    }
-
-                    return null;
-                }).join();
+                .thenApply(this::responseAsString).join();
         assertNotNull(response);
         assertNotEquals("", response);
+    }
+
+    @Test
+    public void testCreateKeyspace() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                .thenApply(this::responseAsString).join();
+
+        createKeyspace(client, localDc, "someTestKeyspace");
+    }
+
+    @Test
+    public void testAlterKeyspace() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                .thenApply(this::responseAsString).join();
+
+        String ks = "alteringKeyspaceTest";
+        createKeyspace(client, localDc, ks);
+
+        CreateOrAlterKeyspaceRequest request = new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
+        String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+
+        boolean requestSuccessful = client.post(new URIBuilder(BASE_PATH + "/ops/keyspace/alter").build().toURL(), requestAsJSON)
+                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(requestSuccessful);
+    }
+
+    private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
+    {
+        CreateOrAlterKeyspaceRequest request = new CreateOrAlterKeyspaceRequest(keyspaceName, Arrays.asList(new ReplicationSetting(localDc, 1)));
+        String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+
+        URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create")
+                .build();
+        boolean requestSuccessful = client.post(uri.toURL(), requestAsJSON)
+                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(requestSuccessful);
+    }
+
+    private String responseAsString(FullHttpResponse r)
+    {
+        if (r.status().code() == HttpStatus.SC_OK)
+        {
+            byte[] result = new byte[r.content().readableBytes()];
+            r.content().readBytes(result);
+
+            return new String(result);
+        }
+
+        return null;
     }
 }

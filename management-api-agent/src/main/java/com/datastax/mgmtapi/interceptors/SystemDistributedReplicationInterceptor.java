@@ -30,7 +30,9 @@ import org.apache.cassandra.schema.KeyspaceMetadata;
 import org.apache.cassandra.schema.KeyspaceParams;
 import org.apache.cassandra.schema.ReplicationParams;
 
-public class AuthSchemaInterceptor
+import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
+
+public class SystemDistributedReplicationInterceptor
 {
     private static final String SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_dc_names";
     private static final String SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_per_dc";
@@ -53,7 +55,7 @@ public class AuthSchemaInterceptor
         }
         catch (Throwable t)
         {
-            LoggerFactory.getLogger(AuthSchemaInterceptor.class).error("Error parsing system distributed replication override properties", t);
+            LoggerFactory.getLogger(SystemDistributedReplicationInterceptor.class).error("Error parsing system distributed replication override properties", t);
         }
 
         if (rfOverride != null && !dcOverride.isEmpty())
@@ -61,14 +63,14 @@ public class AuthSchemaInterceptor
             //Validate reasonable defaults
             if (rfOverride <= 0 || rfOverride > 5)
             {
-                LoggerFactory.getLogger(AuthSchemaInterceptor.class).error("Invalid value for {}", SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY);
+                LoggerFactory.getLogger(SystemDistributedReplicationInterceptor.class).error("Invalid value for {}", SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY);
             }
             else
             {
                 for (String dc : dcOverride)
                     ntsOverride.put(dc, String.valueOf(rfOverride));
 
-                LoggerFactory.getLogger(AuthSchemaInterceptor.class).info("Using override for distributed system keyspaces: {}", ntsOverride);
+                LoggerFactory.getLogger(SystemDistributedReplicationInterceptor.class).info("Using override for distributed system keyspaces: {}", ntsOverride);
             }
         }
 
@@ -78,7 +80,9 @@ public class AuthSchemaInterceptor
 
     public static ElementMatcher<? super TypeDescription> type()
     {
-        return ElementMatchers.nameEndsWith(".AuthKeyspace");
+        return nameEndsWith(".AuthKeyspace")
+                .or(nameEndsWith(".TraceKeyspace"))
+                .or(nameEndsWith(".SystemDistributedKeyspace"));
     }
 
     public static AgentBuilder.Transformer transformer()
@@ -88,7 +92,7 @@ public class AuthSchemaInterceptor
             @Override
             public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule)
             {
-                return builder.method(ElementMatchers.named("metadata")).intercept(MethodDelegation.to(AuthSchemaInterceptor.class));
+                return builder.method(ElementMatchers.named("metadata")).intercept(MethodDelegation.to(SystemDistributedReplicationInterceptor.class));
             }
         };
     }

@@ -25,10 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
+import com.datastax.mgmtapi.shims.RpcStatementShim;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.cql3.CQLStatement;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.HintedHandOffManager;
 import org.apache.cassandra.db.Keyspace;
@@ -290,5 +292,17 @@ public class CassandraAPI3x implements CassandraAPI
     public Gossiper getGossiper()
     {
         return Gossiper.instance;
+    }
+
+    @Override
+    public String getLocalDataCenter()
+    {
+        return DatabaseDescriptor.getLocalDataCenter();
+    }
+
+    @Override
+    public RpcStatementShim makeRpcStatement(String method, String[] params)
+    {
+        throw new UnsupportedOperationException();
     }
 }
