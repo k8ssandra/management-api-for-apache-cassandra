@@ -44,11 +44,11 @@ jobs:
           cp ~/.m2/settings.xml settings.xml
           docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
           docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
-          docker buildx build --load \
+          docker buildx build \
             --tag mgmtapi-3_11 \
             --file Dockerfile-oss \
             --target oss311 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
           docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
           docker build -t mgmtapi-dse-68 -f Dockerfile-dse-68 .
       - name: Build with Maven
