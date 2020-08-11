@@ -81,14 +81,12 @@ public abstract class BaseDockerIntegrationTest
     public static Iterable<String[]> functions()
     {
         List<String[]> l =  Lists.newArrayList(
-                // new String[]{"3_11"},
-                // new String[]{"4_0"}
+                new String[]{"3_11"},
+                new String[]{"4_0"}
         );
 
-        l.add(new String[]{"3_11"});
-
-        // if (Boolean.getBoolean("dseIncluded"))
-        //     l.add(new String[]{"dse-68"});
+        if (Boolean.getBoolean("dseIncluded"))
+            l.add(new String[]{"dse-68"});
 
         return l;
     }
