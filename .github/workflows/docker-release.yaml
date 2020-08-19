@@ -35,7 +35,7 @@ jobs:
       - name: Publish 3.11 to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: datastax/cassandra-mgmtapi-3_11_6
+          name: datastax/cassandra-mgmtapi-3_11_7
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           tag_names: true
