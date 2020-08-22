@@ -63,7 +63,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --tag datastax/cassandra-mgmtapi-3_11_6:$RELEASE_VERSION \
+            --tag datastax/cassandra-mgmtapi-3_11_7:$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64,linux/arm64 .

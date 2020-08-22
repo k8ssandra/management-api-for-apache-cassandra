@@ -1,6 +1,6 @@
 FROM management-api-for-apache-cassandra-builder as builder
 
-FROM cassandra:3.11
+FROM cassandra:3.11.7
 
 COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra/
 COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra/
