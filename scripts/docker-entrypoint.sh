@@ -40,6 +40,11 @@ _sed-in-place() {
 	rm "$tempFile"
 }
 
+_metrics_collector_supported() {
+	# currently, metrics collector does not work on arm64
+	[ "$(uname -m)" != "aarch64" ]
+}
+
 if [ "$1" = 'mgmtapi' ]; then
 	echo "Starting Management API"
 
@@ -55,7 +60,7 @@ if [ "$1" = 'mgmtapi' ]; then
 	# 2. We don't wan't operator or configbuilder to care so much about the version number or
 	#    the fact this jar even exists.
 	
-	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" < /etc/cassandra/cassandra-env.sh ; then
+	if _metrics_collector_supported && ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" < /etc/cassandra/cassandra-env.sh ; then
     # ensure newline at end of file
 		echo "" >> /etc/cassandra/cassandra-env.sh
     echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:/opt/mcac-agent/lib/datastax-mcac-agent.jar\"" >> /etc/cassandra/cassandra-env.sh

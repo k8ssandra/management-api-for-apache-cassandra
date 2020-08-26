@@ -66,7 +66,23 @@ public class DockerHelper
     public void startManagementAPI(String version, List<String> envVars)
     {
         File baseDir = new File(System.getProperty("dockerFileRoot","."));
-        File dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version).toFile();
+        File dockerFile;
+        String target;
+        boolean useBuildx;
+
+        if ("3_11".equals(version))
+        {
+            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
+            target = "oss311";
+            useBuildx = true;
+        }
+        else
+        {
+            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version).toFile();
+            target = null;
+            useBuildx = false;
+        }
+
         if (!dockerFile.exists())
             throw new RuntimeException("Missing " + dockerFile.getAbsolutePath());
 
@@ -79,7 +95,7 @@ public class DockerHelper
         if (envVars != null)
             envList.addAll(envVars);
 
-        this.container = startDocker(dockerFile, baseDir, name, ports, volumeDescList, envList, cmdList);
+        this.container = startDocker(dockerFile, baseDir, target, name, ports, volumeDescList, envList, cmdList, useBuildx);
 
         waitForPort("localhost",8080, Duration.ofMillis(50000), logger, false);
     }
@@ -159,7 +175,29 @@ public class DockerHelper
         return container != null;
     }
 
-    private String startDocker(File dockerFile, File baseDir, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+    private void buildImageWithBuildx(File dockerFile, File baseDir, String target, String name) throws Exception {
+        ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
+            "--load",
+            "--tag", name,
+            "--file", dockerFile.getPath(),
+            "--target", target,
+            "--platform", "linux/amd64",
+            baseDir.getPath());
+
+        Process p = pb.inheritIO().start();
+        int exitCode = p.waitFor();
+
+        if (exitCode != 0)
+        {
+            throw new Exception("Command '" + String.join(" ", pb.command() + "' return error code: " + exitCode));
+        }
+    }
+    private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+    {
+        return startDocker(dockerFile, baseDir, target, name, ports, volumeDescList, envList, cmdList, false);
+    }
+
+    private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList, boolean useBuildx)
     {
         ListContainersCmd listContainersCmd = dockerClient.listContainersCmd();
         listContainersCmd.getFilters().put("name", Arrays.asList(name));
@@ -200,12 +238,27 @@ public class DockerHelper
         };
 
         logger.info("Building container: " + name + " from " + dockerFile);
-        dockerClient.buildImageCmd()
+        if (useBuildx)
+        {
+            try
+            {
+                buildImageWithBuildx(dockerFile, baseDir, target, name);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                logger.error("Unable to build image");
+            }
+        }
+        else
+        {
+            dockerClient.buildImageCmd()
                 .withBaseDirectory(baseDir)
                 .withDockerfile(dockerFile)
                 .withTags(Sets.newHashSet(name))
                 .exec(callback)
                 .awaitImageId();
+        }
 
         List<ExposedPort> tcpPorts = new ArrayList<>();
         List<PortBinding> portBindings = new ArrayList<>();
