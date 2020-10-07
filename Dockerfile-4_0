@@ -22,12 +22,20 @@ ADD https://github.com/datastax/metric-collector-for-apache-cassandra/releases/d
 RUN mkdir /opt/mcac-agent && tar zxvf /opt/mcac-agent.tar.gz -C /opt/mcac-agent --strip-components 1 && rm /opt/mcac-agent.tar.gz
 
 # backwards compat with upstream ENTRYPOINT
-COPY scripts/docker-entrypoint.sh /usr/local/bin/
+COPY scripts/no-gosu-docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
 
 EXPOSE 9103
 EXPOSE 8080
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+RUN chown -R cassandra:cassandra /opt/cassandra
+RUN chown -R cassandra:cassandra /var/log/cassandra
+RUN chown -R cassandra:cassandra /var/lib/cassandra
+RUN chown -R cassandra:cassandra /opt/mcac-agent
+
+USER cassandra
+
+# Use tini to better handle signals and reaping defunct cassandra processes
+ENTRYPOINT ["/tini", "-g", "-vvv", "--", "/docker-entrypoint.sh"]
 CMD ["mgmtapi"]
