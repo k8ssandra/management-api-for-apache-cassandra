@@ -39,4 +39,5 @@ RUN chown -R cassandra:cassandra /opt/mcac-agent
 USER cassandra
 
 # Use tini to better handle signals and reaping defunct cassandra processes
-ENTRYPOINT ["/tini", "-g", "-vvv", "--", "/docker-entrypoint.sh", "mgmtapi"]
+ENTRYPOINT ["/tini", "-g", "-vvv", "--", "/docker-entrypoint.sh"]
+CMD ["mgmtapi"]
