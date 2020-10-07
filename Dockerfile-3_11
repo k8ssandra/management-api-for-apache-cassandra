@@ -31,5 +31,12 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103
 EXPOSE 8080
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["mgmtapi"]
+RUN chown -R cassandra:cassandra /opt/cassandra
+RUN chown -R cassandra:cassandra /var/log/cassandra
+RUN chown -R cassandra:cassandra /var/lib/cassandra
+RUN chown -R cassandra:cassandra /opt/mcac-agent
+
+USER cassandra
+
+# Use tini to better handle signals and reaping defunct cassandra processes
+ENTRYPOINT ["/tini", "-g", "-vvv", "--", "/docker-entrypoint.sh", "mgmtapi"]
