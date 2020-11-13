@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.resources;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -244,6 +246,81 @@ public class NodeOpsResources
                 queryResponse = row.getObject(0);
             }
             return Response.ok(Entity.json(queryResponse)).build();
+        });
+    }
+
+    @GET
+    @Path("/snapshots")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Retrieve snapshot details")
+    public Response getSnapshotDetails(@QueryParam("snapshotNames") List<String> snapshotNames, @QueryParam("keyspaces") List<String> keyspace)
+    {
+        return handle(() ->
+        {
+            Row row = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.getSnapshotDetails(?, ?)", snapshotNames, keyspace).one();
+
+            Object queryResponse = null;
+            if (row != null)
+            {
+                queryResponse = row.getObject(0);
+            }
+            return Response.ok(Entity.json(queryResponse)).build();
+        });
+    }
+
+    @POST
+    @Path("/snapshots")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Operation(summary = "Take a snapshot")
+    public Response takeSnapshot(TakeSnapshotRequest takeSnapshotRequest)
+    {
+        return handle(() ->
+        {
+            String snapshotName = takeSnapshotRequest.snapshotName;
+            List<String> keyspaces = takeSnapshotRequest.keyspaces;
+            String tableName = takeSnapshotRequest.tableName;
+            Boolean skipFlsuh = takeSnapshotRequest.skipFlush;
+            List<String> keyspaceTables = takeSnapshotRequest.keyspaceTables;
+
+            if (keyspaces != null && !keyspaces.isEmpty())
+            {
+                if (keyspaceTables != null && !keyspaceTables.isEmpty())
+                {
+                    // when specifying Keyspace.table lists, you can not specify any keyspaces
+                    return Response.status(Response.Status.BAD_REQUEST).entity("When specifying keyspace_tables, specifying keyspaces is not allowed").build();
+                }
+                if (tableName != null && keyspaces.size() > 1)
+                {
+                    // when specifying a table name (column family), you must specify exactly 1 keyspace
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Exactly 1 keyspace must be specified when specifying table_name").build();
+                }
+            }
+            else
+            {
+                // no keyspaces specified
+                if (tableName != null)
+                {
+                    // when specifying a table name (column family), you must specify exactly 1 keyspace
+                    return Response.status(Response.Status.BAD_REQUEST).entity("Exactly 1 keyspace must be specified when specifying table_name").build();
+                }
+            }
+
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.takeSnapshot(?, ?, ?, ?, ?)", snapshotName, keyspaces, tableName, skipFlsuh, keyspaceTables);
+
+            return Response.ok("OK").build();
+        });
+    }
+
+    @DELETE
+    @Path("/snapshots")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Operation(summary = "Clear snapshots")
+    public Response clearSnapshots(@QueryParam(value="snapshotNames") List<String> snapshotNames, @QueryParam(value="keyspaces") List<String> keyspaces)
+    {
+        return handle(() ->
+        {
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.clearSnapshots(?, ?)", snapshotNames, keyspaces);
+            return Response.ok("OK").build();
         });
     }
 

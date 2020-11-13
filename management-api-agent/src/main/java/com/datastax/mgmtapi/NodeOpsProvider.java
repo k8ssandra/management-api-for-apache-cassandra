@@ -9,12 +9,19 @@ package com.datastax.mgmtapi;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.TabularData;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
@@ -349,4 +356,100 @@ public class NodeOpsProvider
                         .asCql(),
                 ConsistencyLevel.ONE);
     }
+
+    @Rpc(name = "getSnapshotDetails")
+    public List<Map<String, String>> getSnapshotDetails(@RpcParam(name="snapshotNames") List<String> snapshotNames, @RpcParam(name="keyspaces") List<String> keyspaces)
+    {
+        logger.debug("Fetching snapshots with snapshot names {} and keyspaces {}", snapshotNames, keyspaces);
+        List<Map<String, String>> detailsList = new ArrayList<>();
+        // get the map of snapshots
+        Map<String, TabularData> snapshots = ShimLoader.instance.get().getStorageService().getSnapshotDetails();
+        for (Map.Entry<String, TabularData> entry : snapshots.entrySet())
+        {
+            // create the map of data per snapshot name
+            String snapshotTag = entry.getKey();
+            if (snapshotNames == null || snapshotNames.isEmpty() || snapshotNames.contains(snapshotTag))
+            {
+                TabularData tabularData = entry.getValue();
+                for (CompositeDataSupport compositeData : (Collection<CompositeDataSupport>)(tabularData.values()))
+                {
+                    String keyspaceName = compositeData.get("Keyspace name").toString();
+                    if (keyspaces == null || keyspaces.isEmpty() || keyspaces.contains(keyspaceName))
+                    {
+                        Map<String, String> detailsMap = new HashMap<>();
+                        for (String itemName : compositeData.getCompositeType().keySet())
+                        {
+                            String value = compositeData.get(itemName).toString();
+                            detailsMap.put(itemName, value);
+                        }
+                        detailsList.add(detailsMap);
+                    }
+                }
+            }
+        }
+        return detailsList;
+    }
+
+    @Rpc(name = "takeSnapshot")
+    public void takeSnapshot(
+            @RpcParam(name="snapshotName") String snapshotName,
+            @RpcParam(name="keyspaces") List<String> keyspaces,
+            @RpcParam(name="tableName") String tableName,
+            @RpcParam(name="skipFlush") Boolean skipFlush,
+            @RpcParam(name="keyspaceTables") List<String> keyspaceTables) throws IOException
+    {
+        // skipFlush options map
+        Map<String, String> optionsMap = new HashMap<>();
+        optionsMap.put("skipFlush", skipFlush.toString());
+
+        // build entities array
+        String[] entities = null;
+        if (tableName != null)
+        {
+            // we should have a single keyspace and table name combination
+            entities = new String[1];
+            entities[0] = keyspaces.get(0) + "." + tableName;
+        }
+        else if (keyspaceTables != null && !keyspaceTables.isEmpty())
+        {
+            // we should only have a list of keyspace.tables
+            entities = keyspaceTables.toArray(new String[keyspaceTables.size()]);
+        }
+        else if (keyspaces != null && !keyspaces.isEmpty())
+        {
+            // we have just a list of keyspaces, no tables
+            entities = keyspaces.toArray(new String[keyspaces.size()]);
+        }
+        else
+        {
+            // nothing specified, so snapshot all keyspaces
+            List<String> allKeyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+            entities = allKeyspaces.toArray(new String[allKeyspaces.size()]);
+        }
+        logger.debug("Taking snapshot for entities: {}", Arrays.toString(entities));
+        ShimLoader.instance.get().getStorageService().takeSnapshot(snapshotName, optionsMap, entities);
+    }
+
+    @Rpc(name = "clearSnapshots")
+    public void clearSnapshots(@RpcParam(name="snapshotNames") List<String> snapshotNames, @RpcParam(name="keyspaces") List<String> keyspaces) throws IOException
+    {
+        // if no snapshotName is specified, use all tags
+        if (snapshotNames == null || snapshotNames.isEmpty())
+        {
+            snapshotNames = new ArrayList();
+            snapshotNames.addAll(ShimLoader.instance.get().getStorageService().getSnapshotDetails().keySet());
+        }
+        for (String snapshot : snapshotNames)
+        {
+            // if no keyspaces are specified, use all keyspaces
+            if (keyspaces == null || keyspaces.isEmpty())
+            {
+                keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+            }
+            String[] keyspaceNames = keyspaces.toArray(new String[keyspaces.size()]);
+            logger.debug("Deleteing snapshot for tag: {}, keyspaces: {}", snapshot, keyspaceNames);
+            ShimLoader.instance.get().getStorageService().clearSnapshot(snapshot, keyspaceNames);
+        }
+    }
+
 }

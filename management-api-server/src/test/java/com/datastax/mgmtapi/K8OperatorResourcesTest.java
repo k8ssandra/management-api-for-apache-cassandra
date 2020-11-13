@@ -27,6 +27,7 @@ import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
@@ -1109,5 +1110,131 @@ public class K8OperatorResourcesTest {
                 .contentType(MediaType.APPLICATION_JSON_TYPE);
 
         return context.invoke(request);
+    }
+
+    @Test
+    public void testTakeSnapshotWithKeyspaceAndKeyspaceTablesShouldFail() throws Exception
+    {
+        TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot", Arrays.asList("testKeyspace"), null, null, Arrays.asList("testKeyspace.testTable"));
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String takeSnapshotRequestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/node/snapshots", takeSnapshotRequestAsJSON, context);
+        
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).isEqualTo("When specifying keyspace_tables, specifying keyspaces is not allowed");
+    }
+
+    @Test
+    public void testTakeSnapshotWithTableNameAndNoKeyspaceShouldFail() throws Exception
+    {
+        TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot", null, "testTable", null, null);
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String takeSnapshotRequestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/node/snapshots", takeSnapshotRequestAsJSON, context);
+        
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).isEqualTo("Exactly 1 keyspace must be specified when specifying table_name");
+    }
+
+    @Test
+    public void testTakeSnapshotWithTableNameAndMultipleKeyspacesShouldFail() throws Exception
+    {
+        TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot", Arrays.asList("test_ks1", "test_ks2"), "testTable", null, null);
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String takeSnapshotRequestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/node/snapshots", takeSnapshotRequestAsJSON, context);
+        
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).isEqualTo("Exactly 1 keyspace must be specified when specifying table_name");
+    }
+
+    @Test
+    public void testTakeSnapshot() throws Exception
+    {
+        TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest(null, null, null, null, null);
+
+        Context context = setup();
+
+        when(context.cqlService.executePreparedStatement(any(), anyString()))
+                .thenReturn(null);
+
+        String takeSnapshotRequestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBody("/ops/node/snapshots", takeSnapshotRequestAsJSON, context);
+        
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.takeSnapshot(?, ?, ?, ?, ?)"), any());
+    }
+
+    @Test
+    public void testGetSnapshotDetails() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/node/snapshots");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), any())).thenReturn(mockResultSet);
+
+        when(mockResultSet.one()).thenReturn(mockRow);
+
+        List<Map<String, String>> result = new ArrayList<>();
+        
+        Map<String, String> result1 = ImmutableMap.<String, String>builder()
+                .put("Column family name","events")
+                .put("Keyspace name","system_traces")
+                .put("Size on disk","13 bytes")
+                .put("Snapshot name","my_snapshot")
+                .put("True size","0 bytes")
+                .build();
+
+        Map<String, String> result2 = ImmutableMap.<String, String>builder()
+                .put("Column family name","table1")
+                .put("Keyspace name","test_ks")
+                .put("Size on disk","5.62 KiB")
+                .put("Snapshot name","my_snapshot")
+                .put("True size","4.78 KiB")
+                .build();
+
+        result.addAll(Arrays.asList(result1, result2));
+
+        String resultAsJSON = WriterUtility.asString(result, MediaType.APPLICATION_JSON);
+
+        when(mockRow.getObject(0)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().contains(resultAsJSON));
+
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getSnapshotDetails(?, ?)"), any());
+    }
+
+    @Test
+    public void testDeleteSnapshotDetails() throws Exception
+    {
+        Context context = setup();
+
+        MockHttpRequest request = MockHttpRequest.delete(ROOT_PATH + "/ops/node/snapshots");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), any())).thenReturn(null);
+
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.clearSnapshots(?, ?)"), any());
     }
 }
