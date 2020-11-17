@@ -42,6 +42,7 @@ import org.apache.cassandra.gms.ApplicationState;
 import org.apache.cassandra.gms.EndpointState;
 import org.apache.cassandra.gms.Gossiper;
 import org.apache.cassandra.gms.VersionedValue;
+import org.apache.cassandra.hints.HintsService;
 import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.IEndpointSnitch;
 import org.apache.cassandra.locator.K8SeedProvider3x;
@@ -304,5 +305,11 @@ public class CassandraAPI3x implements CassandraAPI
     public RpcStatementShim makeRpcStatement(String method, String[] params)
     {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public HintsService getHintsService()
+    {
+        return HintsService.instance;
     }
 }

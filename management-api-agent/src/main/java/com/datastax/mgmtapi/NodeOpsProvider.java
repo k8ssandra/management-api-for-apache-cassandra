@@ -116,14 +116,14 @@ public class NodeOpsProvider
     public void truncateHints()
     {
         logger.debug("Truncating all hints");
-        ShimLoader.instance.get().getHintedHandoffManager().truncateAllHints();
+        ShimLoader.instance.get().getHintsService().deleteAllHints();
     }
 
     @Rpc(name = "truncateHintsForHost")
     public void truncateHints(@RpcParam(name="host") String host)
     {
         logger.debug("Truncating hints for host {}", host);
-        ShimLoader.instance.get().getHintedHandoffManager().deleteHintsForEndpoint(host);
+        ShimLoader.instance.get().getHintsService().deleteAllHintsForEndpoint(host);
     }
 
     @Rpc(name = "resetLocalSchema")
