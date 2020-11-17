@@ -11,6 +11,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
+import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -27,12 +29,15 @@ import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
+import org.jboss.resteasy.core.messagebody.ReaderUtility;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -463,6 +468,64 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);
     }
+
+	@Test
+	public void testGetSnapshotDetails() throws IOException, URISyntaxException, InterruptedException
+	{
+		assumeTrue(IntegrationTestUtils.shouldRun());
+		ensureStarted();
+
+		NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+		URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/snapshots");
+		URI takeSnapshotUri = uriBuilder.build();
+
+		// create a snapshot
+		TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot",  Arrays.asList("system_schema", "system_traces", "system_distributed"), null, null, null);
+		String requestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+
+		boolean takeSnapshotSuccessful = client.post(takeSnapshotUri.toURL(), requestAsJSON).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+		assertTrue(takeSnapshotSuccessful);
+
+		// get snapshot details
+		URI getSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
+		String getSnapshotResponse = client.get(getSnapshotsUri.toURL())
+				.thenApply(this::responseAsString).join();
+		assertNotNull(getSnapshotResponse);
+        Object responseObject = ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
+        assertTrue(responseObject instanceof Map);
+		Map<Object, Object> responseObj = (Map)responseObject;
+        assertTrue(responseObj.containsKey("entity"));
+        Object entityObj = responseObj.get("entity");
+        assertTrue(entityObj instanceof List);
+		List<Object> entities = (List<Object>)entityObj;
+		assertFalse(entities.isEmpty());
+        for (Object entity : entities) {
+            assertTrue(entity instanceof Map);
+            Map<String, String> entityMap = (Map<String, String>)entity;
+            assertTrue(entityMap.containsKey("Snapshot name"));
+            String snapshotName = entityMap.get("Snapshot name");
+            assertEquals("testSnapshot", snapshotName);
+        }
+
+        // delete snapshot
+		URI clearSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
+        boolean clearSnapshotSuccessful = client.delete(clearSnapshotsUri.toURL()).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(clearSnapshotSuccessful);
+
+        // verify snapshot deleted
+		getSnapshotResponse = client.get(getSnapshotsUri.toURL())
+				.thenApply(this::responseAsString).join();
+		assertNotNull(getSnapshotResponse);
+		responseObject = ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
+		assertTrue(responseObject instanceof Map);
+		responseObj = (Map)responseObject;
+		assertTrue(responseObj.containsKey("entity"));
+		entityObj = responseObj.get("entity");
+		assertTrue(entityObj instanceof List);
+		entities = (List<Object>)entityObj;
+		assertTrue(entities.isEmpty());
+	}
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
     {

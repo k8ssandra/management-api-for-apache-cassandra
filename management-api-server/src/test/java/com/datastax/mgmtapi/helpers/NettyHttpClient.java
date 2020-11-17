@@ -140,19 +140,7 @@ public class NettyHttpClient
 
     public CompletableFuture<FullHttpResponse> get(URL url)
     {
-        CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
-
-        if (!activeRequestFuture.compareAndSet(null, result))
-            throw new RuntimeException("outstanding request");
-
-        // Prepare the HTTP request.
-        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, url.getFile());
-        request.headers().set(HttpHeaderNames.HOST, url.getHost());
-
-        // Send the HTTP request.
-        client.writeAndFlush(request);
-
-        return result;
+        return buildAndSendRequest(HttpMethod.GET, url);
     }
 
     public CompletableFuture<FullHttpResponse> post(URL url, final CharSequence body) throws UnsupportedEncodingException
@@ -186,5 +174,32 @@ public class NettyHttpClient
         client.writeAndFlush(request);
 
         return result;
+    }
+
+	public CompletableFuture<FullHttpResponse> delete(URL url)
+	{
+		return buildAndSendRequest(HttpMethod.DELETE, url);
+	}
+
+    /**
+     * Common method for building and sending GET or DELETE requests.
+     * @param method Request method (either HttpMethod.GET or HttpMethod.DELETE)
+     * @param url URL to send the request
+     */
+    private CompletableFuture<FullHttpResponse> buildAndSendRequest(HttpMethod method, URL url)
+    {
+		CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
+
+		if (!activeRequestFuture.compareAndSet(null, result))
+			throw new RuntimeException("outstanding request");
+
+		// Prepare the HTTP request.
+		HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, url.getFile());
+		request.headers().set(HttpHeaderNames.HOST, url.getHost());
+
+		// Send the HTTP request.
+		client.writeAndFlush(request);
+
+		return result;
     }
 }
