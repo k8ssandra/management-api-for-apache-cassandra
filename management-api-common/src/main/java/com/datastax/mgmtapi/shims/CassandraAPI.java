@@ -23,6 +23,7 @@ import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.HintedHandOffManager;
 import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.gms.Gossiper;
+import org.apache.cassandra.hints.HintsService;
 import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.transport.Server;
@@ -55,6 +56,7 @@ public interface CassandraAPI
 
     IRoleManager getRoleManager();
 
+    @Deprecated
     HintedHandOffManager getHintedHandoffManager();
 
     CompactionManager getCompactionManager();
@@ -69,4 +71,6 @@ public interface CassandraAPI
     String getLocalDataCenter();
 
     RpcStatementShim makeRpcStatement(String method, String[] params);
+
+    HintsService getHintsService();
 }
