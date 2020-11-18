@@ -509,6 +509,91 @@
         }
       }
     },
+    "/api/v0/ops/node/snapshots" : {
+      "get" : {
+        "summary" : "Retrieve snapshot details",
+        "operationId" : "getSnapshotDetails",
+        "parameters" : [ {
+          "name" : "snapshotNames",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
+          "name" : "keyspaces",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Clear snapshots",
+        "operationId" : "clearSnapshots",
+        "parameters" : [ {
+          "name" : "snapshotNames",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }, {
+          "name" : "keyspaces",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Take a snapshot",
+        "operationId" : "takeSnapshot",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TakeSnapshotRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/tables/sstables/upgrade" : {
       "post" : {
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
@@ -745,6 +830,33 @@
             }
           },
           "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "TakeSnapshotRequest" : {
+        "required" : [ ],
+        "type" : "object",
+        "properties" : {
+          "snapshot_name" : {
+            "type" : "string"
+          },
+          "keyspaces" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "table_name" : {
+            "type" : "string"
+          },
+          "skip_flush" : {
+            "type" : "boolean"
+          },
+          "keyspace_tables" : {
             "type" : "array",
             "items" : {
               "type" : "string"
