@@ -469,38 +469,39 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         assertTrue(requestSuccessful);
     }
 
-	@Test
-	public void testGetSnapshotDetails() throws IOException, URISyntaxException, InterruptedException
-	{
-		assumeTrue(IntegrationTestUtils.shouldRun());
-		ensureStarted();
+    @Test
+    public void testGetSnapshotDetails() throws IOException, URISyntaxException, InterruptedException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
 
-		NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
-		URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/snapshots");
-		URI takeSnapshotUri = uriBuilder.build();
+        URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/snapshots");
+        URI takeSnapshotUri = uriBuilder.build();
 
-		// create a snapshot
-		TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot",  Arrays.asList("system_schema", "system_traces", "system_distributed"), null, null, null);
-		String requestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+        // create a snapshot
+        TakeSnapshotRequest takeSnapshotRequest = new TakeSnapshotRequest("testSnapshot",  Arrays.asList("system_schema", "system_traces", "system_distributed"), null, null, null);
+        String requestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
 
-		boolean takeSnapshotSuccessful = client.post(takeSnapshotUri.toURL(), requestAsJSON).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-		assertTrue(takeSnapshotSuccessful);
+        boolean takeSnapshotSuccessful = client.post(takeSnapshotUri.toURL(), requestAsJSON).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue(takeSnapshotSuccessful);
 
-		// get snapshot details
-		URI getSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
-		String getSnapshotResponse = client.get(getSnapshotsUri.toURL())
-				.thenApply(this::responseAsString).join();
-		assertNotNull(getSnapshotResponse);
+        // get snapshot details
+        URI getSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
+        String getSnapshotResponse = client.get(getSnapshotsUri.toURL())
+                .thenApply(this::responseAsString).join();
+        assertNotNull(getSnapshotResponse);
         Object responseObject = ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
         assertTrue(responseObject instanceof Map);
-		Map<Object, Object> responseObj = (Map)responseObject;
+        Map<Object, Object> responseObj = (Map)responseObject;
         assertTrue(responseObj.containsKey("entity"));
         Object entityObj = responseObj.get("entity");
         assertTrue(entityObj instanceof List);
-		List<Object> entities = (List<Object>)entityObj;
-		assertFalse(entities.isEmpty());
-        for (Object entity : entities) {
+        List<Object> entities = (List<Object>)entityObj;
+        assertFalse(entities.isEmpty());
+        for (Object entity : entities)
+        {
             assertTrue(entity instanceof Map);
             Map<String, String> entityMap = (Map<String, String>)entity;
             assertTrue(entityMap.containsKey("Snapshot name"));
@@ -509,23 +510,23 @@ public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
         }
 
         // delete snapshot
-		URI clearSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
+        URI clearSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
         boolean clearSnapshotSuccessful = client.delete(clearSnapshotsUri.toURL()).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(clearSnapshotSuccessful);
 
         // verify snapshot deleted
-		getSnapshotResponse = client.get(getSnapshotsUri.toURL())
-				.thenApply(this::responseAsString).join();
-		assertNotNull(getSnapshotResponse);
-		responseObject = ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
-		assertTrue(responseObject instanceof Map);
-		responseObj = (Map)responseObject;
-		assertTrue(responseObj.containsKey("entity"));
-		entityObj = responseObj.get("entity");
-		assertTrue(entityObj instanceof List);
-		entities = (List<Object>)entityObj;
-		assertTrue(entities.isEmpty());
-	}
+        getSnapshotResponse = client.get(getSnapshotsUri.toURL())
+                .thenApply(this::responseAsString).join();
+        assertNotNull(getSnapshotResponse);
+        responseObject = ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
+        assertTrue(responseObject instanceof Map);
+        responseObj = (Map)responseObject;
+        assertTrue(responseObj.containsKey("entity"));
+        entityObj = responseObj.get("entity");
+        assertTrue(entityObj instanceof List);
+        entities = (List<Object>)entityObj;
+        assertTrue(entities.isEmpty());
+    }
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
     {

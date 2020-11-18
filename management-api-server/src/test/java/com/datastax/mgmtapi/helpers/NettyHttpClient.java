@@ -176,10 +176,10 @@ public class NettyHttpClient
         return result;
     }
 
-	public CompletableFuture<FullHttpResponse> delete(URL url)
-	{
-		return buildAndSendRequest(HttpMethod.DELETE, url);
-	}
+    public CompletableFuture<FullHttpResponse> delete(URL url)
+    {
+        return buildAndSendRequest(HttpMethod.DELETE, url);
+    }
 
     /**
      * Common method for building and sending GET or DELETE requests.
@@ -188,18 +188,18 @@ public class NettyHttpClient
      */
     private CompletableFuture<FullHttpResponse> buildAndSendRequest(HttpMethod method, URL url)
     {
-		CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
+        CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
 
-		if (!activeRequestFuture.compareAndSet(null, result))
-			throw new RuntimeException("outstanding request");
+        if (!activeRequestFuture.compareAndSet(null, result))
+            throw new RuntimeException("outstanding request");
 
-		// Prepare the HTTP request.
-		HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, url.getFile());
-		request.headers().set(HttpHeaderNames.HOST, url.getHost());
+        // Prepare the HTTP request.
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, method, url.getFile());
+        request.headers().set(HttpHeaderNames.HOST, url.getHost());
 
-		// Send the HTTP request.
-		client.writeAndFlush(request);
+        // Send the HTTP request.
+        client.writeAndFlush(request);
 
-		return result;
+        return result;
     }
 }
