@@ -147,7 +147,7 @@ public class LifecycleResources
                 FileUtils.deleteQuietly(app.dbUnixSocketFile);
 
             boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 2>&1",
+                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s > /var/log/cassandra/stdout.log 2> /var/log/cassandra/stderr.log",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
                             cassandraOrDseCommand,
                             app.dbUnixSocketFile.getAbsolutePath(),
@@ -278,7 +278,7 @@ public class LifecycleResources
 
     @Path("/configure")
     @POST
-    @Consumes("application/yaml")
+    @Consumes({"application/yaml", "text/yaml"})
     @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {

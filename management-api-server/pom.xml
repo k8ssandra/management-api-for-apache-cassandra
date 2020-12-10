@@ -28,7 +28,7 @@
         <jaxrs.version>2.0.8</jaxrs.version>
         <resteasy.version>4.0.0.Final</resteasy.version>
         <netty.version>4.1.50.Final</netty.version>
-        <driver.version>4.4.0</driver.version>
+        <driver.version>4.10.0</driver.version>
         <docker.java.version>3.1.2</docker.java.version>
         <cassandra.version>3.11.5</cassandra.version>
     </properties>
@@ -183,7 +183,7 @@
                         <CASSANDRA_HOME>${basedir}/target/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>
                     <environmentVariables>
-                        <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-${project.version}.jar</JVM_EXTRA_OPTS>
+                        <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-3.x-${project.version}.jar</JVM_EXTRA_OPTS>
                     </environmentVariables>
                     <forkCount>1</forkCount>
                     <threadCount>1</threadCount>

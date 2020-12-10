@@ -57,11 +57,13 @@
 First you need to build the Management API base image:
     
     docker build -t management-api-for-apache-cassandra-builder -f ./Dockerfile-build .
-    
+
 Then you need to build the image based on the actual Cassandra&reg; version, either the 3.11 or 4.0:
 
-    #Create a docker image with management api and C* 3.11
-    docker build -t mgmtapi-3_11 -f Dockerfile-3_11 .
+**NOTE:** For building 3.11 images, you will need to have the [Docker buildx plugin](https://docs.docker.com/buildx/working-with-buildx/) installed.
+
+    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.10` with the version you want below)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.10 --tag mgmtapi-3_11 --file Dockerfile-oss --target oss311 --platform linux/amd64 .
     
     #Create a docker image with management api and C* 4.0
     docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .

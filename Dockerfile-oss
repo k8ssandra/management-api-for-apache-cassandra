@@ -2,24 +2,32 @@ ARG CASSANDRA_VERSION=3.11.9
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
+ARG METRICS_COLLECTOR_VERSION=0.1.9
+
 WORKDIR /build
 
 COPY pom.xml ./
-COPY management-api-agent/pom.xml ./management-api-agent/pom.xml
+COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
+COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
+COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
 COPY management-api-common/pom.xml ./management-api-common/pom.xml
 COPY management-api-server/pom.xml ./management-api-server/pom.xml
-COPY management-api-shim-3.x/pom.xml ./management-api-shim-3.x/pom.xml
-COPY management-api-shim-4.x/pom.xml ./management-api-shim-4.x/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
 RUN mvn -q -ff -T 1C install && rm -rf target
 
-COPY management-api-agent ./management-api-agent
+COPY management-api-agent-common ./management-api-agent-common
+COPY management-api-agent-3.x ./management-api-agent-3.x
+COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
-COPY management-api-shim-3.x ./management-api-shim-3.x
-COPY management-api-shim-4.x ./management-api-shim-4.x
 RUN mvn -q -ff package -DskipTests
+
+# Download and extract Metrics Collector
+ENV MCAC_PATH /opt/metrics-collector
+RUN mkdir ${MCAC_PATH} && \
+    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
@@ -36,11 +44,20 @@ FROM oss311-${TARGETARCH} as oss311
 
 ARG TARGETARCH
 
-COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /tmp/
-COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /tmp/
-COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+ENV CASSANDRA_PATH /opt/cassandra
+ENV MAAC_PATH /opt/management-api
+ENV MCAC_PATH /opt/metrics-collector
+
+ENV CASSANDRA_HOME ${CASSANDRA_PATH}
+ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
+
+COPY --from=builder /build/management-api-agent-3.x/target/datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
+COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
+COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
+
+# Setup user and fixup permissions
+RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
+    chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.18.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
@@ -53,10 +70,6 @@ RUN set -eux; \
   apt-get install -y --no-install-recommends wget iproute2; \
   rm -rf /var/lib/apt/lists/*
 
-ENV MCAC_VERSION 0.1.7
-ADD https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${MCAC_VERSION}/datastax-mcac-agent-${MCAC_VERSION}.tar.gz /opt/mcac-agent.tar.gz
-RUN mkdir /opt/mcac-agent && tar zxvf /opt/mcac-agent.tar.gz -C /opt/mcac-agent --strip-components 1 && rm /opt/mcac-agent.tar.gz
-
 # backwards compat with upstream ENTRYPOINT
 COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
@@ -65,53 +78,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103
 EXPOSE 8080
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+USER cassandra
+
+ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
 CMD ["mgmtapi"]
-
-
-# NOTE: Presently, OSS doesn't have official Cassandra 4.0 builds on dockerhub
-# and our build at datastax/cassandra:4.0 is not a multiarch image like the
-# official ones. Once one of those issues is fixed, the following targets can
-# be used to build Cassandra 4.0 with Management API.
-
-# FROM --platform=linux/amd64 cassandra:4.0 as oss40-amd64
-
-# FROM --platform=linux/arm64 cassandra:4.0 as oss40-arm64
-# # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
-# # Only replace this dependency for arm64 to avoid regressions
-# RUN rm /opt/cassandra/lib/netty-all-*.jar
-# COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
-
-# FROM oss40-${TARGETARCH} as oss40
-
-# ARG TARGETARCH
-
-# COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra/
-# COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra/
-# COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-# COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-# COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-
-# ENV TINI_VERSION v0.18.0
-# ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
-# RUN chmod +x /tini
-
-# RUN set -eux; \
-#   apt-get update; \
-#   apt-get install -y --no-install-recommends wget iproute2; \
-#   rm -rf /var/lib/apt/lists/*
-
-# ENV MCAC_VERSION 0.1.7
-# ADD https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${MCAC_VERSION}/datastax-mcac-agent-${MCAC_VERSION}.tar.gz /opt/mcac-agent.tar.gz
-# RUN mkdir /opt/mcac-agent && tar zxvf /opt/mcac-agent.tar.gz -C /opt/mcac-agent --strip-components 1 && rm /opt/mcac-agent.tar.gz
-
-# # backwards compat with upstream ENTRYPOINT
-# COPY scripts/docker-entrypoint.sh /usr/local/bin/
-# RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
-#   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
-
-# EXPOSE 9103
-# EXPOSE 8080
-
-# ENTRYPOINT ["/docker-entrypoint.sh"]
-# CMD ["mgmtapi"]
