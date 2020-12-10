@@ -62,7 +62,7 @@ jobs:
           mvn -q -ff package -DskipTests -P dse
       - name: zip-up
         run: |
-          zip jars.zip management-api-agent/target/datastax-mgmtapi-agent-*.jar management-api-server/target/datastax-mgmtapi-server-*.jar management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-*.jar management-api-shim-dse-6.8/target/datastax-mgmtapi-shim-dse-6.8-*.jar management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-*.jar management-api-common/target/datastax-mgmtapi-common-*.jar
+          zip jars.zip management-api-agent-common/target/datastax-mgmtapi-agent-*.jar management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-*.jar management-api-server/target/datastax-mgmtapi-server-*.jar management-api-common/target/datastax-mgmtapi-common-*.jar
       - name: Retrieve stashed release URL
         uses: actions/download-artifact@v1
         with:

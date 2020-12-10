@@ -56,6 +56,7 @@ import com.datastax.oss.driver.internal.core.metadata.NodeInfo;
 import com.datastax.oss.driver.internal.core.metadata.TopologyMonitor;
 import com.datastax.oss.driver.internal.core.session.RequestProcessorRegistry;
 import com.datastax.oss.driver.internal.core.util.collection.QueryPlan;
+import com.datastax.oss.driver.internal.core.util.collection.SimpleQueryPlan;
 
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -314,7 +315,7 @@ public class UnixSocketCQLAccess
                 public Queue<Node> newQueryPlan(Request request, Session session)
                 {
                     final Node uxNode = unixSocketNode;
-                    return uxNode == null ? new QueryPlan() : new QueryPlan(uxNode);
+                    return uxNode == null ? QueryPlan.EMPTY : new SimpleQueryPlan(uxNode);
                 }
 
                 /**

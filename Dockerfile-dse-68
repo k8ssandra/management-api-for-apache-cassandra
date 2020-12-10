@@ -1,34 +1,61 @@
-FROM management-api-for-dse-builder as builder
+ARG CASSANDRA_VERSION=6.8.9
 
-FROM datastax/dse-server:6.8.0
+FROM maven:3.6.3-jdk-8-slim as builder
+
+ARG METRICS_COLLECTOR_VERSION=0.1.9
+
+WORKDIR /build
+
+COPY pom.xml ./
+COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
+COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
+COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
+COPY management-api-agent-dse-6.8/pom.xml ./management-api-agent-dse-6.8/pom.xml
+COPY management-api-common/pom.xml ./management-api-common/pom.xml
+COPY management-api-server/pom.xml ./management-api-server/pom.xml
+COPY settings.xml settings.xml /root/.m2/
+# this duplicates work done in the next steps, but this should provide
+# a solid cache layer that only gets reset on pom.xml changes
+RUN mvn -q -ff -T 1C install -Pdse && rm -rf target
+
+COPY management-api-agent-common ./management-api-agent-common
+COPY management-api-agent-3.x ./management-api-agent-3.x
+COPY management-api-agent-4.x ./management-api-agent-4.x
+COPY management-api-agent-dse-6.8 ./management-api-agent-dse-6.8
+COPY management-api-common ./management-api-common
+COPY management-api-server ./management-api-server
+RUN mvn -q -ff package -DskipTests -Pdse
+
+FROM datastax/dse-server:${CASSANDRA_VERSION}
 
 # accept the License
 ENV DS_LICENSE=accept
 
-COPY --from=builder /build/management-api-common/target/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /opt/dse/
-COPY --from=builder /build/management-api-agent/target/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /opt/dse/
-COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-3.x/target/datastax-mgmtapi-shim-3.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-4.x/target/datastax-mgmtapi-shim-4.x-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
-COPY --from=builder /build/management-api-shim-dse-6.8/target/datastax-mgmtapi-shim-dse-6.8-0.1.0-SNAPSHOT.jar /opt/mgmtapi/
+ENV CASSANDRA_PATH /opt/dse
+ENV MAAC_PATH /opt/management-api
+
+ENV CASSANDRA_HOME ${CASSANDRA_PATH}
+ENV CASSANDRA_CONF ${CASSANDRA_PATH}/resources/cassandra/conf
+ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
+
+COPY --from=builder /build/management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
+COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
 
 USER root
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
-
 RUN set -eux; \
   apt-get update; \
   apt-get install -y --no-install-recommends wget iproute2; \
   rm -rf /var/lib/apt/lists/*
 
 # backwards compat with upstream ENTRYPOINT
-COPY dse-68/docker-entrypoint.sh /usr/local/bin/
+COPY scripts/dse-6.8-docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh
 
 EXPOSE 9103
 EXPOSE 8080
+
+USER dse
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["mgmtapi"]

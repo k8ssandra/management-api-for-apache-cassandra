@@ -27,9 +27,9 @@
             </properties>
             <modules>
                 <module>management-api-common</module>
-                <module>management-api-shim-3.x</module>
-                <module>management-api-shim-4.x</module>
-                <module>management-api-agent</module>
+                <module>management-api-agent-common</module>
+                <module>management-api-agent-3.x</module>
+                <module>management-api-agent-4.x</module>
                 <module>management-api-server</module>
             </modules>
         </profile>
@@ -43,10 +43,10 @@
             </properties>
             <modules>
                 <module>management-api-common</module>
-                <module>management-api-shim-3.x</module>
-                <module>management-api-shim-4.x</module>
-                <module>management-api-shim-dse-6.8</module>
-                <module>management-api-agent</module>
+                <module>management-api-agent-common</module>
+                <module>management-api-agent-3.x</module>
+                <module>management-api-agent-4.x</module>
+                <module>management-api-agent-dse-6.8</module>
                 <module>management-api-server</module>
             </modules>
         </profile>

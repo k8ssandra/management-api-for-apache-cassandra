@@ -13,7 +13,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Lists;
@@ -26,12 +29,14 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
+import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.Volume;
@@ -46,11 +51,41 @@ import org.apache.http.HttpStatus;
 
 public class DockerHelper
 {
+    private static Logger logger = LoggerFactory.getLogger(DockerHelper.class);
+
+    // Keep track of Docker images built during test runs
+    private static final Set<String> IMAGE_NAMES = new HashSet<>();
+
+    // Cleanup hook to remove Docker images built for tests
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                if (!Boolean.getBoolean("skip_test_docker_image_cleanup")) {
+                    logger.info("Cleaning up test Docker images");
+                    DockerClient dockerClient = DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder().build()).build();
+                    for (String imageName : IMAGE_NAMES) {
+                        Image image = searchImages(imageName, dockerClient);
+                        if (image != null) {
+                            try {
+                                dockerClient.removeImageCmd(image.getId()).exec();
+                            } catch (Throwable e) {
+                                logger.info(String.format("Removing image %s did not complete cleanly", imageName));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    logger.info("Skipping test Docker image cleanup");
+                }
+            }
+        });
+    }
     private DockerClientConfig config;
     private DockerClient dockerClient;
     private String container;
     private File dataDir;
-    private Logger logger = LoggerFactory.getLogger(DockerHelper.class);
 
     public DockerHelper(File dataDir) {
         this.config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
@@ -178,6 +213,7 @@ public class DockerHelper
     private void buildImageWithBuildx(File dockerFile, File baseDir, String target, String name) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
             "--load",
+            "--progress", "plain",
             "--tag", name,
             "--file", dockerFile.getPath(),
             "--target", target,
@@ -191,10 +227,6 @@ public class DockerHelper
         {
             throw new Exception("Command '" + String.join(" ", pb.command() + "' return error code: " + exitCode));
         }
-    }
-    private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
-    {
-        return startDocker(dockerFile, baseDir, target, name, ports, volumeDescList, envList, cmdList, false);
     }
 
     private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList, boolean useBuildx)
@@ -227,37 +259,47 @@ public class DockerHelper
             return containerId.getId();
         }
 
-        BuildImageResultCallback callback = new BuildImageResultCallback()
+        // see if we have the image already built
+        final String imageName = String.format("%s-%s-test", name, dockerFile.getName()).toLowerCase();
+        Image image = searchImages(imageName, dockerClient);
+        if (image == null)
         {
-            @Override
-            public void onNext(BuildResponseItem item)
+            BuildImageResultCallback callback = new BuildImageResultCallback()
             {
-                System.out.println("" + item);
-                super.onNext(item);
-            }
-        };
+                @Override
+                public void onNext(BuildResponseItem item)
+                {
+                    String stream = item.getStream();
+                    if (stream != null && !stream.equals("null"))
+                        System.out.print(item.getStream());
+                    super.onNext(item);
+                }
+            };
 
-        logger.info("Building container: " + name + " from " + dockerFile);
-        if (useBuildx)
-        {
-            try
+            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, dockerFile.getPath(), imageName));
+            if (useBuildx)
             {
-                buildImageWithBuildx(dockerFile, baseDir, target, name);
+                try
+                {
+                    buildImageWithBuildx(dockerFile, baseDir, target, imageName);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                    logger.error("Unable to build image");
+                }
             }
-            catch (Exception e)
+            else
             {
-                e.printStackTrace();
-                logger.error("Unable to build image");
+                dockerClient.buildImageCmd()
+                    .withBaseDirectory(baseDir)
+                    .withDockerfile(dockerFile)
+                    .withTags(Sets.newHashSet(imageName))
+                    .exec(callback)
+                    .awaitImageId();
             }
-        }
-        else
-        {
-            dockerClient.buildImageCmd()
-                .withBaseDirectory(baseDir)
-                .withDockerfile(dockerFile)
-                .withTags(Sets.newHashSet(name))
-                .exec(callback)
-                .awaitImageId();
+            logger.info(String.format("Adding image named %s to set of images to be cleaned up", imageName));
+            IMAGE_NAMES.add(imageName);
         }
 
         List<ExposedPort> tcpPorts = new ArrayList<>();
@@ -285,7 +327,8 @@ public class DockerHelper
 
         CreateContainerResponse containerResponse;
 
-        containerResponse = dockerClient.createContainerCmd(name)
+        logger.warn("Binding a local temp directory to /var/log/cassandra can cause permissions issues on startup. Skipping volume bindings.");
+        containerResponse = dockerClient.createContainerCmd(imageName)
                 .withCmd(cmdList)
                 .withEnv(envList)
                 .withExposedPorts(tcpPorts)
@@ -293,7 +336,8 @@ public class DockerHelper
                         new HostConfig()
                                 .withPortBindings(portBindings)
                                 .withPublishAllPorts(true)
-                                .withBinds(volumeBindList)
+                                // don't bind /var/log/cassandra, it causes permissions issues with startup
+                                //.withBinds(volumeBindList)
                 )
                 .withName(name)
                 .exec();
@@ -304,7 +348,7 @@ public class DockerHelper
             @Override
             public void onNext(Frame item)
             {
-                logger.info(new String(item.getPayload()));
+                System.out.print(new String(item.getPayload()));
             }
         });
 
@@ -330,6 +374,40 @@ public class DockerHelper
 
             return runningContainers.get(0);
         }
+        return null;
+    }
+
+    private static Image searchImages(String imageName, DockerClient dockerClient)
+    {
+        ListImagesCmd listImagesCmd = dockerClient.listImagesCmd();
+        List<Image> images = null;
+        logger.info(String.format("Searching for image named %s", imageName));
+        try {
+            images = listImagesCmd.exec();
+            if (!images.isEmpty()) {
+                Iterator<Image> it = images.iterator();
+                while (it.hasNext()) {
+                    Image image = it.next();
+                    String[] tags = image.getRepoTags();
+                    if (tags == null)
+                    {
+                        logger.warn(String.format("Image has NULL tags: %s", image.getId()));
+                    }
+                    else
+                    {
+                        for (int i=0; i< tags.length; ++i) {
+                            if (tags[i].startsWith(imageName)) {
+                                logger.info(String.format("Found an image named %s", imageName));
+                                return image;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to fetch images", e);
+        }
+        logger.info(String.format("No image named %s found", imageName));
         return null;
     }
 
