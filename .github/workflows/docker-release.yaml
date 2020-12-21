@@ -65,7 +65,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg CASSANDRA_VERSION=3.11.7
+            --build-arg CASSANDRA_VERSION=3.11.7 \
             --tag datastax/cassandra-mgmtapi-3_11_7:$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
@@ -74,7 +74,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg CASSANDRA_VERSION=3.11.8
+            --build-arg CASSANDRA_VERSION=3.11.8 \
             --tag datastax/cassandra-mgmtapi-3_11_8:$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
@@ -83,7 +83,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg CASSANDRA_VERSION=3.11.9
+            --build-arg CASSANDRA_VERSION=3.11.9 \
             --tag datastax/cassandra-mgmtapi-3_11_9:$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
