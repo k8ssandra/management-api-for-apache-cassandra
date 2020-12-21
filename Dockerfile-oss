@@ -1,3 +1,5 @@
+ARG CASSANDRA_VERSION=3.11.9
+
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
 WORKDIR /build
@@ -22,9 +24,9 @@ RUN mvn -q -ff package -DskipTests
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
 
-FROM --platform=linux/amd64 cassandra:3.11.7 as oss311-amd64
+FROM --platform=linux/amd64 cassandra:${CASSANDRA_VERSION} as oss311-amd64
 
-FROM --platform=linux/arm64 cassandra:3.11.7 as oss311-arm64
+FROM --platform=linux/arm64 cassandra:${CASSANDRA_VERSION} as oss311-arm64
 # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
 # Only replace this dependency for arm64 to avoid regressions
 RUN rm /opt/cassandra/lib/netty-all-*.jar
