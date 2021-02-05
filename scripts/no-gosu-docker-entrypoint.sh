@@ -177,6 +177,9 @@ if [ "$1" = 'mgmtapi' ]; then
 		MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
 	fi
 
+	cp /tmp/datastax-mgmtapi-common-0.1.0-SNAPSHOT.jar /etc/cassandra
+	cp /tmp/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar /etc/cassandra
+
 	MGMT_API_JAR="$(find "/opt/mgmtapi" -name *server*.jar)"
 
 	echo "Running" java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS

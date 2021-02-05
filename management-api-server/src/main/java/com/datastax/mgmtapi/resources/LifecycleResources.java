@@ -146,13 +146,16 @@ public class LifecycleResources
             if (app.dbUnixSocketFile.exists())
                 FileUtils.deleteQuietly(app.dbUnixSocketFile);
 
-            boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 2>&1",
+            String cassandraCmd = String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s 2>&1",
                             profile != null ? "/tmp/" + profile + "/env.sh" : "",
                             cassandraOrDseCommand,
                             app.dbUnixSocketFile.getAbsolutePath(),
                             extraArgs.toString(),
-                            String.join(" ", app.dbExtraJvmArgs)),
+                            String.join(" ", app.dbExtraJvmArgs));
+            logger.info("Starting cassandra with: " + cassandraCmd);
+
+            boolean started = ShellUtils.executeShellWithHandlers(
+                    cassandraCmd,
                     (input, err) -> true,
                     (exitCode, err) -> {
                         logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
