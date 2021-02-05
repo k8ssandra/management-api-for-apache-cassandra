@@ -65,10 +65,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103
 EXPOSE 8080
 
-RUN chown -R cassandra:cassandra /opt/cassandra
-RUN chown -R cassandra:cassandra /var/log/cassandra
-RUN chown -R cassandra:cassandra /var/lib/cassandra
-RUN chown -R cassandra:cassandra /opt/mcac-agent
+RUN chown -R cassandra:cassandra /opt/cassandra /var/log/cassandra /var/lib/cassandra /opt/mcac-agent
 
 USER cassandra
 
