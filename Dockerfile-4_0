@@ -44,7 +44,7 @@ COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-
 COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
+RUN chown -R cassandra:cassandra ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
     chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.18.0
@@ -66,7 +66,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103
 EXPOSE 8080
 
-USER cassandra
+#USER cassandra
 
-ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["mgmtapi"]

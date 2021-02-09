@@ -55,7 +55,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103
 EXPOSE 8080
 
-USER dse
+#USER dse
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["mgmtapi"]

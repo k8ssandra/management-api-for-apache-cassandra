@@ -179,7 +179,8 @@ if [ "$1" = 'mgmtapi' ]; then
     MGMT_API_JAR="$(find "${MAAC_PATH}" -name *server*.jar)"
 
     echo "Running" java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
-    java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    exec /tini -g -- gosu cassandra java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+
 fi
 
 exec "$@"
