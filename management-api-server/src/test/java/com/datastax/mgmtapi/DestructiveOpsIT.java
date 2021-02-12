@@ -28,11 +28,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(Parameterized.class)
-public class DestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
+public class DestructiveOpsIT extends BaseDockerIntegrationTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
 
-    public DestructiveOpsIntegrationTest(String version) throws IOException
+    public DestructiveOpsIT(String version) throws IOException
     {
         super(version);
     }

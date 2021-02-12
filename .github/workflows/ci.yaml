@@ -4,6 +4,24 @@ on: [push]
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        cassandra-version: [3.11, 4.0, dse]
+        include:
+          - cassandra-version: 3.11
+            run311tests: true
+            run40tests: false
+            runDSEtests: false
+          - cassandra-version: 4.0
+            run311tests: false
+            run40tests: true
+            runDSEtests: false
+          - cassandra-version: dse
+            run311tests: false
+            run40tests: false
+            runDSEtests: true
+
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +43,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           version: latest
-      - name: Build Management API in docker
+      - name: Build with Maven
         run: |
           cat <<EOF > ~/.m2/settings.xml
           <settings>
@@ -44,16 +62,19 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
-          docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
-          docker buildx build \
-            --tag mgmtapi-3_11 \
-            --file Dockerfile-oss \
-            --target oss311 \
-            --platform linux/amd64,linux/arm64 .
-          docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
-          docker build -t mgmtapi-dse-68 -f Dockerfile-dse-68 .
-      - name: Build with Maven
-        run: mvn -B -q package -DskipTests --file pom.xml -P dse
-      - name: run tests
-        run: mvn -B -q test --file pom.xml -P dse
+          set -e
+          if [[ "${{ matrix.runDSEtests }}" == "true" ]]
+          then
+            mvn -B -q package -DskipTests --file pom.xml -P dse
+          else
+            mvn -B -q package -DskipTests --file pom.xml
+          fi
+      - name: Run Integration Tests
+        run: |
+          set -e
+          if [[ "${{ matrix.runDSEtests }}" == "true" ]]
+          then
+            mvn -B -q integration-test --file pom.xml -P dse -DrunDSEtests=true
+          else
+            mvn -B -q integration-test --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}
+          fi

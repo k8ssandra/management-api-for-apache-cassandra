@@ -78,17 +78,18 @@ public abstract class BaseDockerIntegrationTest
     protected static DockerHelper docker;
 
     @Parameterized.Parameters(name = "{index}: {0}")
-    public static Iterable<String[]> functions()
+    public static List<String> testVersions()
     {
-        List<String[]> l =  Lists.newArrayList(
-                new String[]{"3_11"},
-                new String[]{"4_0"}
-        );
+        List<String> versions = new ArrayList<>(3);
 
-        if (Boolean.getBoolean("dseIncluded"))
-            l.add(new String[]{"dse-68"});
+        if (Boolean.getBoolean("run311tests"))
+            versions.add("3_11");
+        if (Boolean.getBoolean("run40tests"))
+            versions.add("4_0");
+        if (Boolean.getBoolean("runDSEtests"))
+            versions.add("dse-68");
 
-        return l;
+        return versions;
     }
 
     public BaseDockerIntegrationTest(String version) throws IOException
