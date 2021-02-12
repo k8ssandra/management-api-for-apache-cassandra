@@ -15,7 +15,9 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <netty.version>4.1.50.Final</netty.version>
-        <cassandra.version>3.11.5</cassandra.version>
+        <cassandra.version>3.11.10</cassandra.version>
+        <junit.version>4.13.1</junit.version>
+        <mockito.version>3.5.13</mockito.version>
     </properties>
 
     <dependencies>
@@ -55,13 +57,14 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>3.2.4</version>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

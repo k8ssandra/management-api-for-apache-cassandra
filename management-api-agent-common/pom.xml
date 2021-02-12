@@ -12,11 +12,12 @@
     <artifactId>datastax-mgmtapi-agent-common</artifactId>
 
     <properties>
-        <cassandra.version>3.11.5</cassandra.version>
+        <cassandra.version>3.11.10</cassandra.version>
         <bytebuddy.version>1.10.10</bytebuddy.version>
         <docker.java.version>3.1.5</docker.java.version>
         <driver.version>4.10.0</driver.version>
         <build.version.file>build_version.sh</build.version.file>
+        <junit.version>4.13.1</junit.version>
     </properties>
 
     <profiles>
@@ -61,7 +62,7 @@
                 <dependency>
                     <groupId>junit</groupId>
                     <artifactId>junit</artifactId>
-                    <version>4.11</version>
+                    <version>${junit.version}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>

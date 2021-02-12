@@ -29,9 +29,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(Parameterized.class)
-public class KeepAliveIntegrationTest extends BaseDockerIntegrationTest
+public class KeepAliveIT extends BaseDockerIntegrationTest
 {
-    public KeepAliveIntegrationTest(String version) throws IOException
+    public KeepAliveIT(String version) throws IOException
     {
         super(version);
     }

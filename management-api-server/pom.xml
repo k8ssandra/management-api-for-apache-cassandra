@@ -29,8 +29,12 @@
         <resteasy.version>4.0.0.Final</resteasy.version>
         <netty.version>4.1.50.Final</netty.version>
         <driver.version>4.10.0</driver.version>
-        <docker.java.version>3.1.2</docker.java.version>
         <cassandra.version>3.11.5</cassandra.version>
+        <docker.java.version>3.1.1</docker.java.version>
+        <awaitility.version>4.0.3</awaitility.version>
+        <assertj.version>3.17.2</assertj.version>
+        <junit.version>4.13.1</junit.version>
+        <mockito.version>3.5.13</mockito.version>
     </properties>
 
     <dependencies>
@@ -97,7 +101,7 @@
         <dependency>
             <groupId>com.aries</groupId>
             <artifactId>docker-java-shaded</artifactId>
-            <version>3.1.1</version>
+            <version>${docker.java.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -111,19 +115,25 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>3.0.0</version>
+            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.16.1</version>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -175,7 +185,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M3</version>
+                <version>3.0.0-M5</version>
                 <configuration>
                     <systemPropertyVariables>
                         <dseIncluded>${dseIncluded}</dseIncluded>
@@ -189,6 +199,25 @@
                     <threadCount>1</threadCount>
                     <reuseForks>true</reuseForks>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <dseIncluded>${dseIncluded}</dseIncluded>
+                        <dockerFileRoot>${basedir}/..</dockerFileRoot>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -49,12 +49,12 @@ import static org.junit.Assume.assumeTrue;
  * node once, running all tests, and then stopping rather than a start/stop during each test case.
  */
 @RunWith(Parameterized.class)
-public class NonDestructiveOpsIntegrationTest extends BaseDockerIntegrationTest
+public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
 {
-    private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIntegrationTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
 
 
-    public NonDestructiveOpsIntegrationTest(String version) throws IOException
+    public NonDestructiveOpsIT(String version) throws IOException
     {
         super(version);
     }

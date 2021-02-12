@@ -41,9 +41,9 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(Parameterized.class)
-public class IntegrationTest extends BaseDockerIntegrationTest
+public class LifecycleIT extends BaseDockerIntegrationTest
 {
-    public IntegrationTest(String version) throws IOException
+    public LifecycleIT(String version) throws IOException
     {
         super(version);
     }
