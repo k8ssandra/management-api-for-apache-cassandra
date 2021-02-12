@@ -146,19 +146,41 @@ public class LifecycleResources
             if (app.dbUnixSocketFile.exists())
                 FileUtils.deleteQuietly(app.dbUnixSocketFile);
 
-            boolean started = ShellUtils.executeShellWithHandlers(
-                    String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s > /var/log/cassandra/stdout.log 2> /var/log/cassandra/stderr.log",
-                            profile != null ? "/tmp/" + profile + "/env.sh" : "",
-                            cassandraOrDseCommand,
-                            app.dbUnixSocketFile.getAbsolutePath(),
-                            extraArgs.toString(),
-                            String.join(" ", app.dbExtraJvmArgs)),
-                    (input, err) -> true,
-                    (exitCode, err) -> {
-                        logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
-                        return false;
-                    },
-                    environment);
+            // ensure Cassandra will be able to write to the log directory, or the process won't start
+            String mgmtApiStartupLogDir = System.getenv("MGMT_API_LOG_DIR");
+            if (mgmtApiStartupLogDir == null)
+            {
+                // use default
+                logger.debug("MGMT_API_LOG_DIR is not set, using default of /var/log/cassandra");
+                mgmtApiStartupLogDir = "/var/log/cassandra";
+            }
+
+            boolean started = false;
+
+            if (!verifyOrCreateLogDirectory(mgmtApiStartupLogDir))
+            {
+                logger.error(String.format(
+                        "Process cannot write to %s. Please ensure that permissions are set correctly and that the MGMT_API_LOG_DIR environment variable is set to the desired log directory.",
+                        mgmtApiStartupLogDir));
+            }
+            else
+            {
+                started = ShellUtils.executeShellWithHandlers(
+                      String.format("nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s > %s/stdout.log 2> %s/stderr.log",
+                              profile != null ? "/tmp/" + profile + "/env.sh" : "",
+                              cassandraOrDseCommand,
+                              app.dbUnixSocketFile.getAbsolutePath(),
+                              extraArgs.toString(),
+                              String.join(" ", app.dbExtraJvmArgs),
+                              mgmtApiStartupLogDir,
+                              mgmtApiStartupLogDir),
+                      (input, err) -> true,
+                      (exitCode, err) -> {
+                          logger.error("Error starting Cassandra: {}", err.lines().collect(Collectors.joining("\n")));
+                          return false;
+                      },
+                      environment);
+            }
 
             if (started)
                 logger.info("Started Cassandra");
@@ -416,5 +438,22 @@ public class LifecycleResources
     private Optional<Integer> findPid() throws IOException
     {
         return UnixCmds.findDbProcessWithMatchingArg("-Ddb.unix_socket_file=" + app.dbUnixSocketFile.getAbsolutePath());
+    }
+
+    /**
+     * Verifies that the provided log directory can be written. Will attempt to create the directory
+     * if it does not exist.
+     * @param logDir The directory to verify write permissions
+     * @return true if the directory can be written to or created, false otherwise.
+     */
+    private boolean verifyOrCreateLogDirectory(String logDir) {
+        File logPath = new File(logDir);
+        if (logPath.exists()) {
+            return logPath.isDirectory() && logPath.canWrite();
+        }
+        else
+        {
+            return logPath.mkdirs();
+        }
     }
 }

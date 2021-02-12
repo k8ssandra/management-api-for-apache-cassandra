@@ -2,7 +2,7 @@ ARG CASSANDRA_VERSION=6.8.9
 
 FROM maven:3.6.3-jdk-8-slim as builder
 
-ARG METRICS_COLLECTOR_VERSION=0.1.9
+ARG METRICS_COLLECTOR_VERSION=0.2.0
 
 WORKDIR /build
 
@@ -37,6 +37,10 @@ ENV MAAC_PATH /opt/management-api
 ENV CASSANDRA_HOME ${CASSANDRA_PATH}
 ENV CASSANDRA_CONF ${CASSANDRA_PATH}/resources/cassandra/conf
 ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
+# Log directory for Management API startup logs to avoid issues:
+# https://datastax.jira.com/browse/DB-4627
+# https://issues.apache.org/jira/browse/CASSANDRA-16027
+ENV MGMT_API_LOG_DIR /var/log/cassandra
 
 COPY --from=builder /build/management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
