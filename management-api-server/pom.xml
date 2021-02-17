@@ -25,8 +25,8 @@
         <rsapi.version>2.1.1</rsapi.version>
         <guava.version>19.0</guava.version>
         <airline.version>2.7.0</airline.version>
-        <jaxrs.version>2.0.8</jaxrs.version>
-        <resteasy.version>4.0.0.Final</resteasy.version>
+        <jaxrs.version>2.1.6</jaxrs.version>
+        <resteasy.version>4.5.9.Final</resteasy.version>
         <netty.version>4.1.50.Final</netty.version>
         <driver.version>4.10.0</driver.version>
         <cassandra.version>3.11.5</cassandra.version>

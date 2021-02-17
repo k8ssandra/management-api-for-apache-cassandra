@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.ws.rs.ApplicationPath;
-
 import com.datastax.mgmtapi.ipc.IPCController;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -30,6 +28,7 @@ import org.jboss.resteasy.plugins.server.netty.RequestDispatcher;
 import org.jboss.resteasy.plugins.server.netty.RequestHandler;
 import org.jboss.resteasy.plugins.server.netty.RestEasyHttpRequestDecoder;
 import org.jboss.resteasy.plugins.server.netty.RestEasyHttpResponseEncoder;
+import org.jboss.resteasy.util.EmbeddedServerHelper;
 
 public class NettyJaxrsIPCServer extends NettyJaxrsServer
 {
@@ -40,11 +39,13 @@ public class NettyJaxrsIPCServer extends NettyJaxrsServer
     private Map<ChannelOption, Object> channelOptions = Collections.emptyMap();
     private List<ChannelHandler> httpChannelHandlers = Collections.emptyList();
 
-    private int maxRequestSize = 1024 * 1024 * 10;
-    private int maxInitialLineLength = 4096;
-    private int maxHeaderSize = 8192;
-    private int maxChunkSize = 8192;
-    private int idleTimeout = 60;
+    private final int maxRequestSize = 1024 * 1024 * 10;
+    private final int maxInitialLineLength = 4096;
+    private final int maxHeaderSize = 8192;
+    private final int maxChunkSize = 8192;
+    private final int idleTimeout = 60;
+    // From the internals of Resteasy
+    private final EmbeddedServerHelper serverHelper = new EmbeddedServerHelper();
 
     public NettyJaxrsIPCServer(EventLoopGroup eventLoopGroup, File socketFile)
     {
@@ -53,23 +54,25 @@ public class NettyJaxrsIPCServer extends NettyJaxrsServer
     }
 
     @Override
-    public void setChannelOptions(final Map<ChannelOption, Object> channelOptions) {
+    public NettyJaxrsServer setChannelOptions(final Map<ChannelOption, Object> channelOptions) {
         this.channelOptions = channelOptions == null ? Collections.<ChannelOption, Object>emptyMap() : channelOptions;
+        return this;
     }
 
     @Override
-    public void setHttpChannelHandlers(final List<ChannelHandler> httpChannelHandlers) {
+    public NettyJaxrsServer setHttpChannelHandlers(final List<ChannelHandler> httpChannelHandlers) {
         this.httpChannelHandlers = httpChannelHandlers == null ? Collections.<ChannelHandler>emptyList() : httpChannelHandlers;
+        return this;
     }
 
     @Override
-    public void start()
+    public NettyJaxrsServer start()
     {
         synchronized (activeServerRef)
         {
             IPCController activeServer = activeServerRef.get();
             if (activeServer != null && activeServer.isActive())
-                return;
+                return this;
 
             if (activeServer != null)
             {
@@ -77,16 +80,12 @@ public class NettyJaxrsIPCServer extends NettyJaxrsServer
             }
             else
             {
-                deployment.start();
+                serverHelper.checkDeployment(deployment);
 
                 // dynamically set the root path (the user can rewrite it by calling setRootResourcePath)
-                if (deployment.getApplication() != null) {
-                    ApplicationPath appPath = deployment.getApplication().getClass().getAnnotation(ApplicationPath.class);
-                    if (appPath != null && (root == null || "".equals(root))) {
-                        // annotation is present and original root is not set
-                        String path = appPath.value();
-                        setRootResourcePath(path);
-                    }
+                String appPath = serverHelper.checkAppDeployment(deployment);
+                if (appPath != null && (root == null || "".equals(root))) {
+                  setRootResourcePath(appPath);
                 }
 
                 activeServer = IPCController.newServer()
@@ -106,6 +105,7 @@ public class NettyJaxrsIPCServer extends NettyJaxrsServer
                 assert b : "Already active";
             }
         }
+        return this;
     }
 
     @Override
