@@ -8,7 +8,6 @@ package com.datastax.mgmtapi;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Map;
-import javax.ws.rs.ApplicationPath;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -27,34 +26,35 @@ import org.jboss.resteasy.plugins.server.netty.RequestDispatcher;
 import org.jboss.resteasy.plugins.server.netty.RequestHandler;
 import org.jboss.resteasy.plugins.server.netty.RestEasyHttpRequestDecoder;
 import org.jboss.resteasy.plugins.server.netty.RestEasyHttpResponseEncoder;
+import org.jboss.resteasy.util.EmbeddedServerHelper;
 
 public class NettyJaxrsTLSServer extends NettyJaxrsServer
 {
     private final SslContext sslContext;
     private final EventLoopGroup eventLoopGroup = new NioEventLoopGroup(2);
-    private Map<ChannelOption, Object> channelOptions = Collections.emptyMap();
-    private int maxRequestSize = 1024 * 1024 * 10;
-    private int maxInitialLineLength = 4096;
-    private int maxHeaderSize = 8192;
-    private int maxChunkSize = 8192;
-    private int idleTimeout = 60;
+    private final Map<ChannelOption, Object> channelOptions = Collections.emptyMap();
+    private final int maxRequestSize = 1024 * 1024 * 10;
+    private final int maxInitialLineLength = 4096;
+    private final int maxHeaderSize = 8192;
+    private final int maxChunkSize = 8192;
+    private final int idleTimeout = 60;
+    // From the internals of Resteasy
+    private final EmbeddedServerHelper serverHelper = new EmbeddedServerHelper();
 
     public NettyJaxrsTLSServer(SslContext sslContext)
     {
         this.sslContext = sslContext;
     }
 
-    public void start() {
-        deployment.start();
+    @Override
+    public NettyJaxrsServer start() {
+        serverHelper.checkDeployment(deployment);
         // dynamically set the root path (the user can rewrite it by calling setRootResourcePath)
-        if (deployment.getApplication() != null) {
-            ApplicationPath appPath = deployment.getApplication().getClass().getAnnotation(ApplicationPath.class);
-            if (appPath != null && (root == null || "".equals(root))) {
-                // annotation is present and original root is not set
-                String path = appPath.value();
-                setRootResourcePath(path);
-            }
+        String appPath = serverHelper.checkAppDeployment(deployment);
+        if (appPath != null && (root == null || "".equals(root))) {
+            setRootResourcePath(appPath);
         }
+
         // Configure the server.
         bootstrap.group(eventLoopGroup)
                 .channel(NioServerSocketChannel.class)
@@ -82,6 +82,7 @@ public class NettyJaxrsTLSServer extends NettyJaxrsServer
 
         Channel channel = bootstrap.bind(socketAddress).syncUninterruptibly().channel();
         runtimePort = ((InetSocketAddress) channel.localAddress()).getPort();
+        return this;
     }
 
     protected void setupHandlers(Channel ch, RequestDispatcher dispatcher, RestEasyHttpRequestDecoder.Protocol protocol) {
