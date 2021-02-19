@@ -13,6 +13,7 @@
 
     <properties>
         <cassandra.version>3.11.10</cassandra.version>
+        <netty.version>4.1.51.Final</netty.version>
         <bytebuddy.version>1.10.10</bytebuddy.version>
         <docker.java.version>3.1.5</docker.java.version>
         <driver.version>4.10.0</driver.version>
@@ -43,6 +44,12 @@
                     <version>${bytebuddy.version}</version>
                 </dependency>
                 <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                    <version>${netty.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-all</artifactId>
                     <version>${cassandra.version}</version>
@@ -50,6 +57,10 @@
                         <exclusion>
                             <groupId>commons-codec</groupId>
                             <artifactId>*</artifactId>
+                        </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
                         </exclusion>
                     </exclusions>
                     <scope>provided</scope>

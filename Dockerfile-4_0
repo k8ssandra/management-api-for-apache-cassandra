@@ -14,7 +14,7 @@ COPY management-api-common/pom.xml ./management-api-common/pom.xml
 COPY management-api-server/pom.xml ./management-api-server/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN mvn -q -ff -T 1C install && rm -rf target
+RUN mvn -q -ff -T 1C install -DskipTests && rm -rf target
 
 COPY management-api-agent-common ./management-api-agent-common
 COPY management-api-agent-3.x ./management-api-agent-3.x
@@ -28,6 +28,11 @@ ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+
+# Get updated Jackson libs
+RUN mvn dependency:get -q -DgroupId=com.fasterxml.jackson.core -DartifactId=jackson-annotations -Dversion=2.11.1 -Dtransitive=false
+RUN mvn dependency:get -q -DgroupId=com.fasterxml.jackson.core -DartifactId=jackson-core -Dversion=2.11.1 -Dtransitive=false
+RUN mvn dependency:get -q -DgroupId=com.fasterxml.jackson.core -DartifactId=jackson-databind -Dversion=2.11.1 -Dtransitive=false
 
 FROM cassandra:${CASSANDRA_VERSION}
 
@@ -46,9 +51,14 @@ ENV MGMT_API_LOG_DIR /var/log/cassandra
 COPY --from=builder /build/management-api-agent-4.x/target/datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
 COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
+# Update Jackson libs
+RUN rm /opt/cassandra/lib/jackson-*.jar
+COPY --from=builder /root/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.11.1/jackson-annotations-2.11.1.jar /opt/cassandra/lib/jackson-annotations-2.11.1.jar
+COPY --from=builder /root/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.11.1/jackson-core-2.11.1.jar /opt/cassandra/lib/jackson-core-2.11.1.jar
+COPY --from=builder /root/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.11.1/jackson-databind-2.11.1.jar /opt/cassandra/lib/jackson-databind-2.11.1.jar
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
+RUN chown -R cassandra:cassandra ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
     chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.18.0

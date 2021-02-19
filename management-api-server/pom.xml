@@ -27,7 +27,7 @@
         <airline.version>2.7.0</airline.version>
         <jaxrs.version>2.1.6</jaxrs.version>
         <resteasy.version>4.5.9.Final</resteasy.version>
-        <netty.version>4.1.50.Final</netty.version>
+        <netty.version>4.1.51.Final</netty.version>
         <driver.version>4.10.0</driver.version>
         <cassandra.version>3.11.5</cassandra.version>
         <docker.java.version>3.1.1</docker.java.version>

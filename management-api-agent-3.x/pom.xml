@@ -56,6 +56,10 @@
                             <groupId>commons-codec</groupId>
                             <artifactId>*</artifactId>
                         </exclusion>
+                        <exclusion>
+                            <groupId>io.netty</groupId>
+                            <artifactId>netty-all</artifactId>
+                        </exclusion>
                     </exclusions>
                     <scope>provided</scope>
                 </dependency>
