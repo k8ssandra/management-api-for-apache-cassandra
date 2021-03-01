@@ -34,6 +34,7 @@ FROM cassandra:${CASSANDRA_VERSION}
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
 ENV MCAC_PATH /opt/metrics-collector
+ENV USER_HOME_PATH /home/cassandra
 
 ENV CASSANDRA_HOME ${CASSANDRA_PATH}
 ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
@@ -48,7 +49,8 @@ COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-
 COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
+RUN mkdir ${USER_HOME_PATH} && \
+    chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} && \
     chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.18.0
