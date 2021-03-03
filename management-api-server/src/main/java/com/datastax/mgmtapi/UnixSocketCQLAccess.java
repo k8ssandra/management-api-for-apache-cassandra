@@ -137,6 +137,8 @@ public class UnixSocketCQLAccess
         session = new LocalSessionBuilder(unixSocketEndpoint)
                 .withConfigLoader(DriverConfigLoader.programmaticBuilder()
                         .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.of(30, SECONDS))
+                        // force protocol V4 for now
+                        .withString(DefaultDriverOption.PROTOCOL_VERSION, "V4")
                         .build())
                 .build();
     }
