@@ -32,6 +32,7 @@
     <bytebuddy.version>1.9.15</bytebuddy.version>
     <docker.java.version>3.1.5</docker.java.version>
     <driver.version>4.10.0</driver.version>
+    <junit.version>4.13.1</junit.version>
     <build.version.file>build_version.sh</build.version.file>
   </properties>
 
@@ -62,7 +63,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
