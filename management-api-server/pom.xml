@@ -21,7 +21,7 @@
         <resteasy.version>4.5.9.Final</resteasy.version>
         <netty.version>4.1.50.Final</netty.version>
         <driver.version>4.10.0</driver.version>
-        <cassandra.version>3.11.10</cassandra.version>
+        <cassandra3.version>3.11.10</cassandra3.version>
         <docker.java.version>3.1.1</docker.java.version>
         <awaitility.version>4.0.3</awaitility.version>
         <assertj.version>3.17.2</assertj.version>
@@ -159,7 +159,7 @@
                             <target>
                                 <condition property="cassandra.bin.exists">
                                     <resourceexists>
-                                        <file file=".cassandra-bin/apache-cassandra-${cassandra.version}/bin/cassandra"/>
+                                        <file file=".cassandra-bin/apache-cassandra-${cassandra3.version}/bin/cassandra"/>
                                     </resourceexists>
                                 </condition>
                             </target>
@@ -175,11 +175,11 @@
                         <configuration>
                             <target unless="cassandra.bin.exists" >
                                 <mkdir dir=".cassandra-bin"/>
-                                <get src="https://downloads.apache.org/cassandra/${cassandra.version}/apache-cassandra-${cassandra.version}-bin.tar.gz"
+                                <get src="https://downloads.apache.org/cassandra/${cassandra3.version}/apache-cassandra-${cassandra3.version}-bin.tar.gz"
                                      dest=".cassandra-bin/"/>
-                                <untar src=".cassandra-bin/apache-cassandra-${cassandra.version}-bin.tar.gz" dest=".cassandra-bin/"
+                                <untar src=".cassandra-bin/apache-cassandra-${cassandra3.version}-bin.tar.gz" dest=".cassandra-bin/"
                                        compression="gzip"/>
-                                <chmod file=".cassandra-bin/apache-cassandra-${cassandra.version}/bin/cassandra" perm="777"/>
+                                <chmod file=".cassandra-bin/apache-cassandra-${cassandra3.version}/bin/cassandra" perm="777"/>
                             </target>
                             <skip>${skipTests}</skip>
                         </configuration>
@@ -197,7 +197,7 @@
                     <systemPropertyVariables>
                         <dseIncluded>${dseIncluded}</dseIncluded>
                         <dockerFileRoot>${basedir}/..</dockerFileRoot>
-                        <CASSANDRA_HOME>${basedir}/.cassandra-bin/apache-cassandra-${cassandra.version}</CASSANDRA_HOME>
+                        <CASSANDRA_HOME>${basedir}/.cassandra-bin/apache-cassandra-${cassandra3.version}</CASSANDRA_HOME>
                     </systemPropertyVariables>
                     <environmentVariables>
                         <JVM_EXTRA_OPTS>-javaagent:${basedir}/../management-api-agent/target/datastax-mgmtapi-agent-3.x-${project.version}.jar</JVM_EXTRA_OPTS>
