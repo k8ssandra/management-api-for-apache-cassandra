@@ -20,33 +20,48 @@
         <junit.version>4.13.1</junit.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.datastax</groupId>
+            <artifactId>datastax-mgmtapi-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax</groupId>
+            <artifactId>datastax-mgmtapi-agent-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${bytebuddy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${bytebuddy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.datastax.oss</groupId>
+            <artifactId>java-driver-query-builder</artifactId>
+            <version>${driver.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <profiles>
         <profile>
+            <!-- used by "default" and "dse" profile (dse profile is not defined in this module) -->
             <id>default</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
-                <dependency>
-                    <groupId>com.datastax</groupId>
-                    <artifactId>datastax-mgmtapi-common</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.datastax</groupId>
-                    <artifactId>datastax-mgmtapi-agent-common</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>net.bytebuddy</groupId>
-                    <artifactId>byte-buddy</artifactId>
-                    <version>${bytebuddy.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>net.bytebuddy</groupId>
-                    <artifactId>byte-buddy-agent</artifactId>
-                    <version>${bytebuddy.version}</version>
-                </dependency>
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-all</artifactId>
@@ -59,16 +74,25 @@
                     </exclusions>
                     <scope>provided</scope>
                 </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>dse-db-all</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
                 <dependency>
-                    <groupId>com.datastax.oss</groupId>
-                    <artifactId>java-driver-query-builder</artifactId>
-                    <version>${driver.version}</version>
-                </dependency>
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>${junit.version}</version>
-                    <scope>test</scope>
+                    <groupId>com.datastax.dse</groupId>
+                    <artifactId>dse-db-all</artifactId>
+                    <version>${cassandra4.version}</version>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>commons-codec</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
