@@ -68,10 +68,11 @@ if [ "$1" = 'mgmtapi' ]; then
         echo "data_dir_max_size_in_mb: 100" >> ${MCAC_PATH}/config/metric-collector.yaml
     fi
 
-    if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+    MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent*.jar)"
+    if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
         # ensure newline at end of file
         echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
-        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
     # Set this if you want to ignore default env variables, i.e. when running inside an operator
