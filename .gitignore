@@ -34,6 +34,7 @@ local.properties
 *.launch
 .classpath
 .project
+.cassandra-bin
 
 # Intellij
 .idea

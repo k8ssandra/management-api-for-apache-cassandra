@@ -42,10 +42,11 @@ _sed-in-place() {
 if [ "$1" = 'mgmtapi' ]; then
 	echo "Starting Management API"
 
-	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+  MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent*.jar)"
+	if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
 		# ensure newline at end of file
 		echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
-		echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+		echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
 	fi
 
   CASSANDRA_NATIVE_TRANSPORT_ADDRESS='0.0.0.0'

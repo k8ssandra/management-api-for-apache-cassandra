@@ -12,7 +12,7 @@
     <artifactId>datastax-mgmtapi-agent-common</artifactId>
 
     <properties>
-        <cassandra.version>3.11.10</cassandra.version>
+        <cassandra3.version>3.11.10</cassandra3.version>
         <bytebuddy.version>1.10.10</bytebuddy.version>
         <docker.java.version>3.1.5</docker.java.version>
         <driver.version>4.10.0</driver.version>
@@ -45,7 +45,7 @@
                 <dependency>
                     <groupId>org.apache.cassandra</groupId>
                     <artifactId>cassandra-all</artifactId>
-                    <version>${cassandra.version}</version>
+                    <version>${cassandra3.version}</version>
                     <exclusions>
                         <exclusion>
                             <groupId>commons-codec</groupId>
