@@ -7,8 +7,8 @@
     "openAPI": {
         "info": {
             "version": "0.1",
-            "title": "Management API for Apache Cassandra",
-            "description": "This is a Restful service for operating Apache Cassandra.  You can find out more about the Management API on [Github](http://github.com/datastax/management-api-for-apache-cassandra)",
+            "title": "Management API for Apache Cassandra™",
+            "description": "This is a Restful service for operating Apache Cassandra.  You can find out more about the Management API on [Github](http://github.com/k8ssandra/management-api-for-apache-cassandra)",
             "license": {
                 "name": "Apache 2.0",
                 "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
