@@ -1,6 +1,6 @@
 # Management API Agent
 
-The Agent is the bridge between the Management API and the instance of Cassandra or DSE it controls.
+The Agent is the bridge between the Management API and the instance of Apache Cassandra&trade; or DSE it controls.
 This is accomplished by adding the agent jarfile to the startup options of the server with the `-javaagent`
 directive. See the [main README](../README.md#using-the-service-with-a-locally-installed-c-or-dse-instance)
 as an example.
