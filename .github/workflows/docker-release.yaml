@@ -6,7 +6,7 @@ on:
       - 'v*.*.*'
 
 jobs:
-  build-dse:
+  build-dse-6_8:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -30,25 +30,53 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          docker build -t management-api-for-dse-builder -f ./Dockerfile-build-dse ./
-          docker tag management-api-for-dse-builder management-api-for-apache-cassandra-builder
+      - name: Get Release Version
+        id: get_version
+        run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
       - name: Publish DSE 6.8 to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: datastax/dse-mgmtapi-6_8
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tag_names: true
+          tags: '${{ env.RELEASE_VERSION }}'
           dockerfile: Dockerfile-dse-68
+  build-oss-4_0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Build Management API in docker
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Get Release Version
+        id: get_version
+        run: echo "RELEASE_VERSION=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
       - name: Publish 4.0 to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: datastax/cassandra-mgmtapi-4_0_0
+          name: k8ssandra/cass-management-api
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          tag_names: true
+          tags: '4.0.0,4.0.0-${{ env.RELEASE_VERSION }}'
           dockerfile: Dockerfile-4_0
-  build-oss:
+  build-oss-3_11_7:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -66,34 +94,77 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=3.11.7 \
-            --tag datastax/cassandra-mgmtapi-3_11_7:$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:3.11.7 \
+            --tag k8ssandra/cass-management-api:3.11.7-$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64,linux/arm64 .
+  build-oss-3_11_8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Publish 3.11.8 to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=3.11.8 \
-            --tag datastax/cassandra-mgmtapi-3_11_8:$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:3.11.8 \
+            --tag k8ssandra/cass-management-api:3.11.8-$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64,linux/arm64 .
+  build-oss-3_11_9:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Publish 3.11.9 to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=3.11.9 \
-            --tag datastax/cassandra-mgmtapi-3_11_9:$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:3.11.9 \
+            --tag k8ssandra/cass-management-api:3.11.9-$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64,linux/arm64 .
+  build-oss-3_11_10:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
       - name: Publish 3.11.10 to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=3.11.10 \
-            --tag datastax/cassandra-mgmtapi-3_11_10:$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:3.11.10 \
+            --tag k8ssandra/cass-management-api:3.11.10-$RELEASE_VERSION \
             --file Dockerfile-oss \
             --target oss311 \
             --platform linux/amd64 .
