@@ -106,13 +106,34 @@ Finally build the Management API image:
 
 ## Usage
 
-  The latest releases are on Docker Hub:
+  As of v0.1.24, Management API Docker images for Apache Cassandra are consolidated into a single image repository here:
+
+  - [Management API for Apache Cassandra](https://hub.docker.com/repository/docker/k8ssandra/cass-management-api)
+
+  For different Cassandra versions, you will need to specify the Cassandra version as an image tag. The following lists the currently supported versions
+
+      k8ssandra/cass-management-api:3.11.7
+      k8ssandra/cass-management-api:3.11.8
+      k8ssandra/cass-management-api:3.11.9
+      k8ssandra/cass-management-api:3.11.10
+      k8ssandra/cass-management-api:4.0.0
+
+  Each of the above examples will always point to the **latest** Management API version for the associated Cassandra version. If you want a specific
+  Management API version, you can append the desired version to the Cassandra version tag. For example, if you want v0.1.24 of Management API for Cassandra version 3.11.9:
+
+     docker pull k8ssandra/cass-management-api:3.11.9-v0.1.24
+
+  For Management API versions v0.1.23 and lower, you will need to use the old Docker repositories, which are Cassandra version specific:
 
   - [Management API for Apache Cassandra 3.11.7](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_7)
   - [Management API for Apache Cassandra 3.11.8](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_8)
   - [Management API for Apache Cassandra 3.11.9](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_9)
   - [Management API for Apache Cassandra 3.11.10](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_10)
   - [Management API for Apache Cassandra 4.0-beta4](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0).
+
+  For DSE Docker images, the location remains unchanged
+
+  - [Management API for DSE 6.8](https://hub.docker.com/repository/docker/datastax/dse-mgmtapi-6_8)
 
   For running standalone the jars can be downloaded from the github release:
      [Management API Releases Zip](https://github.com/k8ssandra/management-api-for-apache-cassandra/releases)
