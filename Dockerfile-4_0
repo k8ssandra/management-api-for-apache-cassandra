@@ -1,6 +1,6 @@
-ARG CASSANDRA_VERSION=4.0-beta4
+ARG CASSANDRA_VERSION=4.0
 
-FROM maven:3.6.3-jdk-8-slim as builder
+FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
 ARG METRICS_COLLECTOR_VERSION=0.2.0
 
@@ -29,7 +29,9 @@ RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
 
-FROM cassandra:${CASSANDRA_VERSION}
+FROM cassandra:${CASSANDRA_VERSION} as oss40
+
+ARG TARGETARCH
 
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
@@ -54,7 +56,7 @@ RUN mkdir ${USER_HOME_PATH} && \
     chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
 
 RUN set -eux; \
