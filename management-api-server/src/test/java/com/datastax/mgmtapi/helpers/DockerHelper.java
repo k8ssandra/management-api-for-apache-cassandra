@@ -100,26 +100,9 @@ public class DockerHelper
 
     public void startManagementAPI(String version, List<String> envVars)
     {
-        File baseDir = new File(System.getProperty("dockerFileRoot","."));
-        File dockerFile;
-        String target;
-        boolean useBuildx;
-
-        if ("3_11".equals(version))
-        {
-            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
-            target = "oss311";
-            useBuildx = true;
-        }
-        else
-        {
-            dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-" + version).toFile();
-            target = null;
-            useBuildx = false;
-        }
-
-        if (!dockerFile.exists())
-            throw new RuntimeException("Missing " + dockerFile.getAbsolutePath());
+        DockerBuildConfig config = DockerBuildConfig.getConfig(version);
+        if (!config.dockerFile.exists())
+            throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
 
         String name = "mgmtapi";
         List<Integer> ports = Arrays.asList(9042, 8080);
@@ -130,7 +113,7 @@ public class DockerHelper
         if (envVars != null)
             envList.addAll(envVars);
 
-        this.container = startDocker(dockerFile, baseDir, target, name, ports, volumeDescList, envList, cmdList, useBuildx);
+        this.container = startDocker(config, name, ports, volumeDescList, envList, cmdList);
 
         waitForPort("localhost",8080, Duration.ofMillis(50000), logger, false);
     }
@@ -210,15 +193,15 @@ public class DockerHelper
         return container != null;
     }
 
-    private void buildImageWithBuildx(File dockerFile, File baseDir, String target, String name) throws Exception {
+    private void buildImageWithBuildx(DockerBuildConfig config, String name) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
             "--load",
             "--progress", "plain",
             "--tag", name,
-            "--file", dockerFile.getPath(),
-            "--target", target,
+            "--file", config.dockerFile.getPath(),
+            "--target", config.target,
             "--platform", "linux/amd64",
-            baseDir.getPath());
+            config.baseDir.getPath());
 
         Process p = pb.inheritIO().start();
         int exitCode = p.waitFor();
@@ -229,7 +212,7 @@ public class DockerHelper
         }
     }
 
-    private String startDocker(File dockerFile, File baseDir, String target, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList, boolean useBuildx)
+    private String startDocker(DockerBuildConfig config, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
     {
         ListContainersCmd listContainersCmd = dockerClient.listContainersCmd();
         listContainersCmd.getFilters().put("name", Arrays.asList(name));
@@ -260,7 +243,7 @@ public class DockerHelper
         }
 
         // see if we have the image already built
-        final String imageName = String.format("%s-%s-test", name, dockerFile.getName()).toLowerCase();
+        final String imageName = String.format("%s-%s-test", name, config.dockerFile.getName()).toLowerCase();
         Image image = searchImages(imageName, dockerClient);
         if (image == null)
         {
@@ -276,12 +259,12 @@ public class DockerHelper
                 }
             };
 
-            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, dockerFile.getPath(), imageName));
-            if (useBuildx)
+            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, config.dockerFile.getPath(), imageName));
+            if (config.useBuildx)
             {
                 try
                 {
-                    buildImageWithBuildx(dockerFile, baseDir, target, imageName);
+                    buildImageWithBuildx(config, imageName);
                 }
                 catch (Exception e)
                 {
@@ -292,8 +275,8 @@ public class DockerHelper
             else
             {
                 dockerClient.buildImageCmd()
-                    .withBaseDirectory(baseDir)
-                    .withDockerfile(dockerFile)
+                    .withBaseDirectory(config.baseDir)
+                    .withDockerfile(config.dockerFile)
                     .withTags(Sets.newHashSet(imageName))
                     .exec(callback)
                     .awaitImageId();
@@ -418,6 +401,36 @@ public class DockerHelper
             dockerClient.stopContainerCmd(container).exec();
             dockerClient.removeContainerCmd(container).exec();
             container = null;
+        }
+    }
+
+    private static class DockerBuildConfig
+    {
+        static final File baseDir = new File(System.getProperty("dockerFileRoot","."));
+
+        File dockerFile;
+        String target = null;
+        boolean useBuildx = false;
+
+        static DockerBuildConfig getConfig(String version)
+        {
+            DockerBuildConfig config = new DockerBuildConfig();
+            switch (version) {
+              case "3_11" :
+                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
+                  config.target = "oss311";
+                  config.useBuildx = true;
+                  break;
+              case "4_0" :
+                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-4_0").toFile();
+                  config.target = "oss40";
+                  config.useBuildx = true;
+                  break;
+              default : // DSE 6.8
+                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-dse-68").toFile();
+                  break;
+            }
+            return config;
         }
     }
 }
