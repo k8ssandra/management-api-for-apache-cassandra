@@ -11,6 +11,7 @@
     <properties>
         <build.version.file>build_version.sh</build.version.file>
         <revision>0.1.0-SNAPSHOT</revision>
+        <driver.version>4.11.1</driver.version>
     </properties>
 
     <dependencies>

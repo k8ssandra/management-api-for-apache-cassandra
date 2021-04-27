@@ -111,7 +111,7 @@ public class CassandraAPI4x implements CassandraAPI
                 Token midpoint = partitioner.midpoint(range.left, range.right);
                 EndpointsForRange endpoints = mockStrategy.calculateNaturalReplicas(midpoint, tokenMetadata);
 
-                if (!ReplicaPlans.isSufficientLiveReplicasForRead(mockKs, cl, endpoints))
+                if (!ReplicaPlans.isSufficientLiveReplicasForRead(mockKs.getReplicationStrategy(), cl, endpoints))
                 {
                     List<String> downEndpoints = new ArrayList<>();
                     for (InetAddressAndPort endpoint : endpoints.endpoints())
@@ -122,7 +122,7 @@ public class CassandraAPI4x implements CassandraAPI
                             downEndpoints.add(endpoint.toString());
                     }
 
-                    int blockFor = cl.blockFor(mockKs);
+                    int blockFor = cl.blockFor(mockKs.getReplicationStrategy());
 
                     if (downEndpoints.isEmpty() && endpoints.size() < blockFor)
                         downEndpoints.add(String.format("%d replicas required, but only %d nodes in the ring", blockFor, endpoints.size()));
