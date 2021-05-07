@@ -37,8 +37,8 @@ jobs:
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
           name: datastax/dse-mgmtapi-6_8
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           tags: '${{ env.RELEASE_VERSION }}'
           dockerfile: Dockerfile-dse-68
   build-oss-4_0:
