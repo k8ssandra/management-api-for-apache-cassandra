@@ -16,10 +16,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import com.datastax.mgmtapi.helpers.DockerHelper;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
-import com.datastax.mgmtapi.util.ShellUtils;
 import org.apache.http.HttpStatus;
 import org.awaitility.Awaitility;
 
