@@ -26,7 +26,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.async.ResultCallback.Adapter;
+import com.github.dockerjava.api.command.BuildImageCmd;
+import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.InspectExecCmd;
 import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListImagesCmd;
@@ -43,9 +47,8 @@ import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.core.command.BuildImageResultCallback;
-import com.github.dockerjava.core.command.ExecStartResultCallback;
-import com.github.dockerjava.core.command.LogContainerResultCallback;
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
+import java.io.Closeable;
 import org.apache.http.HttpStatus;
 
 
@@ -56,6 +59,17 @@ public class DockerHelper
     // Keep track of Docker images built during test runs
     private static final Set<String> IMAGE_NAMES = new HashSet<>();
 
+    private static final DockerClientConfig CONFIG = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+
+    private static final DockerClient DOCKER_CLIENT = DockerClientBuilder.getInstance(CONFIG)
+                .withDockerHttpClient(
+                        new ZerodepDockerHttpClient.Builder()
+                                .dockerHost(CONFIG.getDockerHost())
+                                .sslConfig(CONFIG.getSSLConfig())
+                                .maxConnections(100)
+                                .build())
+                .build();;
+
     // Cleanup hook to remove Docker images built for tests
     static {
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -63,12 +77,11 @@ public class DockerHelper
             public void run() {
                 if (!Boolean.getBoolean("skip_test_docker_image_cleanup")) {
                     logger.info("Cleaning up test Docker images");
-                    DockerClient dockerClient = DockerClientBuilder.getInstance(DefaultDockerClientConfig.createDefaultConfigBuilder().build()).build();
                     for (String imageName : IMAGE_NAMES) {
-                        Image image = searchImages(imageName, dockerClient);
+                        Image image = searchImages(imageName);
                         if (image != null) {
                             try {
-                                dockerClient.removeImageCmd(image.getId()).exec();
+                                DOCKER_CLIENT.removeImageCmd(image.getId()).exec();
                             } catch (Throwable e) {
                                 logger.info(String.format("Removing image %s did not complete cleanly", imageName));
                             }
@@ -82,20 +95,16 @@ public class DockerHelper
             }
         });
     }
-    private DockerClientConfig config;
-    private DockerClient dockerClient;
     private String container;
     private File dataDir;
 
     public DockerHelper(File dataDir) {
-        this.config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
-        this.dockerClient = DockerClientBuilder.getInstance(config).build();
         this.dataDir = dataDir;
     }
 
     public String getIpAddressOfContainer()
     {
-        return dockerClient.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
+        return DOCKER_CLIENT.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
     }
 
     public void startManagementAPI(String version, List<String> envVars)
@@ -123,8 +132,8 @@ public class DockerHelper
         if (container == null)
             throw new IllegalStateException("Container not started");
 
-        String execId = dockerClient.execCreateCmd(container).withCmd(commandAndArgs).withAttachStderr(true).withAttachStdout(true).exec().getId();
-        dockerClient.execStartCmd(execId).exec(null);
+        String execId = DOCKER_CLIENT.execCreateCmd(container).withCmd(commandAndArgs).withAttachStderr(true).withAttachStdout(true).exec().getId();
+        DOCKER_CLIENT.execStartCmd(execId).exec(new Adapter<Frame>());
 
         return execId;
     }
@@ -134,22 +143,28 @@ public class DockerHelper
         if (container == null)
             throw new IllegalStateException("Container not started");
 
-        String execId = dockerClient.execCreateCmd(container).withTty(true).withCmd("tail", "-n " + numberOfLines, "/var/log/cassandra/system.log").withAttachStderr(true).withAttachStdout(true).exec().getId();
-        dockerClient.execStartCmd(execId).withTty(true).exec(new ExecStartResultCallback(System.out, System.err) {});
+        String execId = DOCKER_CLIENT.execCreateCmd(container).withTty(true).withCmd("tail", "-n " + numberOfLines, "/var/log/cassandra/system.log").withAttachStderr(true).withAttachStdout(true).exec().getId();
+        DOCKER_CLIENT.execStartCmd(execId).withTty(true).exec(new Adapter<Frame>() {
+            @Override
+            public void onNext(Frame item) {
+                System.out.print(new String(item.getPayload()));
+            }
+        });
     }
 
     public void waitTillFinished(String execId)
     {
-        InspectExecResponse r = dockerClient.inspectExecCmd(execId).exec();
-
+        InspectExecCmd cmd = DOCKER_CLIENT.inspectExecCmd(execId);
+        InspectExecResponse r = cmd.exec();
         while (r.isRunning())
         {
             Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
             logger.info("SLEEPING");
+            r = cmd.exec();
         }
 
-        if (r.getExitCode() != null && r.getExitCode() != 0)
-            throw new RuntimeException("Process error code " + r.getExitCode());
+        if (r.getExitCodeLong() != null && r.getExitCodeLong() != 0l)
+            throw new RuntimeException("Process error code " + r.getExitCodeLong());
 
         logger.info("PROCESS finished!");
     }
@@ -214,7 +229,7 @@ public class DockerHelper
 
     private String startDocker(DockerBuildConfig config, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
     {
-        ListContainersCmd listContainersCmd = dockerClient.listContainersCmd();
+        ListContainersCmd listContainersCmd = DOCKER_CLIENT.listContainersCmd();
         listContainersCmd.getFilters().put("name", Arrays.asList(name));
         try
         {
@@ -223,8 +238,8 @@ public class DockerHelper
             {
                 String id = namedContainer.getId();
                 logger.info("Removing container: " + id);
-                dockerClient.stopContainerCmd(id).exec();
-                dockerClient.removeContainerCmd(id).exec();
+                DOCKER_CLIENT.stopContainerCmd(id).exec();
+                DOCKER_CLIENT.removeContainerCmd(id).exec();
             }
         }
         catch (Exception e)
@@ -244,7 +259,7 @@ public class DockerHelper
 
         // see if we have the image already built
         final String imageName = String.format("%s-%s-test", name, config.dockerFile.getName()).toLowerCase();
-        Image image = searchImages(imageName, dockerClient);
+        Image image = searchImages(imageName);
         if (image == null)
         {
             BuildImageResultCallback callback = new BuildImageResultCallback()
@@ -274,7 +289,7 @@ public class DockerHelper
             }
             else
             {
-                dockerClient.buildImageCmd()
+                DOCKER_CLIENT.buildImageCmd()
                     .withBaseDirectory(config.baseDir)
                     .withDockerfile(config.dockerFile)
                     .withTags(Sets.newHashSet(imageName))
@@ -311,7 +326,7 @@ public class DockerHelper
         CreateContainerResponse containerResponse;
 
         logger.warn("Binding a local temp directory to /var/log/cassandra can cause permissions issues on startup. Skipping volume bindings.");
-        containerResponse = dockerClient.createContainerCmd(imageName)
+        containerResponse = DOCKER_CLIENT.createContainerCmd(imageName)
                 .withCmd(cmdList)
                 .withEnv(envList)
                 .withExposedPorts(tcpPorts)
@@ -326,12 +341,17 @@ public class DockerHelper
                 .exec();
 
 
-        dockerClient.startContainerCmd(containerResponse.getId()).exec();
-        dockerClient.logContainerCmd(containerResponse.getId()).withStdOut(true).withStdErr(true).withFollowStream(true).withTailAll().exec(new LogContainerResultCallback() {
+        DOCKER_CLIENT.startContainerCmd(containerResponse.getId()).exec();
+        DOCKER_CLIENT.logContainerCmd(containerResponse.getId()).withStdOut(true).withStdErr(true).withFollowStream(true).withTailAll().exec(new Adapter<Frame>() {
             @Override
             public void onNext(Frame item)
             {
                 System.out.print(new String(item.getPayload()));
+            }
+
+            @Override
+            public void onStart(Closeable stream) {
+                System.out.println("Starting container " + name);
             }
         });
 
@@ -340,7 +360,7 @@ public class DockerHelper
 
     private Container searchContainer(String name)
     {
-        ListContainersCmd listContainersCmd = dockerClient.listContainersCmd().withStatusFilter(Collections.singletonList("running"));
+        ListContainersCmd listContainersCmd = DOCKER_CLIENT.listContainersCmd().withStatusFilter(Collections.singletonList("running"));
         listContainersCmd.getFilters().put("name", Arrays.asList(name));
         List<Container> runningContainers = null;
         try {
@@ -360,9 +380,9 @@ public class DockerHelper
         return null;
     }
 
-    private static Image searchImages(String imageName, DockerClient dockerClient)
+    private static Image searchImages(String imageName)
     {
-        ListImagesCmd listImagesCmd = dockerClient.listImagesCmd();
+        ListImagesCmd listImagesCmd = DOCKER_CLIENT.listImagesCmd();
         List<Image> images = null;
         logger.info(String.format("Searching for image named %s", imageName));
         try {
@@ -398,8 +418,8 @@ public class DockerHelper
     {
         if (container != null)
         {
-            dockerClient.stopContainerCmd(container).exec();
-            dockerClient.removeContainerCmd(container).exec();
+            DOCKER_CLIENT.stopContainerCmd(container).exec();
+            DOCKER_CLIENT.removeContainerCmd(container).exec();
             container = null;
         }
     }

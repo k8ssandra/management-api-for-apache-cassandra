@@ -2,14 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <repositories>
-        <repository>
-            <id>jcenter</id>
-            <name>jcenter</name>
-            <url>https://jcenter.bintray.com/</url>
-        </repository>
-    </repositories>
-
     <parent>
         <groupId>com.datastax</groupId>
         <artifactId>datastax-mgmtapi</artifactId>
@@ -29,7 +21,7 @@
         <resteasy.version>4.5.9.Final</resteasy.version>
         <netty.version>4.1.50.Final</netty.version>
         <cassandra3.version>3.11.10</cassandra3.version>
-        <docker.java.version>3.1.1</docker.java.version>
+        <docker.java.version>3.2.8</docker.java.version>
         <awaitility.version>4.0.3</awaitility.version>
         <assertj.version>3.17.2</assertj.version>
         <junit.version>4.13.1</junit.version>
@@ -98,8 +90,24 @@
             <version>${driver.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.aries</groupId>
-            <artifactId>docker-java-shaded</artifactId>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+            <version>${docker.java.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.docker-java</groupId>
+                    <artifactId>docker-java-transport-jersey</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.github.docker-java</groupId>
+                    <artifactId>docker-java-transport-netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-zerodep</artifactId>
             <version>${docker.java.version}</version>
             <scope>test</scope>
         </dependency>
