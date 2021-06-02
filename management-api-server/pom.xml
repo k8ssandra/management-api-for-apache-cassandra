@@ -15,7 +15,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <rsapi.version>2.1.1</rsapi.version>
-        <guava.version>19.0</guava.version>
+        <guava.version>30.1.1-jre</guava.version>
         <airline.version>2.7.0</airline.version>
         <jaxrs.version>2.1.6</jaxrs.version>
         <resteasy.version>4.5.9.Final</resteasy.version>

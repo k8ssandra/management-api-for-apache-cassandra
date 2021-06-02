@@ -8,9 +8,6 @@ package com.datastax.mgmtapi.rpc;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import org.apache.cassandra.auth.Permission;
-
-
 /**
  *  Method annotation for methods that can be called via RPC.
  *
