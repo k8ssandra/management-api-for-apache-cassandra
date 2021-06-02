@@ -7,7 +7,6 @@ package com.datastax.mgmtapi.rpc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.security.AccessControlException;
-import java.util.Optional;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
