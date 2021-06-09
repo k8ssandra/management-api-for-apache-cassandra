@@ -169,7 +169,7 @@ if [ "$1" = 'mgmtapi' ]; then
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_PID_FILE"
     fi
 
-    MGMT_API_CASSANDRA_HOME="--cassandra-home /var/lib/cassandra/"
+    MGMT_API_CASSANDRA_HOME="--cassandra-home ${CASSANDRA_HOME}"
     MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_HOME"
 
     if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
