@@ -38,6 +38,7 @@ import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
 import org.apache.cassandra.db.ConsistencyLevel;
+import org.apache.cassandra.repair.messages.RepairOption;
 
 /**
  * Replace JMX calls with CQL 'CALL' methods via the the Rpc framework
@@ -458,4 +459,27 @@ public class NodeOpsProvider
         }
     }
 
+    @Rpc(name = "repair")
+    public void repair(@RpcParam(name="keyspaceName") String keyspace, @RpcParam(name="tables") List<String> tables, @RpcParam(name="full") Boolean full) throws IOException
+    {
+        logger.warn("KEYSPACE = {} ; TABLES = {} ; FULL = {}", keyspace, tables, full);
+        // At least one keyspace is required
+        if (keyspace != null)
+        {
+            // create the repair spec
+            Map<String, String> repairSpec = new HashMap<>();
+
+            // add any specified tables to the repair spec
+            if (tables != null && !tables.isEmpty())
+            {
+                // set the tables/column families
+                repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, String.join(",", tables));
+            }
+
+            // handle incremental vs full
+            repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(Boolean.FALSE.equals(full)));
+
+            ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
+        }
+    }
 }

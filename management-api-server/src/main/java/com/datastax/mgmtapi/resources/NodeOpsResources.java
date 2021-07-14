@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 
 import com.google.common.collect.ImmutableList;
@@ -324,6 +325,29 @@ public class NodeOpsResources
         });
     }
 
+    @POST
+    @Path("/repair")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Operation(summary = "Perform a nodetool repair")
+    public Response repair(RepairRequest repairRequest)
+    {
+        return handle(() ->
+        {
+            if (repairRequest.keyspaceName == null)
+            {
+                return Response.status(Response.Status.BAD_REQUEST).entity("keyspaceName must be specified").build();
+            }
+            cqlService.executePreparedStatement(
+                    app.dbUnixSocketFile,
+                    "CALL NodeOps.repair(?, ?, ?)",
+                    repairRequest.keyspaceName,
+                    repairRequest.tables,
+                    repairRequest.full);
+
+            return Response.ok("OK").build();
+        });
+    }
+
     static Response handle(Callable<Response> action)
     {
         try
@@ -340,5 +364,4 @@ public class NodeOpsResources
             return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(t.getLocalizedMessage()).build();
         }
     }
-
 }
