@@ -1,4 +1,4 @@
-# Management API for Apache Cassandra&trade;
+# Management API for Apache Cassandra&reg;
 
 ![Java CI](https://github.com/k8ssandra/management-api-for-apache-cassandra/workflows/Java%20CI/badge.svg)
 ![Docker Release](https://github.com/k8ssandra/management-api-for-apache-cassandra/workflows/Docker%20Release/badge.svg)
@@ -297,4 +297,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## Dependencies
 
-For information on the packaged dependencies of the Management API for Apache Cassandra&trade; and their licenses, check out our [open source report](https://app.fossa.com/reports/1aa499fc-6878-4ad3-b61c-350258c0605b).
+For information on the packaged dependencies of the Management API for Apache Cassandra&reg; and their licenses, check out our [open source report](https://app.fossa.com/reports/1aa499fc-6878-4ad3-b61c-350258c0605b).
