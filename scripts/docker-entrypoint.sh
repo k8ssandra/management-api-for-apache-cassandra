@@ -179,8 +179,10 @@ if [ "$1" = 'mgmtapi' ]; then
 
     MGMT_API_JAR="$(find "${MAAC_PATH}" -name *server*.jar)"
 
-    echo "Running" java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
-    java ${MGMT_API_JAVA_OPTS} -Xms128m -Xmx128m -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    # use default of 128m heap if env variable not set
+    : "${MGMT_API_HEAP_SIZE:=128m}"
+    echo "Running" java ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    java ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
 fi
 
 exec "$@"
