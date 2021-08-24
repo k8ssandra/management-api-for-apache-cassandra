@@ -25,6 +25,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
+import java.lang.reflect.Method;
 import org.apache.cassandra.auth.IAuthenticator;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.service.ClientState;
@@ -290,8 +291,34 @@ public class UnixSocketServer4x
 
 
                         promise = new VoidChannelPromise(ctx.channel(), false);
+                        Class overloadClass = null;
+                        Method processRequest = null;
+                        try
+                        {
+                            // An Overload enum was added to ClientResourceLimits post 4.0 GA
+                            // If present, we will need to call processRequest with Overload.NONE
+                            // which happens to be the first enum. Hopefully that doesn't change.
+                            overloadClass = Class.forName("org.apache.cassandra.transport.ClientResourceLimits$Overload");
+                            Class dispatcherClass = Dispatcher.class;
+                            // grab the processRwquest method handle as we'll need to inovke it via Reflection
+                            processRequest = dispatcherClass.getDeclaredMethod("processRequest", ServerConnection.class, Message.Request.class, overloadClass);
+                        }
+                        catch (ClassNotFoundException e)
+                        {
+                            // Overload enum not found.
+                        }
 
-                        Message.Response response = Dispatcher.processRequest((ServerConnection) connection, startup);
+                        Message.Response response;
+                        if (processRequest == null)
+                        {
+                            // call processRequest normally
+                            response = Dispatcher.processRequest((ServerConnection) connection, startup);
+                        }
+                        else
+                        {
+                            // we found an Overload enum, so use reflection to invoke the method.
+                            response = (Message.Response)(processRequest.invoke(null, (ServerConnection) connection, startup, overloadClass.getEnumConstants()[0]));
+                        }
 
                         if (response.type.equals(Message.Type.AUTHENTICATE))
                             // bypass authentication
