@@ -291,32 +291,21 @@ public class UnixSocketServer4x
 
 
                         promise = new VoidChannelPromise(ctx.channel(), false);
-                        Class overloadClass = null;
-                        Method processRequest = null;
-                        try
-                        {
-                            // An Overload enum was added to ClientResourceLimits post 4.0 GA
-                            // If present, we will need to call processRequest with Overload.NONE
-                            // which happens to be the first enum. Hopefully that doesn't change.
-                            overloadClass = Class.forName("org.apache.cassandra.transport.ClientResourceLimits$Overload");
-                            Class dispatcherClass = Dispatcher.class;
-                            // grab the processRwquest method handle as we'll need to inovke it via Reflection
-                            processRequest = dispatcherClass.getDeclaredMethod("processRequest", ServerConnection.class, Message.Request.class, overloadClass);
-                        }
-                        catch (ClassNotFoundException e)
-                        {
-                            // Overload enum not found.
-                        }
 
                         Message.Response response;
-                        if (processRequest == null)
+                        try
                         {
-                            // call processRequest normally
                             response = Dispatcher.processRequest((ServerConnection) connection, startup);
                         }
-                        else
+                        catch (NoSuchMethodError e)
                         {
-                            // we found an Overload enum, so use reflection to invoke the method.
+                            // As of CASSANDRA-16663 (commit d220d24), Dispatcher.processRequest now takes
+                            // three arguments, adding org.apache.cassandra.transport.ClientResourceLimits$Overload
+                            // as the third argument. Use reflection until a new agent for 4.1 is created.
+                            Class<?> overloadClass = Class.forName("org.apache.cassandra.transport.ClientResourceLimits$Overload");
+                            Class dispatcherClass = Dispatcher.class;
+                            // grab the processRwquest method handle as we'll need to inovke it via Reflection
+                            Method processRequest = dispatcherClass.getDeclaredMethod("processRequest", ServerConnection.class, Message.Request.class, overloadClass);
                             response = (Message.Response)(processRequest.invoke(null, (ServerConnection) connection, startup, overloadClass.getEnumConstants()[0]));
                         }
 
