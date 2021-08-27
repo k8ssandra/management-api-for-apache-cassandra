@@ -1,0 +1,62 @@
+apiVersion: datastax.com/v1alpha1
+kind: DseDatacenter
+metadata:
+  name: dc1
+spec:
+  clusterName: testcluster
+  size: 3
+  resources:
+    requests:
+      # TODO this should be a template var and dependent
+      # on the t-shirt size of the cluster
+      memory: 1000
+      cpu: 1000
+  storageClaim:
+    storageclassname: idk
+    resources:
+      requests:
+        storage: idk
+  racks:
+    - name: rack0
+      zone: idk
+  allowMultipleNodesPerWorker: false
+  serviceAccount: "dse"
+  parked: false
+  canaryUpgrade: false
+  configBuilderImage: idk
+  dseVersion: "6.8.0"
+  dseImage: idk
+  dseSuperuserSecret: dse-credentials
+  managementApiAuth:
+    # insecure: {}
+    manual:
+      clientSecretName: mgmt-api-client-credentials
+      serverSecretName: mgmt-api-server-credentials
+  config:
+    node-topology:
+      dc: dc1
+      rack: rack1
+    prometheus:
+      enabled: true
+      port: 9103
+      staleness-delta: 300
+    cassandra-yaml:
+      authenticator: org.apache.cassandra.auth.PasswordAuthenticator
+      authorizer: org.apache.cassandra.auth.CassandraAuthorizer
+      auto_snapshot: false # default is true, but we don't have a good way to use or clean up snapshots when someone drops a table
+      compaction_throughput_mb_per_sec: 64 # default is 16
+      concurrent_compactors: 2 # this is based on tuning for four cores / 15 GB
+      file_cache_size_in_mb: 500 # this is based on tuning for four cores / 15 GB
+      hinted_handoff_throttle_in_kb: 512 # this is based on tuning for four cores / 15 GB
+      memtable_flush_writers: 2  # this is based on tuning for four cores / 15 GB
+      num_tokens: 256 # default is 1
+      phi_convict_threshold: 12 # default is 8
+      role_manager: org.apache.cassandra.auth.CassandraRoleManager
+      endpoint_snitch:  org.apache.cassandra.locator.GossipingPropertyFileSnitch
+    jvm-server-options:
+      heap_new_size: 100M
+      max_heap_size: 500M
+      additional-jvm-opts:
+        - "-Dcassandra.skip_default_role_setup=true"
+        - "-Dcassandra.superuser_setup_delay_ms=100"
+        - "-Dcassandra.system_distributed_replication=dc3:5,dc2:3,dc1:1"
