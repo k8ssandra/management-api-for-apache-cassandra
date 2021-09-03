@@ -1237,4 +1237,47 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.clearSnapshots(?, ?)"), any());
     }
+
+    @Test
+    public void testGetKeyspaces() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/keyspace");
+        when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(mockRow);
+        List<String> result = Arrays.asList("system_auth", "system", "system_distributed");
+        String resultAsJSON = WriterUtility.asString(result, MediaType.APPLICATION_JSON);
+        when(mockRow.getList(0, String.class)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().contains(resultAsJSON));
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getKeyspaces()"));
+    }
+
+    @Test
+    public void testGetKeyspacesWithFilter() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/keyspace?keyspaceName=system");
+        when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(mockRow);
+        List<String> result = Arrays.asList("system_auth", "system", "system_distributed");
+        List<String> filteredResult = Arrays.asList("system");
+        String filteredResultAsJSON = WriterUtility.asString(filteredResult, MediaType.APPLICATION_JSON);
+        when(mockRow.getList(0, String.class)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().contains(filteredResultAsJSON));
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getKeyspaces()"), any());
+    }
 }

@@ -30,6 +30,9 @@ import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
@@ -467,6 +470,39 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         boolean requestSuccessful = client.post(new URIBuilder(BASE_PATH + "/ops/keyspace/alter").build().toURL(), requestAsJSON)
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
         assertTrue(requestSuccessful);
+    }
+
+    @Test
+    public void testGetKeyspaces() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+        String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                .thenApply(this::responseAsString).join();
+
+        String ks = "getkeyspacestest";
+        createKeyspace(client, localDc, ks);
+
+
+        URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace").build();
+        String response = client.get(uri.toURL())
+                .thenApply(this::responseAsString).join();
+        assertNotNull(response);
+        assertNotEquals("", response);
+        assertTrue(response.contains(ks));
+
+        URI uriFilter = new URIBuilder(BASE_PATH + "/ops/keyspace?keyspaceName=" + ks).build();
+        String responseFilter = client.get(uriFilter.toURL())
+                .thenApply(this::responseAsString).join();
+        assertNotNull(responseFilter);
+        assertNotEquals("", responseFilter);
+        
+        final ObjectMapper jsonMapper = new ObjectMapper();
+        List<String> keyspaces = jsonMapper.readValue(responseFilter, new TypeReference<List<String>>(){});
+        assertEquals(1, keyspaces.size());
+        assertEquals(ks, keyspaces.get(0));
     }
 
     @Test

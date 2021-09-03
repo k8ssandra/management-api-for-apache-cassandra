@@ -7,7 +7,10 @@ package com.datastax.mgmtapi.resources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,6 +27,10 @@ import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
 
@@ -31,6 +38,7 @@ import org.apache.http.HttpStatus;
 public class KeyspaceOpsResources
 {
     private static final Logger logger = LoggerFactory.getLogger(KeyspaceOpsResources.class);
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
 
     private final ManagementApplication app;
     private final CqlService cqlService;
@@ -145,6 +153,29 @@ public class KeyspaceOpsResources
                     createOrAlterKeyspaceRequest.keyspaceName, createOrAlterKeyspaceRequest.replicationSettingsAsMap());
 
             return Response.ok("OK").build();
+        });
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List the keyspaces existing in the cluster")
+    public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
+    {
+        return NodeOpsResources.handle(() ->
+        {
+            ResultSet result = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.getKeyspaces()");
+            Row row = result.one();
+            List<String> keyspaces = null;
+            if (row != null)
+            {
+                List<String> allKeyspaces = row.getList(0, String.class);
+                keyspaces = allKeyspaces.stream()
+                        .filter(ks -> ks.equals(keyspaceName) || StringUtils.isBlank(keyspaceName))
+                        .collect(Collectors.toList());
+            }
+
+            return Response.ok(jsonMapper.writeValueAsString(keyspaces), MediaType.APPLICATION_JSON).build();
         });
     }
 }
