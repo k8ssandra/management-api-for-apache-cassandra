@@ -1,6 +1,6 @@
 name: Java CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -43,7 +43,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
         with:
           version: latest
-      - name: Build with Maven
+      - name: Build with Maven and run tests
         run: |
           cat <<EOF > ~/.m2/settings.xml
           <settings>
@@ -62,19 +62,10 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          set -e
           if [[ "${{ matrix.runDSEtests }}" == "true" ]]
           then
-            mvn -B -q package -DskipTests --file pom.xml -P dse
+            MAVEN_OPTS="-P dse -DrunDSEtests=true"
           else
-            mvn -B -q package -DskipTests --file pom.xml
+            MAVEN_OPTS="-Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}"
           fi
-      - name: Run Integration Tests
-        run: |
-          set -e
-          if [[ "${{ matrix.runDSEtests }}" == "true" ]]
-          then
-            mvn -B -q integration-test --file pom.xml -P dse -DrunDSEtests=true
-          else
-            mvn -B -q integration-test --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}
-          fi
+          mvn -B -q install --file pom.xml $MAVEN_OPTS

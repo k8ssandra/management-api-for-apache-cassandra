@@ -328,6 +328,12 @@ public class NodeOpsProvider
         return ShimLoader.instance.get().getStreamInfo();
     }
 
+    @Rpc(name = "getKeyspaces")
+    public List<String> getKeyspaces()
+    {
+        return ShimLoader.instance.get().getKeyspaces();
+    }
+
     @Rpc(name = "createKeyspace")
     public void createKeyspace(@RpcParam(name="keyspaceName") String keyspaceName, @RpcParam(name="replicationSettings") Map<String, Integer> replicationSettings) throws IOException
     {

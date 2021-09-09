@@ -66,4 +66,8 @@ public interface CassandraAPI
     RpcStatementShim makeRpcStatement(String method, String[] params);
 
     HintsService getHintsService();
+
+    default List<String> getKeyspaces() {
+        return StorageService.instance.getKeyspaces();
+    }
 }
