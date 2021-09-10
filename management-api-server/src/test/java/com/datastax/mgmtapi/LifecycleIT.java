@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +27,6 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.auth.AuthenticationException;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.internal.core.auth.PlainTextAuthProvider;
 import org.apache.http.HttpStatus;
 
@@ -284,18 +281,9 @@ public class LifecycleIT extends BaseDockerIntegrationTest
             {
                 ResultSet rs = session.execute(String.format("select replication from system_schema.keyspaces where keyspace_name='%s'", systemKeyspace));
 
-                List<Row> rows = rs.all();
-                Map<String, String> actual = new HashMap<>();
-                for (Row row: rows) {
-                    Map<String, String> params = row.getMap("replication", String.class, String.class);
-                    actual.putAll(params);
-                }
-                assertEquals("1", actual.get("dc1"));
-                assertEquals("3", actual.get("dc2"));
-                assertEquals("5", actual.get("dc3"));
-
+                Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
+                assertEquals("1", params.get("dc1"));
             }
-
         }
         finally
         {
