@@ -59,4 +59,4 @@ spec:
       additional-jvm-opts:
         - "-Dcassandra.skip_default_role_setup=true"
         - "-Dcassandra.superuser_setup_delay_ms=100"
-        - "-Dcassandra.system_distributed_replication=dc3:5,dc2:3,dc1:1"
+        - "-Dcassandra.system_distributed_replication=dc1:1"
