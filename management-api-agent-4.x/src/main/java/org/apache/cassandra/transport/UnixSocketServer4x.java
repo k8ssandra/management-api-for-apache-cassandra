@@ -25,6 +25,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
+import java.lang.reflect.Method;
 import org.apache.cassandra.auth.IAuthenticator;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.service.ClientState;
@@ -291,7 +292,22 @@ public class UnixSocketServer4x
 
                         promise = new VoidChannelPromise(ctx.channel(), false);
 
-                        Message.Response response = Dispatcher.processRequest((ServerConnection) connection, startup);
+                        Message.Response response;
+                        try
+                        {
+                            response = Dispatcher.processRequest((ServerConnection) connection, startup);
+                        }
+                        catch (NoSuchMethodError e)
+                        {
+                            // As of CASSANDRA-16663 (commit d220d24), Dispatcher.processRequest now takes
+                            // three arguments, adding org.apache.cassandra.transport.ClientResourceLimits$Overload
+                            // as the third argument. Use reflection until a new agent for 4.1 is created.
+                            Class<?> overloadClass = Class.forName("org.apache.cassandra.transport.ClientResourceLimits$Overload");
+                            Class dispatcherClass = Dispatcher.class;
+                            // grab the processRwquest method handle as we'll need to inovke it via Reflection
+                            Method processRequest = dispatcherClass.getDeclaredMethod("processRequest", ServerConnection.class, Message.Request.class, overloadClass);
+                            response = (Message.Response)(processRequest.invoke(null, (ServerConnection) connection, startup, overloadClass.getEnumConstants()[0]));
+                        }
 
                         if (response.type.equals(Message.Type.AUTHENTICATE))
                             // bypass authentication
