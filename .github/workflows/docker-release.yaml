@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
           tags: '${{ env.RELEASE_VERSION }}'
           dockerfile: Dockerfile-dse-68
-  build-oss-4_0:
+  build-oss-4_0_1:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -54,11 +54,34 @@ jobs:
           version: latest
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-      - name: Publish 3.11.7 to Registry
+      - name: Publish 4.0.1 to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg CASSANDRA_VERSION=4.0 \
+            --build-arg CASSANDRA_VERSION=4.0.1 \
+            --tag k8ssandra/cass-management-api:4.0.1 \
+            --tag k8ssandra/cass-management-api:4.0.1-$RELEASE_VERSION \
+            --file Dockerfile-4_0 \
+            --target oss40 \
+            --platform linux/amd64,linux/arm64 .
+  build-oss-4_0_0:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+      - name: Publish 4.0.0 to Registry
+        run: |
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          docker buildx build --push \
+            --build-arg CASSANDRA_VERSION=4.0.0 \
             --tag k8ssandra/cass-management-api:4.0.0 \
             --tag k8ssandra/cass-management-api:4.0.0-$RELEASE_VERSION \
             --file Dockerfile-4_0 \

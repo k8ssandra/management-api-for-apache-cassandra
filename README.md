@@ -62,13 +62,13 @@ First you need to build the Management API base image
 
 Then you need to build the image based on the actual Cassandra version, either the 3.11 or 4.0:
 
-**NOTE:** For building 3.11 images, you will need to have the [Docker buildx plugin](https://docs.docker.com/buildx/working-with-buildx/) installed.
+**NOTE:** For building 3.11 and 4.0 images, you will need to have the [Docker buildx plugin](https://docs.docker.com/buildx/working-with-buildx/) installed.
 
-    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.10` with the version you want below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.10 --tag mgmtapi-3_11 --file Dockerfile-oss --target oss311 --platform linux/amd64 .
+    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.11` with the version you want below)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.11 --tag mgmtapi-3_11 --file Dockerfile-oss --target oss311 --platform linux/amd64 .
 
-    #Create a docker image with management api and C* 4.0
-    docker build -t mgmtapi-4_0 -f Dockerfile-4_0 .
+    #Create a docker image with management api and C* 4.0 (version 4.0.0 and 4.0.1 are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.1 --tag mgmtapi-4_0 --file Dockerfile-4_0 --target oss40 --platform linux/amd64 .
 
 You can also build an image based on Datastax Astra Cassandra 4.0 sources. First checkout [sources](https://github.com/datastax/cassandra/tree/astra) and build a tgz distribution:
 
@@ -114,9 +114,11 @@ Finally build the Management API image:
 
       k8ssandra/cass-management-api:3.11.7
       k8ssandra/cass-management-api:3.11.8
-      k8ssandra/cass-management-api:3.11.9
-      k8ssandra/cass-management-api:3.11.10
+      k8ssandra/cass-management-api:3.11.9 (**Deprecated: last version is v0.1.27**)
+      k8ssandra/cass-management-api:3.11.10 (**Deprecated: last version is v0.1.27**)
+      k8ssandra/cass-management-api:3.11.11
       k8ssandra/cass-management-api:4.0.0
+      k8ssandra/cass-management-api:4.0.1
 
   Each of the above examples will always point to the **latest** Management API version for the associated Cassandra version. If you want a specific
   Management API version, you can append the desired version to the Cassandra version tag. For example, if you want v0.1.24 of Management API for Cassandra version 3.11.9:
