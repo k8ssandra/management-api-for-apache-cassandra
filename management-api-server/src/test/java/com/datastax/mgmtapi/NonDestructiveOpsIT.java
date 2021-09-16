@@ -27,6 +27,7 @@ import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
@@ -562,6 +563,25 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         assertTrue(entityObj instanceof List);
         entities = (List<Object>)entityObj;
         assertTrue(entities.isEmpty());
+    }
+
+    @Test
+    public void testRepair() throws IOException, URISyntaxException, InterruptedException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+        URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/repair");
+        URI repairUri = uriBuilder.build();
+
+        // execute repair
+        RepairRequest repairRequest = new RepairRequest("system_auth", null, Boolean.TRUE);
+        String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+        boolean repairSuccessful = client.post(repairUri.toURL(), requestAsJSON).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+        assertTrue("Repair request was not successful", repairSuccessful);
     }
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException

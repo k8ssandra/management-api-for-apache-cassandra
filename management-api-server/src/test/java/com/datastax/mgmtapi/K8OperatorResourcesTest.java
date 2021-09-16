@@ -25,6 +25,7 @@ import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
@@ -1279,5 +1280,35 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains(filteredResultAsJSON));
         verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getKeyspaces()"), any());
+    }
+
+    @Test
+    public void testRepair() throws Exception
+    {
+        Context context = setup();
+        when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+
+        RepairRequest repairRequest = new RepairRequest("test_ks", null, Boolean.TRUE);
+        String repairRequestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+        MockHttpResponse response = postWithBody("/ops/node/repair", repairRequestAsJSON, context);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.repair(?, ?, ?)"), eq("test_ks"), eq(null), eq(true));
+    }
+
+    @Test
+    public void testRepairRequiresKeyspaceName() throws Exception
+    {
+        Context context = setup();
+        when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+
+        RepairRequest repairRequest = new RepairRequest(null, null, Boolean.TRUE);
+        String repairRequestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+        MockHttpResponse response = postWithBody("/ops/node/repair", repairRequestAsJSON, context);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).isEqualTo("keyspaceName must be specified");
     }
 }
