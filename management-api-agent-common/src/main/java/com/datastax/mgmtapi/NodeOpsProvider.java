@@ -38,6 +38,7 @@ import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
 import org.apache.cassandra.db.ConsistencyLevel;
+import org.apache.cassandra.repair.RepairParallelism;
 import org.apache.cassandra.repair.messages.RepairOption;
 
 /**
@@ -462,7 +463,6 @@ public class NodeOpsProvider
     @Rpc(name = "repair")
     public void repair(@RpcParam(name="keyspaceName") String keyspace, @RpcParam(name="tables") List<String> tables, @RpcParam(name="full") Boolean full) throws IOException
     {
-        logger.warn("KEYSPACE = {} ; TABLES = {} ; FULL = {}", keyspace, tables, full);
         // At least one keyspace is required
         if (keyspace != null)
         {
@@ -477,8 +477,13 @@ public class NodeOpsProvider
             }
 
             // handle incremental vs full
-            repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(Boolean.FALSE.equals(full)));
-
+            boolean isIncremental = Boolean.FALSE.equals(full);
+            repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(isIncremental));
+            if (isIncremental)
+            {
+                // incremental repairs will fail if parallelism is not set
+                repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
+            }
             ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
         }
     }
