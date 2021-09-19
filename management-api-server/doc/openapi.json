@@ -355,6 +355,39 @@
         }
       }
     },
+    "/api/v0/ops/node/fullquerylogging" : {
+      "put" : {
+        "summary" : "Enable or disable full query logging facility.",
+        "operationId" : "setFullQuerylog",
+        "parameters" : [ {
+          "name" : "enabled",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      },
+      "get" : {
+        "summary" : "Get whether full query logging is enabled.",
+        "operationId" : "isFullQueryLogEnabled",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/node/decommission" : {
       "post" : {
         "summary" : "Decommission the *node I am connecting to*",

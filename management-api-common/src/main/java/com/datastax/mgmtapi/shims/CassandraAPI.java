@@ -29,6 +29,23 @@ import org.apache.cassandra.transport.Server;
  */
 public interface CassandraAPI
 {
+    
+    default public void enableFullQuerylog()
+    {
+        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+    }
+    
+    default public void disableFullQuerylog() 
+    {
+        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+    }
+    
+    default public boolean isFullQueryLogEnabled() 
+    {
+        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+        
+    }
+
     void decommission(boolean force) throws InterruptedException;
 
     Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
