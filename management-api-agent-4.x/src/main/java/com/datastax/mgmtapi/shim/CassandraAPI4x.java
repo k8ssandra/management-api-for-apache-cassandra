@@ -36,6 +36,7 @@ import org.apache.cassandra.db.compaction.CompactionManager;
 import org.apache.cassandra.dht.IPartitioner;
 import org.apache.cassandra.dht.Range;
 import org.apache.cassandra.dht.Token;
+import org.apache.cassandra.fql.FullQueryLoggerOptions;
 import org.apache.cassandra.gms.ApplicationState;
 import org.apache.cassandra.gms.EndpointState;
 import org.apache.cassandra.gms.Gossiper;
@@ -66,7 +67,37 @@ public class CassandraAPI4x implements CassandraAPI
     private static final Logger logger = LoggerFactory.getLogger(CassandraAPI4x.class);
 
     private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(() -> new K8SeedProvider4x());
-
+    
+    @Override
+    public void enableFullQuerylog() 
+    {
+        logger.debug("Getting FQL options and calling enableFullQueryLogger.");
+        FullQueryLoggerOptions fqlOpts = DatabaseDescriptor.getFullQueryLogOptions();
+        StorageService.instance.enableFullQueryLogger(fqlOpts.log_dir, 
+            fqlOpts.roll_cycle, 
+            fqlOpts.block, 
+            fqlOpts.max_queue_weight, 
+            fqlOpts.max_log_size, 
+            fqlOpts.archive_command, 
+            fqlOpts.max_archive_retries);
+    }
+    
+    @Override
+    public void disableFullQuerylog() 
+    {
+        logger.debug("Stopping FullQueryLogger.");
+        StorageService.instance.stopFullQueryLogger();
+    }
+    
+    @Override
+    public boolean isFullQueryLogEnabled() 
+    {
+        boolean isEnabled = StorageService.instance.isFullQueryLogEnabled();
+        logger.debug("Querying whether full query logging is enabled. Result is {}", isEnabled);
+        return isEnabled;
+        
+    }
+    
     @Override
     public void decommission(boolean force) throws InterruptedException
     {

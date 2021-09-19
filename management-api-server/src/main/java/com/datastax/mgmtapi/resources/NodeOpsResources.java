@@ -348,6 +348,35 @@ public class NodeOpsResources
         });
     }
 
+    @POST
+    @Path("/fullquerylogging")
+    @Operation(summary = "Enable or disable full query logging facility.")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response setFullQuerylog(@QueryParam(value="enabled")boolean fullQueryLoggingEnabled)
+    {
+        return handle(() ->
+        {   logger.debug("Running CALL NodeOps.setFullQuerylog(?) " + fullQueryLoggingEnabled);
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.setFullQuerylog(?)", fullQueryLoggingEnabled);
+            return Response.ok("OK").build();
+        });
+    }
+
+    @GET
+    @Path("/fullquerylogging")
+    @Operation(summary = "Get whether full query logging is enabled.")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response isFullQueryLogEnabled()
+    {
+        return handle(() ->
+        {
+            logger.debug("CALL NodeOps.isFullQueryLogEnabled()");
+            Row row = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.isFullQueryLogEnabled()").one();
+            Object queryResponse = null;
+            if (row != null) { queryResponse = row.getObject(0); }
+            return Response.ok(Entity.json(queryResponse)).build();
+        });
+    }
+
     static Response handle(Callable<Response> action)
     {
         try

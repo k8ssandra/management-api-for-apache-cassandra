@@ -68,7 +68,7 @@ public class DseAPI68 implements CassandraAPI
     private static final Logger logger = LoggerFactory.getLogger(DseAPI68.class);
 
     private static final Supplier<SeedProvider> seedProvider = Suppliers.memoize(K8SeedProviderDse68::new)::get;
-
+    
     @Override
     public void decommission(boolean force) throws InterruptedException
     {
