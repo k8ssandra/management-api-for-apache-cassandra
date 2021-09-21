@@ -87,6 +87,8 @@ Finally build the Management API image:
 
 ### Standalone
 
+Note that the tests will not run correctly on MacOS because the IPC classes will fail.
+
     mvn -DskipTests package
     mvn test
     mvn integration-test -Drun311tests=true -Drun40tests=true
@@ -195,6 +197,18 @@ docker run -p 8080:8080 -it --rm mgmtapi-dse
     # Stop C*/DSE
     curl -XPOST --unix-socket /tmp/mgmtapi.sock http://localhost/api/v0/lifecycle/stop
     OK
+
+# Making changes
+
+The architecture of this repository is laid as follows, front-to-back:
+
+1. The `management-api-server/doc/openapi.json` documents the API.
+2. The server implements the HTTP verbs/endpoints under the `management-api-server/src/main/java/com/datastax/mgmtapi/resources` folder (e.g. `NodeOpsresources.java`).
+3. The server methods communicate back to the agents using `cqlService.executePreparedStatement()` calls which are routed as plaintext through a local socket. These calls return `ResultSet` objects, and to acess scalar values within these you are best to call `.one()` before checking for nulls and `.getObject(0)`. This java objectcan then be serialised into JSON for return to the client.
+4. The server communicates only with the `management-api-agent-common` subproject, which holds the unversioned `CassandraAPI` interface.
+5. The `management-api-agent-common/src/main/java/com/datastax/mgmtapi/NodeOpsProvider.java` routes commands through to specific versioned instances of `CassandraAPI` which is implemented in the version 3x/4x subprojects as `CassandraAPI4x`/`CassandraAPI3x`.
+
+Any change to add endpoints or features will need to make modifications in each of the above components to ensure that they propagate through.
 
 # CLI Help
   The CLI help covers the different options:
