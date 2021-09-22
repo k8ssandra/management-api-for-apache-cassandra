@@ -118,6 +118,27 @@
         }
       }
     },
+    "/api/v0/ops/keyspace" : {
+      "get" : {
+        "summary" : "List the keyspaces existing in the cluster",
+        "operationId" : "list",
+        "parameters" : [ {
+          "name" : "keyspaceName",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/keyspace/refresh" : {
       "post" : {
         "summary" : "Load newly placed SSTables to the system without restart",
@@ -594,6 +615,29 @@
         }
       }
     },
+    "/api/v0/ops/node/repair" : {
+      "post" : {
+        "summary" : "Execute a nodetool repair operation",
+        "operationId" : "repair",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RepairRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/tables/sstables/upgrade" : {
       "post" : {
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
@@ -861,6 +905,24 @@
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "RepairRequest" : {
+        "required" : [ "keyspace_name" ],
+        "type" : "object",
+        "properties" : {
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "full" : {
+            "type" : "boolean"
           }
         }
       }
