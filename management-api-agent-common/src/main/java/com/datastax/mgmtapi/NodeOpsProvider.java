@@ -66,6 +66,34 @@ public class NodeOpsProvider
         RpcRegistry.unregister(RPC_CLASS_NAME);
     }
 
+    @Rpc(name = "setFullQuerylog")
+    public void setFullQuerylog(@RpcParam(name="enabled") boolean fullQueryLoggingEnabled) throws UnsupportedOperationException
+    {
+        logger.debug("Attempting to set full query logging to " + fullQueryLoggingEnabled);
+        // Warning: bad design here. Default implementation will throw UnsupportedOperationException at runtime. Comparing strings to get versions is also ugly.
+        String cassVersion = ShimLoader.instance.get().getStorageService().getReleaseVersion();
+        if (Integer.parseInt(cassVersion.split("\\.")[0]) < 4){
+            logger.error("Full query logging is not available in Cassandra < 4x. This call is going to fail.");
+        }
+        if (fullQueryLoggingEnabled) {
+            ShimLoader.instance.get().enableFullQuerylog();
+        } else {
+            ShimLoader.instance.get().disableFullQuerylog();
+        }
+    }
+
+    @Rpc(name = "isFullQueryLogEnabled")
+    public boolean isFullQueryLogEnabled() throws UnsupportedOperationException
+    {
+        String cassVersion = ShimLoader.instance.get().getStorageService().getReleaseVersion();
+        logger.debug("Attempting to retrieve full query logging status for cassandra version" + cassVersion + ".");
+        if (Integer.parseInt(cassVersion.split("\\.")[0]) < 4){
+            logger.error("Full query logging is not available in Cassandra < 4x. This call is going to fail.");
+        }
+        logger.debug("Calling ShimLoader.instance.get().isFullQueryLogEnabled()");
+        return ShimLoader.instance.get().isFullQueryLogEnabled();
+    }
+
     @Rpc(name = "reloadSeeds")
     public List<String> reloadSeeds()
     {
