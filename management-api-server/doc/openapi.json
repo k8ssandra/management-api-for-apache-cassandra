@@ -377,7 +377,7 @@
       }
     },
     "/api/v0/ops/node/fullquerylogging" : {
-      "put" : {
+      "post" : {
         "summary" : "Enable or disable full query logging facility.",
         "operationId" : "setFullQuerylog",
         "parameters" : [ {
