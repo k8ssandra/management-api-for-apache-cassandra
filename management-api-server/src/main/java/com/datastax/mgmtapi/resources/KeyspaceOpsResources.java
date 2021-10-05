@@ -7,6 +7,7 @@ package com.datastax.mgmtapi.resources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
@@ -176,6 +177,35 @@ public class KeyspaceOpsResources
             }
 
             return Response.ok(jsonMapper.writeValueAsString(keyspaces), MediaType.APPLICATION_JSON).build();
+        });
+    }
+
+    @GET
+    @Path("/replication")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get the replication settings of an existing keyspace")
+    public Response getReplication(@QueryParam(value="keyspaceName")String keyspaceName)
+    {
+        if (StringUtils.isBlank(keyspaceName))
+        {
+            return Response.status(HttpStatus.SC_BAD_REQUEST)
+                    .entity("Get keyspace replication failed. Non-empty 'keyspaceName' must be provided").build();
+        }
+        return NodeOpsResources.handle(() ->
+        {
+            ResultSet result = cqlService.executePreparedStatement(
+                    app.dbUnixSocketFile, "CALL NodeOps.getReplication(?)", keyspaceName);
+            Row row = result.one();
+            if (row == null)
+            {
+                return Response.status(HttpStatus.SC_NOT_FOUND)
+                        .entity(String.format("Get keyspace replication failed. Keyspace '%s' does not exist.", keyspaceName)).build();
+            } else {
+                Map<String, String> replication = row.getMap(0, String.class, String.class);
+                assert replication != null;
+                return Response.ok(replication, MediaType.APPLICATION_JSON).build();
+            }
         });
     }
 }

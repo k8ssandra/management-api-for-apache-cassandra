@@ -143,12 +143,20 @@ public class DockerHelper
             throw new IllegalStateException("Container not started");
 
         String execId = DOCKER_CLIENT.execCreateCmd(container).withTty(true).withCmd("tail", "-n " + numberOfLines, "/var/log/cassandra/system.log").withAttachStderr(true).withAttachStdout(true).exec().getId();
-        DOCKER_CLIENT.execStartCmd(execId).withTty(true).exec(new Adapter<Frame>() {
-            @Override
-            public void onNext(Frame item) {
-                System.out.print(new String(item.getPayload()));
-            }
-        });
+        try
+        {
+            DOCKER_CLIENT.execStartCmd(execId).withTty(true).exec(new Adapter<Frame>() {
+                @Override
+                public void onNext(Frame item) {
+                    System.out.print(new String(item.getPayload()));
+                }
+            }).awaitCompletion();
+        }
+        catch (InterruptedException e)
+        {
+            Thread.currentThread().interrupt();
+            logger.warn("tail system.log interrupted");
+        }
     }
 
     public void waitTillFinished(String execId)
