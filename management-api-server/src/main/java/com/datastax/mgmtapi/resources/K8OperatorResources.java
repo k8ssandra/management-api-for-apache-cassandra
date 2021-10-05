@@ -12,12 +12,14 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,5 +119,33 @@ public class K8OperatorResources
 
             return Response.ok(jsonMapper.writeValueAsString(response), MediaType.APPLICATION_JSON).build();
         });
+    }
+
+    @GET
+    @Path("/ops/executor/job")
+    public Response getJobStatus(@QueryParam(value="job_id") String jobId) {
+        return handle(() -> {
+            Map<String, String> jobResponse = (Map<String, String>) getSingleRowResponse("CALL NodeOps.jobStatus(?)", jobId);
+            return Response.ok(jobResponse, MediaType.APPLICATION_JSON).build();
+        });
+    }
+
+    Object getSingleRowResponse(String query, Object... params) throws ConnectionClosedException {
+        ResultSet rs;
+
+        if(params.length > 0) {
+            rs = cqlService.executePreparedStatement(app.dbUnixSocketFile, query, params);
+        } else {
+            rs = cqlService.executeCql(app.dbUnixSocketFile, query);
+        }
+
+        Row row = rs.one();
+        Object queryResponse = null;
+        if (row != null)
+        {
+            queryResponse = row.getObject(0);
+        }
+
+        return queryResponse;
     }
 }

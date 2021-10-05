@@ -19,14 +19,23 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.TabularData;
 
+import com.datastax.mgmtapi.util.Job;
+import com.datastax.mgmtapi.util.JobExecutor;
+import com.datastax.oss.driver.shaded.guava.common.util.concurrent.ListenableFutureTask;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import org.apache.cassandra.db.compaction.OperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +69,7 @@ public class NodeOpsProvider
 {
     private static final Logger logger = LoggerFactory.getLogger(NodeOpsProvider.class);
     public static final Supplier<NodeOpsProvider> instance = Suppliers.memoize(() -> new NodeOpsProvider());
+    public static final JobExecutor service = new JobExecutor();
 
     public static final String RPC_CLASS_NAME = "NodeOps";
 
@@ -78,6 +88,22 @@ public class NodeOpsProvider
     public synchronized void unregister()
     {
         RpcRegistry.unregister(RPC_CLASS_NAME);
+    }
+
+    @Rpc(name = "jobStatus")
+    public Map<String, String> getJobStatus(String jobId) {
+        Map<String, String> resultMap = new HashMap<>();
+        Job jobWithId = service.getJobWithId(jobId);
+        resultMap.put("id", jobWithId.getJobId());
+        resultMap.put("type", jobWithId.getJobType());
+        resultMap.put("status", jobWithId.getStatus().name());
+        resultMap.put("submit_time", String.valueOf(jobWithId.getSubmitTime()));
+        resultMap.put("end_time", String.valueOf(jobWithId.getFinishedTime()));
+        if(jobWithId.getStatus() == Job.JobStatus.ERROR) {
+            resultMap.put("error", jobWithId.getError().getLocalizedMessage());
+        }
+
+        return resultMap;
     }
 
     @Rpc(name = "setFullQuerylog")
@@ -212,21 +238,30 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "forceKeyspaceCleanup")
-    public void forceKeyspaceCleanup(@RpcParam(name="jobs") int jobs,
+    public String forceKeyspaceCleanup(@RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Reloading local schema");
-        List<String> keyspaces = Collections.singletonList(keyspaceName);
-        if (keyspaceName != null && keyspaceName.toUpperCase().equals("NON_LOCAL_STRATEGY"))
+        final List<String> keyspaces = new ArrayList<>();
+
+        if (keyspaceName != null && keyspaceName.equalsIgnoreCase("NON_LOCAL_STRATEGY"))
         {
-            keyspaces = ShimLoader.instance.get().getStorageService().getNonLocalStrategyKeyspaces();
+            keyspaces.addAll(ShimLoader.instance.get().getStorageService().getNonLocalStrategyKeyspaces());
+        } else {
+            keyspaces.add(keyspaceName);
         }
 
-        for (String keyspace : keyspaces)
-        {
-            ShimLoader.instance.get().getStorageService().forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
-        }
+        // Send to background execution
+        return service.submit(OperationType.CLEANUP.name(), () -> {
+            for (String keyspace : keyspaces) {
+                try {
+                    ShimLoader.instance.get().getStorageService().forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
+                } catch (IOException | ExecutionException | InterruptedException e) {
+                    logger.error("Failed to execute forceKeyspaceCleanup in " + keyspace, e);
+                }
+            }
+        });
     }
 
     @Rpc(name = "forceKeyspaceCompactionForTokenRange")

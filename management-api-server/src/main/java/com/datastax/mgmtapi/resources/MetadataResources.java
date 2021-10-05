@@ -12,6 +12,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.datastax.mgmtapi.resources.models.FeatureSet;
+import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +29,7 @@ import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 public class MetadataResources
 {
     private static final Logger logger = LoggerFactory.getLogger(MetadataResources.class);
+    private static final String CASSANDRA_VERSION_CQL_STRING = "CALL NodeOps.getReleaseVersion()";
 
     private final ManagementApplication app;
     private final CqlService cqlService;
@@ -42,7 +45,7 @@ public class MetadataResources
     @Produces(MediaType.TEXT_PLAIN)
     public Response getReleaseVersion()
     {
-        return executeWithStringResponse("CALL NodeOps.getReleaseVersion()");
+        return executeWithStringResponse(CASSANDRA_VERSION_CQL_STRING);
     }
 
     @GET
@@ -63,6 +66,19 @@ public class MetadataResources
         return executeWithStringResponse("CALL NodeOps.getLocalDataCenter()");
     }
 
+    @GET
+    @Path("/versions/features")
+    @Operation(summary = "Returns the management-api featureSet")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getFeatureSet() {
+        return handle(() -> {
+            String cassandraVersion = getSingleRowResponse(CASSANDRA_VERSION_CQL_STRING);
+            // TODO management-api-release-version is not included in the release packages
+            FeatureSet featureSet = new FeatureSet(cassandraVersion, "");
+            return Response.ok(featureSet).build();
+        });
+    }
+
     /**
      * Executes a CQL query with the expectation that there will be a single row returned with type String
      *
@@ -73,18 +89,7 @@ public class MetadataResources
     private Response executeWithStringResponse(String query)
     {
         return handle(() ->
-        {
-            ResultSet rs = cqlService.executeCql(app.dbUnixSocketFile, query);
-
-            Row row = rs.one();
-            String queryResponse = null;
-            if (row != null)
-            {
-                queryResponse = row.getString(0);
-            }
-
-            return Response.ok(queryResponse).build();
-        });
+                Response.ok(getSingleRowResponse(query)).build());
     }
 
     /**
@@ -109,5 +114,18 @@ public class MetadataResources
 
             return Response.ok(Entity.json(queryResponse)).build();
         });
+    }
+
+    private String getSingleRowResponse(String query) throws ConnectionClosedException {
+        ResultSet rs = cqlService.executeCql(app.dbUnixSocketFile, query);
+
+        Row row = rs.one();
+        String queryResponse = null;
+        if (row != null)
+        {
+            queryResponse = row.getString(0);
+        }
+
+        return queryResponse;
     }
 }

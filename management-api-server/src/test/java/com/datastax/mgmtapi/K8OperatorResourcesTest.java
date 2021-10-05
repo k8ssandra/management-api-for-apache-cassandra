@@ -5,37 +5,19 @@
  */
 package com.datastax.mgmtapi;
 
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.datastax.mgmtapi.resources.*;
+import com.datastax.mgmtapi.resources.models.*;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.tuple.Pair;
-
-import com.datastax.mgmtapi.resources.K8OperatorResources;
-import com.datastax.mgmtapi.resources.KeyspaceOpsResources;
-import com.datastax.mgmtapi.resources.MetadataResources;
-import com.datastax.mgmtapi.resources.NodeOpsResources;
-import com.datastax.mgmtapi.resources.TableOpsResources;
-import com.datastax.mgmtapi.resources.models.CompactRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.CreateTableRequest;
-import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
-import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
-import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.RepairRequest;
-import com.datastax.mgmtapi.resources.models.ReplicationSetting;
-import com.datastax.mgmtapi.resources.models.ScrubRequest;
-import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
@@ -46,27 +28,21 @@ import org.jboss.resteasy.spi.HttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
-import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 
 public class K8OperatorResourcesTest {
 
-    String ROOT_PATH = "/api/v0";
+    static String ROOT_PATH = "/api/v0";
 
     static class Context {
 
@@ -80,7 +56,7 @@ public class K8OperatorResourcesTest {
         }
     }
 
-    private static Context setup() {
+    static Context setup() {
         Context context = new Context();
         context.dispatcher = createDispatcher();
         context.cqlService = mock(CqlService.class);
@@ -138,30 +114,6 @@ public class K8OperatorResourcesTest {
         Assert.assertTrue(response.getContentAsString().contains("[\"127.0.0.1\"]"));
 
         verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.reloadSeeds()"));
-    }
-
-    @Test
-    public void testGetReleaseVersion() throws Exception {
-        Context context = setup();
-        ResultSet mockResultSet = mock(ResultSet.class);
-        Row mockRow = mock(Row.class);
-
-        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/metadata/versions/release");
-        when(context.cqlService.executeCql(any(), anyString()))
-                .thenReturn(mockResultSet);
-
-        when(mockResultSet.one())
-                .thenReturn(mockRow);
-
-        when(mockRow.getString(0))
-                .thenReturn("1.2.3");
-
-        MockHttpResponse response = context.invoke(request);
-
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("1.2.3"));
-
-        verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
     }
 
     @Test
@@ -502,40 +454,103 @@ public class K8OperatorResourcesTest {
     }
 
     @Test
+    public void testJobStatus() throws Exception {
+        Context context = setup();
+
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        Map<String, String> jobDetailsRow = new HashMap<>();
+        jobDetailsRow.put("id", "0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+        jobDetailsRow.put("type", "CLEANUP");
+        jobDetailsRow.put("status", "COMPLETED");
+        jobDetailsRow.put("submit_time", String.valueOf(System.currentTimeMillis()));
+        jobDetailsRow.put("end_time", String.valueOf(System.currentTimeMillis()));
+
+        when(mockRow.getObject(0))
+                .thenReturn(jobDetailsRow);
+
+        MockHttpResponse response = getJobStatusWithId(context, "/ops/executor/job?job_id=0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.jobStatus(?)"), anyString());
+
+        String json = response.getContentAsString();
+
+        Job jobDetails = new ObjectMapper().readValue(json, Job.class);
+
+        assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", jobDetails.getJobId());
+        assertEquals("COMPLETED", jobDetails.getStatus().toString());
+        assertEquals("CLEANUP", jobDetails.getJobType());
+    }
+
+    private MockHttpResponse getJobStatusWithId(Context context, String path) throws URISyntaxException {
+        MockHttpRequest request = MockHttpRequest
+                .get(ROOT_PATH + path)
+                .accept(MediaType.TEXT_PLAIN)
+                .contentType(MediaType.APPLICATION_JSON_TYPE);
+
+        return context.invoke(request);
+    }
+
+    @Test
     public void testCleanup() throws Exception {
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "keyspace", Arrays.asList("table1", "table2"));
 
         Context context = setup();
 
-        when(context.cqlService.executePreparedStatement(any(), anyString()))
-                .thenReturn(null);
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("OK"));
+        Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"), any());
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"), any());
     }
 
     @Test
     public void testCleanup_SystemKeyspace() throws Exception {
         KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "system", Arrays.asList("table1", "table2"));
 
-
         Context context = setup();
 
-        when(context.cqlService.executePreparedStatement(any(), anyString()))
-                .thenReturn(null);
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("OK"));
+        Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verifyZeroInteractions(context.cqlService);
+        verifyNoInteractions(context.cqlService, timeout(500));
     }
 
     @Test
@@ -544,16 +559,25 @@ public class K8OperatorResourcesTest {
 
         Context context = setup();
 
-        when(context.cqlService.executePreparedStatement(any(), anyString()))
-                .thenReturn(null);
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("OK"));
+        Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
                 any(), eq(keyspaceRequest.keyspaceName), any());
     }
 
@@ -563,16 +587,25 @@ public class K8OperatorResourcesTest {
 
         Context context = setup();
 
-        when(context.cqlService.executePreparedStatement(any(), anyString()))
-                .thenReturn(null);
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-        Assert.assertTrue(response.getContentAsString().contains("OK"));
+        Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
                 any(), eq("NON_LOCAL_STRATEGY"), any());
     }
 

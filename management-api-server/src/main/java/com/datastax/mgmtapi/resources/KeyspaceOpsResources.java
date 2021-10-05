@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
+
+import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 
 @Path("/api/v0/ops/keyspace")
 public class KeyspaceOpsResources
@@ -53,7 +56,7 @@ public class KeyspaceOpsResources
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces")
+    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately")
     public Response cleanup(KeyspaceRequest keyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -74,10 +77,8 @@ public class KeyspaceOpsResources
                 return Response.ok("OK").build();
             }
 
-            cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                    "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)", keyspaceRequest.jobs, keyspaceName, tables);
-
-            return Response.ok("OK").build();
+            return Response.ok(getSingleRowResponse("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)",
+                    keyspaceRequest.jobs, keyspaceName, tables)).build();
         });
     }
 
@@ -185,10 +186,8 @@ public class KeyspaceOpsResources
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the replication settings of an existing keyspace")
-    public Response getReplication(@QueryParam(value="keyspaceName")String keyspaceName)
-    {
-        if (StringUtils.isBlank(keyspaceName))
-        {
+    public Response getReplication(@QueryParam(value="keyspaceName")String keyspaceName) {
+        if (StringUtils.isBlank(keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)
                     .entity("Get keyspace replication failed. Non-empty 'keyspaceName' must be provided").build();
         }
@@ -197,8 +196,7 @@ public class KeyspaceOpsResources
             ResultSet result = cqlService.executePreparedStatement(
                     app.dbUnixSocketFile, "CALL NodeOps.getReplication(?)", keyspaceName);
             Row row = result.one();
-            if (row == null)
-            {
+            if (row == null) {
                 return Response.status(HttpStatus.SC_NOT_FOUND)
                         .entity(String.format("Get keyspace replication failed. Keyspace '%s' does not exist.", keyspaceName)).build();
             } else {
@@ -207,5 +205,24 @@ public class KeyspaceOpsResources
                 return Response.ok(replication, MediaType.APPLICATION_JSON).build();
             }
         });
+    }
+
+    String getSingleRowResponse(String query, Object... params) throws ConnectionClosedException {
+        ResultSet rs;
+
+        if(params.length > 0) {
+            rs = cqlService.executePreparedStatement(app.dbUnixSocketFile, query, params);
+        } else {
+            rs = cqlService.executeCql(app.dbUnixSocketFile, query);
+        }
+
+        Row row = rs.one();
+        String queryResponse = null;
+        if (row != null)
+        {
+            queryResponse = row.getString(0);
+        }
+
+        return queryResponse;
     }
 }
