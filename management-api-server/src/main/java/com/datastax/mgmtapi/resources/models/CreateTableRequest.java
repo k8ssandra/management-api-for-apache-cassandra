@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CreateOrAlterTableRequest implements Serializable
+public class CreateTableRequest implements Serializable
 {
 
     @JsonProperty(value = "keyspace_name", required = true)
@@ -35,10 +35,10 @@ public class CreateOrAlterTableRequest implements Serializable
     public final Map<String, Object> options;
 
     @JsonCreator
-    public CreateOrAlterTableRequest(@JsonProperty(value = "keyspace_name", required = true) String keyspaceName,
-                                     @JsonProperty(value = "table_name", required = true) String tableName,
-                                     @JsonProperty(value = "columns", required = true) List<Column> columns,
-                                     @JsonProperty("options") Map<String, Object> options)
+    public CreateTableRequest(@JsonProperty(value = "keyspace_name", required = true) String keyspaceName,
+                              @JsonProperty(value = "table_name", required = true) String tableName,
+                              @JsonProperty(value = "columns", required = true) List<Column> columns,
+                              @JsonProperty("options") Map<String, Object> options)
     {
         this.keyspaceName = keyspaceName;
         this.tableName = tableName;

@@ -29,9 +29,9 @@ import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest.Column;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest.ColumnKind;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
@@ -682,7 +682,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         String ks = "createtabletest";
         createKeyspace(client, localDc, ks);
 
-        CreateOrAlterTableRequest request = new CreateOrAlterTableRequest(
+        CreateTableRequest request = new CreateTableRequest(
             ks,
             "table1",
             ImmutableList.of(

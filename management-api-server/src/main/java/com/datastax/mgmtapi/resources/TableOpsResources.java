@@ -20,7 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.mgmtapi.resources.models.CompactRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -257,7 +257,7 @@ public class TableOpsResources
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new table")
-    public Response create(CreateOrAlterTableRequest request)
+    public Response create(CreateTableRequest request)
     {
         try {
             request.validate();

@@ -26,9 +26,9 @@ import com.datastax.mgmtapi.resources.NodeOpsResources;
 import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest.Column;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterTableRequest.ColumnKind;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
@@ -1445,7 +1445,7 @@ public class K8OperatorResourcesTest {
                 "option2a", "value2a",
                 "option2b", "value2b"));
 
-        CreateOrAlterTableRequest body = new CreateOrAlterTableRequest("ks1", "table1", columns, options);
+        CreateTableRequest body = new CreateTableRequest("ks1", "table1", columns, options);
 
         when(context.cqlService
             .executePreparedStatement(
@@ -1497,93 +1497,93 @@ public class K8OperatorResourcesTest {
     {
         Context context = setup();
 
-        List<Pair<CreateOrAlterTableRequest, String>> testCases = ImmutableList.of(
-            Pair.of(new CreateOrAlterTableRequest("", "table1", ImmutableList.of(), null),
+        List<Pair<CreateTableRequest, String>> testCases = ImmutableList.of(
+            Pair.of(new CreateTableRequest("", "table1", ImmutableList.of(), null),
                  "Table creation failed: 'keyspace_name' must not be empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "", ImmutableList.of(), null),
+            Pair.of(new CreateTableRequest("ks1", "", ImmutableList.of(), null),
                  "Table creation failed: 'table_name' must not be empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(), null),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(), null),
                  "Table creation failed: 'columns' must not be empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("pk", "int", ColumnKind.REGULAR, 0, null)), null),
                  "Table creation failed: duplicated column name: 'pk'"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("", "int", ColumnKind.PARTITION_KEY, 0, null)), null),
                  "Table creation failed: 'columns[0].name' must not be empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "", ColumnKind.PARTITION_KEY, 0, null)), null),
                  "Table creation failed: 'columns[0].type' must not be empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "list<", ColumnKind.PARTITION_KEY, 0, null)), null),
                  "Table creation failed: 'columns[0].type' is invalid: Syntax error parsing 'list<' at char 5: unexpected end of string"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", null, 0, null)), null),
                  "Table creation failed: 'columns[0].kind' must not be null"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, -1, null)), null),
                  "Table creation failed: 'columns[0].position' must not be negative for partition key columns"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, -1, null)), null),
                  "Table creation failed: 'columns[1].position' must not be negative for clustering columns"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, 0, null)), null),
                  "Table creation failed: 'columns[1].order' must not be empty for clustering columns"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.REGULAR, 0, null)), null),
                  "Table creation failed: invalid primary key: partition key is empty"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 1, null)), null),
                  "Table creation failed: invalid primary key: missing partition key at position 0"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("pk2", "int", ColumnKind.PARTITION_KEY, 0, null)), null),
                  "Table creation failed: invalid primary key: found 2 partition key columns at position 0"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.ASC)), null),
                  "Table creation failed: invalid primary key: missing clustering column at position 0"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
                  new Column("cc1", "int", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
                  new Column("cc2", "int", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC)), null),
                  "Table creation failed: invalid primary key: found 2 clustering columns at position 0"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null)),
-                       new LinkedHashMap<String, Object>()
+                                           new LinkedHashMap<String, Object>()
                        {{
                            put("option1", null);
                        }}),
                  "Table creation failed: invalid value for option 'option1': expected String or Map<String,String>, got: null"
             ),
-            Pair.of(new CreateOrAlterTableRequest("ks1", "table1", ImmutableList.of(
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
                  new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null)),
-                      ImmutableMap.of("option1", ImmutableMap.of("option1a", "value1a", "option1b", 123))),
+                                           ImmutableMap.of("option1", ImmutableMap.of("option1a", "value1a", "option1b", 123))),
                  "Table creation failed: invalid value for option 'option1': expected String or Map<String,String>, got: {option1a=value1a, option1b=123}"
             )
         );
 
         JsonMapper jsonMapper = new JsonMapper();
 
-        for (Pair<CreateOrAlterTableRequest, String> testCase : testCases)
+        for (Pair<CreateTableRequest, String> testCase : testCases)
         {
             String testCaseDescription = jsonMapper.writeValueAsString(testCase.getKey());
             MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/tables/create")
