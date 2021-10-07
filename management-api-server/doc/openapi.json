@@ -755,7 +755,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/CreateOrAlterTableRequest"
+                "$ref" : "#/components/schemas/CreateTableRequest"
               },
               "example": {
                 "keyspace_name" : "ks1",
@@ -1075,7 +1075,7 @@
           }
         }
       },
-      "CreateOrAlterTableRequest" : {
+      "CreateTableRequest": {
         "type" : "object",
         "required": [
           "keyspace_name",
