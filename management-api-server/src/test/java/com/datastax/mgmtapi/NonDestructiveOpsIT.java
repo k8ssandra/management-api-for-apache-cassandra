@@ -679,7 +679,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
                 .thenApply(this::responseAsString).join();
 
-        // this tst also test case sensitivity in CQL identifiers.
+        // this test also tests case sensitivity in CQL identifiers.
         // TODO verify that the case-sensitive column names below are properly created
         String ks = "CreateTableTest";
         createKeyspace(client, localDc, ks);
