@@ -121,7 +121,7 @@
     "/api/v0/ops/keyspace" : {
       "get" : {
         "summary" : "List the keyspaces existing in the cluster",
-        "operationId" : "list",
+        "operationId" : "listKeyspaces",
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
@@ -134,6 +134,52 @@
             "description" : "default response",
             "content" : {
               "application/json" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/keyspace/replication" : {
+      "get" : {
+        "summary" : "Get the replication settings of an existing keyspace",
+        "operationId" : "replication",
+        "parameters" : [ {
+          "name" : "keyspaceName",
+          "required": true,
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "examples": {
+                  "NetworkTopologyStrategy": {
+                    "value": {
+                      "class": "org.apache.cassandra.locator.NetworkTopologyStrategy",
+                      "dc1": "3",
+                      "dc2": "1"
+                    },
+                    "summary": "Example for a keyspace with NetworkTopologyStrategy"
+                  },
+                  "SimpleStrategy": {
+                    "value": {
+                      "class": "org.apache.cassandra.locator.SimpleStrategy",
+                      "replication_factor": "3"
+                    },
+                    "summary": "Example for a keyspace with SimpleStrategy"
+                  }
+                }
+              }
             }
           }
         }
@@ -169,7 +215,7 @@
     "/api/v0/ops/keyspace/alter" : {
       "post" : {
         "summary" : "Alter the replication settings of an existing keyspace",
-        "operationId" : "alter",
+        "operationId" : "alterKeyspace",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -192,7 +238,7 @@
     "/api/v0/ops/keyspace/create" : {
       "post" : {
         "summary" : "Create a new keyspace with the given name and replication settings",
-        "operationId" : "create",
+        "operationId" : "createKeyspace",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -671,6 +717,76 @@
         }
       }
     },
+    "/api/v0/ops/tables" : {
+      "get" : {
+        "summary" : "List the tables in a keyspace",
+        "operationId" : "listTables",
+        "parameters" : [ {
+          "name" : "keyspaceName",
+          "required": true,
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "example": [ "table1", "table2" ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/ops/tables/create" : {
+      "post" : {
+        "summary" : "Create a new table in an existing keyspace",
+        "operationId" : "createTable",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateTableRequest"
+              },
+              "example": {
+                "keyspace_name" : "ks1",
+                "table_name" : "table1",
+                "columns" : [
+                  { "name" : "pk1", "type": "int", "kind" : "PARTITION_KEY", "position" : 0 },
+                  { "name" : "pk2", "type": "int", "kind" : "PARTITION_KEY", "position" : 1 },
+                  { "name" : "cc1", "type": "timeuuid", "kind" : "CLUSTERING", "position" : 0, "order" : "DESC" },
+                  { "name" : "cc2", "type": "text", "kind" : "CLUSTERING", "position" : 1, "order" : "ASC" },
+                  { "name" : "v1", "type": "timestamp", "kind" : "REGULAR" },
+                  { "name" : "v2", "type": "list<text>", "kind" : "REGULAR" },
+                  { "name" : "s", "type": "boolean", "kind" : "STATIC" }
+                ],
+                "options": {
+                  "bloom_filter_fp_chance": "0.01",
+                  "caching" : { "keys": "ALL", "rows_per_partition" : "NONE" }
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/tables/sstables/upgrade" : {
       "post" : {
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
@@ -956,6 +1072,94 @@
           },
           "full" : {
             "type" : "boolean"
+          }
+        }
+      },
+      "CreateTableRequest": {
+        "type" : "object",
+        "required": [
+          "keyspace_name",
+          "table_name",
+          "columns"
+        ],
+        "properties" : {
+          "keyspace_name" : {
+            "type" : "string",
+            "description": "The name of the keyspace where the table is to be created. The keyspace must exist."
+          },
+          "table_name" : {
+            "type" : "string",
+            "description": "The name of the table to create."
+          },
+          "columns" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "required": [
+                "name",
+                "type",
+                "kind"
+              ],
+              "properties": {
+                "name" : {
+                  "type" : "string",
+                  "description": "The name of the column."
+                },
+                "type" : {
+                  "type" : "string",
+                  "description": "The type of the column. Must be a valid CQL type, e.g. text, int or list<timmeuid>."
+                },
+                "kind" : {
+                  "type" : "string",
+                  "description": "The kind of the column. Must be one of: PARTITION_KEY, CLUSTERING_COLUMN, REGULAR, STATIC.",
+                  "enum": [
+                    "PARTITION_KEY",
+                    "CLUSTERING_COLUMN",
+                    "REGULAR",
+                    "STATIC"
+                  ]
+                },
+                "position" : {
+                  "type" : "integer",
+                  "description": "The zero-based index of the column in the partition key or clustering column group. Only required for the PARTITION_KEY and CLUSTERING_COLUMN kinds, ignored otherwise. Must be equal to or greater than zero.",
+                  "minimum": 0
+                },
+                "order" : {
+                  "type" : "string",
+                  "description": "The clustering order of the column. Only required for the CLUSTERING_COLUMN kind, ignored otherwise. Must be one of: ASC, DESC.",
+                  "enum": [
+                    "ASC",
+                    "DESC"
+                  ]
+                }
+              }
+            }
+          },
+          "options" : {
+            "description": "The table options. Each option value must be either a string or a dictionary of strings.",
+            "oneOf": [
+              {
+                "type" : "object",
+                "example": {
+                  "bloom_filter_fp_chance": "0.01"
+                },
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              {
+                "type" : "object",
+                "example": {
+                  "caching" : { "keys": "ALL", "rows_per_partition" : "NONE" }
+                },
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
           }
         }
       }

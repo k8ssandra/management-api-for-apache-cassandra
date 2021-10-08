@@ -6,6 +6,7 @@
 package com.datastax.mgmtapi.resources;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -19,8 +20,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.datastax.mgmtapi.resources.models.CompactRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -226,4 +230,59 @@ public class TableOpsResources
             return Response.ok("OK").build();
         });
     }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "List the table names in the given keyspace")
+    public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
+    {
+        if (StringUtils.isBlank(keyspaceName))
+        {
+            return Response.status(HttpStatus.SC_BAD_REQUEST)
+                    .entity("List tables failed. Non-empty 'keyspaceName' must be provided").build();
+        }
+        return NodeOpsResources.handle(() ->
+        {
+            ResultSet result = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.getTables(?)", keyspaceName);
+            Row row = result.one();
+            assert row != null;
+            List<String> tables = row.getList(0, String.class);
+            return Response.ok(tables, MediaType.APPLICATION_JSON).build();
+        });
+    }
+
+    @POST
+    @Path("/create")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Create a new table")
+    public Response create(CreateTableRequest request)
+    {
+        try {
+            request.validate();
+        } catch (RuntimeException e) {
+            return Response.status(HttpStatus.SC_BAD_REQUEST)
+                    .entity("Table creation failed: " + e.getMessage()).build();
+        }
+        return NodeOpsResources.handle(() ->
+        {
+
+            cqlService.executePreparedStatement(
+            app.dbUnixSocketFile,
+            "CALL NodeOps.createTable(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            request.keyspaceName,
+            request.tableName,
+            request.columnNamesAndTypes(),
+            request.partitionKeyColumnNames(),
+            request.clusteringColumnNames(),
+            request.clusteringOrders(),
+            request.staticColumnNames(),
+            request.simpleOptions(),
+            request.complexOptions());
+
+            return Response.ok("OK").build();
+        });
+    }
+
 }

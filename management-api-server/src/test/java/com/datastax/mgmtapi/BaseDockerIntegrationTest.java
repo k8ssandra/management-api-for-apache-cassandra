@@ -16,6 +16,7 @@ import javax.net.ssl.SSLException;
 
 import com.google.common.collect.Lists;
 import org.junit.AfterClass;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -33,9 +34,9 @@ import com.datastax.mgmtapi.helpers.NettyHttpClient;
 
 public abstract class BaseDockerIntegrationTest
 {
-    protected static Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
-    protected static String BASE_PATH = "http://localhost:8080/api/v0";
-    protected static URL BASE_URL;
+    protected static final Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
+    protected static final String BASE_PATH = "http://localhost:8080/api/v0";
+    protected static final URL BASE_URL;
 
     static
     {
@@ -49,27 +50,51 @@ public abstract class BaseDockerIntegrationTest
         }
     }
 
-    public static class GrabSystemLogOnFailure extends TestWatcher
+    @Rule(order = Integer.MIN_VALUE)
+    public TestWatcher watchman = new TestWatcher()
     {
-
-        DockerHelper dockerHelper;
+        protected void starting(Description description)
+        {
+            System.out.println();
+            System.out.println("--------------------------------------");
+            System.out.printf("Starting %s...%n", description.getDisplayName());
+        }
 
         @Override
         protected void failed(Throwable e, Description description)
         {
-            logger.warn("Failed {}", description, e);
+            System.out.flush();
+            System.err.printf("FAILURE: %s%n", description);
+            e.printStackTrace();
+            System.err.flush();
 
-            if (null != dockerHelper)
+            if (null != docker)
             {
                 int numberOfLines = 100;
-                System.out.println(String.format("=====> Test %s failed - Showing last %s entries of system.log", description.getMethodName(), numberOfLines));
-                dockerHelper.tailSystemLog(numberOfLines);
+                System.out.printf("=====> Showing last %d entries of system.log%n", numberOfLines);
+                docker.tailSystemLog(numberOfLines);
+                System.out.printf("=====> End of last %d entries of system.log%n", numberOfLines);
+                System.out.flush();
             }
-        }
-    }
 
-    @Rule
-    public GrabSystemLogOnFailure systemLogGrabber = new GrabSystemLogOnFailure();
+        }
+
+        protected void succeeded(Description description)
+        {
+            System.out.printf("SUCCESS: %s%n", description.getDisplayName());
+        }
+
+        protected void skipped(AssumptionViolatedException e, Description description)
+        {
+            System.out.printf("SKIPPED: %s%n", description.getDisplayName());
+        }
+
+        protected void finished(Description description)
+        {
+            System.out.println("--------------------------------------");
+            System.out.println();
+        }
+    };
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -137,7 +162,6 @@ public abstract class BaseDockerIntegrationTest
     {
         if (!docker.started())
         {
-            systemLogGrabber.dockerHelper = docker;
             docker.startManagementAPI(version, getEnvironmentVars());
         }
     }

@@ -11,11 +11,13 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.datastax.mgmtapi.resources.K8OperatorResources;
 import com.datastax.mgmtapi.resources.KeyspaceOpsResources;
@@ -24,11 +26,16 @@ import com.datastax.mgmtapi.resources.NodeOpsResources;
 import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
+import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
@@ -41,13 +48,17 @@ import org.junit.Test;
 
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -1310,5 +1321,282 @@ public class K8OperatorResourcesTest {
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
         assertThat(response.getContentAsString()).isEqualTo("keyspaceName must be specified");
+    }
+
+    @Test
+    public void testGetReplication() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/keyspace/replication?keyspaceName=ks1");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(mockRow);
+        Map<String, String> result = ImmutableMap.of("class", "org.apache.cassandra.locator.NetworkTopologyStrategy", "dc1", "3", "dc2", "1");
+        when(mockRow.getMap(0, String.class, String.class)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        Map<String, String> actual = new JsonMapper().readValue(response.getContentAsString(), new TypeReference<Map<String, String>>()
+        {
+        });
+        assertThat(actual).containsAllEntriesOf(result);
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getReplication(?)"), eq("ks1"));
+    }
+
+    @Test
+    public void testGetReplicationRequiresKeyspaceName() throws Exception
+    {
+        Context context = setup();
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/keyspace/replication");
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).contains("Non-empty 'keyspaceName' must be provided");
+    }
+
+    @Test
+    public void testGetReplicationKeyspaceDoesNotExist() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/keyspace/replication?keyspaceName=ks1");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(null);
+
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+        assertThat(response.getContentAsString()).contains("Keyspace 'ks1' does not exist");
+    }
+
+    @Test
+    public void testListTables() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/tables?keyspaceName=ks1");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(mockRow);
+        List<String> result = ImmutableList.of("table1", "table2");
+        when(mockRow.getList(0, String.class)).thenReturn(result);
+
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        String[] actual = new JsonMapper().readValue(response.getContentAsString(), String[].class);
+        assertThat(actual).containsExactlyElementsOf(result);
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getTables(?)"), eq("ks1"));
+    }
+
+    @Test
+    public void testListTablesRequiresKeyspaceName() throws Exception
+    {
+        Context context = setup();
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/tables");
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+        assertThat(response.getContentAsString()).contains("Non-empty 'keyspaceName' must be provided");
+        verify(context.cqlService, never()).executePreparedStatement(any(), eq("CALL NodeOps.getTables(?)"), eq("ks1"));
+    }
+
+    @Test
+    public void testListTablesKeyspaceDoesNotExist() throws Exception
+    {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/tables?keyspaceName=ks1");
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString())).thenReturn(mockResultSet);
+        when(mockResultSet.one()).thenReturn(mockRow);
+        when(mockRow.getList(0, String.class)).thenReturn(Collections.emptyList());
+
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        assertThat(response.getContentAsString()).isEqualTo("[]");
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.getTables(?)"), eq("ks1"));
+    }
+
+    @Test
+    public void testCreateTable() throws Exception
+    {
+        Context context = setup();
+
+        List<Column> columns = ImmutableList.of(
+            new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
+            new Column("pk2", "int", ColumnKind.PARTITION_KEY, 1, null),
+            new Column("cc1", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
+            new Column("cc2", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
+            new Column("v", "frozen<list<tuple<int,map<string,string>,udt>>>", ColumnKind.REGULAR, 0, null),
+            new Column("s", "udt2", ColumnKind.STATIC, 0, null)
+        );
+
+        Map<String, Object> options = ImmutableMap.of(
+            "option1", "value1",
+            "option2", ImmutableMap.of(
+                "option2a", "value2a",
+                "option2b", "value2b"));
+
+        CreateTableRequest body = new CreateTableRequest("ks1", "table1", columns, options);
+
+        when(context.cqlService
+            .executePreparedStatement(
+                any(),
+                eq("CALL NodeOps.createTable(?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                anyString(), // keyspace name
+                anyString(), // table name
+                anyMap(),    // columns and types
+                anyList(),   // partition key
+                anyList(),   // clustering columns
+                anyMap(),    // orderings
+                anyList(),   // static columns
+                anyMap(),    // simple options
+                anyMap()     // complex options
+        )).thenReturn(null);
+
+        MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/tables/create")
+                                                 .content(new JsonMapper().writeValueAsBytes(body))
+                                                 .accept(MediaType.TEXT_PLAIN)
+                                                 .contentType(MediaType.APPLICATION_JSON_TYPE);
+
+        MockHttpResponse response = context.invoke(request);
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
+        verify(context.cqlService).executePreparedStatement(
+            any(),
+            eq("CALL NodeOps.createTable(?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+            eq("ks1"),
+            eq("table1"),
+            eq(ImmutableMap.builder()
+               .put("pk1", "int")
+               .put("pk2", "int")
+               .put("cc1", "timeuuid")
+               .put("cc2", "timeuuid")
+               .put("v", "frozen<list<tuple<int,map<string,string>,udt>>>")
+               .put("s", "udt2")
+               .build()),
+            eq(ImmutableList.of("pk1", "pk2")),
+            eq(ImmutableList.of("cc1", "cc2")),
+            eq(ImmutableList.of("ASC", "DESC")),
+            eq(ImmutableList.of("s")),
+            eq(ImmutableMap.of("option1", "value1")),
+            eq(ImmutableMap.of("option2", ImmutableMap.of("option2a", "value2a", "option2b", "value2b")))
+        );
+    }
+
+    @Test
+    public void testCreateTableInvalid() throws Exception
+    {
+        Context context = setup();
+
+        List<Pair<CreateTableRequest, String>> testCases = ImmutableList.of(
+            Pair.of(new CreateTableRequest("", "table1", ImmutableList.of(), null),
+                 "Table creation failed: 'keyspace_name' must not be empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "", ImmutableList.of(), null),
+                 "Table creation failed: 'table_name' must not be empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(), null),
+                 "Table creation failed: 'columns' must not be empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("pk", "int", ColumnKind.REGULAR, 0, null)), null),
+                 "Table creation failed: duplicated column name: 'pk'"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("", "int", ColumnKind.PARTITION_KEY, 0, null)), null),
+                 "Table creation failed: 'columns[0].name' must not be empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "", ColumnKind.PARTITION_KEY, 0, null)), null),
+                 "Table creation failed: 'columns[0].type' must not be empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "list<", ColumnKind.PARTITION_KEY, 0, null)), null),
+                 "Table creation failed: 'columns[0].type' is invalid: Syntax error parsing 'list<' at char 5: unexpected end of string"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", null, 0, null)), null),
+                 "Table creation failed: 'columns[0].kind' must not be null"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, -1, null)), null),
+                 "Table creation failed: 'columns[0].position' must not be negative for partition key columns"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, -1, null)), null),
+                 "Table creation failed: 'columns[1].position' must not be negative for clustering columns"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, 0, null)), null),
+                 "Table creation failed: 'columns[1].order' must not be empty for clustering columns"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.REGULAR, 0, null)), null),
+                 "Table creation failed: invalid primary key: partition key is empty"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 1, null)), null),
+                 "Table creation failed: invalid primary key: missing partition key at position 0"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("pk2", "int", ColumnKind.PARTITION_KEY, 0, null)), null),
+                 "Table creation failed: invalid primary key: found 2 partition key columns at position 0"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("cc", "int", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.ASC)), null),
+                 "Table creation failed: invalid primary key: missing clustering column at position 0"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                 new Column("cc1", "int", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
+                 new Column("cc2", "int", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC)), null),
+                 "Table creation failed: invalid primary key: found 2 clustering columns at position 0"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null)),
+                                           new LinkedHashMap<String, Object>()
+                       {{
+                           put("option1", null);
+                       }}),
+                 "Table creation failed: invalid value for option 'option1': expected String or Map<String,String>, got: null"
+            ),
+            Pair.of(new CreateTableRequest("ks1", "table1", ImmutableList.of(
+                 new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null)),
+                                           ImmutableMap.of("option1", ImmutableMap.of("option1a", "value1a", "option1b", 123))),
+                 "Table creation failed: invalid value for option 'option1': expected String or Map<String,String>, got: {option1a=value1a, option1b=123}"
+            )
+        );
+
+        JsonMapper jsonMapper = new JsonMapper();
+
+        for (Pair<CreateTableRequest, String> testCase : testCases)
+        {
+            String testCaseDescription = jsonMapper.writeValueAsString(testCase.getKey());
+            MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/tables/create")
+                                                     .content(testCaseDescription.getBytes())
+                                                     .accept(MediaType.TEXT_PLAIN)
+                                                     .contentType(MediaType.APPLICATION_JSON_TYPE);
+            MockHttpResponse response = context.invoke(request);
+            assertThat(response.getStatus())
+                .describedAs(testCaseDescription)
+                .isEqualTo(HttpStatus.SC_BAD_REQUEST);
+            assertThat(response.getContentAsString())
+                .describedAs(testCaseDescription)
+                .isEqualTo(testCase.getValue());
+        }
     }
 }
