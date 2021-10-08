@@ -679,19 +679,21 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
                 .thenApply(this::responseAsString).join();
 
-        String ks = "createtabletest";
+        // this tst also test case sensitivity in CQL identifiers.
+        // TODO verify that the case-sensitive column names below are properly created
+        String ks = "CreateTableTest";
         createKeyspace(client, localDc, ks);
 
         CreateTableRequest request = new CreateTableRequest(
             ks,
-            "table1",
+            "Table1",
             ImmutableList.of(
                 new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
-                new Column("pk2", "int", ColumnKind.PARTITION_KEY, 1, null),
+                new Column("PK2", "int", ColumnKind.PARTITION_KEY, 1, null),
                 new Column("cc1", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
-                new Column("cc2", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
+                new Column("CC2", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
                 new Column("v", "list<text>", ColumnKind.REGULAR, 0, null),
-                new Column("s", "boolean", ColumnKind.STATIC, 0, null)
+                new Column("S", "boolean", ColumnKind.STATIC, 0, null)
             ),
             ImmutableMap.of(
                 "bloom_filter_fp_chance", "0.01",
@@ -710,7 +712,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
         List<String> actual = jsonMapper.readValue(response.getRight(), new TypeReference<List<String>>(){});
-        assertThat(actual).containsExactly("table1");
+        assertThat(actual).containsExactly("Table1");
     }
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
