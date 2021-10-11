@@ -91,7 +91,7 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "jobStatus")
-    public Map<String, String> getJobStatus(String jobId) {
+    public Map<String, String> getJobStatus(@RpcParam(name="job_id") String jobId) {
         Map<String, String> resultMap = new HashMap<>();
         Job jobWithId = service.getJobWithId(jobId);
         resultMap.put("id", jobWithId.getJobId());
