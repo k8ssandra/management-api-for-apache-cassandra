@@ -550,7 +550,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService, never());
+        verifyZeroInteractions(context.cqlService);
     }
 
     @Test
