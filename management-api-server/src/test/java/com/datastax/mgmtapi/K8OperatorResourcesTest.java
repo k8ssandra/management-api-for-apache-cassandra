@@ -550,7 +550,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verifyNoInteractions(context.cqlService, timeout(500));
+        verify(context.cqlService, never());
     }
 
     @Test
