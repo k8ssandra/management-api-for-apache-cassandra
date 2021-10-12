@@ -509,7 +509,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                 .thenApply(this::responseAsString).join();
         assertNotNull(responseFilter);
         assertNotEquals("", responseFilter);
-        
+
         final ObjectMapper jsonMapper = new ObjectMapper();
         List<String> keyspaces = jsonMapper.readValue(responseFilter, new TypeReference<List<String>>(){});
         assertEquals(1, keyspaces.size());
@@ -680,7 +680,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                 .thenApply(this::responseAsString).join();
 
         // this test also tests case sensitivity in CQL identifiers.
-        // TODO verify that the case-sensitive column names below are properly created
         String ks = "CreateTableTest";
         createKeyspace(client, localDc, ks);
 
@@ -688,12 +687,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
             ks,
             "Table1",
             ImmutableList.of(
-                new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
-                new Column("PK2", "int", ColumnKind.PARTITION_KEY, 1, null),
-                new Column("cc1", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
-                new Column("CC2", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
+                // having two columns with the same name in different cases can only work if the internal name is being used.
+                new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                new Column("PK", "int", ColumnKind.PARTITION_KEY, 1, null),
+                new Column("cc", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
+                new Column("CC", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
                 new Column("v", "list<text>", ColumnKind.REGULAR, 0, null),
-                new Column("S", "boolean", ColumnKind.STATIC, 0, null)
+                new Column("s", "boolean", ColumnKind.STATIC, 0, null)
             ),
             ImmutableMap.of(
                 "bloom_filter_fp_chance", "0.01",
