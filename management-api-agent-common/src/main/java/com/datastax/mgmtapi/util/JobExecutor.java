@@ -5,10 +5,13 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.*;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class JobExecutor {
-    ListeningExecutorService service = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(1));
+    ExecutorService executorService = Executors.newFixedThreadPool(1);
     Cache<String, Job> jobCache = CacheBuilder.newBuilder()
             .maximumSize(1000)
             .build();
@@ -19,23 +22,19 @@ public class JobExecutor {
         final Job job = new Job(jobType);
         jobCache.put(job.getJobId(), job);
 
-        ListenableFuture<?> submit = service.submit(runnable);
-        Futures.addCallback(submit, new FutureCallback<Object>() {
-            @Override
-            public void onSuccess(@Nullable Object nothing) {
-                job.setStatus(Job.JobStatus.COMPLETED);
-                job.setFinishedTime(System.currentTimeMillis());
-                jobCache.put(job.getJobId(), job);
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                job.setStatus(Job.JobStatus.ERROR);
-                job.setError(throwable);
-                job.setFinishedTime(System.currentTimeMillis());
-                jobCache.put(job.getJobId(), job);
-            }
-        });
+        CompletableFuture.runAsync(runnable, executorService)
+                .thenAccept(empty -> {
+                    job.setStatus(Job.JobStatus.COMPLETED);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    jobCache.put(job.getJobId(), job);
+                })
+                .exceptionally(t -> {
+                    job.setStatus(Job.JobStatus.ERROR);
+                    job.setError(t);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    jobCache.put(job.getJobId(), job);
+                    return null;
+                });
 
         return job.getJobId();
     }
