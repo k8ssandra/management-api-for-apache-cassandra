@@ -315,10 +315,12 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                 .build();
 
         // Get job_id here..
-        FullHttpResponse r = client.post(uri.toURL(), keyspaceRequestAsJSON).join();
-        assertEquals(HttpStatus.SC_OK, r.status().code());
+        Pair<Integer, String> postResponse = client.post(uri.toURL(), keyspaceRequestAsJSON)
+                .thenApply(this::responseAsCodeAndBody)
+                .join();
+        assertEquals(HttpStatus.SC_OK, postResponse.getLeft().longValue());
 
-        String jobId = responseAsString(r);
+        String jobId = postResponse.getRight();
         assertNotNull(jobId); // If return code != OK, this is null
 
         // Add here the check for the job and that is actually is set to complete..
@@ -346,7 +348,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
 
         assertNotNull(currentStatus);
         assertEquals(jobId, currentStatus.getJobId());
-        assertEquals(Job.JobStatus.COMPLETED, currentStatus.getJobId());
+        assertEquals(Job.JobStatus.COMPLETED, currentStatus.getStatus());
         assertEquals("CLEANUP", currentStatus.getJobType());
     }
 
