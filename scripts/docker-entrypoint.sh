@@ -64,6 +64,7 @@ if [ "$1" = 'mgmtapi' ]; then
         # ensure newline at end of file
         echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
         echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        mkdir -p ${MCAC_PATH}
         echo "" >> ${MCAC_PATH}/config/metric-collector.yaml
         echo "data_dir_max_size_in_mb: 100" >> ${MCAC_PATH}/config/metric-collector.yaml
     fi
