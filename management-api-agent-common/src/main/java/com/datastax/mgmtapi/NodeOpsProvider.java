@@ -412,7 +412,7 @@ public class NodeOpsProvider
     {
         logger.debug("Creating keyspace {} with replication settings {}", keyspaceName, replicationSettings);
 
-        ShimLoader.instance.get().processQuery(SchemaBuilder.createKeyspace(keyspaceName)
+        ShimLoader.instance.get().processQuery(SchemaBuilder.createKeyspace(CqlIdentifier.fromInternal(keyspaceName))
                         .ifNotExists()
                         .withNetworkTopologyStrategy(replicationSettings)
                         .asCql(),
@@ -432,29 +432,30 @@ public class NodeOpsProvider
     {
         logger.debug("Creating table {}", tableName);
         CqlIdentifier keyspaceId = CqlIdentifier.fromInternal(keyspaceName);
-        OngoingPartitionKey stmtStart = SchemaBuilder.createTable(keyspaceName, tableName).ifNotExists();
+        CqlIdentifier tableId = CqlIdentifier.fromInternal(tableName);
+        OngoingPartitionKey stmtStart = SchemaBuilder.createTable(keyspaceId, tableId).ifNotExists();
         for (String name : partitionKeyColumnNames)
         {
             DataType dt = DATA_TYPE_PARSER.parse(keyspaceId, columnsAndTypes.get(name), null, null);
-            stmtStart = stmtStart.withPartitionKey(name, dt);
+            stmtStart = stmtStart.withPartitionKey(CqlIdentifier.fromInternal(name), dt);
         }
         CreateTable stmt = (CreateTable) stmtStart;
         for (String name : clusteringColumnNames)
         {
             DataType dt = DATA_TYPE_PARSER.parse(keyspaceId, columnsAndTypes.get(name), null, null);
-            stmt = stmt.withClusteringColumn(name, dt);
+            stmt = stmt.withClusteringColumn(CqlIdentifier.fromInternal(name), dt);
         }
         for (String name : staticColumnNames)
         {
             DataType dt = DATA_TYPE_PARSER.parse(keyspaceId, columnsAndTypes.get(name), null, null);
-            stmt = stmt.withStaticColumn(name, dt);
+            stmt = stmt.withStaticColumn(CqlIdentifier.fromInternal(name), dt);
         }
         for (String name : columnsAndTypes.keySet())
         {
             if (!partitionKeyColumnNames.contains(name) && !clusteringColumnNames.contains(name) && !staticColumnNames.contains(name))
             {
                 DataType dt = DATA_TYPE_PARSER.parse(keyspaceId, columnsAndTypes.get(name), null, null);
-                stmt = stmt.withColumn(name, dt);
+                stmt = stmt.withColumn(CqlIdentifier.fromInternal(name), dt);
             }
         }
         CreateTableWithOptions stmtFinal = stmt;
@@ -462,7 +463,7 @@ public class NodeOpsProvider
         {
             String name = clusteringColumnNames.get(i);
             ClusteringOrder order = ClusteringOrder.valueOf(clusteringOrders.get(i).toUpperCase(Locale.ROOT));
-            stmtFinal = stmtFinal.withClusteringOrder(name, order);
+            stmtFinal = stmtFinal.withClusteringOrder(CqlIdentifier.fromInternal(name), order);
         }
         for (Map.Entry<String, String> entry : simpleOptions.entrySet())
         {
@@ -475,7 +476,7 @@ public class NodeOpsProvider
         String query = stmtFinal.asCql();
         logger.debug("Generated query: {}", query);
         ShimLoader.instance.get().processQuery(query, ConsistencyLevel.ONE);
-        logger.debug("Table successfully created: {}", tableName);
+        logger.debug("Table successfully created: {}", tableId);
     }
 
     @Rpc(name = "getLocalDataCenter")
@@ -489,7 +490,7 @@ public class NodeOpsProvider
     {
         logger.debug("Creating keyspace {} with replication settings {}", keyspaceName, replicationSettings);
 
-        ShimLoader.instance.get().processQuery(SchemaBuilder.alterKeyspace(keyspaceName)
+        ShimLoader.instance.get().processQuery(SchemaBuilder.alterKeyspace(CqlIdentifier.fromInternal(keyspaceName))
                         .withNetworkTopologyStrategy(replicationSettings)
                         .asCql(),
                 ConsistencyLevel.ONE);

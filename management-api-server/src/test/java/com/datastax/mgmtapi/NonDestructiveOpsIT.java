@@ -509,7 +509,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                 .thenApply(this::responseAsString).join();
         assertNotNull(responseFilter);
         assertNotEquals("", responseFilter);
-        
+
         final ObjectMapper jsonMapper = new ObjectMapper();
         List<String> keyspaces = jsonMapper.readValue(responseFilter, new TypeReference<List<String>>(){});
         assertEquals(1, keyspaces.size());
@@ -679,17 +679,19 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         String localDc = client.get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
                 .thenApply(this::responseAsString).join();
 
-        String ks = "createtabletest";
+        // this test also tests case sensitivity in CQL identifiers.
+        String ks = "CreateTableTest";
         createKeyspace(client, localDc, ks);
 
         CreateTableRequest request = new CreateTableRequest(
             ks,
-            "table1",
+            "Table1",
             ImmutableList.of(
-                new Column("pk1", "int", ColumnKind.PARTITION_KEY, 0, null),
-                new Column("pk2", "int", ColumnKind.PARTITION_KEY, 1, null),
-                new Column("cc1", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
-                new Column("cc2", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
+                // having two columns with the same name in different cases can only work if the internal name is being used.
+                new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                new Column("PK", "int", ColumnKind.PARTITION_KEY, 1, null),
+                new Column("cc", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
+                new Column("CC", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
                 new Column("v", "list<text>", ColumnKind.REGULAR, 0, null),
                 new Column("s", "boolean", ColumnKind.STATIC, 0, null)
             ),
@@ -710,7 +712,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
         List<String> actual = jsonMapper.readValue(response.getRight(), new TypeReference<List<String>>(){});
-        assertThat(actual).containsExactly("table1");
+        assertThat(actual).containsExactly("Table1");
     }
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
