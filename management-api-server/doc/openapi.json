@@ -118,6 +118,32 @@
         }
       }
     },
+    "/api/v0/ops/executor/job" : {
+      "get" : {
+        "summary" : "Returns the JobDetails",
+        "operationId" : "getJobStatus",
+        "parameters": [{
+          "name": "job_id",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "responses" : {
+          "default" : {
+            "description" : "details of Job matching job_id",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/keyspace" : {
       "get" : {
         "summary" : "List the keyspaces existing in the cluster",
@@ -1198,6 +1224,34 @@
             "items" : {
               "type" : "string"
             }
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING",
+              "COMPLETED",
+              "ERROR"
+            ]
+          },
+          "submit_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
           }
         }
       }
