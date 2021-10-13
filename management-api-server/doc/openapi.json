@@ -118,6 +118,32 @@
         }
       }
     },
+    "/api/v0/ops/executor/job" : {
+      "get" : {
+        "summary" : "Returns the JobDetails",
+        "operationId" : "getJobStatus",
+        "parameters": [{
+          "name": "job_id",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }],
+        "responses" : {
+          "default" : {
+            "description" : "details of Job matching job_id",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Job"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/ops/keyspace" : {
       "get" : {
         "summary" : "List the keyspaces existing in the cluster",
@@ -260,7 +286,7 @@
     },
     "/api/v0/ops/keyspace/cleanup" : {
       "post" : {
-        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces",
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
         "operationId" : "cleanup",
         "requestBody" : {
           "content" : {
@@ -375,6 +401,24 @@
             "description" : "default response",
             "content" : {
               "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v0/metadata/versions/features" : {
+      "get" : {
+        "summary" : "Returns the management-api featureSet",
+        "operationId" : "getFeatureSet",
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FeatureSet"
+                }
+              }
             }
           }
         }
@@ -1076,41 +1120,41 @@
         }
       },
       "CreateTableRequest": {
-        "type" : "object",
+        "type": "object",
         "required": [
           "keyspace_name",
           "table_name",
           "columns"
         ],
-        "properties" : {
-          "keyspace_name" : {
-            "type" : "string",
+        "properties": {
+          "keyspace_name": {
+            "type": "string",
             "description": "The name of the keyspace where the table is to be created. The keyspace must exist."
           },
-          "table_name" : {
-            "type" : "string",
+          "table_name": {
+            "type": "string",
             "description": "The name of the table to create."
           },
-          "columns" : {
-            "type" : "array",
-            "items" : {
-              "type" : "object",
+          "columns": {
+            "type": "array",
+            "items": {
+              "type": "object",
               "required": [
                 "name",
                 "type",
                 "kind"
               ],
               "properties": {
-                "name" : {
-                  "type" : "string",
+                "name": {
+                  "type": "string",
                   "description": "The name of the column."
                 },
-                "type" : {
-                  "type" : "string",
+                "type": {
+                  "type": "string",
                   "description": "The type of the column. Must be a valid CQL type, e.g. text, int or list<timmeuid>."
                 },
-                "kind" : {
-                  "type" : "string",
+                "kind": {
+                  "type": "string",
                   "description": "The kind of the column. Must be one of: PARTITION_KEY, CLUSTERING_COLUMN, REGULAR, STATIC.",
                   "enum": [
                     "PARTITION_KEY",
@@ -1119,13 +1163,13 @@
                     "STATIC"
                   ]
                 },
-                "position" : {
-                  "type" : "integer",
+                "position": {
+                  "type": "integer",
                   "description": "The zero-based index of the column in the partition key or clustering column group. Only required for the PARTITION_KEY and CLUSTERING_COLUMN kinds, ignored otherwise. Must be equal to or greater than zero.",
                   "minimum": 0
                 },
-                "order" : {
-                  "type" : "string",
+                "order": {
+                  "type": "string",
                   "description": "The clustering order of the column. Only required for the CLUSTERING_COLUMN kind, ignored otherwise. Must be one of: ASC, DESC.",
                   "enum": [
                     "ASC",
@@ -1135,11 +1179,11 @@
               }
             }
           },
-          "options" : {
+          "options": {
             "description": "The table options. Each option value must be either a string or a dictionary of strings.",
             "oneOf": [
               {
-                "type" : "object",
+                "type": "object",
                 "example": {
                   "bloom_filter_fp_chance": "0.01"
                 },
@@ -1148,9 +1192,12 @@
                 }
               },
               {
-                "type" : "object",
+                "type": "object",
                 "example": {
-                  "caching" : { "keys": "ALL", "rows_per_partition" : "NONE" }
+                  "caching": {
+                    "keys": "ALL",
+                    "rows_per_partition": "NONE"
+                  }
                 },
                 "additionalProperties": {
                   "type": "object",
@@ -1160,6 +1207,51 @@
                 }
               }
             ]
+          }
+        }
+      },
+      "FeatureSet": {
+        "type": "object",
+        "properties": {
+          "cassandra_version": {
+            "type": "string"
+          },
+          "mgmt_version": {
+            "type": "string"
+          },
+          "features" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "WAITING",
+              "COMPLETED",
+              "ERROR"
+            ]
+          },
+          "submit_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
           }
         }
       }

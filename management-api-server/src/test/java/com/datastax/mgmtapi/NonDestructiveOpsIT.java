@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import javax.ws.rs.core.MediaType;
 
+import com.datastax.mgmtapi.resources.models.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -27,16 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
-import com.datastax.mgmtapi.resources.models.CompactRequest;
-import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.CreateTableRequest.Column;
 import com.datastax.mgmtapi.resources.models.CreateTableRequest.ColumnKind;
-import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
-import com.datastax.mgmtapi.resources.models.RepairRequest;
-import com.datastax.mgmtapi.resources.models.ReplicationSetting;
-import com.datastax.mgmtapi.resources.models.ScrubRequest;
-import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,11 +44,7 @@ import org.jboss.resteasy.core.messagebody.WriterUtility;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -313,8 +303,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
     }
 
     @Test
-    public void testCleanup() throws IOException, URISyntaxException
-    {
+    public void testCleanup() throws IOException, URISyntaxException, InterruptedException {
         assumeTrue(IntegrationTestUtils.shouldRun());
         ensureStarted();
 
@@ -324,9 +313,43 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
         URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/cleanup")
                 .build();
-        boolean requestSuccessful = client.post(uri.toURL(), keyspaceRequestAsJSON)
-                .thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
-        assertTrue(requestSuccessful);
+
+        // Get job_id here..
+        Pair<Integer, String> postResponse = client.post(uri.toURL(), keyspaceRequestAsJSON)
+                .thenApply(this::responseAsCodeAndBody)
+                .join();
+        assertEquals(HttpStatus.SC_OK, postResponse.getLeft().longValue());
+
+        String jobId = postResponse.getRight();
+        assertNotNull(jobId); // If return code != OK, this is null
+
+        // Add here the check for the job and that is actually is set to complete..
+        Job currentStatus = null;
+        for(int i = 0; i < 10; i++) {
+            URI uriJobStatus = new URIBuilder(BASE_PATH + "/ops/executor/job?job_id=" + jobId)
+                    .build();
+             currentStatus = client.get(uriJobStatus.toURL())
+                    .thenApply(re -> {
+                        String jobJson = responseAsString(re);
+                        try {
+                            return new ObjectMapper().readValue(jobJson, Job.class);
+                        } catch (JsonProcessingException e) {
+                            fail();
+                        }
+                        return null;
+                    }).join();
+            if(currentStatus != null) {
+                if(currentStatus.getStatus() == Job.JobStatus.COMPLETED) {
+                    break;
+                }
+            }
+            Thread.sleep(100);
+        }
+
+        assertNotNull(currentStatus);
+        assertEquals(jobId, currentStatus.getJobId());
+        assertEquals(Job.JobStatus.COMPLETED, currentStatus.getStatus());
+        assertEquals("CLEANUP", currentStatus.getJobType());
     }
 
     @Test
