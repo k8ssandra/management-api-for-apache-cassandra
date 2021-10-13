@@ -19,6 +19,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.ConnectionClosedException;
@@ -77,7 +78,7 @@ public class KeyspaceOpsResources
                 return Response.ok("OK").build();
             }
 
-            return Response.ok(getSingleRowResponse("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)",
+            return Response.ok(ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)",
                     keyspaceRequest.jobs, keyspaceName, tables)).build();
         });
     }
@@ -205,24 +206,5 @@ public class KeyspaceOpsResources
                 return Response.ok(replication, MediaType.APPLICATION_JSON).build();
             }
         });
-    }
-
-    String getSingleRowResponse(String query, Object... params) throws ConnectionClosedException {
-        ResultSet rs;
-
-        if(params.length > 0) {
-            rs = cqlService.executePreparedStatement(app.dbUnixSocketFile, query, params);
-        } else {
-            rs = cqlService.executeCql(app.dbUnixSocketFile, query);
-        }
-
-        Row row = rs.one();
-        String queryResponse = null;
-        if (row != null)
-        {
-            queryResponse = row.getString(0);
-        }
-
-        return queryResponse;
     }
 }
