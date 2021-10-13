@@ -41,7 +41,6 @@ ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
 # https://datastax.jira.com/browse/DB-4627
 # https://issues.apache.org/jira/browse/CASSANDRA-16027
 ENV MGMT_API_LOG_DIR /var/log/cassandra
-ENV MGMT_API_HEAP_SIZE 16m
 
 COPY --from=builder /build/management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
