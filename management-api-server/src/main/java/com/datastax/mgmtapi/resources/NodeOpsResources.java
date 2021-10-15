@@ -98,7 +98,7 @@ public class NodeOpsResources
     {
         return handle(() ->
         {
-            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.decommission(?)", force);
+            cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.decommission(?, ?)", force, false);
 
             return Response.ok("OK").build();
         });
@@ -164,6 +164,7 @@ public class NodeOpsResources
     @Path("/drain")
     @Operation(summary = "Drain the node (stop accepting writes and flush all tables)")
     @Produces(MediaType.TEXT_PLAIN)
+    // TODO Make async
     public Response drain()
     {
         return handle(() ->
@@ -377,7 +378,7 @@ public class NodeOpsResources
         });
     }
 
-    static Response handle(Callable<Response> action)
+    public static Response handle(Callable<Response> action)
     {
         try
         {

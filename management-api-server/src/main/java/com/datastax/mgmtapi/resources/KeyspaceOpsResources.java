@@ -57,7 +57,7 @@ public class KeyspaceOpsResources
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately")
+    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing.")
     public Response cleanup(KeyspaceRequest keyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -78,8 +78,8 @@ public class KeyspaceOpsResources
                 return Response.ok("OK").build();
             }
 
-            return Response.ok(ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)",
-                    keyspaceRequest.jobs, keyspaceName, tables)).build();
+            return Response.ok(ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)",
+                    keyspaceRequest.jobs, keyspaceName, tables, false)).build();
         });
     }
 
