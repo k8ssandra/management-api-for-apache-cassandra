@@ -59,6 +59,9 @@ if [ "$1" = 'mgmtapi' ]; then
     # 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after
     # 2. We don't wan't operator or configbuilder to care so much about the version number or
     #    the fact this jar even exists.
+    #
+    # MCAC metric filters are expected as an env variable in the following format:
+    # "deny:org.apache.cassandra.metrics.table allow:org.apache.cassandra.metrics.table.test"
     
     if _metrics_collector_supported && ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
         # ensure newline at end of file
@@ -66,6 +69,15 @@ if [ "$1" = 'mgmtapi' ]; then
         echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
         echo "" >> ${MCAC_PATH}/config/metric-collector.yaml
         echo "data_dir_max_size_in_mb: 100" >> ${MCAC_PATH}/config/metric-collector.yaml
+        if [[ -n "$METRIC_FILTERS"  ]]; then
+            filter_array=(`echo $METRIC_FILTERS | sed 's/ /\n/g'`)
+            echo "filtering_rules:" >> ${MCAC_PATH}/config/metric-collector.yaml
+            for filter in "${filter_array[@]}"; do
+                echo "  - policy: $(echo ${filter} | cut -d':' -f1)" >> ${MCAC_PATH}/config/metric-collector.yaml
+                echo "    pattern: $(echo ${filter} | cut -d':' -f2)" >> ${MCAC_PATH}/config/metric-collector.yaml
+                echo "    scope: global" >> ${MCAC_PATH}/config/metric-collector.yaml
+            done
+        fi
     fi
 
     MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent*.jar)"
