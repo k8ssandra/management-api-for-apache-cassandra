@@ -11,7 +11,8 @@ import java.util.List;
 public class FeatureSet implements Serializable {
 
     public enum Feature {
-        ASYNC_SSTABLE_TASKS("async_sstable_tasks");
+        ASYNC_SSTABLE_TASKS("async_sstable_tasks"),
+        FULL_QUERY_LOGGING("full_query_logging");
 
         @JsonValue
         private String featureName;
@@ -20,6 +21,7 @@ public class FeatureSet implements Serializable {
             this.featureName = name;
         }
     }
+    
 
     @JsonProperty(value = "cassandra_version")
     private String cassandraVersion;
