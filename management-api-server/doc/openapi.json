@@ -286,6 +286,29 @@
     },
     "/api/v0/ops/keyspace/cleanup" : {
       "post" : {
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and waits for the cleanup to finish.",
+        "operationId" : "cleanup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/keyspace/cleanup" : {
+      "post" : {
         "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
         "operationId" : "cleanup",
         "requestBody" : {
@@ -299,6 +322,7 @@
         },
         "responses" : {
           "default" : {
+
             "description" : "default response",
             "content" : {
               "text/plain" : { }
@@ -502,6 +526,27 @@
     "/api/v0/ops/node/decommission" : {
       "post" : {
         "summary" : "Decommission the *node I am connecting to*",
+        "operationId" : "decommission",
+        "parameters" : [ {
+          "name" : "force",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "text/plain" : { }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/node/decommission" : {
+      "post" : {
+        "summary" : "Decommission the *node I am connecting to*. This method returns immediately and returns a job id.",
         "operationId" : "decommission",
         "parameters" : [ {
           "name" : "force",

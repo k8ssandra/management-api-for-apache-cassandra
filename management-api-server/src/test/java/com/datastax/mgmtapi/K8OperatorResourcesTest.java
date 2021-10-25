@@ -68,9 +68,13 @@ public class K8OperatorResourcesTest {
         context.dispatcher.getRegistry()
                 .addSingletonResource(new KeyspaceOpsResources(app));
         context.dispatcher.getRegistry()
+                .addSingletonResource(new com.datastax.mgmtapi.resources.v1.KeyspaceOpsResources(app));
+        context.dispatcher.getRegistry()
                 .addSingletonResource(new MetadataResources(app));
         context.dispatcher.getRegistry()
                 .addSingletonResource(new NodeOpsResources(app));
+        context.dispatcher.getRegistry()
+                .addSingletonResource(new com.datastax.mgmtapi.resources.v1.NodeOpsResources(app));
         context.dispatcher.getRegistry()
                 .addSingletonResource(new TableOpsResources(app));
 
@@ -120,32 +124,55 @@ public class K8OperatorResourcesTest {
     public void testDecommission() throws Exception {
         Context context = setup();
         MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/node/decommission?force=true");
-        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(true)))
+        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(true), eq(false)))
                 .thenReturn(null);
-
 
         MockHttpResponse response = context.invoke(request);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?)"), eq(true));
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?, ?)"), eq(true), eq(false));
+    }
+
+    @Test
+    public void testDecommissionAsync() throws Exception {
+        Context context = setup();
+
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(true), eq(true)))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+        MockHttpRequest request = MockHttpRequest.post("/api/v1/ops/node/decommission?force=true");
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+        assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?, ?)"), eq(true), eq(true));
     }
 
     @Test
     public void testDecommissionMissingValue() throws Exception {
         Context context = setup();
         MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/node/decommission");
-        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(true)))
+        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(true), eq(false)))
                 .thenReturn(null);
-
 
         MockHttpResponse response = context.invoke(request);
 
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?)"), eq(false));
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.decommission(?, ?)"), eq(false), eq(false));
     }
 
     @Test
@@ -518,12 +545,12 @@ public class K8OperatorResourcesTest {
                 .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
         String keyspaceRequestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
-        MockHttpResponse response = postWithBody("/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
+        MockHttpResponse response = postWithBodyFullPath("/api/v1/ops/keyspace/cleanup", keyspaceRequestAsJSON, context);
 
-        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+        Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
         Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"), any());
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)"), any());
     }
 
     @Test
@@ -577,8 +604,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
-                any(), eq(keyspaceRequest.keyspaceName), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)"),
+                any(), eq(keyspaceRequest.keyspaceName), any(), anyBoolean());
     }
 
     @Test
@@ -605,8 +632,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().length() > 0);
 
-        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?)"),
-                any(), eq("NON_LOCAL_STRATEGY"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)"),
+                any(), eq("NON_LOCAL_STRATEGY"), any(), anyBoolean());
     }
 
     @Test
@@ -1150,6 +1177,16 @@ public class K8OperatorResourcesTest {
     private MockHttpResponse postWithBody(String path, String body, Context context) throws URISyntaxException {
         MockHttpRequest request = MockHttpRequest
                 .post(ROOT_PATH + path)
+                .content(body.getBytes())
+                .accept(MediaType.TEXT_PLAIN)
+                .contentType(MediaType.APPLICATION_JSON_TYPE);
+
+        return context.invoke(request);
+    }
+
+    private MockHttpResponse postWithBodyFullPath(String path, String body, Context context) throws URISyntaxException {
+        MockHttpRequest request = MockHttpRequest
+                .post(path)
                 .content(body.getBytes())
                 .accept(MediaType.TEXT_PLAIN)
                 .contentType(MediaType.APPLICATION_JSON_TYPE);

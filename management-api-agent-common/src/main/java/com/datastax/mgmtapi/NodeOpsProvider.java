@@ -18,10 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import javax.management.openmbean.CompositeDataSupport;
@@ -36,6 +33,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.cassandra.db.compaction.OperationType;
+import org.apache.cassandra.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,10 +152,23 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "decommission")
-    public void decommission(@RpcParam(name="force") boolean force) throws InterruptedException
+    public String decommission(@RpcParam(name="force") boolean force, @RpcParam(name="async") boolean async) throws InterruptedException
     {
         logger.debug("Decommissioning");
-        ShimLoader.instance.get().decommission(force);
+        // Send to background execution and return a job number
+        Pair<String, CompletableFuture<Void>> jobPair = service.submit("decommission", () -> {
+            try {
+                ShimLoader.instance.get().decommission(force);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        if(!async) {
+            jobPair.right.join();
+        }
+
+        return jobPair.left;
     }
 
     @Rpc(name = "setCompactionThroughput")
@@ -240,7 +251,7 @@ public class NodeOpsProvider
     @Rpc(name = "forceKeyspaceCleanup")
     public String forceKeyspaceCleanup(@RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
-            @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tables") List<String> tables, @RpcParam(name = "async") boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Reloading local schema");
         final List<String> keyspaces = new ArrayList<>();
@@ -252,8 +263,7 @@ public class NodeOpsProvider
             keyspaces.add(keyspaceName);
         }
 
-        // Send to background execution
-        return service.submit(OperationType.CLEANUP.name(), () -> {
+        Runnable cleanupOperation = () -> {
             for (String keyspace : keyspaces) {
                 try {
                     ShimLoader.instance.get().getStorageService().forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
@@ -261,7 +271,16 @@ public class NodeOpsProvider
                     logger.error("Failed to execute forceKeyspaceCleanup in " + keyspace, e);
                 }
             }
-        });
+        };
+
+        // Send to background execution and return job number
+        Pair<String, CompletableFuture<Void>> jobPair = service.submit(OperationType.CLEANUP.name(), cleanupOperation);
+
+        if(!async) {
+            jobPair.right.join();
+        }
+
+        return jobPair.left;
     }
 
     @Rpc(name = "forceKeyspaceCompactionForTokenRange")

@@ -3,6 +3,7 @@ package com.datastax.mgmtapi.util;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.*;
+import org.apache.cassandra.utils.Pair;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
@@ -16,13 +17,13 @@ public class JobExecutor {
             .maximumSize(1000)
             .build();
 
-    public String submit(String jobType, Runnable runnable) {
+    public Pair<String, CompletableFuture<Void>> submit(String jobType, Runnable runnable) {
         // Where do I create the job details? Here? Add it to the Cache first?
         // Update the status on the callbacks and do nothing else?
         final Job job = new Job(jobType);
         jobCache.put(job.getJobId(), job);
 
-        CompletableFuture.runAsync(runnable, executorService)
+        CompletableFuture<Void> submittedJob = CompletableFuture.runAsync(runnable, executorService)
                 .thenAccept(empty -> {
                     job.setStatus(Job.JobStatus.COMPLETED);
                     job.setFinishedTime(System.currentTimeMillis());
@@ -36,7 +37,7 @@ public class JobExecutor {
                     return null;
                 });
 
-        return job.getJobId();
+        return Pair.create(job.getJobId(), submittedJob);
     }
 
     public Job getJobWithId(String jobId) {
