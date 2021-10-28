@@ -200,6 +200,8 @@ docker run -p 8080:8080 -it --rm mgmtapi-dse
 
 # Making changes
 
+## Design Summary
+
 The architecture of this repository is laid as follows, front-to-back:
 
 1. The `management-api-server/doc/openapi.json` documents the API.
@@ -209,6 +211,27 @@ The architecture of this repository is laid as follows, front-to-back:
 5. The `management-api-agent-common/src/main/java/com/datastax/mgmtapi/NodeOpsProvider.java` routes commands through to specific versioned instances of `CassandraAPI` which is implemented in the version 3x/4x subprojects as `CassandraAPI4x`/`CassandraAPI3x`.
 
 Any change to add endpoints or features will need to make modifications in each of the above components to ensure that they propagate through.
+
+## Published Docker images
+
+When PRs are merged into the `master` branch, if all of the integration tests pass, the CI process will build and publish all supported Docker images with GitHub commit SHA tags. These images are not intended to be used in production. They are meant for facilitating testing with dependent projects.
+
+The format of the Docker image tag for OSS Cassandra based images will be `<Cassandra version>-<git commit sha>`. For example, if the SHA for the commit to master is `3e99e87`, then the Cassandra 3.11.11 image tag would be `3.11.11-3e99e87`. The full docker coordinates would be `k8ssandra/cass-management-api:3.11.11-3e99e87`. Once published, these images can be used for testing in dependent projects (such as [cass-operator](https://github.com/k8ssandra/cass-operator)). Testing in dependent projects is a manual process at this time and is not automated.
+
+## Official Release process
+
+When the `master` branch is ready for release, all that needs to be done is to create a git `tag` and push the tag. When a git tag is pushed, a GitHub Action will kick off that builds the release versions of the Docker images and publish the to DockerHub. The release tag should be formatted as:
+
+    v0.1.X
+
+where `X` is incremental for each release. If the most recent release version is `v0.1.32`, then to cut the next (v0.1.33) release, do the following:
+
+    git checkout master
+    git pull
+    git tag v0.1.33
+    git push origin refs/tags/v0.1.33
+
+Once the tag is pushed, the release process will start and build the Docker images as well as the Maven artifacts. The images are automatically pushed to DockerHub and the Maven artifacts are published and attached to the GitHub release.
 
 # CLI Help
   The CLI help covers the different options:
