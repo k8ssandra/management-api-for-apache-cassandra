@@ -76,19 +76,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cassandra-version: ['3.11', '4.0']
-        docker-file: [Dockerfile-oss,Dockerfile-4_0]
-        build-target: [oss311,oss40]
-        # exclude invalid combinations
-        exclude:
+        include:
           - cassandra-version: '3.11'
-            docker-file: Dockerfile-4_0
-          - cassandra-version: '3.11'
-            build-target: oss40
-          - cassandra-version: '4.0'
-            docker-file: Dockerfile-oss
-          - cassandra-version: '4.0'
+            docker-file: Dockerfile-oss40
             build-target: oss311
+          - cassandra-version: '4.0'
+            docker-file: Dockerfile-4_0
+            build-target: oss40
     steps:
       - name: Check out source code
         uses: actions/checkout@v2
