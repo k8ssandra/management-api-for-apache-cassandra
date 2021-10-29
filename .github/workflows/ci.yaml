@@ -78,7 +78,7 @@ jobs:
       matrix:
         include:
           - cassandra-version: '3.11'
-            docker-file: Dockerfile-oss40
+            docker-file: Dockerfile-oss
             build-target: oss311
           - cassandra-version: '4.0'
             docker-file: Dockerfile-4_0
