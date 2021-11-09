@@ -105,12 +105,6 @@ public class CassandraAPI4x implements CassandraAPI
     }
 
     @Override
-    public void rebuild(String srcDc)
-    {
-        StorageService.instance.rebuild(srcDc);
-    }
-
-    @Override
     public Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc)
     {
         try
