@@ -48,6 +48,8 @@ public interface CassandraAPI
 
     void decommission(boolean force) throws InterruptedException;
 
+    void rebuild(String srcDc);
+
     Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
 
     SeedProvider getK8SeedProvider();
