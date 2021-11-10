@@ -87,8 +87,6 @@ Finally build the Management API image:
 
 ### Standalone
 
-Note that the tests will not run correctly on MacOS because the IPC classes will fail.
-
     mvn -DskipTests package
     mvn test
     mvn integration-test -Drun311tests=true -Drun40tests=true
