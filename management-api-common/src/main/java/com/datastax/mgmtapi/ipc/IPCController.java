@@ -25,6 +25,9 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueDomainSocketChannel;
+import io.netty.channel.kqueue.KQueueServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 
 /**
@@ -74,11 +77,33 @@ public class IPCController
 
         if (isClient)
         {
-            b = b.channel(EpollDomainSocketChannel.class);
+            if (Epoll.isAvailable())
+            {
+                b = b.channel(EpollDomainSocketChannel.class);
+            }
+            else if (KQueue.isAvailable())
+            {
+                b = b.channel(KQueueDomainSocketChannel.class);
+            }
+            else
+            {
+                throw new RuntimeException("Neither epoll nor kqueue was found. Unable to initialize channel pipeline");
+            }
         }
         else
         {
-            b = b.channel(EpollServerDomainSocketChannel.class);
+            if (Epoll.isAvailable())
+            {
+                b = b.channel(EpollServerDomainSocketChannel.class);
+            }
+            else if (KQueue.isAvailable())
+            {
+                b = b.channel(KQueueServerDomainSocketChannel.class);
+            }
+            else
+            {
+                throw new RuntimeException("Neither epoll nor kqueue was found. Unable to initialize server channel pipeline");
+            }
         }
 
         return isClient ? b.handler(channelPipeline) : ((ServerBootstrap)b).childHandler(channelPipeline);
