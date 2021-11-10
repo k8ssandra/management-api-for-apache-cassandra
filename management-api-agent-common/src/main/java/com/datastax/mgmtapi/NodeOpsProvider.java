@@ -171,6 +171,17 @@ public class NodeOpsProvider
         return jobPair.left;
     }
 
+    public String rebuild(@RpcParam(name = "srcDatacenter") String srcDatacenter)
+    {
+        logger.debug("Starting rebuild");
+
+        Pair<String, CompletableFuture<Void>> jobPair = service.submit("rebuild",
+                () -> ShimLoader.instance.get().rebuild(srcDatacenter)
+        );
+
+        return jobPair.left;
+    }
+
     @Rpc(name = "setCompactionThroughput")
     public void setCompactionThroughput(@RpcParam(name="value") int value)
     {

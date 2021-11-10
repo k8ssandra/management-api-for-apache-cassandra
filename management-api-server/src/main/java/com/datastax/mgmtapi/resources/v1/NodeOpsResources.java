@@ -35,4 +35,16 @@ public class NodeOpsResources {
                         ).build());
     }
 
+    @POST
+    @Path("/rebuild")
+    @Operation(summary = "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id.")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response rebuild(@QueryParam("src_dc") String srcDatacenter)
+    {
+        return com.datastax.mgmtapi.resources.NodeOpsResources.handle(() ->
+                Response.accepted(
+                        ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.rebuild(?)", srcDatacenter)
+                ).build());
+    }
+
 }

@@ -176,6 +176,30 @@ public class K8OperatorResourcesTest {
     }
 
     @Test
+    public void testRebuild() throws Exception {
+        Context context = setup();
+        String srcDc = "dc1";
+        String jobId = "0fe65b47-98c2-47d8-9c3c-5810c9988e10";
+
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), anyString(), eq(srcDc))).thenReturn(mockResultSet);
+
+        when(mockResultSet.one()).thenReturn(mockRow);
+
+        when(mockRow.getString(0)).thenReturn(jobId);
+
+        MockHttpRequest request = MockHttpRequest.post("/api/v1/ops/node/rebuild?src_dc=dc1");
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+        assertEquals(jobId, response.getContentAsString());
+
+        verify(context.cqlService, timeout(500)).executePreparedStatement(any(), eq("CALL NodeOps.rebuild(?)"), eq(srcDc));
+    }
+
+    @Test
     public void testSetCompactionThroughput() throws Exception {
         int value = 1;
 

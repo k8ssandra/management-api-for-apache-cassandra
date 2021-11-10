@@ -48,6 +48,11 @@ public interface CassandraAPI
 
     void decommission(boolean force) throws InterruptedException;
 
+    default void rebuild(String srcDc)
+    {
+        getStorageService().rebuild(srcDc);
+    }
+
     Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
 
     SeedProvider getK8SeedProvider();
