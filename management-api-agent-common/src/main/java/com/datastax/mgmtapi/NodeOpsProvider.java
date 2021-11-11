@@ -92,6 +92,9 @@ public class NodeOpsProvider
     public Map<String, String> getJobStatus(@RpcParam(name="job_id") String jobId) {
         Map<String, String> resultMap = new HashMap<>();
         Job jobWithId = service.getJobWithId(jobId);
+        if(jobWithId == null) {
+            return resultMap;
+        }
         resultMap.put("id", jobWithId.getJobId());
         resultMap.put("type", jobWithId.getJobType());
         resultMap.put("status", jobWithId.getStatus().name());

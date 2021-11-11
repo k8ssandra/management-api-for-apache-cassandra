@@ -541,6 +541,28 @@ public class K8OperatorResourcesTest {
         assertEquals("CLEANUP", jobDetails.getJobType());
     }
 
+    @Test
+    public void testJobStatusNotExisting() throws Exception {
+        Context context = setup();
+        ResultSet mockResultSet = mock(ResultSet.class);
+        when(context.cqlService.executePreparedStatement(any(), anyString(), anyString())).thenReturn(mockResultSet);
+        Row mockRow = mock(Row.class);
+
+        when(mockResultSet.one()).thenReturn(mockRow);
+
+        Map<String, String> jobDetailsRow = new HashMap<>();
+
+        when(mockRow.getObject(0)).thenReturn(jobDetailsRow);
+
+        MockHttpResponse response = getJobStatusWithId(context, "/ops/executor/job?job_id=0");
+
+        Assert.assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatus());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.jobStatus(?)"), anyString());
+
+        String json = response.getContentAsString();
+        assertEquals("{}", json);
+    }
+
     private MockHttpResponse getJobStatusWithId(Context context, String path) throws URISyntaxException {
         MockHttpRequest request = MockHttpRequest
                 .get(ROOT_PATH + path)

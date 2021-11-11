@@ -127,6 +127,9 @@ public class K8OperatorResources
     public Response getJobStatus(@QueryParam(value="job_id") String jobId) {
         return handle(() -> {
             Map<String, String> jobResponse = (Map<String, String>) ResponseTools.getSingleRowResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.jobStatus(?)", jobId);
+            if(jobResponse.isEmpty()) {
+                return Response.status(Response.Status.NOT_FOUND).entity(jobResponse).build();
+            }
             return Response.ok(jobResponse, MediaType.APPLICATION_JSON).build();
         });
     }
