@@ -92,7 +92,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/decommission")
-    @Operation(summary = "Decommission the *node I am connecting to*")
+    @Operation(summary = "Decommission the *node I am connecting to*", operationId = "decommission")
     @Produces(MediaType.TEXT_PLAIN)
     public Response decommission(@QueryParam(value="force")boolean force)
     {
@@ -106,7 +106,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/compaction")
-    @Operation(summary = "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling")
+    @Operation(summary = "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling", operationId = "setCompactionThroughput")
     @Produces(MediaType.TEXT_PLAIN)
     public Response setCompactionThroughput(@QueryParam(value="value")int value)
     {
@@ -120,7 +120,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/assassinate")
-    @Operation(summary = "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode")
+    @Operation(summary = "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode", operationId = "assassinate")
     @Produces(MediaType.TEXT_PLAIN)
     public Response assassinate(@QueryParam(value="address")String address)
     {
@@ -138,7 +138,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/logging")
-    @Operation(summary = "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.")
+    @Operation(summary = "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.", operationId = "setLoggingLevel")
     @Produces(MediaType.TEXT_PLAIN)
     public Response setLoggingLevel(@QueryParam(value="target")String targetStr, @QueryParam(value="rawLevel")String rawLevelStr)
     {
@@ -162,7 +162,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/drain")
-    @Operation(summary = "Drain the node (stop accepting writes and flush all tables)")
+    @Operation(summary = "Drain the node (stop accepting writes and flush all tables)", operationId = "drain")
     @Produces(MediaType.TEXT_PLAIN)
     // TODO Make async
     public Response drain()
@@ -185,7 +185,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/hints/truncate")
-    @Operation(summary = "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.")
+    @Operation(summary = "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.", operationId = "truncateHints")
     @Produces(MediaType.TEXT_PLAIN)
     public Response truncateHints(@QueryParam(value="host")String host)
     {
@@ -207,7 +207,7 @@ public class NodeOpsResources
     @POST
     @Path("/schema/reset")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Reset node's local schema and resync")
+    @Operation(summary = "Reset node's local schema and resync", operationId = "resetLocalSchema")
     public Response resetLocalSchema()
     {
         return handle(() ->
@@ -221,7 +221,7 @@ public class NodeOpsResources
     @POST
     @Path("/schema/reload")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Reload local node schema from system tables")
+    @Operation(summary = "Reload local node schema from system tables", operationId = "reloadLocalSchema")
     public Response reloadLocalSchema()
     {
         return handle(() ->
@@ -235,7 +235,7 @@ public class NodeOpsResources
     @GET
     @Path("/streaminfo")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Retrieve Streaming status information")
+    @Operation(summary = "Retrieve Streaming status information", operationId = "getStreamInfo")
     public Response getStreamInfo()
     {
         return handle(() ->
@@ -254,7 +254,7 @@ public class NodeOpsResources
     @GET
     @Path("/snapshots")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Retrieve snapshot details")
+    @Operation(summary = "Retrieve snapshot details", operationId = "getSnapshotDetails")
     public Response getSnapshotDetails(@QueryParam("snapshotNames") List<String> snapshotNames, @QueryParam("keyspaces") List<String> keyspace)
     {
         return handle(() ->
@@ -273,7 +273,7 @@ public class NodeOpsResources
     @POST
     @Path("/snapshots")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Take a snapshot")
+    @Operation(summary = "Take a snapshot", operationId = "takeSnapshot")
     public Response takeSnapshot(TakeSnapshotRequest takeSnapshotRequest)
     {
         return handle(() ->
@@ -316,7 +316,7 @@ public class NodeOpsResources
     @DELETE
     @Path("/snapshots")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Clear snapshots")
+    @Operation(summary = "Clear snapshots", operationId = "clearSnapshots")
     public Response clearSnapshots(@QueryParam(value="snapshotNames") List<String> snapshotNames, @QueryParam(value="keyspaces") List<String> keyspaces)
     {
         return handle(() ->
@@ -329,7 +329,7 @@ public class NodeOpsResources
     @POST
     @Path("/repair")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Perform a nodetool repair")
+    @Operation(summary = "Perform a nodetool repair", operationId = "repair")
     public Response repair(RepairRequest repairRequest)
     {
         return handle(() ->
@@ -351,7 +351,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/fullquerylogging")
-    @Operation(summary = "Enable or disable full query logging facility.")
+    @Operation(summary = "Enable or disable full query logging facility.", operationId = "setFullQuerylog")
     @Produces(MediaType.TEXT_PLAIN)
     public Response setFullQuerylog(@QueryParam(value="enabled")boolean fullQueryLoggingEnabled)
     {
@@ -364,7 +364,7 @@ public class NodeOpsResources
 
     @GET
     @Path("/fullquerylogging")
-    @Operation(summary = "Get whether full query logging is enabled.")
+    @Operation(summary = "Get whether full query logging is enabled.", operationId = "isFullQueryLogEnabled")
     @Produces(MediaType.APPLICATION_JSON)
     public Response isFullQueryLogEnabled()
     {

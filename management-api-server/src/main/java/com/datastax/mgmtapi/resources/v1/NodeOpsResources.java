@@ -25,7 +25,7 @@ public class NodeOpsResources {
 
     @POST
     @Path("/decommission")
-    @Operation(summary = "Decommission the *node I am connecting to*. This invocation returns immediately and returns a job id.")
+    @Operation(summary = "Decommission the *node I am connecting to*. This invocation returns immediately and returns a job id.", operationId = "decommission_v1")
     @Produces(MediaType.TEXT_PLAIN)
     public Response decommission(@QueryParam(value="force")boolean force)
     {
@@ -37,7 +37,7 @@ public class NodeOpsResources {
 
     @POST
     @Path("/rebuild")
-    @Operation(summary = "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id.")
+    @Operation(summary = "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id.", operationId = "rebuild_v1")
     @Produces(MediaType.TEXT_PLAIN)
     public Response rebuild(@QueryParam("src_dc") String srcDatacenter)
     {

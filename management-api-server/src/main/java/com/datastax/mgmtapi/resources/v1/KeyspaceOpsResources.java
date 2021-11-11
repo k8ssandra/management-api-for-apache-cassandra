@@ -33,7 +33,8 @@ public class KeyspaceOpsResources {
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately")
+    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
+            operationId = "cleanup_v1")
     public Response cleanup(KeyspaceRequest keyspaceRequest)
     {
         return NodeOpsResources.handle(() ->

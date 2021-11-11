@@ -72,7 +72,7 @@ public class LifecycleResources
      */
     @Path("/start")
     @POST
-    @Operation(description = "Starts Cassandra/DSE")
+    @Operation(description = "Starts Cassandra/DSE", operationId = "startNode")
     public synchronized Response startNode(@QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp)
     {
         app.setRequestedState(STARTED);
@@ -198,7 +198,7 @@ public class LifecycleResources
 
     @Path("/stop")
     @POST
-    @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called")
+    @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called", operationId = "stopNode")
     public synchronized Response stopNode()
     {
         app.setRequestedState(STOPPED);
@@ -286,7 +286,7 @@ public class LifecycleResources
     @Path("/configure")
     @POST
     @Consumes("application/json")
-    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
+    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started", operationId = "configureNodeJson")
     public synchronized Response configureNodeJson(@QueryParam("profile") String profile, String config)
     {
         try {
@@ -301,7 +301,7 @@ public class LifecycleResources
     @Path("/configure")
     @POST
     @Consumes({"application/yaml", "text/yaml"})
-    @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started")
+    @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started", operationId = "configureNode")
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
         if (app.getRequestedState() == STARTED ) {
@@ -417,7 +417,7 @@ public class LifecycleResources
 
     @Path("/pid")
     @GET
-    @Operation(description = "The PID of Cassandra/DSE, if it's running")
+    @Operation(description = "The PID of Cassandra/DSE, if it's running", operationId = "getPID")
     public Response getPID()
     {
         try

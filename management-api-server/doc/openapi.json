@@ -107,6 +107,7 @@
     },
     "/api/v0/ops/executor/job" : {
       "get" : {
+        "summary" : "Returns Job deatils for the supplied Job ID",
         "operationId" : "getJobStatus",
         "parameters" : [ {
           "name" : "job_id",
@@ -127,6 +128,7 @@
     },
     "/api/v0/ops/seeds/reload" : {
       "post" : {
+        "summary" : "Reload the seed node list from the seed provider",
         "operationId" : "seedReload",
         "responses" : {
           "default" : {
@@ -141,7 +143,7 @@
     "/api/v0/ops/keyspace/alter" : {
       "post" : {
         "summary" : "Alter the replication settings of an existing keyspace",
-        "operationId" : "alter",
+        "operationId" : "alterKeyspace",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -187,7 +189,7 @@
     "/api/v0/ops/keyspace/create" : {
       "post" : {
         "summary" : "Create a new keyspace with the given name and replication settings",
-        "operationId" : "create",
+        "operationId" : "createKeyspace",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -210,7 +212,7 @@
     "/api/v0/ops/keyspace/replication" : {
       "get" : {
         "summary" : "Get the replication settings of an existing keyspace",
-        "operationId" : "getReplication",
+        "operationId" : "replication",
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
@@ -231,7 +233,7 @@
     "/api/v0/ops/keyspace" : {
       "get" : {
         "summary" : "List the keyspaces existing in the cluster",
-        "operationId" : "list",
+        "operationId" : "listKeyspaces",
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
@@ -752,7 +754,7 @@
     "/api/v0/ops/tables/create" : {
       "post" : {
         "summary" : "Create a new table",
-        "operationId" : "create_1",
+        "operationId" : "createTable",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -828,7 +830,7 @@
     "/api/v0/ops/tables" : {
       "get" : {
         "summary" : "List the table names in the given keyspace",
-        "operationId" : "list_1",
+        "operationId" : "listTables",
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
@@ -902,7 +904,7 @@
     "/api/v1/ops/keyspace/cleanup" : {
       "post" : {
         "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
-        "operationId" : "cleanup_1",
+        "operationId" : "cleanup_v1",
         "requestBody" : {
           "content" : {
             "application/json" : {
@@ -925,7 +927,7 @@
     "/api/v1/ops/node/decommission" : {
       "post" : {
         "summary" : "Decommission the *node I am connecting to*. This invocation returns immediately and returns a job id.",
-        "operationId" : "decommission_1",
+        "operationId" : "decommission_v1",
         "parameters" : [ {
           "name" : "force",
           "in" : "query",
@@ -946,7 +948,7 @@
     "/api/v1/ops/node/rebuild" : {
       "post" : {
         "summary" : "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id.",
-        "operationId" : "rebuild",
+        "operationId" : "rebuild_v1",
         "parameters" : [ {
           "name" : "src_dc",
           "in" : "query",

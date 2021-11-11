@@ -48,7 +48,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/liveness")
-    @Operation(summary = "Indicates whether this service is running")
+    @Operation(summary = "Indicates whether this service is running", operationId = "checkLiveness")
     @Produces(MediaType.TEXT_PLAIN)
     public Response checkLiveness()
     {
@@ -57,7 +57,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/readiness")
-    @Operation(summary = "Indicates whether the Cassandra service is ready to service requests")
+    @Operation(summary = "Indicates whether the Cassandra service is ready to service requests", operationId = "checkReadiness")
     @Produces(MediaType.TEXT_PLAIN)
     public Response checkReadiness()
     {
@@ -80,7 +80,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/cluster")
-    @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency")
+    @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency", operationId = "checkClusterConsistency")
     public Response checkClusterConsistency(@QueryParam(value="consistency_level")String consistencyLevelStr, @QueryParam(value = "rf_per_dc") Integer rfPerDcVal)
     {
         return handle(() ->
@@ -110,6 +110,7 @@ public class K8OperatorResources
 
     @POST
     @Path("/ops/seeds/reload")
+    @Operation(summary = "Reload the seed node list from the seed provider", operationId = "seedReload")
     public Response seedReload()
     {
         return handle(() ->
@@ -124,6 +125,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/ops/executor/job")
+    @Operation(summary = "Returns Job deatils for the supplied Job ID", operationId = "getJobStatus")
     public Response getJobStatus(@QueryParam(value="job_id") String jobId) {
         return handle(() -> {
             Map<String, String> jobResponse = (Map<String, String>) ResponseTools.getSingleRowResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.jobStatus(?)", jobId);

@@ -42,7 +42,7 @@ public class MetadataResources
 
     @GET
     @Path("/versions/release")
-    @Operation(summary = "Returns the Cassandra release version")
+    @Operation(summary = "Returns the Cassandra release version", operationId = "getReleaseVersion")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getReleaseVersion()
     {
@@ -51,7 +51,7 @@ public class MetadataResources
 
     @GET
     @Path("/endpoints")
-    @Operation(summary = "Returns this nodes view of the endpoint states of nodes")
+    @Operation(summary = "Returns this nodes view of the endpoint states of nodes", operationId = "getEndpointStates")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getEndpointStates()
     {
@@ -60,7 +60,7 @@ public class MetadataResources
 
     @GET
     @Path("/localdc")
-    @Operation(summary = "Returns the DataCenter the local node belongs to")
+    @Operation(summary = "Returns the DataCenter the local node belongs to", operationId = "getLocalDataCenter")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getLocalDataCenter()
     {
@@ -69,7 +69,7 @@ public class MetadataResources
 
     @GET
     @Path("/versions/features")
-    @Operation(summary = "Returns the management-api featureSet")
+    @Operation(summary = "Returns the management-api featureSet", operationId = "getFeatureSet")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFeatureSet() {
         return handle(() -> {

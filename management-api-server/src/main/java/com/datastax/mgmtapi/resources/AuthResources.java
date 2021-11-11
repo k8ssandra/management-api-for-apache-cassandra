@@ -34,7 +34,7 @@ public class AuthResources
 
     @POST
     @Path("/role/")
-    @Operation(summary = "Creates a new user role")
+    @Operation(summary = "Creates a new user role", operationId = "createRole")
     @Produces(MediaType.TEXT_PLAIN)
     public Response createRole(
             @QueryParam(value = "username")String name,

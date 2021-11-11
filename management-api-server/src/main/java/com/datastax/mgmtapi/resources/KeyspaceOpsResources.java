@@ -57,7 +57,8 @@ public class KeyspaceOpsResources
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing.")
+    @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing.",
+            operationId = "cleanup")
     public Response cleanup(KeyspaceRequest keyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -86,7 +87,7 @@ public class KeyspaceOpsResources
     @POST
     @Path("/refresh")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Load newly placed SSTables to the system without restart")
+    @Operation(summary = "Load newly placed SSTables to the system without restart", operationId = "refresh")
     public Response refresh(@QueryParam(value="keyspaceName")String keyspaceName, @QueryParam(value="table")String table)
     {
         return NodeOpsResources.handle(() ->
@@ -111,7 +112,7 @@ public class KeyspaceOpsResources
     @Path("/create")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new keyspace with the given name and replication settings")
+    @Operation(summary = "Create a new keyspace with the given name and replication settings", operationId = "createKeyspace")
     public Response create(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -137,7 +138,7 @@ public class KeyspaceOpsResources
     @Path("/alter")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Alter the replication settings of an existing keyspace")
+    @Operation(summary = "Alter the replication settings of an existing keyspace", operationId = "alterKeyspace")
     public Response alter(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -162,7 +163,7 @@ public class KeyspaceOpsResources
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List the keyspaces existing in the cluster")
+    @Operation(summary = "List the keyspaces existing in the cluster", operationId = "listKeyspaces")
     public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
     {
         return NodeOpsResources.handle(() ->
@@ -186,7 +187,7 @@ public class KeyspaceOpsResources
     @Path("/replication")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get the replication settings of an existing keyspace")
+    @Operation(summary = "Get the replication settings of an existing keyspace", operationId = "replication")
     public Response getReplication(@QueryParam(value="keyspaceName")String keyspaceName) {
         if (StringUtils.isBlank(keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)

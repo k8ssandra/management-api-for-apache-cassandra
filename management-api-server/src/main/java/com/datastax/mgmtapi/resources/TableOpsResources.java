@@ -52,7 +52,7 @@ public class TableOpsResources
     @Path("/scrub")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Scrub (rebuild sstables for) one or more tables")
+    @Operation(summary = "Scrub (rebuild sstables for) one or more tables", operationId = "scrub")
     public Response scrub(ScrubRequest scrubRequest)
     {
         return handle(() ->
@@ -80,7 +80,8 @@ public class TableOpsResources
     @Path("/sstables/upgrade")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)")
+    @Operation(summary = "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
+            operationId = "upgradeSSTables")
     public Response upgradeSSTables(@QueryParam(value="excludeCurrentVersion")boolean excludeCurrentVersion, KeyspaceRequest keyspaceRequest)
     {
         return handle(() ->
@@ -107,7 +108,8 @@ public class TableOpsResources
     @Path("/compact")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables")
+    @Operation(summary = "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables",
+            operationId = "compact")
     public Response compact(CompactRequest compactRequest)
     {
         return handle(() ->
@@ -171,7 +173,7 @@ public class TableOpsResources
     @Path("/garbagecollect")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Remove deleted data from one or more tables")
+    @Operation(summary = "Remove deleted data from one or more tables", operationId = "garbageCollect")
     public Response garbageCollect(@QueryParam(value="tombstoneOption")String tombstoneOptionStr, KeyspaceRequest keyspaceRequest)
     {
         return handle(() ->
@@ -208,7 +210,7 @@ public class TableOpsResources
     @Path("/flush")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Flush one or more tables")
+    @Operation(summary = "Flush one or more tables", operationId = "flush")
     public Response flush(KeyspaceRequest keyspaceRequest)
     {
         return handle(() ->
@@ -234,7 +236,7 @@ public class TableOpsResources
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "List the table names in the given keyspace")
+    @Operation(summary = "List the table names in the given keyspace", operationId = "listTables")
     public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
     {
         if (StringUtils.isBlank(keyspaceName))
@@ -256,7 +258,7 @@ public class TableOpsResources
     @Path("/create")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new table")
+    @Operation(summary = "Create a new table", operationId = "createTable")
     public Response create(CreateTableRequest request)
     {
         try {
