@@ -316,6 +316,7 @@
                     <outputFormat>JSON</outputFormat>
                     <prettyPrint>TRUE</prettyPrint>
                     <configurationFilePath>${project.basedir}/src/main/resources/openapi-configuration.json</configurationFilePath>
+                    <skip>${skipOpenApi}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -333,6 +334,7 @@
                 <configuration>
                     <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
                     <generatorName>go</generatorName>
+                    <skip>${skipOpenApi}</skip>
                 </configuration>
                 <executions>
                     <execution>
