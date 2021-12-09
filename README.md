@@ -222,7 +222,7 @@ git commit
 
 ## API Client Generation
 
-In addition to automatic OpenAPI document generation, a Golang client is also generated during the build. The client is built using the [OpenAPI Tools generator Maven plugin](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) and can be used by Go projects to interact with the Management API. The client generation happens during the `process-classes` phase of the Maven build so that changes to the API implementation can be compiled into an OpenAPI document spec file [during the compile phase](#changes-to-api-endpoints) of the build. The client code is generated in the `target` directory under the [management-api-server](management-api-server) sub-module and should be located at
+In addition to automatic OpenAPI document generation, a Golang client can be generated during the build by enabling the `clientgen` Maven profile. The client is built using the [OpenAPI Tools generator Maven plugin](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) and can be used by Go projects to interact with the Management API. The client generation happens during the `process-classes` phase of the Maven build so that changes to the API implementation can be compiled into an OpenAPI document spec file [during the compile phase](#changes-to-api-endpoints) of the build. The client code is generated in the `target` directory under the [management-api-server](management-api-server) sub-module and should be located at
 
 ```sh
 management-api-server/target/generated-sources/openapi
@@ -231,7 +231,7 @@ management-api-server/target/generated-sources/openapi
 To generate the client, run the following from the root of the project:
 
 ```sh
-mvn clean process-classes
+mvn clean process-classes -Pclientgen
 ```
 
 ## Published Docker images
