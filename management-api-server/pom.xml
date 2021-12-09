@@ -27,7 +27,6 @@
         <junit.version>4.13.1</junit.version>
         <mockito.version>3.5.13</mockito.version>
         <servelet.version>3.1.0</servelet.version>
-        <openapi.tools.version>5.3.0</openapi.tools.version>
     </properties>
 
     <dependencies>
@@ -327,24 +326,39 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.openapitools</groupId>
-                <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>${openapi.tools.version}</version>
-                <configuration>
-                    <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
-                    <generatorName>go</generatorName>
-                    <skip>${skipOpenApi}</skip>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
+    <profiles>
+      <profile>
+        <activation>
+          <activeByDefault>false</activeByDefault>
+        </activation>
+        <id>clientgen</id>
+        <properties>
+          <openapi.tools.version>5.3.0</openapi.tools.version>
+        </properties>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.openapitools</groupId>
+              <artifactId>openapi-generator-maven-plugin</artifactId>
+              <version>${openapi.tools.version}</version>
+              <configuration>
+                <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
+                <generatorName>go</generatorName>
+                <skip>${skipOpenApi}</skip>
+              </configuration>
+              <executions>
+                <execution>
+                  <phase>process-classes</phase>
+                  <goals>
+                    <goal>generate</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+          </plugins>
+        </build>
+      </profile>
+    </profiles>
 </project>
