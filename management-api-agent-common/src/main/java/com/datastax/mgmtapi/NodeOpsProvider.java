@@ -174,6 +174,7 @@ public class NodeOpsProvider
         return jobPair.left;
     }
 
+    @Rpc(name = "rebuild")
     public String rebuild(@RpcParam(name = "srcDatacenter") String srcDatacenter)
     {
         logger.debug("Starting rebuild");
