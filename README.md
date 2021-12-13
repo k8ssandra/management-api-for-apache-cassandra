@@ -334,4 +334,4 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## Dependencies
 
-For information on the packaged dependencies of the Management API for Apache Cassandra&reg; and their licenses, check out our [open source report](https://app.fossa.com/reports/1aa499fc-6878-4ad3-b61c-350258c0605b).
+For information on the packaged dependencies of the Management API for Apache Cassandra&reg; and their licenses, check out our [open source report](https://app.fossa.com/reports/cec8824e-b23c-455e-b40d-8117b346affc).
