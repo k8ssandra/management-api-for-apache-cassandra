@@ -239,7 +239,6 @@
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
-          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -837,6 +836,7 @@
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }

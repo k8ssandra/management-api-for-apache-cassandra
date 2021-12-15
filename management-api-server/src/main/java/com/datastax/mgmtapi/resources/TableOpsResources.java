@@ -34,6 +34,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/api/v0/ops/tables")
 public class TableOpsResources
@@ -237,7 +238,7 @@ public class TableOpsResources
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "List the table names in the given keyspace", operationId = "listTables")
-    public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
+    public Response list(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName)
     {
         if (StringUtils.isBlank(keyspaceName))
         {

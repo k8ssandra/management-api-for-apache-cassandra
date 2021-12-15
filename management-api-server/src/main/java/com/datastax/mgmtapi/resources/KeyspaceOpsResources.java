@@ -165,7 +165,7 @@ public class KeyspaceOpsResources
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "List the keyspaces existing in the cluster", operationId = "listKeyspaces")
-    public Response list(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName)
+    public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
     {
         return NodeOpsResources.handle(() ->
         {
