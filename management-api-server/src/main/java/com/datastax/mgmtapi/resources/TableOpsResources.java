@@ -258,7 +258,7 @@ public class TableOpsResources
     @Path("/create")
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create a new table", operationId = "createTable")
+    @Operation(summary = "Create a new table in an existing keyspace", operationId = "createTable")
     public Response create(CreateTableRequest request)
     {
         try {

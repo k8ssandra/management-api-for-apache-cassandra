@@ -29,6 +29,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
+import io.swagger.v3.oas.annotations.Parameter;
 
 
 @Path("/api/v0")
@@ -126,7 +127,7 @@ public class K8OperatorResources
     @GET
     @Path("/ops/executor/job")
     @Operation(summary = "Returns Job deatils for the supplied Job ID", operationId = "getJobStatus")
-    public Response getJobStatus(@QueryParam(value="job_id") String jobId) {
+    public Response getJobStatus(@Parameter(required = true) @QueryParam(value="job_id") String jobId) {
         return handle(() -> {
             Map<String, String> jobResponse = (Map<String, String>) ResponseTools.getSingleRowResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.jobStatus(?)", jobId);
             if(jobResponse.isEmpty()) {

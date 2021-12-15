@@ -112,6 +112,7 @@
         "parameters" : [ {
           "name" : "job_id",
           "in" : "query",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -216,6 +217,7 @@
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -237,6 +239,7 @@
         "parameters" : [ {
           "name" : "keyspaceName",
           "in" : "query",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }
@@ -623,7 +626,7 @@
     },
     "/api/v0/ops/node/repair" : {
       "post" : {
-        "summary" : "Perform a nodetool repair",
+        "summary" : "Execute a nodetool repair operation",
         "operationId" : "repair",
         "requestBody" : {
           "content" : {
@@ -753,7 +756,7 @@
     },
     "/api/v0/ops/tables/create" : {
       "post" : {
-        "summary" : "Create a new table",
+        "summary" : "Create a new table in an existing keyspace",
         "operationId" : "createTable",
         "requestBody" : {
           "content" : {

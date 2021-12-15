@@ -329,7 +329,7 @@ public class NodeOpsResources
     @POST
     @Path("/repair")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Perform a nodetool repair", operationId = "repair")
+    @Operation(summary = "Execute a nodetool repair operation", operationId = "repair")
     public Response repair(RepairRequest repairRequest)
     {
         return handle(() ->

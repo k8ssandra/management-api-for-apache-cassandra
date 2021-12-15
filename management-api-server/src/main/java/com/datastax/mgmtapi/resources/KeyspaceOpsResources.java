@@ -38,6 +38,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import org.apache.http.HttpStatus;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
+import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/api/v0/ops/keyspace")
 public class KeyspaceOpsResources
@@ -164,7 +165,7 @@ public class KeyspaceOpsResources
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "List the keyspaces existing in the cluster", operationId = "listKeyspaces")
-    public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
+    public Response list(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName)
     {
         return NodeOpsResources.handle(() ->
         {
@@ -188,7 +189,7 @@ public class KeyspaceOpsResources
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the replication settings of an existing keyspace", operationId = "replication")
-    public Response getReplication(@QueryParam(value="keyspaceName")String keyspaceName) {
+    public Response getReplication(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName) {
         if (StringUtils.isBlank(keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)
                     .entity("Get keyspace replication failed. Non-empty 'keyspaceName' must be provided").build();
