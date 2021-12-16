@@ -32,9 +32,9 @@ import org.slf4j.LoggerFactory;
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-import io.swagger.v3.oas.annotations.Parameter;
 
 @Path("/api/v0/ops/tables")
 public class TableOpsResources

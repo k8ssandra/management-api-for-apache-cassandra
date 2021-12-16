@@ -2,7 +2,7 @@
     "resourcePackages": [
         "com.datastax.mgmtapi.resources"
     ],
-    "prettyPrint" : true,
+    "prettyPrint": true,
     "cacheTTL": 0,
     "openAPI": {
         "info": {
@@ -51,83 +51,6 @@
                             "content": {
                                 "*/*": {}
                             }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v0/ops/tables/create": {
-            "post": {
-                "summary": "Create a new table in an existing keyspace",
-                "operationId": "createTable",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/CreateTableRequest"
-                            },
-                            "example": {
-                                "keyspace_name": "ks1",
-                                "table_name": "table1",
-                                "columns": [
-                                    {
-                                        "name": "pk1",
-                                        "type": "int",
-                                        "kind": "PARTITION_KEY",
-                                        "position": 0
-                                    },
-                                    {
-                                        "name": "pk2",
-                                        "type": "int",
-                                        "kind": "PARTITION_KEY",
-                                        "position": 1
-                                    },
-                                    {
-                                        "name": "cc1",
-                                        "type": "timeuuid",
-                                        "kind": "CLUSTERING",
-                                        "position": 0,
-                                        "order": "DESC"
-                                    },
-                                    {
-                                        "name": "cc2",
-                                        "type": "text",
-                                        "kind": "CLUSTERING",
-                                        "position": 1,
-                                        "order": "ASC"
-                                    },
-                                    {
-                                        "name": "v1",
-                                        "type": "timestamp",
-                                        "kind": "REGULAR"
-                                    },
-                                    {
-                                        "name": "v2",
-                                        "type": "list<text>",
-                                        "kind": "REGULAR"
-                                    },
-                                    {
-                                        "name": "s",
-                                        "type": "boolean",
-                                        "kind": "STATIC"
-                                    }
-                                ],
-                                "options": {
-                                    "bloom_filter_fp_chance": "0.01",
-                                    "caching": {
-                                        "keys": "ALL",
-                                        "rows_per_partition": "NONE"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "default": {
-                        "description": "default response",
-                        "content": {
-                            "text/plain": {}
                         }
                     }
                 }

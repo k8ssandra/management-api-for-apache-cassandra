@@ -315,6 +315,7 @@
                     <outputFormat>JSON</outputFormat>
                     <prettyPrint>TRUE</prettyPrint>
                     <configurationFilePath>${project.basedir}/src/main/resources/openapi-configuration.json</configurationFilePath>
+                    <sortOutput>true</sortOutput>
                     <skip>${skipOpenApi}</skip>
                 </configuration>
                 <executions>
