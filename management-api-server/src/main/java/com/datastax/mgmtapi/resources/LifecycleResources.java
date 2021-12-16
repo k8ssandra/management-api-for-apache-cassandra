@@ -23,6 +23,7 @@ import javax.ws.rs.core.Response;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,12 +38,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.http.HttpStatus;
 
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
-import io.swagger.v3.oas.annotations.Hidden;
 
 @Path("/api/v0/lifecycle")
 public class LifecycleResources

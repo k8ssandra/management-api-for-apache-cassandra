@@ -12,7 +12,6 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -20,16 +19,15 @@ import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-import io.swagger.v3.oas.annotations.Parameter;
 
 
 @Path("/api/v0")

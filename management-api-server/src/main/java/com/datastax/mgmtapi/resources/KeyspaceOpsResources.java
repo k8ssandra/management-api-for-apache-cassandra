@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ConnectionClosedException;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +35,8 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.http.HttpStatus;
-
-import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 import io.swagger.v3.oas.annotations.Parameter;
+
 
 @Path("/api/v0/ops/keyspace")
 public class KeyspaceOpsResources
