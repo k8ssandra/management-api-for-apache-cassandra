@@ -13,6 +13,48 @@
                 "name": "Apache 2.0",
                 "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
             }
+        },
+        "paths": {
+            "/api/v0/lifecycle/configure": {
+                "post": {
+                    "description": "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
+                    "operationId": "configureNode",
+                    "parameters": [{
+                            "name": "profile",
+                            "in": "query",
+                            "schema": {
+                                "type": "string"
+                            }
+                        }],
+                    "requestBody": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "application/yaml": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            },
+                            "text/yaml": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "default": {
+                            "description": "default response",
+                            "content": {
+                                "*/*": {}
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

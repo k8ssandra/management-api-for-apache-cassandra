@@ -49,6 +49,46 @@
         }
       }
     },
+    "/api/v0/lifecycle/configure" : {
+      "post" : {
+        "description" : "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
+        "operationId" : "configureNode",
+        "parameters" : [ {
+          "name" : "profile",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "text/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "default" : {
+            "description" : "default response",
+            "content" : {
+              "*/*" : { }
+            }
+          }
+        }
+      }
+    },
     "/api/v0/probes/cluster" : {
       "get" : {
         "summary" : "Indicated whether the Cassandra cluster is able to achieve the specified consistency",
@@ -275,36 +315,6 @@
             "description" : "default response",
             "content" : {
               "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/lifecycle/configure" : {
-      "post" : {
-        "description" : "Configure Cassandra. Will fail if Cassandra is already started",
-        "operationId" : "configureNodeJson",
-        "parameters" : [ {
-          "name" : "profile",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "type" : "string"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
             }
           }
         }

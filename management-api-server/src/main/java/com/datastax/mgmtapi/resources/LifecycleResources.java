@@ -42,6 +42,7 @@ import org.apache.http.HttpStatus;
 
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
+import io.swagger.v3.oas.annotations.Hidden;
 
 @Path("/api/v0/lifecycle")
 public class LifecycleResources
@@ -284,6 +285,16 @@ public class LifecycleResources
     }
 
     @Path("/configure")
+    /**
+     * Hiding both "configure" endpoints to prevent OpenAPI spec generation from happening. Having 2
+     * methods handling the same endpoint and only differing on the @Consumes request MIME type causes
+     * the generation to fail to document the endpoint correctly. For now, we will annotate both these
+     * methods with @Hidden so that they still exist but are not auto generated in the spec file. They
+     * are documented by hand in the openapi-configuration.json file in the resources directory of this
+     * project for now, as that file is merged with the auto-generated spec to produce the final spec
+     * file.
+     */
+    @Hidden
     @POST
     @Consumes("application/json")
     @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started", operationId = "configureNodeJson")
@@ -299,6 +310,8 @@ public class LifecycleResources
     }
 
     @Path("/configure")
+    // Hiding this. See above.
+    @Hidden
     @POST
     @Consumes({"application/yaml", "text/yaml"})
     @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started", operationId = "configureNode")
