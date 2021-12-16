@@ -34,7 +34,7 @@ public class TakeSnapshotRequest implements Serializable {
             @JsonProperty("snapshot_name") String snapshotName,
             @JsonProperty("keyspaces") List<String> keyspaces,
             @JsonProperty("table_name") String tableName,
-            @JsonProperty("skip_flsuh") Boolean skipFlush,
+            @JsonProperty(value = "skip_flush") Boolean skipFlush,
             @JsonProperty("keyspace_tables") List<String> keyspaceTables)
     {
         this.snapshotName = snapshotName == null ? Long.toString(System.currentTimeMillis()) : snapshotName;;

@@ -1174,10 +1174,6 @@
               "type" : "string"
             }
           },
-          "skip_flsuh" : {
-            "type" : "boolean",
-            "writeOnly" : true
-          },
           "skip_flush" : {
             "type" : "boolean"
           },
