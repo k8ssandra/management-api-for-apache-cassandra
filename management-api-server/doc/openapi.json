@@ -292,13 +292,8 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "cassandra_version" : "4.0.1",
-                  "mgmt_version" : "",
-                  "features" : [ "async_sstable_tasks", "full_query_logging", "rebuild" ]
-                },
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/FeatureSet"
                 }
               }
             },
@@ -1612,6 +1607,24 @@
           }
         },
         "required" : [ "columns", "keyspace_name", "table_name" ]
+      },
+      "FeatureSet" : {
+        "type" : "object",
+        "properties" : {
+          "cassandra_version" : {
+            "type" : "string"
+          },
+          "features" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD" ]
+            }
+          },
+          "mgmt_version" : {
+            "type" : "string"
+          }
+        }
       },
       "Job" : {
         "type" : "object",

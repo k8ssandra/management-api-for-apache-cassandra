@@ -108,12 +108,7 @@ public class MetadataResources
     @ApiResponse(responseCode = "200", description = "Local datacenter'",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
-            schema = @Schema(
-                implementation = String.class
-            ),
-            examples = @ExampleObject(
-                value = FEATURES_RESPONSE_EXAMPLE
-            )
+            schema = @Schema(implementation = FeatureSet.class)
         )
     )
     public Response getFeatureSet() {
@@ -194,15 +189,5 @@ public class MetadataResources
 "    },\n" +
 "    \"language\": null,\n" +
 "    \"encoding\": null\n" +
-"}";
-
-    private static final String FEATURES_RESPONSE_EXAMPLE = "{\n" +
-"    \"cassandra_version\": \"4.0.1\",\n" +
-"    \"mgmt_version\": \"\",\n" +
-"    \"features\": [\n" +
-"        \"async_sstable_tasks\",\n" +
-"        \"full_query_logging\",\n" +
-"        \"rebuild\"\n" +
-"    ]\n" +
 "}";
 }
