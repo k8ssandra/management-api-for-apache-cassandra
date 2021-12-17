@@ -10,6 +10,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -97,6 +98,7 @@ public class NodeOpsResources
     @POST
     @Path("/decommission")
     @Operation(summary = "Decommission the *node I am connecting to*", operationId = "decommission")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node decommissioned successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -117,6 +119,7 @@ public class NodeOpsResources
     @POST
     @Path("/compaction")
     @Operation(summary = "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling", operationId = "setCompactionThroughput")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra compaction throughput set successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -137,6 +140,7 @@ public class NodeOpsResources
     @POST
     @Path("/assassinate")
     @Operation(summary = "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode", operationId = "assassinate")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node assasinated successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -168,6 +172,7 @@ public class NodeOpsResources
     @POST
     @Path("/logging")
     @Operation(summary = "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.", operationId = "setLoggingLevel")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra logging level set successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -198,6 +203,7 @@ public class NodeOpsResources
     @POST
     @Path("/drain")
     @Operation(summary = "Drain the node (stop accepting writes and flush all tables)", operationId = "drain")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node drained successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -227,6 +233,7 @@ public class NodeOpsResources
     @POST
     @Path("/hints/truncate")
     @Operation(summary = "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.", operationId = "truncateHints")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node hints truncated successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -253,6 +260,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/schema/reset")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node scheam resynced successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -273,6 +281,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/schema/reload")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra node schema reloaded successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -293,6 +302,7 @@ public class NodeOpsResources
 
     @GET
     @Path("/streaminfo")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "Cassandra streaming status info",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -318,6 +328,7 @@ public class NodeOpsResources
 
     @GET
     @Path("/snapshots")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "Cassandra snapshot details",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -344,6 +355,7 @@ public class NodeOpsResources
     @POST
     @Path("/snapshots")
     @Consumes("application/json")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Snapshot created successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -400,6 +412,7 @@ public class NodeOpsResources
 
     @DELETE
     @Path("/snapshots")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Snapshots cleared successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -419,6 +432,7 @@ public class NodeOpsResources
 
     @POST
     @Path("/repair")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Nodetool repair executed successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -456,6 +470,7 @@ public class NodeOpsResources
     @POST
     @Path("/fullquerylogging")
     @Operation(summary = "Enable or disable full query logging facility.", operationId = "setFullQuerylog")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Full Query Logging set successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -475,6 +490,7 @@ public class NodeOpsResources
     @GET
     @Path("/fullquerylogging")
     @Operation(summary = "Get whether full query logging is enabled.", operationId = "isFullQueryLogEnabled")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "Full Query enabled",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,

@@ -44,6 +44,7 @@ public class MetadataResources
     @GET
     @Path("/versions/release")
     @Operation(summary = "Returns the Cassandra release version", operationId = "getReleaseVersion")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra version'",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -63,6 +64,7 @@ public class MetadataResources
     @GET
     @Path("/endpoints")
     @Operation(summary = "Returns this nodes view of the endpoint states of nodes", operationId = "getEndpointStates")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "Endpoint states'",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -82,6 +84,7 @@ public class MetadataResources
     @GET
     @Path("/localdc")
     @Operation(summary = "Returns the DataCenter the local node belongs to", operationId = "getLocalDataCenter")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Local datacenter'",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -101,6 +104,7 @@ public class MetadataResources
     @GET
     @Path("/versions/features")
     @Operation(summary = "Returns the management-api featureSet", operationId = "getFeatureSet")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "Local datacenter'",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,

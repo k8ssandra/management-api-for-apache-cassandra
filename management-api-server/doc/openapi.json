@@ -357,6 +357,11 @@
         } ],
         "responses" : {
           "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
             "description" : "Role created"
           },
           "400" : {
@@ -392,6 +397,16 @@
               }
             },
             "description" : "Map of job details"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Job"
+                }
+              }
+            },
+            "description" : "Job not found"
           }
         },
         "summary" : "Returns Job deatils for the supplied Job ID"

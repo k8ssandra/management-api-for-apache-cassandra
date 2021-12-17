@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
+import javax.ws.rs.Produces;
 
 @Path("/api/v0/ops/auth")
 public class AuthResources
@@ -37,7 +38,15 @@ public class AuthResources
     @POST
     @Path("/role/")
     @Operation(summary = "Creates a new user role", operationId = "createRole")
-    @ApiResponse(responseCode = "200", description = "Role created")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Role created",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
     @ApiResponse(responseCode = "400", description = "Username and/or password is empty",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,

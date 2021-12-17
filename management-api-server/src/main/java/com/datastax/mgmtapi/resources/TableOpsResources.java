@@ -55,6 +55,7 @@ public class TableOpsResources
     @POST
     @Path("/scrub")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Table scrub successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -90,6 +91,7 @@ public class TableOpsResources
     @POST
     @Path("/sstables/upgrade")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "SSTable upgrade successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -125,6 +127,7 @@ public class TableOpsResources
     @POST
     @Path("/compact")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Table compaction successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -205,6 +208,7 @@ public class TableOpsResources
     @POST
     @Path("/garbagecollect")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Table garbage collection successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -257,6 +261,7 @@ public class TableOpsResources
     @POST
     @Path("/flush")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Table flush successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -289,6 +294,7 @@ public class TableOpsResources
     }
 
     @GET
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     @ApiResponse(responseCode = "200", description = "Table list",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -326,6 +332,7 @@ public class TableOpsResources
 
     @POST
     @Path("/create")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Table creation successful",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,

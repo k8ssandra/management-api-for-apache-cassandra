@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class KeyspaceOpsResources {
     @POST
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cleanup not needed for tables 'system' or 'system_schema'",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,

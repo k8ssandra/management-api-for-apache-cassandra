@@ -16,6 +16,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
@@ -79,6 +80,7 @@ public class LifecycleResources
     @Path("/start")
     @POST
     @Operation(description = "Starts Cassandra/DSE", operationId = "startNode")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "201", description = "Cassandra started successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -229,6 +231,7 @@ public class LifecycleResources
     @Path("/stop")
     @POST
     @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called", operationId = "stopNode")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra stopped successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -341,6 +344,7 @@ public class LifecycleResources
     @POST
     @Consumes("application/json")
     @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started", operationId = "configureNodeJson")
+    @Produces(MediaType.TEXT_PLAIN)
     public synchronized Response configureNodeJson(@QueryParam("profile") String profile, String config)
     {
         try {
@@ -358,6 +362,7 @@ public class LifecycleResources
     @POST
     @Consumes({"application/yaml", "text/yaml"})
     @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started", operationId = "configureNode")
+    @Produces(MediaType.TEXT_PLAIN)
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
         if (app.getRequestedState() == STARTED ) {
@@ -474,6 +479,7 @@ public class LifecycleResources
     @Path("/pid")
     @GET
     @Operation(description = "The PID of Cassandra/DSE, if it's running", operationId = "getPID")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Cassandra Process ID",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,

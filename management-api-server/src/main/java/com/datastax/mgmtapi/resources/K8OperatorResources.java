@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -52,6 +53,7 @@ public class K8OperatorResources
     @GET
     @Path("/probes/liveness")
     @Operation(summary = "Indicates whether this service is running", operationId = "checkLiveness")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Service is running",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -68,6 +70,7 @@ public class K8OperatorResources
     @GET
     @Path("/probes/readiness")
     @Operation(summary = "Indicates whether the Cassandra service is ready to service requests", operationId = "checkReadiness")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Service is ready to handle requests",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -99,6 +102,7 @@ public class K8OperatorResources
     @GET
     @Path("/probes/cluster")
     @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency", operationId = "checkClusterConsistency")
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     @ApiResponse(responseCode = "200", description = "Cassandra is able to achieve the specified consistency")
     @ApiResponse(responseCode = "500", description = "Cassandra is unable to achieve the specified consistency",
         content = @Content(
@@ -147,6 +151,7 @@ public class K8OperatorResources
     @POST
     @Path("/ops/seeds/reload")
     @Operation(summary = "Reload the seed node list from the seed provider", operationId = "seedReload")
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "List of new seeds after reload",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -169,7 +174,14 @@ public class K8OperatorResources
     @GET
     @Path("/ops/executor/job")
     @Operation(summary = "Returns Job deatils for the supplied Job ID", operationId = "getJobStatus")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @ApiResponse(responseCode = "200", description = "Map of job details",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Job.class)
+        )
+    )
+    @ApiResponse(responseCode = "404", description = "Job not found",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
             schema = @Schema(implementation = Job.class)

@@ -61,6 +61,7 @@ public class KeyspaceOpsResources
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing.",
             operationId = "cleanup")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Job ID for keyspace cleanup process",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -99,6 +100,7 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/refresh")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "SSTables loaded successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -138,6 +140,7 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/create")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Keyspace created successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -179,6 +182,7 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/alter")
+    @Produces(MediaType.TEXT_PLAIN)
     @ApiResponse(responseCode = "200", description = "Keyspace Replication Settings altered successfully",
         content = @Content(
             mediaType = MediaType.TEXT_PLAIN,
@@ -219,6 +223,7 @@ public class KeyspaceOpsResources
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @ApiResponse(responseCode = "200", description = "List of Keyspaces",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
@@ -250,6 +255,7 @@ public class KeyspaceOpsResources
 
     @GET
     @Path("/replication")
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     @ApiResponse(responseCode = "200", description = "Keyspace Replication Settings",
         content = @Content(
             mediaType = MediaType.APPLICATION_JSON,
