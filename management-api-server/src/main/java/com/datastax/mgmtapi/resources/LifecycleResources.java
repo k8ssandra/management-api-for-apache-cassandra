@@ -18,6 +18,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableMap;
@@ -40,6 +41,10 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
@@ -74,6 +79,30 @@ public class LifecycleResources
     @Path("/start")
     @POST
     @Operation(description = "Starts Cassandra/DSE", operationId = "startNode")
+    @ApiResponse(responseCode = "201", description = "Cassandra started successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "202", description = "Cassandra already running and can connect")
+    @ApiResponse(responseCode = "204", description = "Cassandra already running but can't connect")
+    @ApiResponse(responseCode = "206", description = "Cassandra process not found but can connect")
+    @ApiResponse(responseCode = "420", description = "Cassandra could not start successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "Error starting Cassandra")
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Error trying to start Cassandra",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "error message")
+        )
+    )
     public synchronized Response startNode(@QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp)
     {
         app.setRequestedState(STARTED);
@@ -200,6 +229,20 @@ public class LifecycleResources
     @Path("/stop")
     @POST
     @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called", operationId = "stopNode")
+    @ApiResponse(responseCode = "200", description = "Cassandra stopped successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Cassandra not stopped successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "Killing Cassandra Failed")
+        )
+    )
     public synchronized Response stopNode()
     {
         app.setRequestedState(STOPPED);
@@ -431,6 +474,21 @@ public class LifecycleResources
     @Path("/pid")
     @GET
     @Operation(description = "The PID of Cassandra/DSE, if it's running", operationId = "getPID")
+    @ApiResponse(responseCode = "200", description = "Cassandra Process ID",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "204", description = "No Cassandra Process running")
+    @ApiResponse(responseCode = "500", description = "Error finding Cassandra Process",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "error message")
+        )
+    )
     public Response getPID()
     {
         try

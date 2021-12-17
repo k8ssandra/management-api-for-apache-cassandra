@@ -46,11 +46,41 @@
                         }
                     },
                     "responses": {
-                        "default": {
-                            "description": "default response",
+                        "200": {
                             "content": {
-                                "*/*": {}
-                            }
+                                "text/plain": {
+                                    "example": "OK",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "description": "Cassandra configured successfully"
+                        },
+                        "400": {
+                            "content": {
+                                "text/plain": {
+                                    "example": "config missing",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "description": "Cassandra configure request is missing required data or has invalid data"
+                        },
+                        "406": {
+                            "content": {
+                                "text/plain": {
+                                    "example": "Cassandra is running, try /api/v0/lifecycle/stop first",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                }
+                            },
+                            "description": "Cassandra can't be configured while running"
+                        },
+                        "500": {
+                            "description": "Error configuring Cassandra"
                         }
                     }
                 }

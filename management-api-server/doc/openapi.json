@@ -41,11 +41,41 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "*/*" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra configured successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "config missing",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra configure request is missing required data or has invalid data"
+          },
+          "406" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Cassandra is running, try /api/v0/lifecycle/stop first",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra can't be configured while running"
+          },
+          "500" : {
+            "description" : "Error configuring Cassandra"
           }
         }
       }
@@ -55,11 +85,30 @@
         "description" : "The PID of Cassandra/DSE, if it's running",
         "operationId" : "getPID",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "*/*" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra Process ID"
+          },
+          "204" : {
+            "description" : "No Cassandra Process running"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "error message",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Error finding Cassandra Process"
           }
         }
       }
@@ -82,11 +131,47 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "201" : {
             "content" : {
-              "*/*" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra started successfully"
+          },
+          "202" : {
+            "description" : "Cassandra already running and can connect"
+          },
+          "204" : {
+            "description" : "Cassandra already running but can't connect"
+          },
+          "206" : {
+            "description" : "Cassandra process not found but can connect"
+          },
+          "420" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Error starting Cassandra",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra could not start successfully"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "error message",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Error trying to start Cassandra"
           }
         }
       }
@@ -96,11 +181,27 @@
         "description" : "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called",
         "operationId" : "stopNode",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "*/*" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra stopped successfully"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Killing Cassandra Failed",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra not stopped successfully"
           }
         }
       }
@@ -109,11 +210,57 @@
       "get" : {
         "operationId" : "getEndpointStates",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "entity" : [ {
+                    "DC" : "datacenter1",
+                    "ENDPOINT_IP" : "172.17.0.2",
+                    "HOST_ID" : "5d2318b0-cfec-4697-8ed2-014b5f434ae8",
+                    "IS_ALIVE" : "true",
+                    "LOAD" : "135527.0",
+                    "NATIVE_ADDRESS_AND_PORT" : "172.17.0.2:9042",
+                    "NET_VERSION" : "12",
+                    "RACK" : "rack1",
+                    "RELEASE_VERSION" : "4.0.1",
+                    "RPC_ADDRESS" : "172.17.0.2",
+                    "RPC_READY" : "true",
+                    "SCHEMA" : "2207c2a9-f598-3971-986b-2926e09e239d",
+                    "SSTABLE_VERSIONS" : "big-nb",
+                    "STATUS" : "NORMAL,-2444908528344618126",
+                    "STATUS_WITH_PORT" : "NORMAL,-2444908528344618126",
+                    "TOKENS" : "<tokens>"
+                  } ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Endpoint states'"
           }
         },
         "summary" : "Returns this nodes view of the endpoint states of nodes"
@@ -123,11 +270,16 @@
       "get" : {
         "operationId" : "getLocalDataCenter",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "datacenter1",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Local datacenter'"
           }
         },
         "summary" : "Returns the DataCenter the local node belongs to"
@@ -137,11 +289,20 @@
       "get" : {
         "operationId" : "getFeatureSet",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "cassandra_version" : "4.0.1",
+                  "mgmt_version" : "",
+                  "features" : [ "async_sstable_tasks", "full_query_logging", "rebuild" ]
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Local datacenter'"
           }
         },
         "summary" : "Returns the management-api featureSet"
@@ -151,11 +312,16 @@
       "get" : {
         "operationId" : "getReleaseVersion",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "4.0.1",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra version'"
           }
         },
         "summary" : "Returns the Cassandra release version"
@@ -190,11 +356,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
+            "description" : "Role created"
+          },
+          "400" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "Username is empty"
+              }
             },
-            "description" : "default response"
+            "description" : "Username and/or password is empty"
           }
         },
         "summary" : "Creates a new user role"
@@ -212,11 +383,15 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "*/*" : { }
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Job"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Map of job details"
           }
         },
         "summary" : "Returns Job deatils for the supplied Job ID"
@@ -233,11 +408,13 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ]
+              }
             },
-            "description" : "default response"
+            "description" : "List of Keyspaces"
           }
         },
         "summary" : "List the keyspaces existing in the cluster"
@@ -256,11 +433,21 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Keyspace Replication Settings altered successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Altering Keyspace failed. Non-empty 'keyspace_name' must be provided"
+              }
+            },
+            "description" : "Keyspace name or Replication Settings not provided"
           }
         },
         "summary" : "Alter the replication settings of an existing keyspace"
@@ -279,11 +466,16 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Job ID for keyspace cleanup process"
           }
         },
         "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing."
@@ -302,11 +494,21 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Keyspace created successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Keyspace creation failed. Non-empty 'keyspace_name' must be provided"
+              }
+            },
+            "description" : "Keyspace name or Replication Settings not provided"
           }
         },
         "summary" : "Create a new keyspace with the given name and replication settings"
@@ -329,11 +531,21 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "SSTables loaded successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Must provide a keyspace name"
+              }
+            },
+            "description" : "Keyspace name or Table name not provided"
           }
         },
         "summary" : "Load newly placed SSTables to the system without restart"
@@ -351,11 +563,32 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "class" : "org.apache.cassandra.locator.SimpleStrategy",
+                  "replication_factor" : "2"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Keyspace Replication Settings"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Get keyspace replication failed. Non-empty 'keyspaceName' must be provided"
+              }
+            },
+            "description" : "Keyspace name not provided"
+          },
+          "404" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Get keyspace replication failed. Keyspace 'my_keyspace' does not exist."
+              }
+            },
+            "description" : "Keyspace name not found"
           }
         },
         "summary" : "Get the replication settings of an existing keyspace"
@@ -372,11 +605,27 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node assasinated successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Address must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node assasination request missing address"
           }
         },
         "summary" : "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode"
@@ -394,11 +643,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra compaction throughput set successfully"
           }
         },
         "summary" : "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling"
@@ -415,11 +669,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node decommissioned successfully"
           }
         },
         "summary" : "Decommission the *node I am connecting to*"
@@ -429,11 +688,16 @@
       "post" : {
         "operationId" : "drain",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node drained successfully"
           }
         },
         "summary" : "Drain the node (stop accepting writes and flush all tables)"
@@ -443,11 +707,40 @@
       "get" : {
         "operationId" : "isFullQueryLogEnabled",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "entity" : false,
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Full Query enabled"
           }
         },
         "summary" : "Get whether full query logging is enabled."
@@ -462,11 +755,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Full Query Logging set successfully"
           }
         },
         "summary" : "Enable or disable full query logging facility."
@@ -483,11 +781,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node hints truncated successfully"
           }
         },
         "summary" : "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified."
@@ -510,11 +813,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra logging level set successfully"
           }
         },
         "summary" : "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters."
@@ -533,11 +841,27 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Nodetool repair executed successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspaceName must be specified",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Repair request missing Keyspace name"
           }
         },
         "summary" : "Execute a nodetool repair operation"
@@ -547,11 +871,16 @@
       "post" : {
         "operationId" : "reloadLocalSchema",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node schema reloaded successfully"
           }
         },
         "summary" : "Reload local node schema from system tables"
@@ -561,11 +890,16 @@
       "post" : {
         "operationId" : "resetLocalSchema",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra node scheam resynced successfully"
           }
         },
         "summary" : "Reset node's local schema and resync"
@@ -594,11 +928,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Snapshots cleared successfully"
           }
         },
         "summary" : "Clear snapshots"
@@ -625,11 +964,52 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "entity" : [ {
+                    "Column family name" : "size_estimates",
+                    "Keyspace name" : "system",
+                    "Size on disk" : "13 bytes",
+                    "Snapshot name" : "truncated-1639687082845-size_estimates",
+                    "True size" : "0 bytes"
+                  }, {
+                    "Column family name" : "table_estimates",
+                    "Keyspace name" : "system",
+                    "Size on disk" : "13 bytes",
+                    "Snapshot name" : "truncated-1639687082982-table_estimates",
+                    "True size" : "0 bytes"
+                  } ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra snapshot details"
           }
         },
         "summary" : "Retrieve snapshot details"
@@ -646,11 +1026,27 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Snapshot created successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "When specifying keyspace_tables, specifying keyspaces is not allowed",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Invalid snapshot request"
           }
         },
         "summary" : "Take a snapshot"
@@ -660,11 +1056,40 @@
       "get" : {
         "operationId" : "getStreamInfo",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : {
+                  "entity" : [ ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra streaming status info"
           }
         },
         "summary" : "Retrieve Streaming status information"
@@ -674,11 +1099,16 @@
       "post" : {
         "operationId" : "seedReload",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "*/*" : { }
+              "application/json" : {
+                "example" : "[127.0.0.1, 127.0.0.2]",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "List of new seeds after reload"
           }
         },
         "summary" : "Reload the seed node list from the seed provider"
@@ -696,11 +1126,21 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "application/json" : { }
+              "application/json" : {
+                "example" : [ "table_1", "table_2" ]
+              }
             },
-            "description" : "default response"
+            "description" : "Table list"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided"
+              }
+            },
+            "description" : "Keyspace name not provided"
           }
         },
         "summary" : "List the table names in the given keyspace"
@@ -719,11 +1159,21 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Table compaction successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Invalid option combination: Can not use split-output here"
+              }
+            },
+            "description" : "Invalid table compaction request"
           }
         },
         "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables"
@@ -742,11 +1192,21 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Table creation successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Table creation failed: some failure message"
+              }
+            },
+            "description" : "Table creation failed"
           }
         },
         "summary" : "Create a new table in an existing keyspace"
@@ -765,11 +1225,13 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Table flush successful"
           }
         },
         "summary" : "Flush one or more tables"
@@ -795,11 +1257,21 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Table garbage collection successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "tombstoneOption must be either ROW or CELL"
+              }
+            },
+            "description" : "Invalid table garbage collection request"
           }
         },
         "summary" : "Remove deleted data from one or more tables"
@@ -818,11 +1290,13 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Table scrub successful"
           }
         },
         "summary" : "Scrub (rebuild sstables for) one or more tables"
@@ -848,11 +1322,13 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "SSTable upgrade successful"
           }
         },
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)"
@@ -876,11 +1352,22 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "200" : {
+            "description" : "Cassandra is able to achieve the specified consistency"
+          },
+          "500" : {
             "content" : {
-              "*/*" : { }
+              "application/json" : {
+                "example" : {
+                  "[-8842966077830801609, -7599446072150209635]" : [ "2 replicas required, but only 1 nodes in the ring" ],
+                  "[-7599446072150209635, -6632081829071674136]" : [ "2 replicas required, but only 1 nodes in the ring" ]
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cassandra is unable to achieve the specified consistency"
           }
         },
         "summary" : "Indicated whether the Cassandra cluster is able to achieve the specified consistency"
@@ -890,11 +1377,13 @@
       "get" : {
         "operationId" : "checkLiveness",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Service is running"
           }
         },
         "summary" : "Indicates whether this service is running"
@@ -904,11 +1393,16 @@
       "get" : {
         "operationId" : "checkReadiness",
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
             },
-            "description" : "default response"
+            "description" : "Service is ready to handle requests"
+          },
+          "500" : {
+            "description" : "Service is not ready to handle requests"
           }
         },
         "summary" : "Indicates whether the Cassandra service is ready to service requests"
@@ -927,11 +1421,27 @@
           }
         },
         "responses" : {
-          "default" : {
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Cleanup not needed for tables 'system' or 'system_schema'"
+          },
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for keyspace cleanup process"
           }
         },
         "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately"
@@ -948,11 +1458,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "202" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "34034d36-3c1e-4bdb-8a8f-f92291a64cb3",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Job ID for successfully scheduled Cassandra node decommission request"
           }
         },
         "summary" : "Decommission the *node I am connecting to*. This invocation returns immediately and returns a job id."
@@ -969,11 +1484,16 @@
           }
         } ],
         "responses" : {
-          "default" : {
+          "202" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "34034d36-3c1e-4bdb-8a8f-f92291a64cb3",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
             },
-            "description" : "default response"
+            "description" : "Job ID for successfully scheduled Cassandra node rebuild request"
           }
         },
         "summary" : "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id."
@@ -1077,6 +1597,32 @@
           }
         },
         "required" : [ "columns", "keyspace_name", "table_name" ]
+      },
+      "Job" : {
+        "type" : "object",
+        "properties" : {
+          "end_time" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ERROR", "COMPLETED", "WAITING" ]
+          },
+          "submit_time" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        }
       },
       "KeyspaceRequest" : {
         "type" : "object",

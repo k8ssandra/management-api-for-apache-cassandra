@@ -36,6 +36,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 
 @Path("/api/v0/ops/keyspace")
@@ -55,9 +59,19 @@ public class KeyspaceOpsResources
     @POST
     @Path("/cleanup")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
     @Operation(summary = "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing.",
             operationId = "cleanup")
+    @ApiResponse(responseCode = "200", description = "Job ID for keyspace cleanup process",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(
+                implementation = String.class
+            ),
+            examples = @ExampleObject(
+                value = "d69d1d95-9348-4460-95d2-ae342870fade"
+            )
+        )
+    )
     public Response cleanup(KeyspaceRequest keyspaceRequest)
     {
         return NodeOpsResources.handle(() ->
@@ -85,7 +99,22 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/refresh")
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "SSTables loaded successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Keyspace name or Table name not provided",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Must provide a keyspace name"
+            )
+        )
+    )
     @Operation(summary = "Load newly placed SSTables to the system without restart", operationId = "refresh")
     public Response refresh(@QueryParam(value="keyspaceName")String keyspaceName, @QueryParam(value="table")String table)
     {
@@ -109,7 +138,22 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/create")
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Keyspace created successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Keyspace name or Replication Settings not provided",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Keyspace creation failed. Non-empty 'keyspace_name' must be provided"
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new keyspace with the given name and replication settings", operationId = "createKeyspace")
     public Response create(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
@@ -135,7 +179,22 @@ public class KeyspaceOpsResources
 
     @POST
     @Path("/alter")
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Keyspace Replication Settings altered successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Keyspace name or Replication Settings not provided",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Altering Keyspace failed. Non-empty 'keyspace_name' must be provided"
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Alter the replication settings of an existing keyspace", operationId = "alterKeyspace")
     public Response alter(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest)
@@ -160,7 +219,14 @@ public class KeyspaceOpsResources
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200", description = "List of Keyspaces",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            examples = @ExampleObject(
+                value = "[\n    \"system_schema\",\n    \"system\",\n    \"system_auth\",\n    \"system_distributed\",\n    \"system_traces\"\n]"
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "List the keyspaces existing in the cluster", operationId = "listKeyspaces")
     public Response list(@QueryParam(value="keyspaceName")String keyspaceName)
@@ -184,7 +250,30 @@ public class KeyspaceOpsResources
 
     @GET
     @Path("/replication")
-    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200", description = "Keyspace Replication Settings",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            examples = @ExampleObject(
+                value = "{\n    \"class\": \"org.apache.cassandra.locator.SimpleStrategy\",\n    \"replication_factor\": \"2\"\n}"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Keyspace name not provided",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Get keyspace replication failed. Non-empty 'keyspaceName' must be provided"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "404", description = "Keyspace name not found",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Get keyspace replication failed. Keyspace 'my_keyspace' does not exist."
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get the replication settings of an existing keyspace", operationId = "replication")
     public Response getReplication(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName) {

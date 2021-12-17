@@ -33,6 +33,9 @@ import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 
@@ -52,7 +55,14 @@ public class TableOpsResources
     @POST
     @Path("/scrub")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Table scrub successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
     @Operation(summary = "Scrub (rebuild sstables for) one or more tables", operationId = "scrub")
     public Response scrub(ScrubRequest scrubRequest)
     {
@@ -80,7 +90,14 @@ public class TableOpsResources
     @POST
     @Path("/sstables/upgrade")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "SSTable upgrade successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
     @Operation(summary = "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
             operationId = "upgradeSSTables")
     public Response upgradeSSTables(@QueryParam(value="excludeCurrentVersion")boolean excludeCurrentVersion, KeyspaceRequest keyspaceRequest)
@@ -108,7 +125,22 @@ public class TableOpsResources
     @POST
     @Path("/compact")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Table compaction successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid table compaction request",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Invalid option combination: Can not use split-output here"
+            )
+        )
+    )
     @Operation(summary = "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables",
             operationId = "compact")
     public Response compact(CompactRequest compactRequest)
@@ -173,7 +205,22 @@ public class TableOpsResources
     @POST
     @Path("/garbagecollect")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Table garbage collection successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid table garbage collection request",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "tombstoneOption must be either ROW or CELL"
+            )
+        )
+    )
     @Operation(summary = "Remove deleted data from one or more tables", operationId = "garbageCollect")
     public Response garbageCollect(@QueryParam(value="tombstoneOption")String tombstoneOptionStr, KeyspaceRequest keyspaceRequest)
     {
@@ -210,7 +257,14 @@ public class TableOpsResources
     @POST
     @Path("/flush")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Table flush successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
     @Operation(summary = "Flush one or more tables", operationId = "flush")
     public Response flush(KeyspaceRequest keyspaceRequest)
     {
@@ -235,7 +289,22 @@ public class TableOpsResources
     }
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200", description = "Table list",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            examples = @ExampleObject(
+                value = "[\n    \"table_1\",\n    \"table_2\"\n]"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Keyspace name not provided",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "List tables failed. Non-empty 'keyspaceName' must be provided"
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "List the table names in the given keyspace", operationId = "listTables")
     public Response list(@Parameter(required = true) @QueryParam(value="keyspaceName")String keyspaceName)
@@ -257,7 +326,22 @@ public class TableOpsResources
 
     @POST
     @Path("/create")
-    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Table creation successful",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Table creation failed",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "Table creation failed: some failure message"
+            )
+        )
+    )
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Create a new table in an existing keyspace", operationId = "createTable")
     public Response create(CreateTableRequest request)
