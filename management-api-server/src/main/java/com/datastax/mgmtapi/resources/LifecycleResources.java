@@ -16,13 +16,16 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,8 +40,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
-import org.apache.http.HttpStatus;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
 import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
@@ -72,7 +79,32 @@ public class LifecycleResources
      */
     @Path("/start")
     @POST
-    @Operation(description = "Starts Cassandra/DSE")
+    @Operation(description = "Starts Cassandra/DSE", operationId = "startNode")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "201", description = "Cassandra started successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "202", description = "Cassandra already running and can connect")
+    @ApiResponse(responseCode = "204", description = "Cassandra already running but can't connect")
+    @ApiResponse(responseCode = "206", description = "Cassandra process not found but can connect")
+    @ApiResponse(responseCode = "420", description = "Cassandra could not start successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "Error starting Cassandra")
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Error trying to start Cassandra",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "error message")
+        )
+    )
     public synchronized Response startNode(@QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp)
     {
         app.setRequestedState(STARTED);
@@ -198,7 +230,22 @@ public class LifecycleResources
 
     @Path("/stop")
     @POST
-    @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called")
+    @Operation(description = "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called", operationId = "stopNode")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra stopped successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Cassandra not stopped successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "Killing Cassandra Failed")
+        )
+    )
     public synchronized Response stopNode()
     {
         app.setRequestedState(STOPPED);
@@ -284,9 +331,20 @@ public class LifecycleResources
     }
 
     @Path("/configure")
+    /**
+     * Hiding both "configure" endpoints to prevent OpenAPI spec generation from happening. Having 2
+     * methods handling the same endpoint and only differing on the @Consumes request MIME type causes
+     * the generation to fail to document the endpoint correctly. For now, we will annotate both these
+     * methods with @Hidden so that they still exist but are not auto generated in the spec file. They
+     * are documented by hand in the openapi-configuration.json file in the resources directory of this
+     * project for now, as that file is merged with the auto-generated spec to produce the final spec
+     * file.
+     */
+    @Hidden
     @POST
     @Consumes("application/json")
-    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started")
+    @Operation(description = "Configure Cassandra. Will fail if Cassandra is already started", operationId = "configureNodeJson")
+    @Produces(MediaType.TEXT_PLAIN)
     public synchronized Response configureNodeJson(@QueryParam("profile") String profile, String config)
     {
         try {
@@ -299,9 +357,12 @@ public class LifecycleResources
     }
 
     @Path("/configure")
+    // Hiding this. See above.
+    @Hidden
     @POST
     @Consumes({"application/yaml", "text/yaml"})
-    @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started")
+    @Operation(description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started", operationId = "configureNode")
+    @Produces(MediaType.TEXT_PLAIN)
     public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml)
     {
         if (app.getRequestedState() == STARTED ) {
@@ -417,7 +478,23 @@ public class LifecycleResources
 
     @Path("/pid")
     @GET
-    @Operation(description = "The PID of Cassandra/DSE, if it's running")
+    @Operation(description = "The PID of Cassandra/DSE, if it's running", operationId = "getPID")
+    @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra Process ID",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "204", description = "No Cassandra Process running")
+    @ApiResponse(responseCode = "500", description = "Error finding Cassandra Process",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "error message")
+        )
+    )
     public Response getPID()
     {
         try

@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.resources;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -37,6 +38,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
@@ -92,8 +97,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/decommission")
-    @Operation(summary = "Decommission the *node I am connecting to*")
+    @Operation(summary = "Decommission the *node I am connecting to*", operationId = "decommission")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra node decommissioned successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     public Response decommission(@QueryParam(value="force")boolean force)
     {
         return handle(() ->
@@ -106,8 +118,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/compaction")
-    @Operation(summary = "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling")
+    @Operation(summary = "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling", operationId = "setCompactionThroughput")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra compaction throughput set successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     public Response setCompactionThroughput(@QueryParam(value="value")int value)
     {
         return handle(() ->
@@ -120,8 +139,22 @@ public class NodeOpsResources
 
     @POST
     @Path("/assassinate")
-    @Operation(summary = "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode")
+    @Operation(summary = "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode", operationId = "assassinate")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra node assasinated successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Cassandra node assasination request missing address",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "Address must be provided")
+        )
+    )
     public Response assassinate(@QueryParam(value="address")String address)
     {
         return handle(() ->
@@ -138,8 +171,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/logging")
-    @Operation(summary = "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.")
+    @Operation(summary = "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.", operationId = "setLoggingLevel")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra logging level set successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     public Response setLoggingLevel(@QueryParam(value="target")String targetStr, @QueryParam(value="rawLevel")String rawLevelStr)
     {
         return handle(() ->
@@ -162,8 +202,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/drain")
-    @Operation(summary = "Drain the node (stop accepting writes and flush all tables)")
+    @Operation(summary = "Drain the node (stop accepting writes and flush all tables)", operationId = "drain")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra node drained successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     // TODO Make async
     public Response drain()
     {
@@ -185,8 +232,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/hints/truncate")
-    @Operation(summary = "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.")
+    @Operation(summary = "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.", operationId = "truncateHints")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Cassandra node hints truncated successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     public Response truncateHints(@QueryParam(value="host")String host)
     {
         return handle(() ->
@@ -207,7 +261,14 @@ public class NodeOpsResources
     @POST
     @Path("/schema/reset")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Reset node's local schema and resync")
+    @ApiResponse(responseCode = "200", description = "Cassandra node scheam resynced successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @Operation(summary = "Reset node's local schema and resync", operationId = "resetLocalSchema")
     public Response resetLocalSchema()
     {
         return handle(() ->
@@ -221,7 +282,14 @@ public class NodeOpsResources
     @POST
     @Path("/schema/reload")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Reload local node schema from system tables")
+    @ApiResponse(responseCode = "200", description = "Cassandra node schema reloaded successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @Operation(summary = "Reload local node schema from system tables", operationId = "reloadLocalSchema")
     public Response reloadLocalSchema()
     {
         return handle(() ->
@@ -235,7 +303,14 @@ public class NodeOpsResources
     @GET
     @Path("/streaminfo")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Retrieve Streaming status information")
+    @ApiResponse(responseCode = "200", description = "Cassandra streaming status info",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = STREAMING_INFO_RESPONSE_EXAMPLE)
+        )
+    )
+    @Operation(summary = "Retrieve Streaming status information", operationId = "getStreamInfo")
     public Response getStreamInfo()
     {
         return handle(() ->
@@ -254,7 +329,14 @@ public class NodeOpsResources
     @GET
     @Path("/snapshots")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Retrieve snapshot details")
+    @ApiResponse(responseCode = "200", description = "Cassandra snapshot details",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = SNAPSHOT_DETAILS_RESPONSE_EXAMPLE)
+        )
+    )
+    @Operation(summary = "Retrieve snapshot details", operationId = "getSnapshotDetails")
     public Response getSnapshotDetails(@QueryParam("snapshotNames") List<String> snapshotNames, @QueryParam("keyspaces") List<String> keyspace)
     {
         return handle(() ->
@@ -272,8 +354,23 @@ public class NodeOpsResources
 
     @POST
     @Path("/snapshots")
+    @Consumes("application/json")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Take a snapshot")
+    @ApiResponse(responseCode = "200", description = "Snapshot created successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Invalid snapshot request",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "When specifying keyspace_tables, specifying keyspaces is not allowed")
+        )
+    )
+    @Operation(summary = "Take a snapshot", operationId = "takeSnapshot")
     public Response takeSnapshot(TakeSnapshotRequest takeSnapshotRequest)
     {
         return handle(() ->
@@ -316,7 +413,14 @@ public class NodeOpsResources
     @DELETE
     @Path("/snapshots")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Clear snapshots")
+    @ApiResponse(responseCode = "200", description = "Snapshots cleared successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @Operation(summary = "Clear snapshots", operationId = "clearSnapshots")
     public Response clearSnapshots(@QueryParam(value="snapshotNames") List<String> snapshotNames, @QueryParam(value="keyspaces") List<String> keyspaces)
     {
         return handle(() ->
@@ -329,7 +433,21 @@ public class NodeOpsResources
     @POST
     @Path("/repair")
     @Produces(MediaType.TEXT_PLAIN)
-    @Operation(summary = "Perform a nodetool repair")
+    @ApiResponse(responseCode = "200", description = "Nodetool repair executed successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Repair request missing Keyspace name",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "keyspaceName must be specified")
+        )
+    )
+    @Operation(summary = "Execute a nodetool repair operation", operationId = "repair")
     public Response repair(RepairRequest repairRequest)
     {
         return handle(() ->
@@ -351,8 +469,15 @@ public class NodeOpsResources
 
     @POST
     @Path("/fullquerylogging")
-    @Operation(summary = "Enable or disable full query logging facility.")
+    @Operation(summary = "Enable or disable full query logging facility.", operationId = "setFullQuerylog")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Full Query Logging set successfully",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "OK")
+        )
+    )
     public Response setFullQuerylog(@QueryParam(value="enabled")boolean fullQueryLoggingEnabled)
     {
         return handle(() ->
@@ -364,8 +489,15 @@ public class NodeOpsResources
 
     @GET
     @Path("/fullquerylogging")
-    @Operation(summary = "Get whether full query logging is enabled.")
+    @Operation(summary = "Get whether full query logging is enabled.", operationId = "isFullQueryLogEnabled")
     @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200", description = "Full Query enabled",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = FQL_QUERY_RESPONSE_EXAMPLE)
+        )
+    )
     public Response isFullQueryLogEnabled()
     {
         return handle(() ->
@@ -394,4 +526,97 @@ public class NodeOpsResources
             return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR).entity(t.getLocalizedMessage()).build();
         }
     }
+
+    private static final String STREAMING_INFO_RESPONSE_EXAMPLE = "{\n" +
+"    \"entity\": [],\n" +
+"    \"variant\": {\n" +
+"        \"language\": null,\n" +
+"        \"mediaType\": {\n" +
+"            \"type\": \"application\",\n" +
+"            \"subtype\": \"json\",\n" +
+"            \"parameters\": {},\n" +
+"            \"wildcardType\": false,\n" +
+"            \"wildcardSubtype\": false\n" +
+"        },\n" +
+"        \"encoding\": null,\n" +
+"        \"languageString\": null\n" +
+"    },\n" +
+"    \"annotations\": [],\n" +
+"    \"mediaType\": {\n" +
+"        \"type\": \"application\",\n" +
+"        \"subtype\": \"json\",\n" +
+"        \"parameters\": {},\n" +
+"        \"wildcardType\": false,\n" +
+"        \"wildcardSubtype\": false\n" +
+"    },\n" +
+"    \"language\": null,\n" +
+"    \"encoding\": null\n" +
+"}";
+
+    private static final String SNAPSHOT_DETAILS_RESPONSE_EXAMPLE = "{\n" +
+"    \"entity\": [\n" +
+"        {\n" +
+"            \"Column family name\": \"size_estimates\",\n" +
+"            \"Keyspace name\": \"system\",\n" +
+"            \"Size on disk\": \"13 bytes\",\n" +
+"            \"Snapshot name\": \"truncated-1639687082845-size_estimates\",\n" +
+"            \"True size\": \"0 bytes\"\n" +
+"        },\n" +
+"        {\n" +
+"            \"Column family name\": \"table_estimates\",\n" +
+"            \"Keyspace name\": \"system\",\n" +
+"            \"Size on disk\": \"13 bytes\",\n" +
+"            \"Snapshot name\": \"truncated-1639687082982-table_estimates\",\n" +
+"            \"True size\": \"0 bytes\"\n" +
+"        }\n" +
+"    ],\n" +
+"    \"variant\": {\n" +
+"        \"language\": null,\n" +
+"        \"mediaType\": {\n" +
+"            \"type\": \"application\",\n" +
+"            \"subtype\": \"json\",\n" +
+"            \"parameters\": {},\n" +
+"            \"wildcardType\": false,\n" +
+"            \"wildcardSubtype\": false\n" +
+"        },\n" +
+"        \"encoding\": null,\n" +
+"        \"languageString\": null\n" +
+"    },\n" +
+"    \"annotations\": [],\n" +
+"    \"mediaType\": {\n" +
+"        \"type\": \"application\",\n" +
+"        \"subtype\": \"json\",\n" +
+"        \"parameters\": {},\n" +
+"        \"wildcardType\": false,\n" +
+"        \"wildcardSubtype\": false\n" +
+"    },\n" +
+"    \"language\": null,\n" +
+"    \"encoding\": null\n" +
+"}";
+
+    private static final String FQL_QUERY_RESPONSE_EXAMPLE = "{\n" +
+"    \"entity\": false,\n" +
+"    \"variant\": {\n" +
+"        \"language\": null,\n" +
+"        \"mediaType\": {\n" +
+"            \"type\": \"application\",\n" +
+"            \"subtype\": \"json\",\n" +
+"            \"parameters\": {},\n" +
+"            \"wildcardType\": false,\n" +
+"            \"wildcardSubtype\": false\n" +
+"        },\n" +
+"        \"encoding\": null,\n" +
+"        \"languageString\": null\n" +
+"    },\n" +
+"    \"annotations\": [],\n" +
+"    \"mediaType\": {\n" +
+"        \"type\": \"application\",\n" +
+"        \"subtype\": \"json\",\n" +
+"        \"parameters\": {},\n" +
+"        \"wildcardType\": false,\n" +
+"        \"wildcardSubtype\": false\n" +
+"    },\n" +
+"    \"language\": null,\n" +
+"    \"encoding\": null\n" +
+"}";
 }

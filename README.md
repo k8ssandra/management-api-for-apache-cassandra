@@ -210,6 +210,30 @@ The architecture of this repository is laid as follows, front-to-back:
 
 Any change to add endpoints or features will need to make modifications in each of the above components to ensure that they propagate through.
 
+## Changes to API endpoints
+
+If you are adding a new endpoint, removing an endpoint, or otherwise changing the public API of an endpoint, you will need to re-generate the OpenAPI/Swagger document. The document lives at [management-api-server/doc/openapi.json](management-api-server/doc/openapi.json) and is regenerated during the build's `compile` phase. If your changes to code cause the API to change, you will need to perform a local `mvn compile` to regenerate the document and then add the change to your git commit.
+
+```sh
+mvn clean compile
+git add management-api-server/doc/openapi.json
+git commit
+```
+
+## API Client Generation
+
+In addition to automatic OpenAPI document generation, a Golang client can be generated during the build by enabling the `clientgen` Maven profile. The client is built using the [OpenAPI Tools generator Maven plugin](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) and can be used by Go projects to interact with the Management API. The client generation happens during the `process-classes` phase of the Maven build so that changes to the API implementation can be compiled into an OpenAPI document spec file [during the compile phase](#changes-to-api-endpoints) of the build. The client code is generated in the `target` directory under the [management-api-server](management-api-server) sub-module and should be located at
+
+```sh
+management-api-server/target/generated-sources/openapi
+```
+
+To generate the client, run the following from the root of the project:
+
+```sh
+mvn clean process-classes -Pclientgen
+```
+
 ## Published Docker images
 
 When PRs are merged into the `master` branch, if all of the integration tests pass, the CI process will build and publish all supported Docker images with GitHub commit SHA tags. These images are not intended to be used in production. They are meant for facilitating testing with dependent projects.

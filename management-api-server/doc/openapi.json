@@ -1,246 +1,437 @@
 {
   "openapi" : "3.0.1",
   "info" : {
-    "title" : "Management API for Apache Cassandra™",
     "description" : "This is a Restful service for operating Apache Cassandra.  You can find out more about the Management API on [Github](http://github.com/k8ssandra/management-api-for-apache-cassandra)",
     "license" : {
       "name" : "Apache 2.0",
       "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
+    "title" : "Management API for Apache Cassandra™",
     "version" : "0.1"
   },
   "paths" : {
+    "/api/v0/lifecycle/configure" : {
+      "post" : {
+        "description" : "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
+        "operationId" : "configureNode",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "profile",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "application/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            },
+            "text/yaml" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra configured successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "config missing",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra configure request is missing required data or has invalid data"
+          },
+          "406" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Cassandra is running, try /api/v0/lifecycle/stop first",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra can't be configured while running"
+          },
+          "500" : {
+            "description" : "Error configuring Cassandra"
+          }
+        }
+      }
+    },
+    "/api/v0/lifecycle/pid" : {
+      "get" : {
+        "description" : "The PID of Cassandra/DSE, if it's running",
+        "operationId" : "getPID",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra Process ID"
+          },
+          "204" : {
+            "description" : "No Cassandra Process running"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "error message",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Error finding Cassandra Process"
+          }
+        }
+      }
+    },
+    "/api/v0/lifecycle/start" : {
+      "post" : {
+        "description" : "Starts Cassandra/DSE",
+        "operationId" : "startNode",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "profile",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "replace_ip",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra started successfully"
+          },
+          "202" : {
+            "description" : "Cassandra already running and can connect"
+          },
+          "204" : {
+            "description" : "Cassandra already running but can't connect"
+          },
+          "206" : {
+            "description" : "Cassandra process not found but can connect"
+          },
+          "420" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Error starting Cassandra",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra could not start successfully"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "error message",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Error trying to start Cassandra"
+          }
+        }
+      }
+    },
+    "/api/v0/lifecycle/stop" : {
+      "post" : {
+        "description" : "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called",
+        "operationId" : "stopNode",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra stopped successfully"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Killing Cassandra Failed",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra not stopped successfully"
+          }
+        }
+      }
+    },
+    "/api/v0/metadata/endpoints" : {
+      "get" : {
+        "operationId" : "getEndpointStates",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "entity" : [ {
+                    "DC" : "datacenter1",
+                    "ENDPOINT_IP" : "172.17.0.2",
+                    "HOST_ID" : "5d2318b0-cfec-4697-8ed2-014b5f434ae8",
+                    "IS_ALIVE" : "true",
+                    "LOAD" : "135527.0",
+                    "NATIVE_ADDRESS_AND_PORT" : "172.17.0.2:9042",
+                    "NET_VERSION" : "12",
+                    "RACK" : "rack1",
+                    "RELEASE_VERSION" : "4.0.1",
+                    "RPC_ADDRESS" : "172.17.0.2",
+                    "RPC_READY" : "true",
+                    "SCHEMA" : "2207c2a9-f598-3971-986b-2926e09e239d",
+                    "SSTABLE_VERSIONS" : "big-nb",
+                    "STATUS" : "NORMAL,-2444908528344618126",
+                    "STATUS_WITH_PORT" : "NORMAL,-2444908528344618126",
+                    "TOKENS" : "<tokens>"
+                  } ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Endpoint states'"
+          }
+        },
+        "summary" : "Returns this nodes view of the endpoint states of nodes"
+      }
+    },
+    "/api/v0/metadata/localdc" : {
+      "get" : {
+        "operationId" : "getLocalDataCenter",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "datacenter1",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Local datacenter'"
+          }
+        },
+        "summary" : "Returns the DataCenter the local node belongs to"
+      }
+    },
+    "/api/v0/metadata/versions/features" : {
+      "get" : {
+        "operationId" : "getFeatureSet",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FeatureSet"
+                }
+              }
+            },
+            "description" : "Local datacenter'"
+          }
+        },
+        "summary" : "Returns the management-api featureSet"
+      }
+    },
+    "/api/v0/metadata/versions/release" : {
+      "get" : {
+        "operationId" : "getReleaseVersion",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "4.0.1",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra version'"
+          }
+        },
+        "summary" : "Returns the Cassandra release version"
+      }
+    },
     "/api/v0/ops/auth/role" : {
       "post" : {
-        "summary" : "Creates a new user role",
         "operationId" : "createRole",
         "parameters" : [ {
+          "in" : "query",
           "name" : "username",
-          "in" : "query",
           "schema" : {
             "type" : "string"
           }
         }, {
+          "in" : "query",
           "name" : "is_superuser",
-          "in" : "query",
           "schema" : {
             "type" : "boolean"
           }
         }, {
+          "in" : "query",
           "name" : "can_login",
-          "in" : "query",
           "schema" : {
             "type" : "boolean"
           }
         }, {
+          "in" : "query",
           "name" : "password",
-          "in" : "query",
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/probes/liveness" : {
-      "get" : {
-        "summary" : "Indicates whether this service is running",
-        "operationId" : "checkLiveness",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Role created"
+          },
+          "400" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "Username is empty"
+              }
+            },
+            "description" : "Username and/or password is empty"
           }
-        }
-      }
-    },
-    "/api/v0/probes/readiness" : {
-      "get" : {
-        "summary" : "Indicates whether the Cassandra service is ready to service requests",
-        "operationId" : "checkReadiness",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/probes/cluster" : {
-      "get" : {
-        "summary" : "Indicated whether the Cassandra cluster is able to achieve the specified consistency",
-        "operationId" : "checkClusterConsistency",
-        "parameters" : [ {
-          "name" : "consistency_level",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "rf_per_dc",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/seeds/reload" : {
-      "post" : {
-        "operationId" : "seedReload",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
-            }
-          }
-        }
+        },
+        "summary" : "Creates a new user role"
       }
     },
     "/api/v0/ops/executor/job" : {
       "get" : {
-        "summary" : "Returns the JobDetails",
         "operationId" : "getJobStatus",
-        "parameters": [{
-          "name": "job_id",
-          "in": "query",
-          "required": true,
-          "schema": {
-            "type": "string"
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "job_id",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
           }
-        }],
+        } ],
         "responses" : {
-          "default" : {
-            "description" : "details of Job matching job_id",
+          "200" : {
             "content" : {
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/Job"
                 }
               }
-            }
+            },
+            "description" : "Map of job details"
+          },
+          "404" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Job"
+                }
+              }
+            },
+            "description" : "Job not found"
           }
-        }
+        },
+        "summary" : "Returns Job deatils for the supplied Job ID"
       }
     },
     "/api/v0/ops/keyspace" : {
       "get" : {
-        "summary" : "List the keyspaces existing in the cluster",
         "operationId" : "listKeyspaces",
         "parameters" : [ {
-          "name" : "keyspaceName",
           "in" : "query",
+          "name" : "keyspaceName",
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/keyspace/replication" : {
-      "get" : {
-        "summary" : "Get the replication settings of an existing keyspace",
-        "operationId" : "replication",
-        "parameters" : [ {
-          "name" : "keyspaceName",
-          "required": true,
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
               "application/json" : {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "examples": {
-                  "NetworkTopologyStrategy": {
-                    "value": {
-                      "class": "org.apache.cassandra.locator.NetworkTopologyStrategy",
-                      "dc1": "3",
-                      "dc2": "1"
-                    },
-                    "summary": "Example for a keyspace with NetworkTopologyStrategy"
-                  },
-                  "SimpleStrategy": {
-                    "value": {
-                      "class": "org.apache.cassandra.locator.SimpleStrategy",
-                      "replication_factor": "3"
-                    },
-                    "summary": "Example for a keyspace with SimpleStrategy"
-                  }
-                }
+                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ]
               }
-            }
+            },
+            "description" : "List of Keyspaces"
           }
-        }
-      }
-    },
-    "/api/v0/ops/keyspace/refresh" : {
-      "post" : {
-        "summary" : "Load newly placed SSTables to the system without restart",
-        "operationId" : "refresh",
-        "parameters" : [ {
-          "name" : "keyspaceName",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "name" : "table",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
+        },
+        "summary" : "List the keyspaces existing in the cluster"
       }
     },
     "/api/v0/ops/keyspace/alter" : {
       "post" : {
-        "summary" : "Alter the replication settings of an existing keyspace",
         "operationId" : "alterKeyspace",
         "requestBody" : {
           "content" : {
@@ -252,18 +443,56 @@
           }
         },
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Keyspace Replication Settings altered successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Altering Keyspace failed. Non-empty 'keyspace_name' must be provided"
+              }
+            },
+            "description" : "Keyspace name or Replication Settings not provided"
+          }
+        },
+        "summary" : "Alter the replication settings of an existing keyspace"
+      }
+    },
+    "/api/v0/ops/keyspace/cleanup" : {
+      "post" : {
+        "operationId" : "cleanup",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
             }
           }
-        }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for keyspace cleanup process"
+          }
+        },
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and will return the executed job after finishing."
       }
     },
     "/api/v0/ops/keyspace/create" : {
       "post" : {
-        "summary" : "Create a new keyspace with the given name and replication settings",
         "operationId" : "createKeyspace",
         "requestBody" : {
           "content" : {
@@ -275,467 +504,423 @@
           }
         },
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/keyspace/cleanup" : {
-      "post" : {
-        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is blocking and waits for the cleanup to finish.",
-        "operationId" : "cleanup",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
+              "text/plain" : {
+                "example" : "OK"
               }
-            }
+            },
+            "description" : "Keyspace created successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Keyspace creation failed. Non-empty 'keyspace_name' must be provided"
+              }
+            },
+            "description" : "Keyspace name or Replication Settings not provided"
           }
         },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
+        "summary" : "Create a new keyspace with the given name and replication settings"
       }
     },
-    "/api/v1/ops/keyspace/cleanup" : {
+    "/api/v0/ops/keyspace/refresh" : {
       "post" : {
-        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
-        "operationId" : "cleanup",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/lifecycle/start" : {
-      "post" : {
-        "description" : "Starts Cassandra/DSE",
-        "operationId" : "startNode",
+        "operationId" : "refresh",
         "parameters" : [ {
-          "name" : "profile",
           "in" : "query",
+          "name" : "keyspaceName",
           "schema" : {
             "type" : "string"
           }
         }, {
-          "name" : "replace_ip",
           "in" : "query",
+          "name" : "table",
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "*/*" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/lifecycle/stop" : {
-      "post" : {
-        "description" : "Stops Cassandra/DSE. Keeps node from restarting automatically until /start is called",
-        "operationId" : "stopNode",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/lifecycle/configure" : {
-      "post" : {
-        "description" : "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
-        "operationId" : "configureNode",
-        "parameters" : [ {
-          "name" : "profile",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/yaml" : {
-              "schema" : {
-                "type" : "string"
+              "text/plain" : {
+                "example" : "OK"
               }
-            }
+            },
+            "description" : "SSTables loaded successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Must provide a keyspace name"
+              }
+            },
+            "description" : "Keyspace name or Table name not provided"
           }
         },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
-            }
-          }
-        }
+        "summary" : "Load newly placed SSTables to the system without restart"
       }
     },
-    "/api/v0/lifecycle/pid" : {
+    "/api/v0/ops/keyspace/replication" : {
       "get" : {
-        "description" : "The PID of Cassandra/DSE, if it's running",
-        "operationId" : "getPID",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "*/*" : { }
-            }
+        "operationId" : "replication",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "keyspaceName",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
           }
-        }
-      }
-    },
-    "/api/v0/metadata/versions/release" : {
-      "get" : {
-        "summary" : "Returns the Cassandra release version",
-        "operationId" : "getReleaseVersion",
+        } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/metadata/versions/features" : {
-      "get" : {
-        "summary" : "Returns the management-api featureSet",
-        "operationId" : "getFeatureSet",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
               "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/FeatureSet"
+                "example" : {
+                  "class" : "org.apache.cassandra.locator.SimpleStrategy",
+                  "replication_factor" : "2"
                 }
               }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/metadata/endpoints" : {
-      "get" : {
-        "summary" : "Returns this nodes view of the endpoint states of nodes",
-        "operationId" : "getEndpointStates",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+            },
+            "description" : "Keyspace Replication Settings"
+          },
+          "400" : {
             "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/metadata/localdc" : {
-      "get" : {
-        "summary" : "Returns the DataCenter the local node belongs to",
-        "operationId" : "getLocalDataCenter",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+              "text/plain" : {
+                "example" : "Get keyspace replication failed. Non-empty 'keyspaceName' must be provided"
+              }
+            },
+            "description" : "Keyspace name not provided"
+          },
+          "404" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "Get keyspace replication failed. Keyspace 'my_keyspace' does not exist."
+              }
+            },
+            "description" : "Keyspace name not found"
           }
-        }
+        },
+        "summary" : "Get the replication settings of an existing keyspace"
       }
     },
-    "/api/v0/ops/node/drain" : {
+    "/api/v0/ops/node/assassinate" : {
       "post" : {
-        "summary" : "Drain the node (stop accepting writes and flush all tables)",
-        "operationId" : "drain",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/node/fullquerylogging" : {
-      "post" : {
-        "summary" : "Enable or disable full query logging facility.",
-        "operationId" : "setFullQuerylog",
+        "operationId" : "assassinate",
         "parameters" : [ {
-          "name" : "enabled",
           "in" : "query",
+          "name" : "address",
           "schema" : {
-            "type" : "boolean"
+            "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      },
-      "get" : {
-        "summary" : "Get whether full query logging is enabled.",
-        "operationId" : "isFullQueryLogEnabled",
-        "responses" : {
-          "default" : {
-            "description" : "default response",
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node assasinated successfully"
+          },
+          "400" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "Address must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node assasination request missing address"
           }
-        }
-      }
-    },
-    "/api/v0/ops/node/decommission" : {
-      "post" : {
-        "summary" : "Decommission the *node I am connecting to*",
-        "operationId" : "decommission",
-        "parameters" : [ {
-          "name" : "force",
-          "in" : "query",
-          "schema" : {
-            "type" : "boolean"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/ops/node/decommission" : {
-      "post" : {
-        "summary" : "Decommission the *node I am connecting to*. This method returns immediately and returns a job id.",
-        "operationId" : "decommission",
-        "parameters" : [ {
-          "name" : "force",
-          "in" : "query",
-          "schema" : {
-            "type" : "boolean"
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
+        },
+        "summary" : "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode"
       }
     },
     "/api/v0/ops/node/compaction" : {
       "post" : {
-        "summary" : "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling",
         "operationId" : "setCompactionThroughput",
         "parameters" : [ {
-          "name" : "value",
           "in" : "query",
+          "name" : "value",
           "schema" : {
             "type" : "integer",
             "format" : "int32"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra compaction throughput set successfully"
           }
-        }
+        },
+        "summary" : "Set the MB/s throughput cap for compaction in the system, or 0 to disable throttling"
       }
     },
-    "/api/v0/ops/node/assassinate" : {
+    "/api/v0/ops/node/decommission" : {
       "post" : {
-        "summary" : "Forcefully remove a dead node without re-replicating any data. Use as a last resort if you cannot removenode",
-        "operationId" : "assassinate",
+        "operationId" : "decommission",
         "parameters" : [ {
-          "name" : "address",
           "in" : "query",
+          "name" : "force",
           "schema" : {
-            "type" : "string"
+            "type" : "boolean"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node decommissioned successfully"
           }
-        }
+        },
+        "summary" : "Decommission the *node I am connecting to*"
       }
     },
-    "/api/v0/ops/node/logging" : {
+    "/api/v0/ops/node/drain" : {
       "post" : {
-        "summary" : "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters.",
-        "operationId" : "setLoggingLevel",
-        "parameters" : [ {
-          "name" : "target",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
+        "operationId" : "drain",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node drained successfully"
           }
-        }, {
-          "name" : "rawLevel",
+        },
+        "summary" : "Drain the node (stop accepting writes and flush all tables)"
+      }
+    },
+    "/api/v0/ops/node/fullquerylogging" : {
+      "get" : {
+        "operationId" : "isFullQueryLogEnabled",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "entity" : false,
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Full Query enabled"
+          }
+        },
+        "summary" : "Get whether full query logging is enabled."
+      },
+      "post" : {
+        "operationId" : "setFullQuerylog",
+        "parameters" : [ {
           "in" : "query",
+          "name" : "enabled",
           "schema" : {
-            "type" : "string"
+            "type" : "boolean"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Full Query Logging set successfully"
           }
-        }
+        },
+        "summary" : "Enable or disable full query logging facility."
       }
     },
     "/api/v0/ops/node/hints/truncate" : {
       "post" : {
-        "summary" : "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified.",
         "operationId" : "truncateHints",
         "parameters" : [ {
-          "name" : "host",
           "in" : "query",
+          "name" : "host",
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node hints truncated successfully"
           }
-        }
+        },
+        "summary" : "Truncate all hints on the local node, or truncate hints for the endpoint(s) specified."
       }
     },
-    "/api/v0/ops/node/schema/reset" : {
+    "/api/v0/ops/node/logging" : {
       "post" : {
-        "summary" : "Reset node's local schema and resync",
-        "operationId" : "resetLocalSchema",
+        "operationId" : "setLoggingLevel",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "target",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "rawLevel",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra logging level set successfully"
+          }
+        },
+        "summary" : "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters."
+      }
+    },
+    "/api/v0/ops/node/repair" : {
+      "post" : {
+        "operationId" : "repair",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RepairRequest"
+              }
             }
           }
-        }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Nodetool repair executed successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspaceName must be specified",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Repair request missing Keyspace name"
+          }
+        },
+        "summary" : "Execute a nodetool repair operation"
       }
     },
     "/api/v0/ops/node/schema/reload" : {
       "post" : {
-        "summary" : "Reload local node schema from system tables",
         "operationId" : "reloadLocalSchema",
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node schema reloaded successfully"
           }
-        }
+        },
+        "summary" : "Reload local node schema from system tables"
       }
     },
-    "/api/v0/ops/node/streaminfo" : {
-      "get" : {
-        "summary" : "Retrieve Streaming status information",
-        "operationId" : "getStreamInfo",
+    "/api/v0/ops/node/schema/reset" : {
+      "post" : {
+        "operationId" : "resetLocalSchema",
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "application/json" : { }
-            }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra node scheam resynced successfully"
           }
-        }
+        },
+        "summary" : "Reset node's local schema and resync"
       }
     },
     "/api/v0/ops/node/snapshots" : {
-      "get" : {
-        "summary" : "Retrieve snapshot details",
-        "operationId" : "getSnapshotDetails",
-        "parameters" : [ {
-          "name" : "snapshotNames",
-          "in" : "query",
-          "schema" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }, {
-          "name" : "keyspaces",
-          "in" : "query",
-          "schema" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        } ],
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "application/json" : { }
-            }
-          }
-        }
-      },
       "delete" : {
-        "summary" : "Clear snapshots",
         "operationId" : "clearSnapshots",
         "parameters" : [ {
-          "name" : "snapshotNames",
           "in" : "query",
+          "name" : "snapshotNames",
           "schema" : {
             "type" : "array",
             "items" : {
@@ -743,8 +928,8 @@
             }
           }
         }, {
-          "name" : "keyspaces",
           "in" : "query",
+          "name" : "keyspaces",
           "schema" : {
             "type" : "array",
             "items" : {
@@ -753,16 +938,93 @@
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Snapshots cleared successfully"
+          }
+        },
+        "summary" : "Clear snapshots"
+      },
+      "get" : {
+        "operationId" : "getSnapshotDetails",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "snapshotNames",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
             }
           }
-        }
+        }, {
+          "in" : "query",
+          "name" : "keyspaces",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "entity" : [ {
+                    "Column family name" : "size_estimates",
+                    "Keyspace name" : "system",
+                    "Size on disk" : "13 bytes",
+                    "Snapshot name" : "truncated-1639687082845-size_estimates",
+                    "True size" : "0 bytes"
+                  }, {
+                    "Column family name" : "table_estimates",
+                    "Keyspace name" : "system",
+                    "Size on disk" : "13 bytes",
+                    "Snapshot name" : "truncated-1639687082982-table_estimates",
+                    "True size" : "0 bytes"
+                  } ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra snapshot details"
+          }
+        },
+        "summary" : "Retrieve snapshot details"
       },
       "post" : {
-        "summary" : "Take a snapshot",
         "operationId" : "takeSnapshot",
         "requestBody" : {
           "content" : {
@@ -774,217 +1036,128 @@
           }
         },
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/node/repair" : {
-      "post" : {
-        "summary" : "Execute a nodetool repair operation",
-        "operationId" : "repair",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/RepairRequest"
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
-            }
+            },
+            "description" : "Snapshot created successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "When specifying keyspace_tables, specifying keyspaces is not allowed",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Invalid snapshot request"
           }
         },
+        "summary" : "Take a snapshot"
+      }
+    },
+    "/api/v0/ops/node/streaminfo" : {
+      "get" : {
+        "operationId" : "getStreamInfo",
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
-            }
+              "application/json" : {
+                "example" : {
+                  "entity" : [ ],
+                  "variant" : {
+                    "language" : null,
+                    "mediaType" : {
+                      "type" : "application",
+                      "subtype" : "json",
+                      "parameters" : { },
+                      "wildcardType" : false,
+                      "wildcardSubtype" : false
+                    },
+                    "encoding" : null,
+                    "languageString" : null
+                  },
+                  "annotations" : [ ],
+                  "mediaType" : {
+                    "type" : "application",
+                    "subtype" : "json",
+                    "parameters" : { },
+                    "wildcardType" : false,
+                    "wildcardSubtype" : false
+                  },
+                  "language" : null,
+                  "encoding" : null
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra streaming status info"
           }
-        }
+        },
+        "summary" : "Retrieve Streaming status information"
+      }
+    },
+    "/api/v0/ops/seeds/reload" : {
+      "post" : {
+        "operationId" : "seedReload",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : "[127.0.0.1, 127.0.0.2]",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "List of new seeds after reload"
+          }
+        },
+        "summary" : "Reload the seed node list from the seed provider"
       }
     },
     "/api/v0/ops/tables" : {
       "get" : {
-        "summary" : "List the tables in a keyspace",
         "operationId" : "listTables",
         "parameters" : [ {
-          "name" : "keyspaceName",
-          "required": true,
           "in" : "query",
+          "name" : "keyspaceName",
+          "required" : true,
           "schema" : {
             "type" : "string"
           }
         } ],
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
               "application/json" : {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "example": [ "table1", "table2" ]
+                "example" : [ "table_1", "table_2" ]
               }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/create" : {
-      "post" : {
-        "summary" : "Create a new table in an existing keyspace",
-        "operationId" : "createTable",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateTableRequest"
-              },
-              "example": {
-                "keyspace_name" : "ks1",
-                "table_name" : "table1",
-                "columns" : [
-                  { "name" : "pk1", "type": "int", "kind" : "PARTITION_KEY", "position" : 0 },
-                  { "name" : "pk2", "type": "int", "kind" : "PARTITION_KEY", "position" : 1 },
-                  { "name" : "cc1", "type": "timeuuid", "kind" : "CLUSTERING", "position" : 0, "order" : "DESC" },
-                  { "name" : "cc2", "type": "text", "kind" : "CLUSTERING", "position" : 1, "order" : "ASC" },
-                  { "name" : "v1", "type": "timestamp", "kind" : "REGULAR" },
-                  { "name" : "v2", "type": "list<text>", "kind" : "REGULAR" },
-                  { "name" : "s", "type": "boolean", "kind" : "STATIC" }
-                ],
-                "options": {
-                  "bloom_filter_fp_chance": "0.01",
-                  "caching" : { "keys": "ALL", "rows_per_partition" : "NONE" }
-                }
+            },
+            "description" : "Table list"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided"
               }
-            }
+            },
+            "description" : "Keyspace name not provided"
           }
         },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/sstables/upgrade" : {
-      "post" : {
-        "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
-        "operationId" : "upgradeSSTables",
-        "parameters" : [ {
-          "name" : "excludeCurrentVersion",
-          "in" : "query",
-          "schema" : {
-            "type" : "boolean"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/garbagecollect" : {
-      "post" : {
-        "summary" : "Remove deleted data from one or more tables",
-        "operationId" : "garbageCollect",
-        "parameters" : [ {
-          "name" : "tombstoneOption",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/scrub" : {
-      "post" : {
-        "summary" : "Scrub (rebuild sstables for) one or more tables",
-        "operationId" : "scrub",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/ScrubRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
-      }
-    },
-    "/api/v0/ops/tables/flush" : {
-      "post" : {
-        "summary" : "Flush one or more tables",
-        "operationId" : "flush",
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/KeyspaceRequest"
-              }
-            }
-          }
-        },
-        "responses" : {
-          "default" : {
-            "description" : "default response",
-            "content" : {
-              "text/plain" : { }
-            }
-          }
-        }
+        "summary" : "List the table names in the given keyspace"
       }
     },
     "/api/v0/ops/tables/compact" : {
       "post" : {
-        "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables",
         "operationId" : "compact",
         "requestBody" : {
           "content" : {
@@ -996,20 +1169,407 @@
           }
         },
         "responses" : {
-          "default" : {
-            "description" : "default response",
+          "200" : {
             "content" : {
-              "text/plain" : { }
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Table compaction successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Invalid option combination: Can not use split-output here"
+              }
+            },
+            "description" : "Invalid table compaction request"
+          }
+        },
+        "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables"
+      }
+    },
+    "/api/v0/ops/tables/create" : {
+      "post" : {
+        "operationId" : "createTable",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateTableRequest"
+              }
             }
           }
-        }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Table creation successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Table creation failed: some failure message"
+              }
+            },
+            "description" : "Table creation failed"
+          }
+        },
+        "summary" : "Create a new table in an existing keyspace"
+      }
+    },
+    "/api/v0/ops/tables/flush" : {
+      "post" : {
+        "operationId" : "flush",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Table flush successful"
+          }
+        },
+        "summary" : "Flush one or more tables"
+      }
+    },
+    "/api/v0/ops/tables/garbagecollect" : {
+      "post" : {
+        "operationId" : "garbageCollect",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "tombstoneOption",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Table garbage collection successful"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "tombstoneOption must be either ROW or CELL"
+              }
+            },
+            "description" : "Invalid table garbage collection request"
+          }
+        },
+        "summary" : "Remove deleted data from one or more tables"
+      }
+    },
+    "/api/v0/ops/tables/scrub" : {
+      "post" : {
+        "operationId" : "scrub",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ScrubRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Table scrub successful"
+          }
+        },
+        "summary" : "Scrub (rebuild sstables for) one or more tables"
+      }
+    },
+    "/api/v0/ops/tables/sstables/upgrade" : {
+      "post" : {
+        "operationId" : "upgradeSSTables",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "excludeCurrentVersion",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "SSTable upgrade successful"
+          }
+        },
+        "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)"
+      }
+    },
+    "/api/v0/probes/cluster" : {
+      "get" : {
+        "operationId" : "checkClusterConsistency",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "consistency_level",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "rf_per_dc",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Cassandra is able to achieve the specified consistency"
+          },
+          "500" : {
+            "content" : {
+              "application/json" : {
+                "example" : {
+                  "[-8842966077830801609, -7599446072150209635]" : [ "2 replicas required, but only 1 nodes in the ring" ],
+                  "[-7599446072150209635, -6632081829071674136]" : [ "2 replicas required, but only 1 nodes in the ring" ]
+                },
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cassandra is unable to achieve the specified consistency"
+          }
+        },
+        "summary" : "Indicated whether the Cassandra cluster is able to achieve the specified consistency"
+      }
+    },
+    "/api/v0/probes/liveness" : {
+      "get" : {
+        "operationId" : "checkLiveness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Service is running"
+          }
+        },
+        "summary" : "Indicates whether this service is running"
+      }
+    },
+    "/api/v0/probes/readiness" : {
+      "get" : {
+        "operationId" : "checkReadiness",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK"
+              }
+            },
+            "description" : "Service is ready to handle requests"
+          },
+          "500" : {
+            "description" : "Service is not ready to handle requests"
+          }
+        },
+        "summary" : "Indicates whether the Cassandra service is ready to service requests"
+      }
+    },
+    "/api/v1/ops/keyspace/cleanup" : {
+      "post" : {
+        "operationId" : "cleanup_v1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Cleanup not needed for tables 'system' or 'system_schema'"
+          },
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for keyspace cleanup process"
+          }
+        },
+        "summary" : "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately"
+      }
+    },
+    "/api/v1/ops/node/decommission" : {
+      "post" : {
+        "operationId" : "decommission_v1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "force",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "34034d36-3c1e-4bdb-8a8f-f92291a64cb3",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for successfully scheduled Cassandra node decommission request"
+          }
+        },
+        "summary" : "Decommission the *node I am connecting to*. This invocation returns immediately and returns a job id."
+      }
+    },
+    "/api/v1/ops/node/rebuild" : {
+      "post" : {
+        "operationId" : "rebuild_v1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "src_dc",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "34034d36-3c1e-4bdb-8a8f-f92291a64cb3",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for successfully scheduled Cassandra node rebuild request"
+          }
+        },
+        "summary" : "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id."
       }
     }
   },
   "components" : {
     "schemas" : {
+      "Column" : {
+        "type" : "object",
+        "properties" : {
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "PARTITION_KEY", "CLUSTERING_COLUMN", "REGULAR", "STATIC" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "order" : {
+            "type" : "string",
+            "enum" : [ "ASC", "DESC" ]
+          },
+          "position" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "name", "type" ]
+      },
+      "CompactRequest" : {
+        "type" : "object",
+        "properties" : {
+          "end_token" : {
+            "type" : "string"
+          },
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "split_output" : {
+            "type" : "boolean"
+          },
+          "start_token" : {
+            "type" : "string"
+          },
+          "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "user_defined" : {
+            "type" : "boolean"
+          },
+          "user_defined_files" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "keyspace_name", "split_output", "user_defined" ]
+      },
       "CreateOrAlterKeyspaceRequest" : {
-        "required" : [ "keyspace_name", "replication_settings" ],
         "type" : "object",
         "properties" : {
           "keyspace_name" : {
@@ -1021,10 +1581,115 @@
               "$ref" : "#/components/schemas/ReplicationSetting"
             }
           }
+        },
+        "required" : [ "keyspace_name", "replication_settings" ]
+      },
+      "CreateTableRequest" : {
+        "type" : "object",
+        "properties" : {
+          "columns" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Column"
+            }
+          },
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "options" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object"
+            }
+          },
+          "table_name" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "columns", "keyspace_name", "table_name" ]
+      },
+      "FeatureSet" : {
+        "type" : "object",
+        "properties" : {
+          "cassandra_version" : {
+            "type" : "string"
+          },
+          "features" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD" ]
+            }
+          },
+          "mgmt_version" : {
+            "type" : "string"
+          }
         }
       },
+      "Job" : {
+        "type" : "object",
+        "properties" : {
+          "end_time" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "error" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "ERROR", "COMPLETED", "WAITING" ]
+          },
+          "submit_time" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "type" : {
+            "type" : "string"
+          }
+        }
+      },
+      "KeyspaceRequest" : {
+        "type" : "object",
+        "properties" : {
+          "jobs" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "jobs", "keyspace_name", "tables" ]
+      },
+      "RepairRequest" : {
+        "type" : "object",
+        "properties" : {
+          "full" : {
+            "type" : "boolean"
+          },
+          "keyspace_name" : {
+            "type" : "string"
+          },
+          "tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "keyspace_name" ]
+      },
       "ReplicationSetting" : {
-        "required" : [ "dc_name", "replication_factor" ],
         "type" : "object",
         "properties" : {
           "dc_name" : {
@@ -1034,12 +1699,18 @@
             "type" : "integer",
             "format" : "int32"
           }
-        }
+        },
+        "required" : [ "dc_name", "replication_factor" ]
       },
-      "KeyspaceRequest" : {
-        "required" : [ "jobs", "keyspace_name", "tables" ],
+      "ScrubRequest" : {
         "type" : "object",
         "properties" : {
+          "check_data" : {
+            "type" : "boolean"
+          },
+          "disable_snapshot" : {
+            "type" : "boolean"
+          },
           "jobs" : {
             "type" : "integer",
             "format" : "int32"
@@ -1047,84 +1718,29 @@
           "keyspace_name" : {
             "type" : "string"
           },
-          "tables" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }
-      },
-      "ScrubRequest" : {
-        "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ],
-        "type" : "object",
-        "properties" : {
-          "disable_snapshot" : {
+          "reinsert_overflowed_ttl" : {
             "type" : "boolean"
           },
           "skip_corrupted" : {
             "type" : "boolean"
           },
-          "check_data" : {
-            "type" : "boolean"
-          },
-          "reinsert_overflowed_ttl" : {
-            "type" : "boolean"
-          },
-          "jobs" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "keyspace_name" : {
-            "type" : "string"
-          },
           "tables" : {
             "type" : "array",
             "items" : {
               "type" : "string"
             }
           }
-        }
-      },
-      "CompactRequest" : {
-        "required" : [ "keyspace_name", "split_output", "user_defined" ],
-        "type" : "object",
-        "properties" : {
-          "split_output" : {
-            "type" : "boolean"
-          },
-          "user_defined" : {
-            "type" : "boolean"
-          },
-          "start_token" : {
-            "type" : "string"
-          },
-          "end_token" : {
-            "type" : "string"
-          },
-          "keyspace_name" : {
-            "type" : "string"
-          },
-          "user_defined_files" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "tables" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }
+        },
+        "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ]
       },
       "TakeSnapshotRequest" : {
-        "required" : [ ],
         "type" : "object",
         "properties" : {
-          "snapshot_name" : {
-            "type" : "string"
+          "keyspace_tables" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
           },
           "keyspaces" : {
             "type" : "array",
@@ -1132,171 +1748,14 @@
               "type" : "string"
             }
           },
-          "table_name" : {
-            "type" : "string"
-          },
           "skip_flush" : {
             "type" : "boolean"
           },
-          "keyspace_tables" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }
-      },
-      "RepairRequest" : {
-        "required" : [ "keyspace_name" ],
-        "type" : "object",
-        "properties" : {
-          "keyspace_name" : {
+          "snapshot_name" : {
             "type" : "string"
           },
-          "tables" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          },
-          "full" : {
-            "type" : "boolean"
-          }
-        }
-      },
-      "CreateTableRequest": {
-        "type": "object",
-        "required": [
-          "keyspace_name",
-          "table_name",
-          "columns"
-        ],
-        "properties": {
-          "keyspace_name": {
-            "type": "string",
-            "description": "The name of the keyspace where the table is to be created. The keyspace must exist."
-          },
-          "table_name": {
-            "type": "string",
-            "description": "The name of the table to create."
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": [
-                "name",
-                "type",
-                "kind"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "The name of the column."
-                },
-                "type": {
-                  "type": "string",
-                  "description": "The type of the column. Must be a valid CQL type, e.g. text, int or list<timmeuid>."
-                },
-                "kind": {
-                  "type": "string",
-                  "description": "The kind of the column. Must be one of: PARTITION_KEY, CLUSTERING_COLUMN, REGULAR, STATIC.",
-                  "enum": [
-                    "PARTITION_KEY",
-                    "CLUSTERING_COLUMN",
-                    "REGULAR",
-                    "STATIC"
-                  ]
-                },
-                "position": {
-                  "type": "integer",
-                  "description": "The zero-based index of the column in the partition key or clustering column group. Only required for the PARTITION_KEY and CLUSTERING_COLUMN kinds, ignored otherwise. Must be equal to or greater than zero.",
-                  "minimum": 0
-                },
-                "order": {
-                  "type": "string",
-                  "description": "The clustering order of the column. Only required for the CLUSTERING_COLUMN kind, ignored otherwise. Must be one of: ASC, DESC.",
-                  "enum": [
-                    "ASC",
-                    "DESC"
-                  ]
-                }
-              }
-            }
-          },
-          "options": {
-            "description": "The table options. Each option value must be either a string or a dictionary of strings.",
-            "oneOf": [
-              {
-                "type": "object",
-                "example": {
-                  "bloom_filter_fp_chance": "0.01"
-                },
-                "additionalProperties": {
-                  "type": "string"
-                }
-              },
-              {
-                "type": "object",
-                "example": {
-                  "caching": {
-                    "keys": "ALL",
-                    "rows_per_partition": "NONE"
-                  }
-                },
-                "additionalProperties": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      },
-      "FeatureSet": {
-        "type": "object",
-        "properties": {
-          "cassandra_version": {
-            "type": "string"
-          },
-          "mgmt_version": {
-            "type": "string"
-          },
-          "features" : {
-            "type" : "array",
-            "items" : {
-              "type" : "string"
-            }
-          }
-        }
-      },
-      "Job": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "WAITING",
-              "COMPLETED",
-              "ERROR"
-            ]
-          },
-          "submit_time": {
-            "type": "string"
-          },
-          "end_time": {
-            "type": "string"
-          },
-          "error": {
-            "type": "string"
+          "table_name" : {
+            "type" : "string"
           }
         }
       }

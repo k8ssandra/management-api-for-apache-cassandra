@@ -12,21 +12,25 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
+import com.datastax.mgmtapi.resources.models.Job;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.ConnectionClosedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 
@@ -48,8 +52,16 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/liveness")
-    @Operation(summary = "Indicates whether this service is running")
+    @Operation(summary = "Indicates whether this service is running", operationId = "checkLiveness")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Service is running",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
     public Response checkLiveness()
     {
         return Response.ok("OK").build();
@@ -57,8 +69,17 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/readiness")
-    @Operation(summary = "Indicates whether the Cassandra service is ready to service requests")
+    @Operation(summary = "Indicates whether the Cassandra service is ready to service requests", operationId = "checkReadiness")
     @Produces(MediaType.TEXT_PLAIN)
+    @ApiResponse(responseCode = "200", description = "Service is ready to handle requests",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            examples = @ExampleObject(
+                value = "OK"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Service is not ready to handle requests")
     public Response checkReadiness()
     {
         return handle(() ->
@@ -80,7 +101,26 @@ public class K8OperatorResources
 
     @GET
     @Path("/probes/cluster")
-    @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency")
+    @Operation(summary = "Indicated whether the Cassandra cluster is able to achieve the specified consistency", operationId = "checkClusterConsistency")
+    @Produces({MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+    @ApiResponse(responseCode = "200", description = "Cassandra is able to achieve the specified consistency")
+    @ApiResponse(responseCode = "500", description = "Cassandra is unable to achieve the specified consistency",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(
+                implementation = Map.class
+            ),
+            examples = @ExampleObject(
+                value = "{\n" +
+"    \"[-8842966077830801609, -7599446072150209635]\": [\n" +
+"        \"2 replicas required, but only 1 nodes in the ring\"\n" +
+"    ],\n" +
+"    \"[-7599446072150209635, -6632081829071674136]\": [\n" +
+"        \"2 replicas required, but only 1 nodes in the ring\"\n" +
+"    ]}"
+            )
+        )
+    )
     public Response checkClusterConsistency(@QueryParam(value="consistency_level")String consistencyLevelStr, @QueryParam(value = "rf_per_dc") Integer rfPerDcVal)
     {
         return handle(() ->
@@ -110,6 +150,15 @@ public class K8OperatorResources
 
     @POST
     @Path("/ops/seeds/reload")
+    @Operation(summary = "Reload the seed node list from the seed provider", operationId = "seedReload")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(responseCode = "200", description = "List of new seeds after reload",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "[127.0.0.1, 127.0.0.2]")
+        )
+    )
     public Response seedReload()
     {
         return handle(() ->
@@ -124,7 +173,21 @@ public class K8OperatorResources
 
     @GET
     @Path("/ops/executor/job")
-    public Response getJobStatus(@QueryParam(value="job_id") String jobId) {
+    @Operation(summary = "Returns Job deatils for the supplied Job ID", operationId = "getJobStatus")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    @ApiResponse(responseCode = "200", description = "Map of job details",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Job.class)
+        )
+    )
+    @ApiResponse(responseCode = "404", description = "Job not found",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            schema = @Schema(implementation = Job.class)
+        )
+    )
+    public Response getJobStatus(@Parameter(required = true) @QueryParam(value="job_id") String jobId) {
         return handle(() -> {
             Map<String, String> jobResponse = (Map<String, String>) ResponseTools.getSingleRowResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.jobStatus(?)", jobId);
             if(jobResponse.isEmpty()) {
