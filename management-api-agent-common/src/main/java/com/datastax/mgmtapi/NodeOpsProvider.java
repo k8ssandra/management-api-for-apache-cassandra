@@ -442,6 +442,7 @@ public class NodeOpsProvider
         return ShimLoader.instance.get().getStreamInfo();
     }
 
+    @Rpc(name = "getSchemaVersions")
     public Map<String, List<String>> getSchemaVersions()
     {
         return StorageProxy.describeSchemaVersions();
