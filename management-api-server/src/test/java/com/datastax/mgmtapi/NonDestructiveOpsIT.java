@@ -563,11 +563,11 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         // The uuid is the schema version and list on the right are the nodes at that version. Because
         // are only testing with a single node we should expect the list to contain a single value.
 
-        Map<String, List<String>> actual = new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, List<String>>>(){});
+        Map<String, List> actual = new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, List>>(){});
         assertThat(actual).hasSizeGreaterThanOrEqualTo(1);
 
-        List<String> nodes = Lists.emptyList();
-        for (Map.Entry<String, List<String>> entry : actual.entrySet()) {
+        List nodes = Lists.emptyList();
+        for (Map.Entry<String, List> entry : actual.entrySet()) {
             nodes = entry.getValue();
             break;
         }

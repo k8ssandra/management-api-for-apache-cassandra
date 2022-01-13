@@ -4,6 +4,7 @@ import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -14,6 +15,10 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 
@@ -77,12 +82,12 @@ public class NodeOpsResources {
         {
             Row row = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.getSchemaVersions()").one();
 
-            Object queryResponse = null;
+            Map<String, List> schemaVersions = Collections.emptyMap();
             if (row != null)
             {
-                queryResponse = row.getObject(0);
+                schemaVersions = row.getMap(0, String.class, List.class);
             }
-            return Response.ok(Entity.json(queryResponse)).build();
+            return Response.ok(schemaVersions).build();
         });
     }
 
