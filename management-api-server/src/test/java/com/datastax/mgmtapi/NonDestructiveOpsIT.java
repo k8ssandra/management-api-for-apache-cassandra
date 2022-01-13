@@ -550,7 +550,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
 
         NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
-        URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/schema/versions");
+        URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/schema/versions");
         URI uri = uriBuilder.build();
 
         Pair<Integer, String> response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
