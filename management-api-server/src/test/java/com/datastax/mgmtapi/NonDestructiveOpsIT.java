@@ -20,7 +20,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.assertj.core.data.MapEntry;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -537,6 +540,39 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         List<String> keyspaces = jsonMapper.readValue(responseFilter, new TypeReference<List<String>>(){});
         assertEquals(1, keyspaces.size());
         assertEquals(ks, keyspaces.get(0));
+    }
+
+    @Test
+    public void testGetSchemaVersions() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+        URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/schema/versions");
+        URI uri = uriBuilder.build();
+
+        Pair<Integer, String> response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+        assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+
+        // The response body should look something like this,
+        //
+        //    2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]
+        //
+        // The uuid is the schema version and list on the right are the nodes at that version. Because
+        // are only testing with a single node we should expect the list to contain a single value.
+
+        Map<String, List> actual = new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, List>>(){});
+        assertThat(actual).hasSizeGreaterThanOrEqualTo(1);
+
+        List nodes = Lists.emptyList();
+        for (Map.Entry<String, List> entry : actual.entrySet()) {
+            nodes = entry.getValue();
+            break;
+        }
+
+        assertThat(nodes.size()).isEqualTo(1);
     }
 
     @Test

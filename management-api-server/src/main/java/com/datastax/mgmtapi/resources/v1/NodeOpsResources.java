@@ -3,18 +3,24 @@ package com.datastax.mgmtapi.resources.v1;
 import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
 
 @Path("/api/v1/ops/node")
 public class NodeOpsResources {
@@ -40,7 +46,7 @@ public class NodeOpsResources {
     )
     public Response decommission(@QueryParam(value="force")boolean force)
     {
-        return com.datastax.mgmtapi.resources.NodeOpsResources.handle(() ->
+        return handle(() ->
                 Response.accepted(
                         ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService,"CALL NodeOps.decommission(?, ?)", force, true)
                         ).build());
@@ -59,10 +65,35 @@ public class NodeOpsResources {
     )
     public Response rebuild(@QueryParam("src_dc") String srcDatacenter)
     {
-        return com.datastax.mgmtapi.resources.NodeOpsResources.handle(() ->
+        return handle(() ->
                 Response.accepted(
                         ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService, "CALL NodeOps.rebuild(?)", srcDatacenter)
                 ).build());
+    }
+
+    @GET
+    @Path("/schema/versions")
+    @Produces(MediaType.APPLICATION_JSON)
+    @ApiResponse(
+            responseCode = "200",
+            description = "Gets the schema versions for each node. Useful for checking schema agreement",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    examples = @ExampleObject(value = "{2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]}")))
+    @Operation(summary = "Get schema versions.", operationId = "getSchemaVersions")
+    public Response schemaVersions()
+    {
+        return handle(() ->
+        {
+            Row row = cqlService.executePreparedStatement(app.dbUnixSocketFile, "CALL NodeOps.getSchemaVersions()").one();
+
+            Map<String, List> schemaVersions = Collections.emptyMap();
+            if (row != null)
+            {
+                schemaVersions = row.getMap(0, String.class, List.class);
+            }
+            return Response.ok(schemaVersions).build();
+        });
     }
 
 }

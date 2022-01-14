@@ -33,6 +33,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.cassandra.db.compaction.OperationType;
+import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.utils.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -439,6 +440,12 @@ public class NodeOpsProvider
     public List<Map<String, List<Map<String, String>>>> getStreamInfo()
     {
         return ShimLoader.instance.get().getStreamInfo();
+    }
+
+    @Rpc(name = "getSchemaVersions")
+    public Map<String, List<String>> getSchemaVersions()
+    {
+        return StorageProxy.instance.getSchemaVersions();
     }
 
     @Rpc(name = "getKeyspaces")
