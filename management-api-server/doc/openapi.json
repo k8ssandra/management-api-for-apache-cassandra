@@ -1514,6 +1514,11 @@
         "operationId" : "getSchemaVersions",
         "responses" : {
           "200" : {
+            "content" : {
+              "application/json" : {
+                "example" : "{2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]}"
+              }
+            },
             "description" : "Gets the schema versions for each node. Useful for checking schema agreement"
           }
         },

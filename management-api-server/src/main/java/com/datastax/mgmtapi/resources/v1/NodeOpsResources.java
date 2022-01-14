@@ -74,7 +74,12 @@ public class NodeOpsResources {
     @GET
     @Path("/schema/versions")
     @Produces(MediaType.APPLICATION_JSON)
-    @ApiResponse(responseCode = "200", description = "Gets the schema versions for each node. Useful for checking schema agreement")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Gets the schema versions for each node. Useful for checking schema agreement",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON,
+                    examples = @ExampleObject(value = "{2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]}")))
     @Operation(summary = "Get schema versions.", operationId = "getSchemaVersions")
     public Response schemaVersions()
     {
