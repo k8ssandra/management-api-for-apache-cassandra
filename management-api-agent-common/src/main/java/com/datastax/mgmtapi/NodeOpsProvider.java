@@ -445,7 +445,7 @@ public class NodeOpsProvider
     @Rpc(name = "getSchemaVersions")
     public Map<String, List<String>> getSchemaVersions()
     {
-        return StorageProxy.describeSchemaVersions();
+        return StorageProxy.instance.getSchemaVersions();
     }
 
     @Rpc(name = "getKeyspaces")

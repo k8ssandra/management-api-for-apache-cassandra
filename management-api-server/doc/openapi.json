@@ -915,17 +915,6 @@
         "summary" : "Reset node's local schema and resync"
       }
     },
-    "/api/v0/ops/node/schema/versions" : {
-      "get" : {
-        "operationId" : "getSchemaVersions",
-        "responses" : {
-          "200" : {
-            "description" : "Gets the schema versions for each node. Useful for checking schema agreement"
-          }
-        },
-        "summary" : "Get schema versions."
-      }
-    },
     "/api/v0/ops/node/snapshots" : {
       "delete" : {
         "operationId" : "clearSnapshots",
@@ -1518,6 +1507,17 @@
           }
         },
         "summary" : "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id."
+      }
+    },
+    "/api/v1/ops/node/schema/versions" : {
+      "get" : {
+        "operationId" : "getSchemaVersions",
+        "responses" : {
+          "200" : {
+            "description" : "Gets the schema versions for each node. Useful for checking schema agreement"
+          }
+        },
+        "summary" : "Get schema versions."
       }
     }
   },
