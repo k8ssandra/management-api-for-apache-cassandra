@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 @RunWith(Parameterized.class)
-public class DestructiveOpsIT extends BaseDockerIntegrationTest
+public class DestructiveOpsIT extends BaseDockerIsolatedIntegrationTest
 {
     private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
 
