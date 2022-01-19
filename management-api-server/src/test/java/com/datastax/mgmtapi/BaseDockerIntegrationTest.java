@@ -137,6 +137,7 @@ public abstract class BaseDockerIntegrationTest
         {
             temporaryFolder.create();
             docker = new DockerHelper(getTempDir());
+            docker.removeExistingCntainers();
         }
         catch (IOException e)
         {

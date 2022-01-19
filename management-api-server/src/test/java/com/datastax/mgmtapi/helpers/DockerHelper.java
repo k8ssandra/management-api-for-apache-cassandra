@@ -55,6 +55,7 @@ public class DockerHelper
 {
     private static Logger logger = LoggerFactory.getLogger(DockerHelper.class);
 
+    public static final String CONTAINER_NAME = "mgmtapi";
     // Keep track of Docker images built during test runs
     private static final Set<String> IMAGE_NAMES = new HashSet<>();
 
@@ -112,16 +113,15 @@ public class DockerHelper
         if (!config.dockerFile.exists())
             throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
 
-        String name = "mgmtapi";
         List<Integer> ports = Arrays.asList(9042, 8080);
         List<String> volumeDescList = Arrays.asList(dataDir.getAbsolutePath() + ":/var/log/cassandra");
         List<String> envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-        List<String> cmdList = Lists.newArrayList("mgmtapi");
+        List<String> cmdList = Lists.newArrayList(CONTAINER_NAME);
 
         if (envVars != null)
             envList.addAll(envVars);
 
-        this.container = startDocker(config, name, ports, volumeDescList, envList, cmdList);
+        this.container = startDocker(config, ports, volumeDescList, envList, cmdList);
 
         waitForPort("localhost",8080, Duration.ofMillis(50000), logger, false);
     }
@@ -234,10 +234,10 @@ public class DockerHelper
         }
     }
 
-    private String startDocker(DockerBuildConfig config, String name, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+    public void removeExistingCntainers()
     {
         ListContainersCmd listContainersCmd = DOCKER_CLIENT.listContainersCmd();
-        listContainersCmd.getFilters().put("name", Arrays.asList(name));
+        listContainersCmd.getFilters().put("name", Arrays.asList(CONTAINER_NAME));
         try
         {
             List<Container> allContainersWithName = listContainersCmd.exec();
@@ -257,15 +257,18 @@ public class DockerHelper
             logger.error("$ sudo gpasswd -a ${USER} docker && newgrp docker");
             System.exit(1);
         }
+    }
 
-        Container containerId = searchContainer(name);
+    private String startDocker(DockerBuildConfig config, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+    {
+        Container containerId = searchContainer(CONTAINER_NAME);
         if (containerId != null)
         {
             return containerId.getId();
         }
 
         // see if we have the image already built
-        final String imageName = String.format("%s-%s-test", name, config.dockerFile.getName()).toLowerCase();
+        final String imageName = String.format("%s-%s-test", CONTAINER_NAME, config.dockerFile.getName()).toLowerCase();
         Image image = searchImages(imageName);
         if (image == null)
         {
@@ -281,7 +284,7 @@ public class DockerHelper
                 }
             };
 
-            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", name, config.dockerFile.getPath(), imageName));
+            logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", CONTAINER_NAME, config.dockerFile.getPath(), imageName));
             if (config.useBuildx)
             {
                 try
@@ -344,7 +347,7 @@ public class DockerHelper
                                 // don't bind /var/log/cassandra, it causes permissions issues with startup
                                 //.withBinds(volumeBindList)
                 )
-                .withName(name)
+                .withName(CONTAINER_NAME)
                 .exec();
 
 
@@ -358,7 +361,7 @@ public class DockerHelper
 
             @Override
             public void onStart(Closeable stream) {
-                System.out.println("Starting container " + name);
+                System.out.println("Starting container " + CONTAINER_NAME);
             }
         });
 
