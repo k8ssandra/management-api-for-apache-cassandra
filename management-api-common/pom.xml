@@ -15,7 +15,7 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <netty.version>4.1.50.Final</netty.version>
-        <cassandra3.version>3.11.11</cassandra3.version>
+        <cassandra3.version>3.11.12</cassandra3.version>
         <junit.version>4.13.1</junit.version>
         <mockito.version>3.5.13</mockito.version>
     </properties>

@@ -12,7 +12,7 @@
     <artifactId>datastax-mgmtapi-agent-4.x</artifactId>
 
     <properties>
-        <cassandra4.version>4.0.0</cassandra4.version>
+        <cassandra4.version>4.0.2</cassandra4.version>
         <bytebuddy.version>1.10.10</bytebuddy.version>
         <docker.java.version>3.1.5</docker.java.version>
         <build.version.file>build_version.sh</build.version.file>
