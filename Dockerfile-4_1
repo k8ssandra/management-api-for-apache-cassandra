@@ -1,8 +1,9 @@
-ARG CASSANDRA_VERSION=4.0.6
+ARG CASSANDRA_VERSION=4.1-beta1
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
 ARG METRICS_COLLECTOR_VERSION=0.3.3
+ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CDC_AGENT_VERSION=2.0.0
 ARG CDC_AGENT_EDITION=agent-c4
 
@@ -30,8 +31,8 @@ RUN mvn -q -ff package -DskipTests
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
-    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz
 
 ENV USER_HOME_PATH /home/cassandra
 RUN mkdir ${USER_HOME_PATH}
@@ -41,7 +42,7 @@ RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
 
-FROM cassandra:${CASSANDRA_VERSION} as oss40
+FROM cassandra:${CASSANDRA_VERSION} as oss41
 
 ARG TARGETARCH
 
@@ -59,7 +60,7 @@ ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
 # https://issues.apache.org/jira/browse/CASSANDRA-16027
 ENV MGMT_API_LOG_DIR /var/log/cassandra
 
-COPY --from=builder --chown=cassandra:root /build/management-api-agent-4.x/target/datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
+COPY --from=builder --chown=cassandra:root /build/management-api-agent-4.1.x/target/datastax-mgmtapi-agent-4.1.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder --chown=cassandra:root /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}

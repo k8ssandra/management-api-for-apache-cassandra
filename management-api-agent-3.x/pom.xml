@@ -11,13 +11,6 @@
     <groupId>com.datastax</groupId>
     <artifactId>datastax-mgmtapi-agent-3.x</artifactId>
 
-    <properties>
-        <bytebuddy.version>1.10.10</bytebuddy.version>
-        <docker.java.version>3.1.5</docker.java.version>
-        <build.version.file>build_version.sh</build.version.file>
-        <junit.version>4.13.1</junit.version>
-    </properties>
-
     <profiles>
         <profile>
             <id>default</id>

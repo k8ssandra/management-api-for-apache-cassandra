@@ -29,11 +29,6 @@
 
   <properties>
     <dse.version>6.8.26</dse.version>
-    <bytebuddy.version>1.9.15</bytebuddy.version>
-    <docker.java.version>3.1.5</docker.java.version>
-    <driver.version>4.10.0</driver.version>
-    <junit.version>4.13.1</junit.version>
-    <build.version.file>build_version.sh</build.version.file>
   </properties>
 
   <dependencies>

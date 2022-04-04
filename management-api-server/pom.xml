@@ -12,19 +12,13 @@
     <artifactId>datastax-mgmtapi-server</artifactId>
 
     <properties>
-        <slf4j.version>1.7.25</slf4j.version>
-        <logback.version>1.2.9</logback.version>
         <rsapi.version>2.1.1</rsapi.version>
         <guava.version>30.1.1-jre</guava.version>
         <airline.version>2.7.0</airline.version>
         <jaxrs.version>2.1.6</jaxrs.version>
         <resteasy.version>4.5.9.Final</resteasy.version>
-        <netty.version>4.1.50.Final</netty.version>
-        <docker.java.version>3.2.13</docker.java.version>
         <awaitility.version>4.0.3</awaitility.version>
         <assertj.version>3.17.2</assertj.version>
-        <junit.version>4.13.1</junit.version>
-        <mockito.version>3.5.13</mockito.version>
         <servelet.version>3.1.0</servelet.version>
     </properties>
 
