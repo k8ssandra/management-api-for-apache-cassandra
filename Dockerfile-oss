@@ -3,6 +3,8 @@ ARG CASSANDRA_VERSION=3.11.12
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
 ARG METRICS_COLLECTOR_VERSION=0.3.0
+ARG CDC_AGENT_VERSION=1.0.5
+ARG CDC_AGENT_EDITION=agent-c3-pulsar
 
 WORKDIR /build
 
@@ -28,6 +30,11 @@ ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+# Download CDC agent
+ENV CDC_AGENT_PATH=/opt/cdc_agent
+RUN mkdir ${CDC_AGENT_PATH} && \
+  curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
@@ -47,6 +54,7 @@ ARG TARGETARCH
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
 ENV MCAC_PATH /opt/metrics-collector
+ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV USER_HOME_PATH /home/cassandra
 
 ENV CASSANDRA_HOME ${CASSANDRA_PATH}
@@ -60,11 +68,13 @@ ENV MGMT_API_LOG_DIR /var/log/cassandra
 COPY --from=builder /build/management-api-agent-3.x/target/datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
 COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=builder ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
+
 
 # Setup user and fixup permissions
 RUN mkdir ${USER_HOME_PATH} && \
-    chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} && \
-    chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
+    chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH}  ${CDC_AGENT_PATH} ${MCAC_PATH} ${USER_HOME_PATH} && \
+    chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH}  ${CDC_AGENT_PATH} ${MCAC_PATH}
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
