@@ -3,27 +3,46 @@ name: Java CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  build-oss:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [3.11, 4.0, dse]
+        cassandra-version: [3.11, 4.0]
         include:
           - cassandra-version: 3.11
             run311tests: true
             run40tests: false
-            runDSEtests: false
           - cassandra-version: 4.0
             run311tests: false
             run40tests: true
-            runDSEtests: false
-          - cassandra-version: dse
-            run311tests: false
-            run40tests: false
-            runDSEtests: true
 
     runs-on: ubuntu-latest
 
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          version: latest
+      - name: Build with Maven and run tests
+        run: |
+          mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}
+  build-dse:
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 1.8
@@ -62,22 +81,11 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          if [[ "${{ matrix.runDSEtests }}" == "true" ]]
-          then
-            if [[ "${{ github.ref_name }}" == "master" ]]
-            then
-              MAVEN_OPTS="-P dse -DrunDSEtests=true"
-            else
-              MAVEN_OPTS="-P dse -DrunDSEtests=false"
-            fi
-          else
-            MAVEN_OPTS="-Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}"
-          fi
-          mvn -B -q install --file pom.xml $MAVEN_OPTS
+          mvn -B -q install --file pom.xml -P dse -DrunDSEtests=true
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image
-    needs: build
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: build-oss
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -120,8 +128,8 @@ jobs:
           target: ${{ matrix.build-target }}
   publish-dse:
     name: Publish DSE image
-    needs: build
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: build-dse
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
