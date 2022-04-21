@@ -64,7 +64,12 @@ jobs:
           cp ~/.m2/settings.xml settings.xml
           if [[ "${{ matrix.runDSEtests }}" == "true" ]]
           then
-            MAVEN_OPTS="-P dse -DrunDSEtests=true"
+            if [[ "${{ github.ref_name }}" == "master" ]]
+            then
+              MAVEN_OPTS="-P dse -DrunDSEtests=true"
+            else
+              MAVEN_OPTS="-P dse -DrunDSEtests=false"
+            fi
           else
             MAVEN_OPTS="-Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}"
           fi
