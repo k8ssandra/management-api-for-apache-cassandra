@@ -196,7 +196,7 @@
                         <configuration>
                             <target unless="cassandra.bin.exists" >
                                 <mkdir dir=".cassandra-bin"/>
-                                <get src="https://downloads.apache.org/cassandra/${cassandra3.version}/apache-cassandra-${cassandra3.version}-bin.tar.gz"
+                                <get src="https://archive.apache.org/dist/cassandra/${cassandra3.version}/apache-cassandra-${cassandra3.version}-bin.tar.gz"
                                      dest=".cassandra-bin/"/>
                                 <untar src=".cassandra-bin/apache-cassandra-${cassandra3.version}-bin.tar.gz" dest=".cassandra-bin/"
                                        compression="gzip"/>
