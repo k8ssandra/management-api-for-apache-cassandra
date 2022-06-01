@@ -12,6 +12,8 @@
         <build.version.file>build_version.sh</build.version.file>
         <revision>0.1.0-SNAPSHOT</revision>
         <driver.version>4.11.1</driver.version>
+        <cassandra3.version>3.11.13</cassandra3.version>
+        <cassandra4.version>4.0.4</cassandra4.version>
     </properties>
 
     <dependencies>
