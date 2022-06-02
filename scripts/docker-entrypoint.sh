@@ -45,6 +45,27 @@ _metrics_collector_supported() {
     [ "$(uname -m)" != "aarch64" ]
 }
 
+_needs_nodetool_fix() {
+    # JDK (8 and 11) updates that include the fix for JDK-8278972 cause nodetool
+    # to break due to the more strict URI parsing. This is fixed in Cassandra as
+    # of 3.11.13 and 4.0.4. Management API images based on Cassandra versions
+    # 3.11.12 and 4.0.3 will need to provide a work around
+    [ "${CASSANDRA_VERSION}" == "3.11.12" -o ${CASSANDRA_VERSION} == "4.0.3" ]
+}
+
+_nodetool_fix() {
+    # create a wrapper around nodetool to switch URI parsing to legacy mode
+    if [ -e /opt/cassandra/bin/nodetool ] ; then
+        cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig
+        # create a wrapper
+        cat << EOF > /opt/cassandra/bin/nodetool
+#!/bin/sh
+/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy "$@"
+
+EOF
+    fi
+}
+
 if [ "$1" = 'mgmtapi' ]; then
     echo "Starting Management API"
 
@@ -52,6 +73,11 @@ if [ "$1" = 'mgmtapi' ]; then
     # cp /config/cassandra.yaml /etc/cassandra/cassandra.yaml
     if [ -d "/config" ] && ! [ "/config" -ef "$CASSANDRA_CONF" ]; then
         cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
+    fi
+
+    # Add the nodetool fix if needed
+    if _needs_nodetool_fix ; then
+        _nodetool_fix
     fi
 
     # Make sure the management api agent jar is set
