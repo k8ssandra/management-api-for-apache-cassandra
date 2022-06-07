@@ -60,7 +60,7 @@ _nodetool_fix() {
         # create a wrapper
         cat << EOF > /opt/cassandra/bin/nodetool
 #!/bin/sh
-/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy "$@"
+/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy "\$@"
 
 EOF
     fi
