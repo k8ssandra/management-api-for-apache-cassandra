@@ -36,6 +36,9 @@ RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}
 
+ENV USER_HOME_PATH /home/cassandra
+RUN mkdir ${USER_HOME_PATH}
+
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
 
@@ -65,16 +68,13 @@ ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
 # https://issues.apache.org/jira/browse/CASSANDRA-16027
 ENV MGMT_API_LOG_DIR /var/log/cassandra
 
-COPY --from=builder /build/management-api-agent-3.x/target/datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
-COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
-COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
-COPY --from=builder ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
-
-
+COPY --from=builder --chown=cassandra:root /build/management-api-agent-3.x/target/datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
+COPY --from=builder --chown=cassandra:root /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
+COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
+COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 # Setup user and fixup permissions
-RUN mkdir ${USER_HOME_PATH} && \
-    chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH}  ${CDC_AGENT_PATH} ${MCAC_PATH} ${USER_HOME_PATH} && \
-    chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH}  ${CDC_AGENT_PATH} ${MCAC_PATH}
+RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
