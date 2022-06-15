@@ -29,6 +29,9 @@ RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
 
+ENV USER_HOME_PATH /home/cassandra
+RUN mkdir ${USER_HOME_PATH}
+
 FROM cassandra:${CASSANDRA_VERSION} as oss40
 
 ARG TARGETARCH
@@ -46,14 +49,13 @@ ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
 # https://issues.apache.org/jira/browse/CASSANDRA-16027
 ENV MGMT_API_LOG_DIR /var/log/cassandra
 
-COPY --from=builder /build/management-api-agent-4.x/target/datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
-COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
-COPY --from=builder ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=builder --chown=cassandra:root /build/management-api-agent-4.x/target/datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
+COPY --from=builder --chown=cassandra:root /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
+COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 
 # Setup user and fixup permissions
-RUN mkdir ${USER_HOME_PATH} && \
-    chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} && \
-    chmod -R g+w ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH}
+RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
