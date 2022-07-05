@@ -34,7 +34,7 @@ RUN mkdir ${MCAC_PATH} && \
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
 
 ENV USER_HOME_PATH /home/cassandra
 RUN mkdir ${USER_HOME_PATH}
