@@ -81,8 +81,8 @@ public class TableOpsResources
             }
 
             cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                    "CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)", scrubRequest.disableSnapshot, scrubRequest.skipCorrupted,
-                    scrubRequest.checkData, scrubRequest.reinsertOverflowedTTL, scrubRequest.jobs, keyspaceName, tables);
+                    "CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)", scrubRequest.disableSnapshot, scrubRequest.skipCorrupted,
+                    scrubRequest.checkData, scrubRequest.reinsertOverflowedTTL, scrubRequest.jobs, keyspaceName, tables, false);
 
             return Response.ok("OK").build();
         });
@@ -118,7 +118,7 @@ public class TableOpsResources
             }
 
             cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                    "CALL NodeOps.upgradeSSTables(?, ?, ?, ?)", keyspaceName, !excludeCurrentVersion, keyspaceRequest.jobs, tables);
+                    "CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)", keyspaceName, !excludeCurrentVersion, keyspaceRequest.jobs, tables, false);
 
             return Response.ok("OK").build();
         });
@@ -170,7 +170,7 @@ public class TableOpsResources
 
                     String userDefinedFiles = String.join(",", compactRequest.userDefinedFiles);
                     cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                            "CALL NodeOps.forceUserDefinedCompaction(?)", userDefinedFiles);
+                            "CALL NodeOps.forceUserDefinedCompaction(?, ?)", userDefinedFiles, false);
                 } catch (Exception e) {
                     throw new RuntimeException("Error occurred during user defined compaction", e);
                 }
@@ -191,14 +191,14 @@ public class TableOpsResources
             if (tokenProvided)
             {
                 cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                        "CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?)", keyspaceName,
-                        compactRequest.startToken, compactRequest.endToken, tables);
+                        "CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?, ?)", keyspaceName,
+                        compactRequest.startToken, compactRequest.endToken, tables, false);
             }
             else
             {
                 cqlService.executePreparedStatement(app.dbUnixSocketFile,
-                        "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)", compactRequest.splitOutput, keyspaceName,
-                        compactRequest.tables);
+                        "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)", compactRequest.splitOutput, keyspaceName,
+                        compactRequest.tables, false);
             }
 
             return Response.ok("OK").build();

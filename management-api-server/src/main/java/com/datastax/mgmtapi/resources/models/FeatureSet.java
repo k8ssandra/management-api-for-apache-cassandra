@@ -13,7 +13,10 @@ public class FeatureSet implements Serializable {
     public enum Feature {
         ASYNC_SSTABLE_TASKS("async_sstable_tasks"),
         FULL_QUERY_LOGGING("full_query_logging"),
-        REBUILD("rebuild");
+        REBUILD("rebuild"),
+        ASYNC_UPGRADE_SSTABLE_TASK("async_upgrade_sstable_task"),
+        ASYNC_COMPACTION_TASKS("async_compaction_task"),
+        ASYNC_SCRUB_TASK("async_scrub_task");
 
         @JsonValue
         private String featureName;

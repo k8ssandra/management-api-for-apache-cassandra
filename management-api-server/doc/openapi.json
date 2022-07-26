@@ -1524,6 +1524,105 @@
         },
         "summary" : "Get schema versions."
       }
+    },
+    "/api/v1/ops/tables/compact" : {
+      "post" : {
+        "operationId" : "compact_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompactRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for keyspace compaction process"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Invalid option combination: Can not use split-output here"
+              }
+            },
+            "description" : "Invalid table compaction request"
+          }
+        },
+        "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables"
+      }
+    },
+    "/api/v1/ops/tables/scrub" : {
+      "post" : {
+        "operationId" : "scrub_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ScrubRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for table scrub process"
+          }
+        },
+        "summary" : "Scrub (rebuild sstables for) one or more tables. This operation is asynchronous and returns immediately."
+      }
+    },
+    "/api/v1/ops/tables/sstables/upgrade" : {
+      "post" : {
+        "operationId" : "upgradeSSTables_1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "excludeCurrentVersion",
+          "schema" : {
+            "type" : "boolean"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for keyspace SSTable upgrade process"
+          }
+        },
+        "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version). This operation is asynchronous and returns immediately."
+      }
     }
   },
   "components" : {
@@ -1634,7 +1733,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD" ]
+              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK" ]
             }
           },
           "mgmt_version" : {
