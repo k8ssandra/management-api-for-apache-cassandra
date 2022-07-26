@@ -244,24 +244,44 @@ public class NodeOpsProvider
         ShimLoader.instance.get().getStorageService().reloadLocalSchema();
     }
 
+    private String submitJob(String operationName, Runnable operation, boolean async) {
+        Pair<String, CompletableFuture<Void>> jobPair = service.submit(operationName, operation);
+
+        if(!async) {
+            jobPair.right.join();
+        }
+
+        return jobPair.left;
+    }
+
     @Rpc(name = "upgradeSSTables")
-    public void upgradeSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
+    public String upgradeSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="excludeCurrentVersion" ) boolean excludeCurrentVersion,
             @RpcParam(name="jobs") int jobs,
-            @RpcParam(name="tableNames") List<String> tableNames) throws IOException, ExecutionException, InterruptedException
+            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws IOException, ExecutionException, InterruptedException
     {
         logger.debug("Upgrading SSTables");
 
-        List<String> keyspaces = Collections.singletonList(keyspaceName);
-        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
-        {
-            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+        final List<String> keyspaces = new ArrayList<>();
+        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL")) {
+            keyspaces.addAll(ShimLoader.instance.get().getStorageService().getKeyspaces());
+        } else {
+            keyspaces.add(keyspaceName);
         }
 
-        for (String keyspace : keyspaces)
-        {
-            ShimLoader.instance.get().getStorageService().upgradeSSTables(keyspace, excludeCurrentVersion, jobs, tableNames.toArray(new String[]{}));
-        }
+        Runnable upgradeOperation = () -> {
+            for (String keyspace : keyspaces) {
+                try {
+                    ShimLoader.instance.get().getStorageService().upgradeSSTables(keyspace, excludeCurrentVersion, jobs, tableNames.toArray(new String[]{}));
+                } catch (IOException | ExecutionException | InterruptedException e) {
+                    logger.error("Failed to execute upgradeSSTables in " + keyspace, e);
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+        // Send to background execution and return job number
+        return submitJob(OperationType.UPGRADE_SSTABLES.name(), upgradeOperation, async);
     }
 
     @Rpc(name = "forceKeyspaceCleanup")
@@ -269,9 +289,8 @@ public class NodeOpsProvider
             @RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="tables") List<String> tables, @RpcParam(name = "async") boolean async) throws InterruptedException, ExecutionException, IOException
     {
-        logger.debug("Reloading local schema");
+        logger.debug("Forcing cleanup on keyspace {}", keyspaceName);
         final List<String> keyspaces = new ArrayList<>();
-
         if (keyspaceName != null && keyspaceName.equalsIgnoreCase("NON_LOCAL_STRATEGY"))
         {
             keyspaces.addAll(ShimLoader.instance.get().getStorageService().getNonLocalStrategyKeyspaces());
@@ -285,57 +304,70 @@ public class NodeOpsProvider
                     ShimLoader.instance.get().getStorageService().forceKeyspaceCleanup(jobs, keyspace, tables.toArray(new String[]{}));
                 } catch (IOException | ExecutionException | InterruptedException e) {
                     logger.error("Failed to execute forceKeyspaceCleanup in " + keyspace, e);
+                    throw new RuntimeException(e);
                 }
             }
         };
 
         // Send to background execution and return job number
-        Pair<String, CompletableFuture<Void>> jobPair = service.submit(OperationType.CLEANUP.name(), cleanupOperation);
-
-        if(!async) {
-            jobPair.right.join();
-        }
-
-        return jobPair.left;
+        return submitJob(OperationType.CLEANUP.name(), cleanupOperation, async);
     }
 
     @Rpc(name = "forceKeyspaceCompactionForTokenRange")
-    public void forceKeyspaceCompactionForTokenRange(@RpcParam(name="keyspaceName") String keyspaceName,
+    public String forceKeyspaceCompactionForTokenRange(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="startToken") String startToken,
             @RpcParam(name="endToken") String endToken,
-            @RpcParam(name="tableNames") List<String> tableNames) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Forcing keyspace compaction for token range on keyspace {}", keyspaceName);
 
-        List<String> keyspaces = Collections.singletonList(keyspaceName);
-        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
-        {
-            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+        final List<String> keyspaces = new ArrayList<>();
+        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL")) {
+            keyspaces.addAll(ShimLoader.instance.get().getStorageService().getKeyspaces());
+        } else {
+            keyspaces.add(keyspaceName);
         }
 
-        for (String keyspace : keyspaces)
-        {
-            ShimLoader.instance.get().getStorageService().forceKeyspaceCompactionForTokenRange(keyspace, startToken, endToken, tableNames.toArray(new String[]{}));
-        }
+        Runnable compactionOperation = () -> {
+            for (String keyspace : keyspaces)
+            {
+                try {
+                    ShimLoader.instance.get().getStorageService().forceKeyspaceCompactionForTokenRange(keyspace, startToken, endToken, tableNames.toArray(new String[]{}));
+                } catch (IOException | ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+        return submitJob(OperationType.COMPACTION.name(), compactionOperation, async);
     }
 
     @Rpc(name = "forceKeyspaceCompaction")
-    public void forceKeyspaceCompaction(@RpcParam(name="splitOutput") boolean splitOutput,
+    public String forceKeyspaceCompaction(@RpcParam(name="splitOutput") boolean splitOutput,
             @RpcParam(name="keyspaceName") String keyspaceName,
-            @RpcParam(name="tableNames") List<String> tableNames) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Forcing keyspace compaction on keyspace {}", keyspaceName);
 
-        List<String> keyspaces = Collections.singletonList(keyspaceName);
-        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL"))
-        {
-            keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+        final List<String> keyspaces = new ArrayList<>();
+        if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL")) {
+            keyspaces.addAll(ShimLoader.instance.get().getStorageService().getKeyspaces());
+        } else {
+            keyspaces.add(keyspaceName);
         }
 
-        for (String keyspace : keyspaces)
-        {
-            ShimLoader.instance.get().getStorageService().forceKeyspaceCompaction(splitOutput, keyspace, tableNames.toArray(new String[]{}));
-        }
+        Runnable compactionOperation = () -> {
+            for (String keyspace : keyspaces)
+            {
+                try {
+                    ShimLoader.instance.get().getStorageService().forceKeyspaceCompaction(splitOutput, keyspace, tableNames.toArray(new String[]{}));
+                } catch (IOException | ExecutionException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+
+        return submitJob(OperationType.COMPACTION.name(), compactionOperation, async);
     }
 
     @Rpc(name = "garbageCollect")
@@ -383,23 +415,34 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "scrub")
-    public void scrub(@RpcParam(name="disableSnapshot") boolean disableSnapshot,
+    public String scrub(@RpcParam(name="disableSnapshot") boolean disableSnapshot,
             @RpcParam(name="skipCorrupted") boolean skipCorrupted,
             @RpcParam(name="checkData") boolean checkData,
             @RpcParam(name="reinsertOverflowedTTL") boolean reinsertOverflowedTTL,
             @RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
-            @RpcParam(name="tables") List<String> tables) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tables") List<String> tables, boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Scrubbing tables on keyspace {}", keyspaceName);
-        ShimLoader.instance.get().getStorageService().scrub(disableSnapshot, skipCorrupted, checkData, reinsertOverflowedTTL, jobs, keyspaceName, tables.toArray(new String[]{}));
+        Runnable scrubOperation = () -> {
+            try {
+                ShimLoader.instance.get().getStorageService().scrub(disableSnapshot, skipCorrupted, checkData, reinsertOverflowedTTL, jobs, keyspaceName, tables.toArray(new String[]{}));
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                logger.error("Failed to execute scrub: ", e);
+                throw new RuntimeException(e);
+            }
+        };
+        return submitJob(OperationType.SCRUB.name(), scrubOperation, async);
     }
 
     @Rpc(name = "forceUserDefinedCompaction")
-    public void forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles)
+    public String forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles, boolean async)
     {
         logger.debug("Forcing user defined compaction");
-        ShimLoader.instance.get().getCompactionManager().forceUserDefinedCompaction(datafiles);
+        Runnable compactOperation = () -> {
+            ShimLoader.instance.get().getCompactionManager().forceUserDefinedCompaction(datafiles);
+        };
+        return submitJob(OperationType.COMPACTION.name(), compactOperation, async);
     }
 
     @Rpc(name = "createRole")

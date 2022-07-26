@@ -77,6 +77,8 @@ public class K8OperatorResourcesTest {
                 .addSingletonResource(new com.datastax.mgmtapi.resources.v1.NodeOpsResources(app));
         context.dispatcher.getRegistry()
                 .addSingletonResource(new TableOpsResources(app));
+        context.dispatcher.getRegistry()
+                .addSingletonResource(new com.datastax.mgmtapi.resources.v1.TableOpsResources(app));
 
         return context;
     }
@@ -402,7 +404,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)"), any());
     }
 
     @Test
@@ -422,7 +424,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)"), any());
     }
 
     @Test
@@ -441,8 +443,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?)"),
-                any(), any(), any(), any(), any(), eq("ALL"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)"),
+                any(), any(), any(), any(), any(), eq("ALL"), any(), anyBoolean());
     }
 
     @Test
@@ -460,8 +462,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
-                eq(true), eq(keyspaceRequest.jobs), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
+                eq(true), eq(keyspaceRequest.jobs), any(), anyBoolean());
     }
 
     @Test
@@ -480,8 +482,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
-                eq(true), eq(keyspaceRequest.jobs), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)"), eq(keyspaceRequest.keyspaceName),
+                eq(true), eq(keyspaceRequest.jobs), any(), anyBoolean());
     }
 
     @Test
@@ -500,8 +502,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?)"), eq("ALL"),
-                eq(true), eq(keyspaceRequest.jobs), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)"), eq("ALL"),
+                eq(true), eq(keyspaceRequest.jobs), any(), anyBoolean());
     }
 
     @Test
@@ -698,9 +700,39 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
-                eq(compactRequest.splitOutput), eq(compactRequest.keyspaceName), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)"),
+                eq(compactRequest.splitOutput), eq(compactRequest.keyspaceName), any(), anyBoolean());
     }
+
+    @Test
+    public void testCompactAsync() throws Exception {
+        CompactRequest compactRequest = new CompactRequest(false, false, null,
+                null, "keyspace", null, Arrays.asList("table1", "table2"));
+
+        Context context = setup();
+
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+                .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+                .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+                .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+        String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
+        MockHttpResponse response = postWithBodyFullPath("/api/v1/ops/tables/compact", requestAsJSON, context);
+
+        Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+        Assert.assertTrue(response.getContentAsString().length() > 0);
+
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)"),
+                eq(compactRequest.splitOutput), eq(compactRequest.keyspaceName), any(), anyBoolean());
+    }
+
 
     @Test
     public void testCompact_WithToken() throws Exception {
@@ -718,8 +750,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?)"),
-                eq(compactRequest.keyspaceName), eq(compactRequest.startToken), eq(compactRequest.endToken), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?, ?)"),
+                eq(compactRequest.keyspaceName), eq(compactRequest.startToken), eq(compactRequest.endToken), any(), anyBoolean());
     }
 
     @Test
@@ -738,7 +770,7 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceUserDefinedCompaction(?)"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceUserDefinedCompaction(?, ?)"), any(), anyBoolean());
     }
 
     @Test
@@ -816,8 +848,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
-                eq(false), eq(compactRequest.keyspaceName), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)"),
+                eq(false), eq(compactRequest.keyspaceName), any(), anyBoolean());
     }
 
     @Test
@@ -837,8 +869,8 @@ public class K8OperatorResourcesTest {
         Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
         Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?)"),
-                eq(false), eq("ALL"), any());
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)"),
+                eq(false), eq("ALL"), any(), anyBoolean());
     }
 
     @Test
