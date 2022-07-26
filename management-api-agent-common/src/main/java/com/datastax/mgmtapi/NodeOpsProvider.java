@@ -258,7 +258,7 @@ public class NodeOpsProvider
     public String upgradeSSTables(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="excludeCurrentVersion" ) boolean excludeCurrentVersion,
             @RpcParam(name="jobs") int jobs,
-            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws IOException, ExecutionException, InterruptedException
+            @RpcParam(name="tableNames") List<String> tableNames, @RpcParam(name="async") boolean async) throws IOException, ExecutionException, InterruptedException
     {
         logger.debug("Upgrading SSTables");
 
@@ -317,7 +317,7 @@ public class NodeOpsProvider
     public String forceKeyspaceCompactionForTokenRange(@RpcParam(name="keyspaceName") String keyspaceName,
             @RpcParam(name="startToken") String startToken,
             @RpcParam(name="endToken") String endToken,
-            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tableNames") List<String> tableNames, @RpcParam(name="async") boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Forcing keyspace compaction for token range on keyspace {}", keyspaceName);
 
@@ -345,7 +345,7 @@ public class NodeOpsProvider
     @Rpc(name = "forceKeyspaceCompaction")
     public String forceKeyspaceCompaction(@RpcParam(name="splitOutput") boolean splitOutput,
             @RpcParam(name="keyspaceName") String keyspaceName,
-            @RpcParam(name="tableNames") List<String> tableNames, boolean async) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tableNames") List<String> tableNames, @RpcParam(name="async") boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Forcing keyspace compaction on keyspace {}", keyspaceName);
 
@@ -421,7 +421,7 @@ public class NodeOpsProvider
             @RpcParam(name="reinsertOverflowedTTL") boolean reinsertOverflowedTTL,
             @RpcParam(name="jobs") int jobs,
             @RpcParam(name="keyspaceName") String keyspaceName,
-            @RpcParam(name="tables") List<String> tables, boolean async) throws InterruptedException, ExecutionException, IOException
+            @RpcParam(name="tables") List<String> tables, @RpcParam(name="async") boolean async) throws InterruptedException, ExecutionException, IOException
     {
         logger.debug("Scrubbing tables on keyspace {}", keyspaceName);
         Runnable scrubOperation = () -> {
@@ -436,7 +436,7 @@ public class NodeOpsProvider
     }
 
     @Rpc(name = "forceUserDefinedCompaction")
-    public String forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles, boolean async)
+    public String forceUserDefinedCompaction(@RpcParam(name="datafiles") String datafiles, @RpcParam(name="async") boolean async)
     {
         logger.debug("Forcing user defined compaction");
         Runnable compactOperation = () -> {
