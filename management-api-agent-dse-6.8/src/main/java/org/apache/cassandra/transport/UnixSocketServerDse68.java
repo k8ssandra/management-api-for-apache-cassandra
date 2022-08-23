@@ -108,7 +108,7 @@ public class UnixSocketServerDse68
                                 }
 
                                 resp.setStreamId(request.getStreamId());
-                                resp.addWarnings(ClientWarn.instance.getWarnings());
+                                resp.addWarnings(ClientWarn.instance.getAndClearWarnings());
                                 resp.attach(connection);
                                 connection.applyStateTransition(request.type, resp.type);
                                 ctx.writeAndFlush(resp, ctx.voidPromise());
