@@ -1,8 +1,7 @@
-ARG CASSANDRA_VERSION=6.8.9
+ARG CASSANDRA_VERSION=6.8.25
 
-FROM maven:3.6.3-jdk-8-slim as builder
+FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
-ARG METRICS_COLLECTOR_VERSION=0.2.0
 ARG CDC_AGENT_VERSION=2.0.0
 ARG CDC_AGENT_EDITION=agent-dse4
 
@@ -35,7 +34,7 @@ RUN mkdir ${CDC_AGENT_PATH} && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
 
 
-FROM datastax/dse-server:${CASSANDRA_VERSION}
+FROM datastax/dse-server:${CASSANDRA_VERSION} as dse68
 
 # accept the License
 ENV DS_LICENSE=accept
@@ -55,16 +54,13 @@ ENV MGMT_API_LOG_DIR /var/log/cassandra
 
 COPY --from=builder /build/management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
-COPY --from=builder ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
+COPY --from=builder --chown=dse:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 
 USER root
 RUN set -eux; \
   apt-get update; \
   apt-get install -y --no-install-recommends wget iproute2; \
   rm -rf /var/lib/apt/lists/*
-
-RUN chown -R dse:root ${CDC_AGENT_PATH} && \
-    chmod -R g+w ${CDC_AGENT_PATH}
 
 # backwards compat with upstream ENTRYPOINT
 COPY scripts/dse-6.8-docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
