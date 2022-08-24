@@ -458,6 +458,8 @@ public class DockerHelper
                   break;
               default : // DSE 6.8
                   config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-dse-68").toFile();
+                  config.target = "dse68";
+                  config.useBuildx = true;
                   break;
             }
             return config;
