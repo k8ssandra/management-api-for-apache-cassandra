@@ -201,7 +201,7 @@ public class DockerHelper
     {
         return container != null;
     }
-    
+
     private void buildImageWithBuildx(DockerBuildConfig config, String name) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
             "--load",
