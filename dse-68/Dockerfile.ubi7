@@ -1,7 +1,7 @@
 ARG VERSION=6.8.26
 ARG BASETAG=7.8
 
-FROM harbor.sjc.dsinternal.org/qa/datastax/dse-server:${VERSION} AS dse-server-base
+FROM harbor.sjc.dsinternal.org/qa/datastax/dse-server:${VERSION} AS dse68
 
 #############################################################
 

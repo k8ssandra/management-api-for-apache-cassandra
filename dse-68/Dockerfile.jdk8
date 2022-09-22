@@ -11,7 +11,7 @@ ENV DSE_AGENT_HOME /opt/agent
 
 # Get commandline parameters
 ARG VERSION=6.8.26
-ARG URL_PREFIX=http://repo-qa.aws.dsinternal.org/tar/enterprise
+ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
@@ -71,7 +71,7 @@ RUN \
 
 #############################################################
 
-FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-setup
+FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"

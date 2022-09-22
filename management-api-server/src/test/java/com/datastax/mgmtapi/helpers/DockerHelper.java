@@ -20,21 +20,17 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.Uninterruptibles;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback.Adapter;
-import com.github.dockerjava.api.command.BuildImageResultCallback;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectExecCmd;
 import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListImagesCmd;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.BuildResponseItem;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Frame;
@@ -42,7 +38,6 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
-import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -96,7 +91,7 @@ public class DockerHelper
         });
     }
     private String container;
-    private File dataDir;
+    private final File dataDir;
 
     public DockerHelper(File dataDir) {
         this.dataDir = dataDir;
@@ -109,19 +104,11 @@ public class DockerHelper
 
     public void startManagementAPI(String version, List<String> envVars)
     {
-        DockerBuildConfig config = DockerBuildConfig.getConfig(version);
+        DockerBuildConfig config = DockerBuildConfig.getConfig(version, envVars);
         if (!config.dockerFile.exists())
             throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
 
-        List<Integer> ports = Arrays.asList(9042, 8080);
-        List<String> volumeDescList = Arrays.asList(dataDir.getAbsolutePath() + ":/var/log/cassandra");
-        List<String> envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-        List<String> cmdList = Lists.newArrayList(CONTAINER_NAME);
-
-        if (envVars != null)
-            envList.addAll(envVars);
-
-        this.container = startDocker(config, ports, volumeDescList, envList, cmdList);
+        this.container = startDocker(config);
 
         waitForPort("localhost",8080, Duration.ofMillis(50000), logger, false);
     }
@@ -132,7 +119,7 @@ public class DockerHelper
             throw new IllegalStateException("Container not started");
 
         String execId = DOCKER_CLIENT.execCreateCmd(container).withCmd(commandAndArgs).withAttachStderr(true).withAttachStdout(true).exec().getId();
-        DOCKER_CLIENT.execStartCmd(execId).exec(new Adapter<Frame>());
+        DOCKER_CLIENT.execStartCmd(execId).exec(new Adapter<>());
 
         return execId;
     }
@@ -214,7 +201,7 @@ public class DockerHelper
     {
         return container != null;
     }
-
+    
     private void buildImageWithBuildx(DockerBuildConfig config, String name) throws Exception {
         ProcessBuilder pb = new ProcessBuilder("docker", "buildx", "build",
             "--load",
@@ -259,7 +246,7 @@ public class DockerHelper
         }
     }
 
-    private String startDocker(DockerBuildConfig config, List<Integer> ports, List<String> volumeDescList, List<String> envList, List<String> cmdList)
+    private String startDocker(DockerBuildConfig config)
     {
         Container containerId = searchContainer(CONTAINER_NAME);
         if (containerId != null)
@@ -272,39 +259,15 @@ public class DockerHelper
         Image image = searchImages(imageName);
         if (image == null)
         {
-            BuildImageResultCallback callback = new BuildImageResultCallback()
-            {
-                @Override
-                public void onNext(BuildResponseItem item)
-                {
-                    String stream = item.getStream();
-                    if (stream != null && !stream.equals("null"))
-                        System.out.print(item.getStream());
-                    super.onNext(item);
-                }
-            };
-
             logger.info(String.format("Building container: name=%s, Dockerfile=%s, image name=%s", CONTAINER_NAME, config.dockerFile.getPath(), imageName));
-            if (config.useBuildx)
+            try
             {
-                try
-                {
-                    buildImageWithBuildx(config, imageName);
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                    logger.error("Unable to build image");
-                }
+                buildImageWithBuildx(config, imageName);
             }
-            else
+            catch (Exception e)
             {
-                DOCKER_CLIENT.buildImageCmd()
-                    .withBaseDirectory(config.baseDir)
-                    .withDockerfile(config.dockerFile)
-                    .withTags(Sets.newHashSet(imageName))
-                    .exec(callback)
-                    .awaitImageId();
+                e.printStackTrace();
+                logger.error("Unable to build image");
             }
             logger.info(String.format("Adding image named %s to set of images to be cleaned up", imageName));
             IMAGE_NAMES.add(imageName);
@@ -312,7 +275,7 @@ public class DockerHelper
 
         List<ExposedPort> tcpPorts = new ArrayList<>();
         List<PortBinding> portBindings = new ArrayList<>();
-        for (Integer port : ports)
+        for (Integer port : config.exposedPorts)
         {
             ExposedPort tcpPort = ExposedPort.tcp(port);
             Ports.Binding binding = new Ports.Binding("0.0.0.0", String.valueOf(port));
@@ -322,23 +285,11 @@ public class DockerHelper
             portBindings.add(pb);
         }
 
-        List<Volume> volumeList = new ArrayList<>();
-        List<Bind> volumeBindList = new ArrayList<>();
-        for (String volumeDesc : volumeDescList)
-        {
-            String volFrom = volumeDesc.split(":")[0];
-            String volTo = volumeDesc.split(":")[1];
-            Volume vol = new Volume(volTo);
-            volumeList.add(vol);
-            volumeBindList.add(new Bind(volFrom, vol));
-        }
-
         CreateContainerResponse containerResponse;
 
         logger.warn("Binding a local temp directory to /var/log/cassandra can cause permissions issues on startup. Skipping volume bindings.");
         containerResponse = DOCKER_CLIENT.createContainerCmd(imageName)
-                .withCmd(cmdList)
-                .withEnv(envList)
+                .withEnv(config.envList)
                 .withExposedPorts(tcpPorts)
                 .withHostConfig(
                         new HostConfig()
@@ -436,31 +387,48 @@ public class DockerHelper
 
     private static class DockerBuildConfig
     {
-        static final File baseDir = new File(System.getProperty("dockerFileRoot","."));
-
+        File baseDir;
         File dockerFile;
-        String target = null;
-        boolean useBuildx = false;
+        String target;
+        final List<Integer> exposedPorts = Arrays.asList(9042, 8080);
+        List<String> envList;
 
-        static DockerBuildConfig getConfig(String version)
+        static DockerBuildConfig getConfig(String version, List<String> envVars)
         {
             DockerBuildConfig config = new DockerBuildConfig();
             switch (version) {
               case "3_11" :
-                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-oss").toFile();
+                  config.baseDir = new File(System.getProperty("dockerFileRoot","."));
+                  config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss").toFile();
                   config.target = "oss311";
-                  config.useBuildx = true;
+                  config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
+                  if (envVars != null)
+                  {
+                      config.envList.addAll(envVars);
+                  }
                   break;
               case "4_0" :
-                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-4_0").toFile();
+                  config.baseDir = new File(System.getProperty("dockerFileRoot","."));
+                  config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0").toFile();
                   config.target = "oss40";
-                  config.useBuildx = true;
+                  config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
+                  if (envVars != null)
+                  {
+                      config.envList.addAll(envVars);
+                  }
                   break;
-              default : // DSE 6.8
-                  config.dockerFile = Paths.get(baseDir.getPath(), "Dockerfile-dse-68").toFile();
+              case "dse-68" :
+                  config.baseDir = new File(System.getProperty("dockerFileRoot","."), "dse-68");
+                  config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile.jdk11").toFile();
                   config.target = "dse68";
-                  config.useBuildx = true;
+                  config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "DS_LICENSE=accept", "USE_MGMT_API=true");
+                  if (envVars != null)
+                  {
+                      config.envList.addAll(envVars);
+                  }
                   break;
+              default :
+                  throw new RuntimeException("Unsupported Cassandra version: " + version);
             }
             return config;
         }
