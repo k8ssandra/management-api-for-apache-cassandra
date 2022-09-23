@@ -67,13 +67,14 @@ The following versions of Cassandra and DSE are published to Docker and supporte
       k8ssandra/cass-management-api:4.0.4
       k8ssandra/cass-management-api:4.0.5
       k8ssandra/cass-management-api:4.0.6
-      datastax/dse-mgmtapi-6_8:6.8.25
+      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8 and jdk11 based images)
+      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8 and jdk11 based images)
 
 ### Containers
 
-First, you will need to have the [Docker buildx plugin](https://docs.docker.com/buildx/working-with-buildx/) installed.
+First, you will need to have the [Docker buildx plugin](https://docs.docker.com/build/buildx/install/) installed.
 
-To build an image based on the desired Cassandra or DSE version see the examples below:
+To build an image based on the desired Cassandra version see the examples below:
 
     #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.11` with the version you want below)
     docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.11 --tag mgmtapi-3_11 --file Dockerfile-oss --target oss311 --platform linux/amd64 .
@@ -81,8 +82,7 @@ To build an image based on the desired Cassandra or DSE version see the examples
     #Create a docker image with management api and C* 4.0 (version 4.0.0 and newer are supported)
     docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.1 --tag mgmtapi-4_0 --file Dockerfile-4_0 --target oss40 --platform linux/amd64 .
 
-    #Create a docker image with management api and DSE 6.8 (version 6.8.25 and newer are supported, see [Usage with DSE](#usage-with-dse) below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=6.8.25 --tag mgmtapi-dse --file Dockerfile-dse-68 --target dse68 --platform linux/amd64 .
+To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.8/README.md).
 
 ### Standalone
 
@@ -124,9 +124,7 @@ To build an image based on the desired Cassandra or DSE version see the examples
   - [Management API for Apache Cassandra 3.11.10](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_10)
   - [Management API for Apache Cassandra 4.0-beta4](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0).
 
-  For DSE Docker images, the location is:
-
-  - [Management API for DSE 6.8](https://hub.docker.com/repository/docker/datastax/dse-mgmtapi-6_8)
+  For DSE Docker images, see the [DSE README](management-api-agent-dse-6.8/README.md).
 
   For running standalone the jars can be downloaded from the github release:
      [Management API Releases Zip](https://github.com/k8ssandra/management-api-for-apache-cassandra/releases)
@@ -147,19 +145,9 @@ To build an image based on the desired Cassandra or DSE version see the examples
 
 ## Usage with DSE
 
-A DSE jar must be locally available before running the Management API with DSE. Details are described in the [DSE README](management-api-shim-dse-6.8/README.md).
-Once you have DSE jars published locally, follow these steps:
-```
-# The builder image needs to have Maven settings.xml (that provides access to Artifactory):
-cp $HOME/.m2/settings.xml $PWD
+Please see the [DSE README](management-api-agent-dse-6.8/README.md) for details.
 
-docker buildx build --load --build-arg CASSANDRA_VERSION=6.8.25 --tag mgmtapi-dse --file Dockerfile-dse-68 --target dse68 --platform linux/amd64 .
-
-docker run -p 8080:8080 -it --rm mgmtapi-dse
-
-```
-
-### Using the Service with a locally installed C* or DSE instance
+## Using the Service with a locally installed C* or DSE instance
 
 
   To start the service with a locally installed C* or DSE instance, you would run the below commands. The Management API will figure out
