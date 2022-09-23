@@ -69,7 +69,7 @@ specific DSE version, specify the `DSE_VERSION` build-arg:
 docker buildx build --load --build-arg DSE_VERSION=6.8.26 --progress plain --tag my-dse --file dse-68/Dockerfile.jdk11 --target dse68 --platform linux/amd64 .
 ```
 
-## Running a locally build image
+## Running a locally built image
 
 To run an image you built locally with Management API enabled, run the following:
 
