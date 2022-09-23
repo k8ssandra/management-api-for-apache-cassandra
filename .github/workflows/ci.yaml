@@ -41,7 +41,7 @@ jobs:
         run: |
           mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }}
   build-dse:
-#    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
