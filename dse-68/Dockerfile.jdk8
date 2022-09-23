@@ -10,16 +10,16 @@ ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
 
 # Get commandline parameters
-ARG VERSION=6.8.26
+ARG DSE_VERSION=6.8.26
 ARG URL_PREFIX=https://downloads.datastax.com/enterprise
-ARG TARBALL=dse-${VERSION}-bin.tar.gz
+ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
 ARG DSE_AGENT_VERSION=6.8.19
 ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
 ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
 
-COPY /* /
+COPY dse-68/* /
 
 RUN set -x \
 # Download DSE tarball if needed
@@ -40,35 +40,69 @@ RUN set -x \
 
 #############################################################
 
+# The commented section below is what would be used to bundle the Management API
+# released artifacts into the DSE image. Since images built in this project are
+# being used to test the artifacts, we want to build them from source and embed
+# them into the image
 
-FROM debian:buster as mgmtapi-setup
+#FROM debian:buster as mgmtapi-setup
+#
+#WORKDIR /
+#
+#ENV MAAC_PATH /opt/management-api
+#ENV DSE_HOME /opt/dse
+#
+#ENV MGMTAPI_V=v0.1.45
+#
+#RUN \
+#  set -x \
+#  && apt-get update -y \
+#  && apt-get install -y wget unzip \
+#  && mkdir $MAAC_PATH \
+#  && mkdir $DSE_HOME \
+#  && mkdir /tmp/mgmtapi-jars \
+#  && cd /tmp/mgmtapi-jars \
+#  && wget -q "https://github.com/datastax/management-api-for-apache-cassandra/releases/download/$MGMTAPI_V/jars.zip" \
+#  && unzip jars.zip \
+#  && rm jars.zip \
+#  && find /tmp/mgmtapi-jars -name '*.jar' -type f -exec mv -t $MAAC_PATH -i '{}' + \
+#  && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
+#  && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
+#  && cd /tmp \
+#  && rm -rf /tmp/mgmtapi-jars \
+#  && echo DONE
+
+FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as mgmtapi-setup
 
 WORKDIR /
 
 ENV MAAC_PATH /opt/management-api
 ENV DSE_HOME /opt/dse
 
-ENV MGMTAPI_V=v0.1.45
+COPY pom.xml /tmp/pom.xml
+COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xml
+COPY management-api-agent-3.x/pom.xml /tmp/management-api-agent-3.x/pom.xml
+COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
+COPY management-api-agent-dse-6.8/pom.xml tmp/management-api-agent-dse-6.8/pom.xml
+COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
+COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
+COPY settings.xml settings.xml /root/.m2/
+# this duplicates work done in the next steps, but this should provide
+# a solid cache layer that only gets reset on pom.xml changes
+RUN cd /tmp && mvn -q -ff -T 1C install -DskipOpenApi -P dse && rm -rf target
 
-RUN \
-  set -x \
-  && apt-get update -y \
-  && apt-get install -y wget unzip \
-  && mkdir $MAAC_PATH \
-  && mkdir $DSE_HOME \
-  && mkdir /tmp/mgmtapi-jars \
-  && cd /tmp/mgmtapi-jars \
-  && wget -q "https://github.com/datastax/management-api-for-apache-cassandra/releases/download/$MGMTAPI_V/jars.zip" \
-  && unzip jars.zip \
-  && rm jars.zip \
-  && find /tmp/mgmtapi-jars -name '*.jar' -type f -exec mv -t $MAAC_PATH -i '{}' + \
-  && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
-  && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
-  && cd /tmp \
-  && rm -rf /tmp/mgmtapi-jars \
-  && echo DONE
-
-
+COPY management-api-agent-common /tmp/management-api-agent-common
+COPY management-api-agent-3.x /tmp/management-api-agent-3.x
+COPY management-api-agent-4.x /tmp/management-api-agent-4.x
+COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
+COPY management-api-common /tmp/management-api-common
+COPY management-api-server /tmp/management-api-server
+RUN mkdir $MAAC_PATH \
+    && cd /tmp \
+    && mvn -q -ff package -DskipTests -P dse \
+    && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
+    && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
+    && rm $MAAC_PATH/datastax-mgmtapi-agent-4*
 #############################################################
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
@@ -93,7 +127,7 @@ RUN set -x \
     && groupadd -r dse --gid=999 \
     && useradd -m -d "$DSE_HOME" -r -g dse -G root --uid=999 dse
 
-COPY files /
+COPY dse-68/files /
 
 COPY --chown=dse:dse --from=dse-server-prep $DSE_HOME $DSE_HOME
 COPY --chown=dse:dse --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME

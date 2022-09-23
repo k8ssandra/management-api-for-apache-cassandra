@@ -387,7 +387,7 @@ public class DockerHelper
 
     private static class DockerBuildConfig
     {
-        File baseDir;
+        final File baseDir = new File(System.getProperty("dockerFileRoot","."));
         File dockerFile;
         String target;
         final List<Integer> exposedPorts = Arrays.asList(9042, 8080);
@@ -398,7 +398,6 @@ public class DockerHelper
             DockerBuildConfig config = new DockerBuildConfig();
             switch (version) {
               case "3_11" :
-                  config.baseDir = new File(System.getProperty("dockerFileRoot","."));
                   config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss").toFile();
                   config.target = "oss311";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
@@ -408,7 +407,6 @@ public class DockerHelper
                   }
                   break;
               case "4_0" :
-                  config.baseDir = new File(System.getProperty("dockerFileRoot","."));
                   config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0").toFile();
                   config.target = "oss40";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
@@ -418,8 +416,7 @@ public class DockerHelper
                   }
                   break;
               case "dse-68" :
-                  config.baseDir = new File(System.getProperty("dockerFileRoot","."), "dse-68");
-                  config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile.jdk11").toFile();
+                  config.dockerFile = Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.jdk11").toFile();
                   config.target = "dse68";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "DS_LICENSE=accept", "USE_MGMT_API=true");
                   if (envVars != null)
