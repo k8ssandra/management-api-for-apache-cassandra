@@ -11,9 +11,17 @@
     <properties>
         <build.version.file>build_version.sh</build.version.file>
         <revision>0.1.0-SNAPSHOT</revision>
-        <driver.version>4.11.1</driver.version>
+        <driver.version>4.15.0</driver.version>
         <cassandra3.version>3.11.13</cassandra3.version>
-        <cassandra4.version>4.0.4</cassandra4.version>
+        <cassandra4.version>4.0.6</cassandra4.version>
+        <docker.java.version>3.2.13</docker.java.version>
+        <junit.version>4.13.2</junit.version>
+        <bytebuddy.version>1.10.10</bytebuddy.version>
+        <build.version.file>build_version.sh</build.version.file>
+        <slf4j.version>1.7.25</slf4j.version>
+        <logback.version>1.2.9</logback.version>
+        <netty.version>4.1.50.Final</netty.version>
+        <mockito.version>3.5.13</mockito.version>
     </properties>
 
     <dependencies>
@@ -33,6 +41,7 @@
                 <module>management-api-agent-common</module>
                 <module>management-api-agent-3.x</module>
                 <module>management-api-agent-4.x</module>
+                <module>management-api-agent-4.1.x</module>
                 <module>management-api-server</module>
             </modules>
         </profile>
@@ -49,6 +58,7 @@
                 <module>management-api-agent-common</module>
                 <module>management-api-agent-3.x</module>
                 <module>management-api-agent-4.x</module>
+                <module>management-api-agent-4.1.x</module>
                 <module>management-api-agent-dse-6.8</module>
                 <module>management-api-server</module>
             </modules>

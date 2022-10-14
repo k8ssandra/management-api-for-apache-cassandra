@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright DataStax, Inc.
  *
  * Please see the included license file for details.
@@ -12,7 +12,7 @@ import org.apache.cassandra.service.ClientState;
 
 public interface RpcMethod {
 
-    String getName();  
+    String getName();
 
     public int getArgumentCount();
 

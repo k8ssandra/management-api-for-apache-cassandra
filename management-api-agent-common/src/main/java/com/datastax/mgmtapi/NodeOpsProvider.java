@@ -637,7 +637,8 @@ public class NodeOpsProvider
                         Map<String, String> detailsMap = new HashMap<>();
                         for (String itemName : compositeData.getCompositeType().keySet())
                         {
-                            String value = compositeData.get(itemName).toString();
+                            Object item = compositeData.get(itemName);
+                            String value = item == null ? "null" : item.toString();
                             detailsMap.put(itemName, value);
                         }
                         detailsList.add(detailsMap);

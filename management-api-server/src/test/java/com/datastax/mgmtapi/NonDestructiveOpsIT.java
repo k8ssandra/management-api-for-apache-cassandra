@@ -240,7 +240,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
     @Test
     public void testResetLocalSchema() throws IOException, URISyntaxException
     {
-        assumeTrue(IntegrationTestUtils.shouldRun());
+        assumeTrue(this.version != "4_1" && IntegrationTestUtils.shouldRun());
         ensureStarted();
 
         NettyHttpClient client = new NettyHttpClient(BASE_URL);
@@ -300,7 +300,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                     return responseAsString(r);
                 }).join();
 
-        System.err.println(response);
         assertNotNull(response);
         assertNotEquals("", response);
     }

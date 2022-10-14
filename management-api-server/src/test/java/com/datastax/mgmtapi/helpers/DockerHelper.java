@@ -401,31 +401,28 @@ public class DockerHelper
                   config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss").toFile();
                   config.target = "oss311";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-                  if (envVars != null)
-                  {
-                      config.envList.addAll(envVars);
-                  }
                   break;
               case "4_0" :
                   config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0").toFile();
                   config.target = "oss40";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-                  if (envVars != null)
-                  {
-                      config.envList.addAll(envVars);
-                  }
+                  break;
+              case "4_1" :
+                  config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1").toFile();
+                  config.target = "oss41";
+                  config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
                   break;
               case "dse-68" :
                   config.dockerFile = Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.jdk11").toFile();
                   config.target = "dse68";
                   config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "DS_LICENSE=accept", "USE_MGMT_API=true");
-                  if (envVars != null)
-                  {
-                      config.envList.addAll(envVars);
-                  }
                   break;
               default :
                   throw new RuntimeException("Unsupported Cassandra version: " + version);
+            }
+            if (envVars != null)
+            {
+                config.envList.addAll(envVars);
             }
             return config;
         }

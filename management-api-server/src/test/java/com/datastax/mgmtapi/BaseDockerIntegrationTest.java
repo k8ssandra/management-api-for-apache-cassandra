@@ -105,12 +105,14 @@ public abstract class BaseDockerIntegrationTest
     @Parameterized.Parameters(name = "{index}: {0}")
     public static List<String> testVersions()
     {
-        List<String> versions = new ArrayList<>(3);
+        List<String> versions = new ArrayList<>(4);
 
         if (Boolean.getBoolean("run311tests"))
             versions.add("3_11");
         if (Boolean.getBoolean("run40tests"))
             versions.add("4_0");
+        if (Boolean.getBoolean("run41tests"))
+            versions.add("4_1");
         if (Boolean.getBoolean("runDSEtests"))
             versions.add("dse-68");
 

@@ -44,10 +44,10 @@ spec:
       authenticator: org.apache.cassandra.auth.PasswordAuthenticator
       authorizer: org.apache.cassandra.auth.CassandraAuthorizer
       auto_snapshot: false # default is true, but we don't have a good way to use or clean up snapshots when someone drops a table
-      compaction_throughput_mb_per_sec: 64 # default is 16
+      #compaction_throughput_mb_per_sec: 64 # default is 16
       concurrent_compactors: 2 # this is based on tuning for four cores / 15 GB
       file_cache_size_in_mb: 500 # this is based on tuning for four cores / 15 GB
-      hinted_handoff_throttle_in_kb: 512 # this is based on tuning for four cores / 15 GB
+      #hinted_handoff_throttle_in_kb: 512 # this is based on tuning for four cores / 15 GB
       memtable_flush_writers: 2  # this is based on tuning for four cores / 15 GB
       num_tokens: 256 # default is 1
       phi_convict_threshold: 12 # default is 8
