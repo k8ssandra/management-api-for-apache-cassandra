@@ -147,12 +147,25 @@ public class NodeOpsProvider
         return seeds.stream().map(InetAddress::toString).collect(Collectors.toList());
     }
 
-
     @Rpc(name = "getReleaseVersion")
     public String getReleaseVersion()
     {
         logger.debug("Getting Release Version");
         return ShimLoader.instance.get().getStorageService().getReleaseVersion();
+    }
+
+    @Rpc(name = "validateCassandraConfigYaml")
+    public void validateCassandraConfigYaml(@RpcParam(name="path") String path) throws FileNotFoundException, ConfigurationException
+    {
+        logger.debug(String.format("Validating cassandra yaml config at %s", path));
+        File configFile = new File(path);
+        if (!configFile.exists())
+        {
+            logger.error(String.format("Config file %s does not exist", path));
+            throw new FileNotFoundException(String.format("Config file %s does not exist", path));
+
+        }
+        new YamlConfigurationLoader().loadConfig(configFile.toURI().toURL());
     }
 
     @Rpc(name = "decommission")
