@@ -1,4 +1,4 @@
-ARG CASSANDRA_VERSION=3.11.13
+ARG CASSANDRA_VERSION=3.11.14
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
