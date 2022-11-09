@@ -56,6 +56,8 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
             --platform linux/amd64 .
@@ -79,6 +81,8 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
             --platform linux/amd64 .
