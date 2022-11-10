@@ -738,4 +738,22 @@ public class NodeOpsProvider
             ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
         }
     }
+
+    @Rpc(name = "move")
+    public String move(@RpcParam(name="newToken") String newToken, @RpcParam(name="async") boolean async) throws IOException
+    {
+        logger.debug("Moving node to new token {}", newToken);
+
+        Runnable moveOperation = () -> {
+            try {
+                ShimLoader.instance.get().getStorageService().move(newToken);
+            } catch (IOException e) {
+                logger.error("Failed to move node to new token " + newToken, e);
+                throw new RuntimeException(e);
+            }
+        };
+
+        return submitJob("move", moveOperation, async);
+    }
+
 }

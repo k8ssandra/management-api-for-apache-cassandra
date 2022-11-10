@@ -773,6 +773,38 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
         assertThat(actual).containsExactly("Table1");
     }
 
+    @Test
+    public void testMoveNode() throws IOException, URISyntaxException
+    {
+        assumeTrue(IntegrationTestUtils.shouldRun());
+        ensureStarted();
+
+        NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+        URI uri = new URIBuilder(BASE_PATH + "/ops/node/move")
+                  .addParameter("newToken", "1234")
+                  .build();
+        Pair<Integer, String> response = client.post(uri.toURL(), null)
+                                               .thenApply(this::responseAsCodeAndBody).join();
+        assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
+        String jobId = response.getRight();
+        assertThat(jobId).isNotEmpty();
+
+        uri = new URIBuilder(BASE_PATH + "/ops/executor/job")
+              .addParameter("job_id", jobId)
+              .build();
+        response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+        assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+
+        Map<String, String> jobDetails = new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, String>>(){});
+        assertThat(jobDetails)
+        .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
+        .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
+        .hasEntrySatisfying("status", value -> assertThat(value).isEqualTo("ERROR"))
+        .hasEntrySatisfying("error", value -> assertThat(value).contains("This node has more than one token and cannot be moved"))
+        ;
+    }
+
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
     {
         CreateOrAlterKeyspaceRequest request = new CreateOrAlterKeyspaceRequest(keyspaceName, Arrays.asList(new ReplicationSetting(localDc, 1)));

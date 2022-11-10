@@ -1747,4 +1747,46 @@ public class K8OperatorResourcesTest {
                 .isEqualTo(testCase.getValue());
         }
     }
+
+    @Test
+    public void testMoveAsync() throws Exception {
+
+        Context context = setup();
+
+        ResultSet mockResultSet = mock(ResultSet.class);
+        Row mockRow = mock(Row.class);
+
+        when(context.cqlService.executePreparedStatement(any(), any(), any()))
+        .thenReturn(mockResultSet);
+
+        when(mockResultSet.one())
+        .thenReturn(mockRow);
+
+        when(mockRow.getString(0))
+        .thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+        MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/node/move?newToken=1234");
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+        Assert.assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+        verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.move(?, ?)"),
+                                                            eq("1234"), eq(true));
+    }
+
+    @Test
+    public void testMoveAsync_MissingNewToken() throws Exception {
+
+        Context context = setup();
+
+        MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/node/move");
+        MockHttpResponse response = context.invoke(request);
+
+        Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
+        Assert.assertEquals("newToken must be specified", response.getContentAsString());
+
+        verify(context.cqlService, never()).executePreparedStatement(any(), eq("CALL NodeOps.move(?, ?)"),
+                                                            eq("1234"), eq(true));
+    }
 }

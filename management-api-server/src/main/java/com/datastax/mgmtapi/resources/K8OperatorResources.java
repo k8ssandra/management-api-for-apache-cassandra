@@ -173,7 +173,7 @@ public class K8OperatorResources
 
     @GET
     @Path("/ops/executor/job")
-    @Operation(summary = "Returns Job deatils for the supplied Job ID", operationId = "getJobStatus")
+    @Operation(summary = "Returns Job details for the supplied Job ID", operationId = "getJobStatus")
     @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
     @ApiResponse(responseCode = "200", description = "Map of job details",
         content = @Content(

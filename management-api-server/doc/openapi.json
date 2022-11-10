@@ -404,7 +404,7 @@
             "description" : "Job not found"
           }
         },
-        "summary" : "Returns Job deatils for the supplied Job ID"
+        "summary" : "Returns Job details for the supplied Job ID"
       }
     },
     "/api/v0/ops/keyspace" : {
@@ -836,6 +836,43 @@
           }
         },
         "summary" : "Set the log level threshold for a given component or class. Will reset to the initial configuration if called with no parameters."
+      }
+    },
+    "/api/v0/ops/node/move" : {
+      "post" : {
+        "operationId" : "move",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "newToken",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for successfully scheduled Cassandra node move request"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "newToken must be specified",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Missing required newToken parameter"
+          }
+        },
+        "summary" : "Move node on the token ring to a new token. This operation returns immediately with a job id."
       }
     },
     "/api/v0/ops/node/repair" : {
