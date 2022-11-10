@@ -22,6 +22,7 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.NoNodeAvailableException;
 import com.datastax.oss.driver.api.core.cql.Row;
 import org.apache.http.ConnectionClosedException;
@@ -507,6 +508,42 @@ public class NodeOpsResources
             Object queryResponse = null;
             if (row != null) { queryResponse = row.getObject(0); }
             return Response.ok(Entity.json(queryResponse)).build();
+        });
+    }
+
+    @POST
+    @Path("/move")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Operation(summary = "Move node on the token ring to a new token. This operation returns immediately with a job id.", operationId = "move")
+    @ApiResponse(responseCode = "202", description = "Job ID for successfully scheduled Cassandra node move request",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(
+                implementation = String.class
+            ),
+            examples = @ExampleObject(
+                value = "d69d1d95-9348-4460-95d2-ae342870fade"
+            )
+        )
+    )
+    @ApiResponse(responseCode = "400", description = "Missing required newToken parameter",
+        content = @Content(
+            mediaType = MediaType.TEXT_PLAIN,
+            schema = @Schema(implementation = String.class),
+            examples = @ExampleObject(value = "newToken must be specified")
+        )
+    )
+    public Response move(@QueryParam(value="newToken")String newToken)
+    {
+        return handle(() ->
+                      {
+                          if (StringUtils.isBlank(newToken))
+                          {
+                              return Response.status(Response.Status.BAD_REQUEST).entity("newToken must be specified").build();
+                          }
+
+                          return Response.accepted(ResponseTools.getSingleRowStringResponse(app.dbUnixSocketFile, cqlService,
+                                                                              "CALL NodeOps.move(?, ?)", newToken, true)).build();
         });
     }
 
