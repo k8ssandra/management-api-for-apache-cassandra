@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,7 @@ import org.jboss.resteasy.core.messagebody.WriterUtility;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeTrue;
 
@@ -781,28 +783,29 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
 
         NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
-        URI uri = new URIBuilder(BASE_PATH + "/ops/node/move")
-                  .addParameter("newToken", "1234")
-                  .build();
-        Pair<Integer, String> response = client.post(uri.toURL(), null)
-                                               .thenApply(this::responseAsCodeAndBody).join();
-        assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
-        String jobId = response.getRight();
+        URI nodeMoveUri = new URIBuilder(BASE_PATH + "/ops/node/move")
+                          .addParameter("newToken", "1234")
+                          .build();
+        Pair<Integer, String> nodeMoveResponse = client.post(nodeMoveUri.toURL(), null)
+                                                       .thenApply(this::responseAsCodeAndBody).join();
+        assertThat(nodeMoveResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
+        String jobId = nodeMoveResponse.getRight();
         assertThat(jobId).isNotEmpty();
 
-        uri = new URIBuilder(BASE_PATH + "/ops/executor/job")
-              .addParameter("job_id", jobId)
-              .build();
-        response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
-        assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+        URI getJobDetailsUri = new URIBuilder(BASE_PATH + "/ops/executor/job")
+                               .addParameter("job_id", jobId)
+                               .build();
 
-        Map<String, String> jobDetails = new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, String>>(){});
-        assertThat(jobDetails)
-        .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
-        .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
-        .hasEntrySatisfying("status", value -> assertThat(value).isEqualTo("ERROR"))
-        .hasEntrySatisfying("error", value -> assertThat(value).contains("This node has more than one token and cannot be moved"))
-        ;
+        await().atMost(Duration.ofMinutes(1)).untilAsserted(() -> {
+            Pair<Integer, String> getJobDetailsResponse = client.get(getJobDetailsUri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+            assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
+            Map<String, String> jobDetails = new JsonMapper().readValue(getJobDetailsResponse.getRight(), new TypeReference<Map<String, String>>(){});
+            assertThat(jobDetails)
+            .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
+            .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
+            .hasEntrySatisfying("status", value -> assertThat(value).isEqualTo("ERROR"))
+            .hasEntrySatisfying("error", value -> assertThat(value).contains("This node has more than one token and cannot be moved"));
+        });
     }
 
     private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName) throws IOException, URISyntaxException
