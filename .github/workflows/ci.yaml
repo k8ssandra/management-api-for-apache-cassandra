@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build-oss:
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     strategy:
       fail-fast: false
       matrix:
@@ -48,7 +49,7 @@ jobs:
         run: |
           mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }} -Drun41tests=${{ matrix.run41tests }}
   build-dse:
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+#    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

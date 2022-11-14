@@ -800,6 +800,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
             Pair<Integer, String> getJobDetailsResponse = client.get(getJobDetailsUri.toURL()).thenApply(this::responseAsCodeAndBody).join();
             assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
             Map<String, String> jobDetails = new JsonMapper().readValue(getJobDetailsResponse.getRight(), new TypeReference<Map<String, String>>(){});
+            System.out.println(jobDetails);
             assertThat(jobDetails)
             .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
             .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
