@@ -796,15 +796,15 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest
                                .addParameter("job_id", jobId)
                                .build();
 
-        await().atMost(Duration.ofMinutes(1)).untilAsserted(() -> {
+        await().atMost(Duration.ofMinutes(5)).untilAsserted(() -> {
             Pair<Integer, String> getJobDetailsResponse = client.get(getJobDetailsUri.toURL()).thenApply(this::responseAsCodeAndBody).join();
             assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
             Map<String, String> jobDetails = new JsonMapper().readValue(getJobDetailsResponse.getRight(), new TypeReference<Map<String, String>>(){});
             assertThat(jobDetails)
             .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
             .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
-            .hasEntrySatisfying("status", value -> assertThat(value).isEqualTo("ERROR"))
-            .hasEntrySatisfying("error", value -> assertThat(value).contains("This node has more than one token and cannot be moved"));
+            // if the server has only one token, the job will be completed, otherwise it will end up in error
+            .hasEntrySatisfying("status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
         });
     }
 
