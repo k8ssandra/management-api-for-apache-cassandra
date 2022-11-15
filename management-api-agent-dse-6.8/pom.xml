@@ -28,7 +28,7 @@
 
 
   <properties>
-    <dse.version>6.8.26</dse.version>
+    <dse.version>6.8.29</dse.version>
   </properties>
 
   <dependencies>
