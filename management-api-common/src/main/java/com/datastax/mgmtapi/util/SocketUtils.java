@@ -50,7 +50,7 @@ public class SocketUtils
             // Tests create the socket files in a per-test-run directory. Withtout this hack, the socket files
             // would land in the per-Node instance directory (ng/SOME-UUID), which easily exceeds the 103/107
             // character limit, so we put the socket files into the shorter built/test/tmp/xyz directories.
-            f = File.createTempFile(name + "-", ".sock", fSocketDir);
+            f = Files.createTempFile(fSocketDir.toPath(), name + "-", ".sock").toFile();
             try
             {
                 Files.delete(f.toPath());
@@ -65,7 +65,7 @@ public class SocketUtils
                 logger.warn("System property cassandra.collectd.socketdir overrides the default temp directory to '{}'," +
                         "but its path name is too long. Falling back to /tmp", socketDir);
                 socketDir = "/tmp";
-                f = File.createTempFile(name + "-", ".sock", new File("/tmp"));
+                f = Files.createTempFile(new File("/tmp").toPath(), name + "-", ".sock").toFile();
                 try
                 {
                     Files.delete(f.toPath());
