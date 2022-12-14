@@ -10,6 +10,13 @@
 
     <groupId>com.datastax</groupId>
     <artifactId>datastax-mgmtapi-agent-common</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.78.Final</version>
+        </dependency>
+    </dependencies>
 
     <profiles>
         <profile>
