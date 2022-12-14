@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ConfigReader {
     public static final String CONFIG_PATH_PROPERTY = "collector-config-path";
-    public static final String CONFIG_PATH_DEFAULT = "/configs/metric-collector.yaml";
+    public static final String CONFIG_PATH_DEFAULT = "/opt/management-api/configs/metric-collector.yaml";
 
     public static Configuration readConfig() {
         // Check env variable if there's any changes to the config path
