@@ -5,22 +5,20 @@
  */
 package com.datastax.mgmtapi.interceptors;
 
-import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-
 import com.datastax.mgmtapi.ShimLoader;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.AllArguments;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
-import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.cql3.QueryHandler;
 import org.apache.cassandra.service.QueryState;
+
+import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
 
 import static com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor.handlePrefix;
 import static com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor.opsPattern;
@@ -34,14 +32,7 @@ public class QueryHandlerInterceptor4x
 
     public static AgentBuilder.Transformer transformer()
     {
-        return new AgentBuilder.Transformer()
-        {
-            @Override
-            public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule)
-            {
-                return builder.method(ElementMatchers.named("parse")).intercept(MethodDelegation.to(QueryHandlerInterceptor4x.class));
-            }
-        };
+        return (builder, typeDescription, classLoader, javaModule, protectionDomain) -> builder.method(ElementMatchers.named("parse")).intercept(MethodDelegation.to(QueryHandlerInterceptor4x.class));
     }
 
     @RuntimeType
