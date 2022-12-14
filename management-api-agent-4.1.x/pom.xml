@@ -12,7 +12,7 @@
     <artifactId>datastax-mgmtapi-agent-4.1.x</artifactId>
 
     <properties>
-        <cassandra4.version>4.1-beta1</cassandra4.version>
+        <cassandra4.version>4.1.0</cassandra4.version>
     </properties>
 
     <dependencies>

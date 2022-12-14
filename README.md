@@ -69,7 +69,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
       k8ssandra/cass-management-api:4.0.5
       k8ssandra/cass-management-api:4.0.6
       k8ssandra/cass-management-api:4.0.7
-      k8ssandra/cass-management-api:4.1-beta1 (beta currently)
+      k8ssandra/cass-management-api:4.1.0
       datastax/dse-mgmtapi-6_8:6.8.25 (jdk8 and jdk11 based images)
       datastax/dse-mgmtapi-6_8:6.8.26 (jdk8 and jdk11 based images)
       datastax/dse-mgmtapi-6_8:6.8.28 (jdk8 and jdk11 based images)
