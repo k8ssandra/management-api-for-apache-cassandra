@@ -16,7 +16,7 @@
         <cassandra4.version>4.0.7</cassandra4.version>
         <docker.java.version>3.2.13</docker.java.version>
         <junit.version>4.13.2</junit.version>
-        <bytebuddy.version>1.10.10</bytebuddy.version>
+        <bytebuddy.version>1.12.19</bytebuddy.version>
         <build.version.file>build_version.sh</build.version.file>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.9</logback.version>

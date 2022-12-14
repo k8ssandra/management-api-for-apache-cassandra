@@ -5,32 +5,24 @@
  */
 package com.datastax.mgmtapi.interceptors;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.ImmutableMap;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
-import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
-import net.bytebuddy.utility.JavaModule;
 import org.apache.cassandra.locator.NetworkTopologyStrategy;
 import org.apache.cassandra.schema.KeyspaceMetadata;
 import org.apache.cassandra.schema.KeyspaceParams;
 import org.apache.cassandra.schema.ReplicationParams;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
 
@@ -154,14 +146,7 @@ public class SystemDistributedReplicationInterceptor
 
     public static AgentBuilder.Transformer transformer()
     {
-        return new AgentBuilder.Transformer()
-        {
-            @Override
-            public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule javaModule)
-            {
-                return builder.method(ElementMatchers.named("metadata")).intercept(MethodDelegation.to(SystemDistributedReplicationInterceptor.class));
-            }
-        };
+        return (builder, typeDescription, classLoader, javaModule, protectionDomain) -> builder.method(ElementMatchers.named("metadata")).intercept(MethodDelegation.to(SystemDistributedReplicationInterceptor.class));
     }
 
     public static KeyspaceMetadata intercept(@SuperCall Callable<KeyspaceMetadata> zuper) throws Exception
