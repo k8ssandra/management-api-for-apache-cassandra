@@ -190,7 +190,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [4.1-beta1, 4.1.0]
+        cassandra-version: [4.1.0]
         include:
           - cassandra-version: 4.1.0
             latest: true
