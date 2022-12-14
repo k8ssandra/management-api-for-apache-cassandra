@@ -74,6 +74,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
       datastax/dse-mgmtapi-6_8:6.8.26 (jdk8 and jdk11 based images)
       datastax/dse-mgmtapi-6_8:6.8.28 (jdk8 and jdk11 based images)
       datastax/dse-mgmtapi-6_8:6.8.29 (jdk8 and jdk11 based images)
+      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8 and jdk11 based images)
 
 ### Containers
 
