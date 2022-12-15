@@ -121,7 +121,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     public void onGaugeAdded(String dropwizardName, Gauge<?> gauge) {
         if(gauge.getValue() instanceof long[]) {
             // Treat this as a histogram, not gauge
-            final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", List.of("quantile"), new ArrayList<>());
+            List<String> additionalLabelNames = new ArrayList<>();
+            additionalLabelNames.add("quantile");
+            final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
             final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
 
             setGaugeHistogramFiller(gauge, proto);
@@ -180,7 +182,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     public void onHistogramAdded(String dropwizardName, Histogram histogram) {
         // TODO Do we want extra processing for DecayingHistogram and EstimatedHistograms?
 
-        final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", List.of("quantile"), new ArrayList<>());
+        List<String> additionalLabelNames = new ArrayList<>();
+        additionalLabelNames.add("quantile");
+        final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
         Supplier<Double> countSupplier = () -> (double) histogram.getCount();
 
@@ -273,7 +277,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     @Override
     public void onTimerAdded(String dropwizardName, Timer timer) {
         double factor = 1.0D / TimeUnit.SECONDS.toNanos(1L);
-        final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", List.of("quantile"), new ArrayList<>());
+        List<String> additionalLabelNames = new ArrayList<>();
+        additionalLabelNames.add("quantile");
+        final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
         Supplier<Double> getValue = () -> (double) timer.getCount();
 
