@@ -10,6 +10,7 @@ import com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor
 import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
 import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
 import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
+import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import org.apache.cassandra.gms.GossiperInterceptor;
 
@@ -44,6 +45,9 @@ public class Agent {
                 .transform(CassandraRoleManagerInterceptor.transformer())
                 .type(SystemDistributedReplicationInterceptor.type())
                 .transform(SystemDistributedReplicationInterceptor.transformer())
+                // Metrics server
+                .type(MetricsInterceptor.type())
+                .transform(MetricsInterceptor.transformer())
                 .installOn(inst);
     }
 }

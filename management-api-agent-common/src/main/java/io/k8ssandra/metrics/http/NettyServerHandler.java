@@ -2,15 +2,26 @@ package io.k8ssandra.metrics.http;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
 import java.net.URI;
 
 public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> {
-    private final StringBuilder buf = new StringBuilder();
+    private final StringWriter writer = new StringWriter();
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        ctx.flush();
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject httpObject) throws Exception {
@@ -18,19 +29,23 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
             HttpRequest req = (HttpRequest) httpObject;
 
             URI uri = new URI(req.uri());
-            // TODO Does Prometheus need /-/healthy etc?
-            if (!uri.getPath().equals("/io/k8ssandra/metrics")) {
+            if (!uri.getPath().equals("/metrics")) {
                 // Send 404?
                 FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
                 // Write the response.
-                ChannelFuture future = ctx.channel().writeAndFlush(resp);
+                ctx.channel().writeAndFlush(resp).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
 
-            // TODO Process the metrics buffer here
-            buf.setLength(0);
+            writer.getBuffer().setLength(0);
 
-            writeResponse(req, ctx);
+            String contentType = TextFormat.chooseContentType(req.headers().get("Accept"));
+            TextFormat.writeFormat(contentType, writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+
+            if (!writeResponse(req, ctx)) {
+                // If keep-alive is off, close the connection once the content is fully written.
+                ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
+            }
         }
     }
 
@@ -38,9 +53,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
         // Decide whether to close the connection or not.
         boolean keepAlive = HttpUtil.isKeepAlive(request);
         // Build the response object.
+        // TODO We should probably use something more performant.. copyBuffer for single thread (blocking) seems weird
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1, request.decoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
-                Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));
+                Unpooled.copiedBuffer(writer.toString(), CharsetUtil.UTF_8));
 
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
 

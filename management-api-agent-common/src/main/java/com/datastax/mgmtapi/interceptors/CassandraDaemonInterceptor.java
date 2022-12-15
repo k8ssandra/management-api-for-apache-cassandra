@@ -80,15 +80,9 @@ public class CassandraDaemonInterceptor
 
             connectionTracker.allChannels.add(controller.channel().orElseThrow(() -> new RuntimeException("Unix Socket Channel missing")));
 
-            // Create /metrics handler. Note, this doesn't support larger than nThreads=1
-            final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
-
-
-
             //Hook into things that have hooks
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 controller.stop();
-                httpGroup.shutdownGracefully();
                 NodeOpsProvider.instance.get().unregister();
             }));
         }
