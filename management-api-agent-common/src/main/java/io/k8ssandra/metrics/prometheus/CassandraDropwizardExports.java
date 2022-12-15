@@ -29,7 +29,7 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
      * @param registry a metric registry to export in prometheus.
      */
     public CassandraDropwizardExports(MetricRegistry registry) {
-        this(registry, new CassandraMetricDefinitionFilter(List.of()));
+        this(registry, new CassandraMetricDefinitionFilter(new ArrayList<>()));
     }
 
     /**
