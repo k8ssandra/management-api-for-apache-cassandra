@@ -5,20 +5,13 @@
  */
 package com.datastax.mgmtapi;
 
-import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor4x;
-import com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor;
-import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
-import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
-import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
-import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
+import com.datastax.mgmtapi.interceptors.*;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import org.apache.cassandra.gms.GossiperInterceptor;
 
 import java.lang.instrument.Instrumentation;
 
-import static net.bytebuddy.matcher.ElementMatchers.any;
-import static net.bytebuddy.matcher.ElementMatchers.isSynthetic;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class Agent {
 
@@ -46,8 +39,8 @@ public class Agent {
                 .type(SystemDistributedReplicationInterceptor.type())
                 .transform(SystemDistributedReplicationInterceptor.transformer())
                 // Metrics server
-                .type(MetricsInterceptor.type())
-                .transform(MetricsInterceptor.transformer())
+//                .type(MetricsInterceptor.type())
+//                .transform(MetricsInterceptor.transformer())
                 .installOn(inst);
     }
 }

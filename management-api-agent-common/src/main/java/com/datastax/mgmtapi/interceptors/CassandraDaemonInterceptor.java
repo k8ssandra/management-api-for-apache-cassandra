@@ -9,16 +9,24 @@ import com.datastax.mgmtapi.NodeOpsProvider;
 import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.ipc.IPCController;
 import com.google.common.collect.ImmutableMap;
+import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
+import io.k8ssandra.metrics.config.ConfigReader;
+import io.k8ssandra.metrics.config.Configuration;
+import io.k8ssandra.metrics.http.NettyMetricsHttpServer;
+import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
+import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.prometheus.client.hotspot.DefaultExports;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
+import org.apache.cassandra.metrics.CassandraMetricsRegistry;
 import org.apache.cassandra.transport.CBUtil;
 import org.apache.cassandra.transport.Server;
 import org.slf4j.Logger;
@@ -38,7 +46,6 @@ public class CassandraDaemonInterceptor
     {
         return ElementMatchers.nameEndsWith(".CassandraDaemon");
     }
-
 
     public static Transformer transformer()
     {
@@ -80,9 +87,34 @@ public class CassandraDaemonInterceptor
 
             connectionTracker.allChannels.add(controller.channel().orElseThrow(() -> new RuntimeException("Unix Socket Channel missing")));
 
+            // Metrics
+            logger.info("Starting Metric Collector for Apache Cassandra");
+
+            // Read Configuration file
+            Configuration config = ConfigReader.readConfig();
+
+            // Initialize filtering
+            CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(config.getFilters());
+
+            // Add Cassandra metrics
+            new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, filter).register();
+
+            // Add JVM metrics
+            DefaultExports.initialize();
+
+            // Create /metrics handler. Note, this doesn't support larger than nThreads=1
+            final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
+
+            // Share them from HTTP server
+            NettyMetricsHttpServer server = new NettyMetricsHttpServer();
+            server.start(httpGroup);
+
+            logger.info("Metrics collector started");
+
             //Hook into things that have hooks
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 controller.stop();
+                httpGroup.shutdownGracefully();
                 NodeOpsProvider.instance.get().unregister();
             }));
         }
