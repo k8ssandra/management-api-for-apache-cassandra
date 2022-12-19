@@ -28,7 +28,7 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
      *
      * @param registry a metric registry to export in prometheus.
      */
-    public CassandraDropwizardExports(MetricRegistry registry) {
+    public CassandraDropwizardExports(MetricRegistry registry) throws NoSuchMethodException {
         this(registry, new CassandraMetricDefinitionFilter(new ArrayList<>()));
     }
 
@@ -38,7 +38,7 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
      * @param registry     a metric registry to export in prometheus.
      * @param metricFilter a custom metric filter.
      */
-    public CassandraDropwizardExports(MetricRegistry registry, CassandraMetricDefinitionFilter metricFilter) {
+    public CassandraDropwizardExports(MetricRegistry registry, CassandraMetricDefinitionFilter metricFilter) throws NoSuchMethodException {
         this.registry = registry;
         this.familyCache = new ConcurrentHashMap<>();
         registry.addListener(new CassandraMetricRegistryListener(this.familyCache, metricFilter));

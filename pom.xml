@@ -22,6 +22,8 @@
         <logback.version>1.2.9</logback.version>
         <netty.version>4.1.78.Final</netty.version>
         <mockito.version>3.5.13</mockito.version>
+        <prometheus.version>0.16.0</prometheus.version>
+        <jackson-dataformat.version>2.14.0</jackson-dataformat.version>
     </properties>
 
     <dependencies>

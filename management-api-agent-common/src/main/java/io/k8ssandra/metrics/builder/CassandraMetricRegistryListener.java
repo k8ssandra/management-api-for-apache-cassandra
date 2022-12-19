@@ -3,17 +3,19 @@ package io.k8ssandra.metrics.builder;
 import com.codahale.metrics.*;
 import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.prometheus.client.Collector;
+import org.apache.cassandra.metrics.DecayingEstimatedHistogramReservoir;
 import org.apache.cassandra.utils.EstimatedHistogram;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import static io.k8ssandra.metrics.builder.CassandraMetricsTools.PRECOMPUTED_QUANTILES;
-import static io.k8ssandra.metrics.builder.CassandraMetricsTools.PRECOMPUTED_QUANTILES_TEXT;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.*;
 
 public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
@@ -28,11 +30,16 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     // This cache is used for the remove purpose, we need dropwizardName -> metricName mapping
     private final ConcurrentHashMap<String, String> cache;
 
-    public CassandraMetricRegistryListener(ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, CassandraMetricDefinitionFilter metricFilter) {
+    private Method decayingHistogramOffsetMethod = null;
+
+    public CassandraMetricRegistryListener(ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, CassandraMetricDefinitionFilter metricFilter) throws NoSuchMethodException {
         parser = new CassandraMetricNameParser(CassandraMetricsTools.DEFAULT_LABEL_NAMES, CassandraMetricsTools.DEFAULT_LABEL_VALUES);
         cache = new ConcurrentHashMap<>();
         this.familyCache = familyCache;
         this.metricFilter = metricFilter;
+
+        // This is just for DSE
+//        decayingHistogramOffsetMethod = DecayingEstimatedHistogram.class.getMethod("getOffsets");
     }
 
     public void updateCache(String dropwizardName, String metricName, RefreshableMetricFamilySamples prototype) {
@@ -180,8 +187,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
     @Override
     public void onHistogramAdded(String dropwizardName, Histogram histogram) {
-        // TODO Do we want extra processing for DecayingHistogram and EstimatedHistograms?
-
         List<String> additionalLabelNames = new ArrayList<>();
         additionalLabelNames.add("quantile");
         final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
@@ -246,10 +251,95 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         removeFromCache(name);
     }
 
-    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, double factor) {
+    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count, double factor) {
         proto.setFiller((samples) -> {
             Snapshot snapshot = timer.getSnapshot();
-            double[] values = new double[]{
+
+            // MCAC compatible code starts here..
+            long[] buckets = CassandraMetricsTools.INPUT_BUCKETS;
+            long[] values = snapshot.getValues();
+            String snapshotClass = snapshot.getClass().getName();
+
+            if (snapshotClass.contains("EstimatedHistogramReservoirSnapshot")) {
+                buckets = CassandraMetricsTools.DECAYING_BUCKETS;
+            }
+//            else if (snapshotClass.equals("DecayingEstimatedHistogram")) {
+//                // DSE
+//                try {
+//                    buckets = (long[]) decayingHistogramOffsetMethod.invoke(snapshot);
+//                } catch (InvocationTargetException | IllegalAccessException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+
+            // This can happen if histogram isn't EstimatedDecay or EstimatedHistogram
+            if (values.length != buckets.length) {
+                return;
+            }
+
+            int outputIndex = 0; //output index
+            long cumulativeCount = 0;
+            for (int i = 0; i < values.length; i++) {
+                if (outputIndex < LATENCY_OFFSETS.length && buckets[i] > (LATENCY_OFFSETS[outputIndex] * 1000)) {
+                    List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
+                    int j = 0;
+                    for(; j < bucket.getLabelValues().size(); j++) {
+                        labelValues.add(j, bucket.getLabelValues().get(j));
+                    }
+                    labelValues.add(j, LATENCY_OFFSETS_TEXT[outputIndex++]);
+                    Collector.MetricFamilySamples.Sample sample = new Collector.MetricFamilySamples.Sample(
+                            bucket.getMetricName(),
+                            bucket.getLabelNames(),
+                            labelValues,
+                            cumulativeCount);
+                    samples.add(sample);
+                }
+
+                cumulativeCount += values[i];
+            }
+
+            // Add any remaining buckets that didn't have any values
+            while (outputIndex++ < LATENCY_OFFSETS.length) {
+                List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
+                int j = 0;
+                for(; j < bucket.getLabelValues().size(); j++) {
+                    labelValues.add(j, bucket.getLabelValues().get(j));
+                }
+                labelValues.add(j, LATENCY_OFFSETS_TEXT[outputIndex]);
+                Collector.MetricFamilySamples.Sample sample = new Collector.MetricFamilySamples.Sample(
+                        bucket.getMetricName(),
+                        bucket.getLabelNames(),
+                        labelValues,
+                        cumulativeCount);
+                samples.add(sample);
+            }
+
+            // Last bucket must be +Inf and same as _count
+            List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
+            int j = 0;
+            for(; j < bucket.getLabelValues().size(); j++) {
+                labelValues.add(j, bucket.getLabelValues().get(j));
+            }
+            labelValues.add(j, INF_BUCKET);
+            Collector.MetricFamilySamples.Sample sample = new Collector.MetricFamilySamples.Sample(
+                    bucket.getMetricName(),
+                    bucket.getLabelNames(),
+                    labelValues,
+                    cumulativeCount);
+            samples.add(sample);
+
+            Collector.MetricFamilySamples.Sample countSample = new Collector.MetricFamilySamples.Sample(
+                    count.getMetricName(),
+                    count.getLabelNames(),
+                    count.getLabelValues(),
+                    cumulativeCount);
+            samples.add(countSample);
+
+            // End MCAC comp. code
+
+            // TODO Do we really need these or rates? We can calculate them using PromQL from buckets above
+/*
+            double[] quantileValues = new double[]{
                     snapshot.getMedian(),
                     snapshot.get75thPercentile(),
                     snapshot.get95thPercentile(),
@@ -258,19 +348,20 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                     snapshot.get999thPercentile()
             };
             for(int i = 0; i < PRECOMPUTED_QUANTILES.length; i++) {
-                List<String> labelValues = new ArrayList<>(proto.getLabelValues().size() + 1);
+                List<String> quantileLabelValues = new ArrayList<>(proto.getLabelValues().size() + 1);
                 int j = 0;
                 for(; j < proto.getLabelValues().size(); j++) {
-                    labelValues.add(j, proto.getLabelValues().get(j));
+                    quantileLabelValues.add(j, proto.getLabelValues().get(j));
                 }
                 labelValues.add(j, PRECOMPUTED_QUANTILES_TEXT[i]);
-                Collector.MetricFamilySamples.Sample sample = new Collector.MetricFamilySamples.Sample(
+                Collector.MetricFamilySamples.Sample quantileSample = new Collector.MetricFamilySamples.Sample(
                         proto.getMetricName(),
                         proto.getLabelNames(),
                         labelValues,
-                        values[i] * factor);
-                samples.add(sample);
+                        quantileValues[i] * factor);
+                samples.add(quantileSample);
             }
+ */
         });
     }
 
@@ -278,17 +369,19 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     public void onTimerAdded(String dropwizardName, Timer timer) {
         double factor = 1.0D / TimeUnit.SECONDS.toNanos(1L);
         List<String> additionalLabelNames = new ArrayList<>();
-        additionalLabelNames.add("quantile");
+        additionalLabelNames.add(QUANTILE_LABEL_NAME);
+        List<String> additionalBucketLabel = new ArrayList<>();
+        additionalBucketLabel.add(BUCKET_LABEL_NAME);
         final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
+        final CassandraMetricDefinition buckets = parser.parseDropwizardMetric(dropwizardName, "_bucket", additionalBucketLabel, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
-        Supplier<Double> getValue = () -> (double) timer.getCount();
 
-        count.setValueGetter(getValue);
-        setTimerFiller(timer, proto, factor);
+        setTimerFiller(timer, proto, buckets, count, factor);
 
         RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.SUMMARY, "", new ArrayList<>());
         familySamples.addDefinition(proto);
-        familySamples.addDefinition(count);
+//        familySamples.addDefinition(buckets);
+//        familySamples.addDefinition(count);
 
         updateCache(dropwizardName, proto.getMetricName(), familySamples);
     }
