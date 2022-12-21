@@ -10,46 +10,6 @@
 
     <groupId>com.datastax</groupId>
     <artifactId>datastax-mgmtapi-agent-common</artifactId>
-    <dependencies>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_hotspot</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_common</artifactId>
-            <version>${prometheus.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>${jackson-dataformat.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>3.0.2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.cassandra</groupId>
-            <artifactId>cassandra-all</artifactId>
-            <version>${cassandra4.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 
     <profiles>
         <profile>
@@ -95,6 +55,31 @@
                     <artifactId>junit</artifactId>
                     <version>${junit.version}</version>
                     <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                    <version>${netty.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.prometheus</groupId>
+                    <artifactId>simpleclient_hotspot</artifactId>
+                    <version>${prometheus.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.prometheus</groupId>
+                    <artifactId>simpleclient_common</artifactId>
+                    <version>${prometheus.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-yaml</artifactId>
+                    <version>${jackson-dataformat.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.codahale.metrics</groupId>
+                    <artifactId>metrics-core</artifactId>
+                    <version>3.0.2</version>
                 </dependency>
             </dependencies>
         </profile>
