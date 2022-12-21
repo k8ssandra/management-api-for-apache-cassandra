@@ -38,9 +38,6 @@ public class Agent {
                 .transform(CassandraRoleManagerInterceptor.transformer())
                 .type(SystemDistributedReplicationInterceptor.type())
                 .transform(SystemDistributedReplicationInterceptor.transformer())
-                // Metrics server
-//                .type(MetricsInterceptor.type())
-//                .transform(MetricsInterceptor.transformer())
                 .installOn(inst);
     }
 }

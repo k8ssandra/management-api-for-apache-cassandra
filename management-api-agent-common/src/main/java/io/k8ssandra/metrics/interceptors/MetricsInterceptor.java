@@ -55,7 +55,7 @@ public class MetricsInterceptor
         final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
 
         // Share them from HTTP server
-        NettyMetricsHttpServer server = new NettyMetricsHttpServer();
+        NettyMetricsHttpServer server = new NettyMetricsHttpServer(config);
         server.start(httpGroup);
 
         logger.info("Metrics collector started");

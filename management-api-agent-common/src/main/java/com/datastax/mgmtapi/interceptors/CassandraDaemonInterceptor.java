@@ -49,7 +49,7 @@ public class CassandraDaemonInterceptor
 
     public static Transformer transformer()
     {
-        return (builder, typeDescription, classLoader, module, protectionDomain) -> builder.method(ElementMatchers.named("start")).intercept(MethodDelegation.to(CassandraDaemonInterceptor.class));
+        return (builder, typeDescription, classLoader, module, protectionDomain) -> builder.method(ElementMatchers.named("start")).intercept(MethodDelegation.to(CassandraDaemonInterceptor.class).andThen(MethodDelegation.to(MetricsInterceptor.class)));
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
@@ -87,34 +87,9 @@ public class CassandraDaemonInterceptor
 
             connectionTracker.allChannels.add(controller.channel().orElseThrow(() -> new RuntimeException("Unix Socket Channel missing")));
 
-            // Metrics
-            logger.info("Starting Metric Collector for Apache Cassandra");
-
-            // Read Configuration file
-            Configuration config = ConfigReader.readConfig();
-
-            // Initialize filtering
-            CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(config.getFilters());
-
-            // Add Cassandra metrics
-            new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, filter).register();
-
-            // Add JVM metrics
-            DefaultExports.initialize();
-
-            // Create /metrics handler. Note, this doesn't support larger than nThreads=1
-            final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
-
-            // Share them from HTTP server
-            NettyMetricsHttpServer server = new NettyMetricsHttpServer();
-            server.start(httpGroup);
-
-            logger.info("Metrics collector started");
-
             //Hook into things that have hooks
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 controller.stop();
-                httpGroup.shutdownGracefully();
                 NodeOpsProvider.instance.get().unregister();
             }));
         }

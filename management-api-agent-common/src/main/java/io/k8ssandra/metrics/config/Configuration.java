@@ -10,6 +10,9 @@ public class Configuration {
     @JsonProperty("filters")
     private List<FilteringSpec> filters;
 
+    @JsonProperty("port")
+    private int port;
+
     public Configuration() {
         filters = new ArrayList<>();
     }
@@ -20,5 +23,9 @@ public class Configuration {
 
     public List<FilteringSpec> getFilters() {
         return filters;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

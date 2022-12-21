@@ -22,5 +22,6 @@ public class ConfigReaderTest {
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(2, configuration.getFilters().size());
+        assertEquals(9001, configuration.getPort());
     }
 }
