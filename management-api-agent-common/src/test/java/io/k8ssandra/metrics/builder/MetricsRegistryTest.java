@@ -57,7 +57,6 @@ public class MetricsRegistryTest {
         }
 
         collect = exporter.collect();
-        collect.forEach(c -> c.samples.forEach(System.out::println));
         assertEquals(0, collect.size());
     }
 

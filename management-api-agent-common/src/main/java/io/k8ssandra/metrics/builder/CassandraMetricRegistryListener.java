@@ -353,7 +353,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                 for(; k < proto.getLabelValues().size(); k++) {
                     quantileLabelValues.add(k, proto.getLabelValues().get(k));
                 }
-                labelValues.add(k, PRECOMPUTED_QUANTILES_TEXT[i]);
+                quantileLabelValues.add(k, PRECOMPUTED_QUANTILES_TEXT[i]);
                 Collector.MetricFamilySamples.Sample quantileSample = new Collector.MetricFamilySamples.Sample(
                         proto.getMetricName(),
                         proto.getLabelNames(),
