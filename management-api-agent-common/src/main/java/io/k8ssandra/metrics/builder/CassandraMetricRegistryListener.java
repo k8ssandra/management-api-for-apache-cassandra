@@ -37,9 +37,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         cache = new ConcurrentHashMap<>();
         this.familyCache = familyCache;
         this.metricFilter = metricFilter;
-
-        // This is just for DSE
-//        decayingHistogramOffsetMethod = DecayingEstimatedHistogram.class.getMethod("getOffsets");
     }
 
     public void updateCache(String dropwizardName, String metricName, RefreshableMetricFamilySamples prototype) {
@@ -261,16 +258,20 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
             String snapshotClass = snapshot.getClass().getName();
 
             if (snapshotClass.contains("EstimatedHistogramReservoirSnapshot")) {
+                // OSS versions
                 buckets = CassandraMetricsTools.DECAYING_BUCKETS;
+            } else if (snapshotClass.equals("DecayingEstimatedHistogram")) {
+                // DSE
+                try {
+                    if (decayingHistogramOffsetMethod == null) {
+                        decayingHistogramOffsetMethod = snapshot.getClass().getMethod("getOffsets");
+                    }
+
+                    buckets = (long[]) decayingHistogramOffsetMethod.invoke(snapshot);
+                } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
             }
-//            else if (snapshotClass.equals("DecayingEstimatedHistogram")) {
-//                // DSE
-//                try {
-//                    buckets = (long[]) decayingHistogramOffsetMethod.invoke(snapshot);
-//                } catch (InvocationTargetException | IllegalAccessException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
 
             // This can happen if histogram isn't EstimatedDecay or EstimatedHistogram
             if (values.length != buckets.length) {
@@ -337,8 +338,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
             // End MCAC comp. code
 
-            // TODO Do we really need these or rates? We can calculate them using PromQL from buckets above
-/*
+            // Add precomputed quantile values also
             double[] quantileValues = new double[]{
                     snapshot.getMedian(),
                     snapshot.get75thPercentile(),
@@ -349,11 +349,11 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
             };
             for(int i = 0; i < PRECOMPUTED_QUANTILES.length; i++) {
                 List<String> quantileLabelValues = new ArrayList<>(proto.getLabelValues().size() + 1);
-                int j = 0;
-                for(; j < proto.getLabelValues().size(); j++) {
-                    quantileLabelValues.add(j, proto.getLabelValues().get(j));
+                int k = 0;
+                for(; k < proto.getLabelValues().size(); k++) {
+                    quantileLabelValues.add(k, proto.getLabelValues().get(k));
                 }
-                labelValues.add(j, PRECOMPUTED_QUANTILES_TEXT[i]);
+                labelValues.add(k, PRECOMPUTED_QUANTILES_TEXT[i]);
                 Collector.MetricFamilySamples.Sample quantileSample = new Collector.MetricFamilySamples.Sample(
                         proto.getMetricName(),
                         proto.getLabelNames(),
@@ -361,7 +361,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                         quantileValues[i] * factor);
                 samples.add(quantileSample);
             }
- */
         });
     }
 
@@ -380,8 +379,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
         RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.SUMMARY, "", new ArrayList<>());
         familySamples.addDefinition(proto);
-//        familySamples.addDefinition(buckets);
-//        familySamples.addDefinition(count);
 
         updateCache(dropwizardName, proto.getMetricName(), familySamples);
     }

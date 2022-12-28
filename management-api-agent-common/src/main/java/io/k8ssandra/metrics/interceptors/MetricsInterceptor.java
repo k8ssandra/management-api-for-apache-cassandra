@@ -36,7 +36,6 @@ public class MetricsInterceptor
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
-        zuper.call();
         logger.info("Starting Metric Collector for Apache Cassandra");
 
         // Read Configuration file

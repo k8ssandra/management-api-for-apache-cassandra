@@ -9,24 +9,19 @@ import com.datastax.mgmtapi.NodeOpsProvider;
 import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.ipc.IPCController;
 import com.google.common.collect.ImmutableMap;
-import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
-import io.k8ssandra.metrics.config.ConfigReader;
-import io.k8ssandra.metrics.config.Configuration;
-import io.k8ssandra.metrics.http.NettyMetricsHttpServer;
 import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
-import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.prometheus.client.hotspot.DefaultExports;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.MethodDelegation;
+import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.apache.cassandra.metrics.CassandraMetricsRegistry;
 import org.apache.cassandra.transport.CBUtil;
 import org.apache.cassandra.transport.Server;
 import org.slf4j.Logger;
@@ -40,6 +35,8 @@ public class CassandraDaemonInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(CassandraDaemonInterceptor.class);
     private static final String socketFileStr = System.getProperty("db.unix_socket_file");
+    public static final int HIGH_WATER_MARK = 32 * 1024;
+    public static final int LOW_WATER_MARK = 8 * 1024;
 
 
     public static ElementMatcher<? super TypeDescription> type()
@@ -49,12 +46,14 @@ public class CassandraDaemonInterceptor
 
     public static Transformer transformer()
     {
-        return (builder, typeDescription, classLoader, module, protectionDomain) -> builder.method(ElementMatchers.named("start")).intercept(MethodDelegation.to(CassandraDaemonInterceptor.class).andThen(MethodDelegation.to(MetricsInterceptor.class)));
+        return (builder, typeDescription, classLoader, module, protectionDomain) -> builder.method(ElementMatchers.named("start"))
+                .intercept(MethodDelegation
+                        .to(CassandraDaemonInterceptor.class)
+                        .andThen(MethodDelegation.to(MetricsInterceptor.class))
+                        .andThen(SuperMethodCall.INSTANCE));
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
-        zuper.call();
-
         try
         {
             logger.info("Starting DataStax Management API Agent for Apache Cassandra v0.1");
@@ -68,6 +67,7 @@ public class CassandraDaemonInterceptor
 
             final EventLoopGroup group = new EpollEventLoopGroup(8);
             final Server.ConnectionTracker connectionTracker = new Server.ConnectionTracker();
+            final WriteBufferWaterMark waterMark = new WriteBufferWaterMark(LOW_WATER_MARK, HIGH_WATER_MARK);
 
             IPCController controller = IPCController.newServer()
                     .withEventLoop(group)
@@ -76,8 +76,7 @@ public class CassandraDaemonInterceptor
                     .withChannelOptions(
                             ImmutableMap.of(
                                     ChannelOption.ALLOCATOR, CBUtil.allocator,
-                                    ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024,
-                                    ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
+                                    ChannelOption.WRITE_BUFFER_WATER_MARK, waterMark)
                     ).build();
 
 
