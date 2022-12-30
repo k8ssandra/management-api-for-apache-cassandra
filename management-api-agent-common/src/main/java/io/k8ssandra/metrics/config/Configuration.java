@@ -13,6 +13,9 @@ public class Configuration {
     @JsonProperty("port")
     private int port;
 
+    @JsonProperty("tls")
+    private TLSConfiguration tlsConfig;
+
     public Configuration() {
         filters = new ArrayList<>();
     }
@@ -27,5 +30,9 @@ public class Configuration {
 
     public int getPort() {
         return port;
+    }
+
+    public TLSConfiguration getTlsConfig() {
+        return tlsConfig;
     }
 }
