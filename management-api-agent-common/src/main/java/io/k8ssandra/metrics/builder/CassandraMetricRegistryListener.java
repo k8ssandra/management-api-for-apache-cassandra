@@ -339,6 +339,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
             // End MCAC comp. code
 
             // Add precomputed quantile values also
+/*
             double[] quantileValues = new double[]{
                     snapshot.getMedian(),
                     snapshot.get75thPercentile(),
@@ -357,10 +358,11 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                 Collector.MetricFamilySamples.Sample quantileSample = new Collector.MetricFamilySamples.Sample(
                         proto.getMetricName(),
                         proto.getLabelNames(),
-                        labelValues,
+                        quantileLabelValues,
                         quantileValues[i] * factor);
                 samples.add(quantileSample);
             }
+*/
         });
     }
 
@@ -377,7 +379,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
         setTimerFiller(timer, proto, buckets, count, factor);
 
-        RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.SUMMARY, "", new ArrayList<>());
+        RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.HISTOGRAM, "", new ArrayList<>());
         familySamples.addDefinition(proto);
 
         updateCache(dropwizardName, proto.getMetricName(), familySamples);

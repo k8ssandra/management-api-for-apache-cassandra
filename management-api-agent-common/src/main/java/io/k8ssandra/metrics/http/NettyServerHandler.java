@@ -42,14 +42,14 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
             String contentType = TextFormat.chooseContentType(req.headers().get("Accept"));
             TextFormat.writeFormat(contentType, writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
 
-            if (!writeResponse(req, ctx)) {
+            if (!writeResponse(req, ctx, contentType)) {
                 // If keep-alive is off, close the connection once the content is fully written.
                 ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
             }
         }
     }
 
-    private boolean writeResponse(HttpRequest request, ChannelHandlerContext ctx) {
+    private boolean writeResponse(HttpRequest request, ChannelHandlerContext ctx, String contentType) {
         // Decide whether to close the connection or not.
         boolean keepAlive = HttpUtil.isKeepAlive(request);
         // Build the response object.
@@ -58,7 +58,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
                 HttpVersion.HTTP_1_1, request.decoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
                 Unpooled.copiedBuffer(writer.toString(), CharsetUtil.UTF_8));
 
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
 
         if (keepAlive) {
             // Add 'Content-Length' header only for a keep-alive connection.
