@@ -1,4 +1,6 @@
-port: 9001
+endpoint:
+  address: "127.0.0.1"
+  port: 9001
 filters:
   - source_labels: ["__tag1__", "__tag2__"]
     separator: ";"

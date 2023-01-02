@@ -14,6 +14,7 @@ public class ConfigReaderTest {
 
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(0, configuration.getFilters().size());
+        assertNull(configuration.getEndpointConfiguration());
     }
 
     @Test
@@ -24,9 +25,10 @@ public class ConfigReaderTest {
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(2, configuration.getFilters().size());
-        assertEquals(9001, configuration.getPort());
+        assertEquals(9001, configuration.getEndpointConfiguration().getPort());
+        assertEquals("127.0.0.1", configuration.getEndpointConfiguration().getHost());
 
-        assertNull(configuration.getTlsConfig());
+        assertNull(configuration.getEndpointConfiguration().getTlsConfig());
     }
 
     @Test
@@ -37,10 +39,11 @@ public class ConfigReaderTest {
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(2, configuration.getFilters().size());
-        assertEquals(9001, configuration.getPort());
+        assertEquals(9103, configuration.getEndpointConfiguration().getPort());
 
-        assertNotNull(configuration.getTlsConfig());
-        TLSConfiguration tlsConfig = configuration.getTlsConfig();
+        assertNotNull(configuration.getEndpointConfiguration());
+        assertNotNull(configuration.getEndpointConfiguration().getTlsConfig());
+        TLSConfiguration tlsConfig = configuration.getEndpointConfiguration().getTlsConfig();
         assertEquals("/etc/ssl/ca.crt", tlsConfig.getCaCertPath());
         assertEquals("/etc/ssl/tls.crt", tlsConfig.getTlsCertPath());
         assertEquals("/etc/ssl/tls.key", tlsConfig.getTlsKeyPath());

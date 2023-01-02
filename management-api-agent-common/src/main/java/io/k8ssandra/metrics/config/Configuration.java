@@ -10,11 +10,8 @@ public class Configuration {
     @JsonProperty("filters")
     private List<FilteringSpec> filters;
 
-    @JsonProperty("port")
-    private int port;
-
-    @JsonProperty("tls")
-    private TLSConfiguration tlsConfig;
+    @JsonProperty("endpoint")
+    private EndpointConfiguration endpointConfiguration;
 
     public Configuration() {
         filters = new ArrayList<>();
@@ -28,11 +25,7 @@ public class Configuration {
         return filters;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public TLSConfiguration getTlsConfig() {
-        return tlsConfig;
+    public EndpointConfiguration getEndpointConfiguration() {
+        return endpointConfiguration;
     }
 }
