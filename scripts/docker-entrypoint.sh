@@ -40,6 +40,11 @@ _sed-in-place() {
     rm "$tempFile"
 }
 
+_metrics_collector_supported() {
+    # currently, metrics collector does not work on arm64
+    [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ]
+}
+
 _needs_nodetool_fix() {
     # JDK (8 and 11) updates that include the fix for JDK-8278972 cause nodetool
     # to break due to the more strict URI parsing. This is fixed in Cassandra as
@@ -81,6 +86,27 @@ if [ "$1" = 'mgmtapi' ]; then
     # 2. We don't wan't operator or configbuilder to care so much about the version number or
     #    the fact this jar even exists.
     #
+    # MCAC metric filters are expected as an env variable in the following format:
+    # "deny:org.apache.cassandra.metrics.table allow:org.apache.cassandra.metrics.table.test"
+    
+    if _metrics_collector_supported && ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+        # ensure newline at end of file
+        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        mkdir -p ${MCAC_PATH}
+        echo "" >> ${MCAC_PATH}/config/metric-collector.yaml
+        echo "data_dir_max_size_in_mb: 100" >> ${MCAC_PATH}/config/metric-collector.yaml
+        if [[ -n "$METRIC_FILTERS"  ]]; then
+            filter_array=(`echo $METRIC_FILTERS | sed 's/ /\n/g'`)
+            echo "filtering_rules:" >> ${MCAC_PATH}/config/metric-collector.yaml
+            for filter in "${filter_array[@]}"; do
+                echo "  - policy: $(echo ${filter} | cut -d':' -f1)" >> ${MCAC_PATH}/config/metric-collector.yaml
+                echo "    pattern: $(echo ${filter} | cut -d':' -f2)" >> ${MCAC_PATH}/config/metric-collector.yaml
+                echo "    scope: global" >> ${MCAC_PATH}/config/metric-collector.yaml
+            done
+        fi
+    fi
+
     MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent*.jar)"
     if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
         # ensure newline at end of file
