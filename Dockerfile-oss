@@ -27,11 +27,6 @@ COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
 RUN mvn -q -ff package -DskipTests
 
-# Download and extract Metrics Collector
-ENV MCAC_PATH /opt/metrics-collector
-RUN mkdir ${MCAC_PATH} && \
-    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir ${CDC_AGENT_PATH} && \
@@ -58,7 +53,6 @@ ARG TARGETARCH
 
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
-ENV MCAC_PATH /opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV USER_HOME_PATH /home/cassandra
 
@@ -72,7 +66,6 @@ ENV MGMT_API_LOG_DIR /var/log/cassandra
 
 COPY --from=builder --chown=cassandra:root /build/management-api-agent-3.x/target/datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
 COPY --from=builder --chown=cassandra:root /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
-COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 # Setup user and fixup permissions
