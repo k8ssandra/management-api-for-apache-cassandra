@@ -13,6 +13,9 @@ public class Configuration {
     @JsonProperty("endpoint")
     private EndpointConfiguration endpointConfiguration;
 
+    @JsonProperty("labels")
+    private LabelConfiguration labels;
+
     public Configuration() {
         filters = new ArrayList<>();
     }
@@ -27,5 +30,9 @@ public class Configuration {
 
     public EndpointConfiguration getEndpointConfiguration() {
         return endpointConfiguration;
+    }
+
+    public LabelConfiguration getLabels() {
+        return labels;
     }
 }

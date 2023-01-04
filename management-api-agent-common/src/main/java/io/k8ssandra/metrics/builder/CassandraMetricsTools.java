@@ -27,12 +27,12 @@ public class CassandraMetricsTools {
     public final static String CLUSTER_NAME = getClusterName();
     public final static String RACK_NAME = getRack();
     public final static String DATACENTER_NAME = getDatacenter();
-    public final static String POD_NAME = getBroadcastAddress().getHostAddress();
+    public final static String INSTANCE_NAME = getBroadcastAddress().getHostAddress();
     public final static String HOST_ID = getHostId();
     public final static String INF_BUCKET = "+Inf";
 
     public final static List<String> DEFAULT_LABEL_NAMES = Arrays.asList(HOSTID_LABEL_NAME, INSTANCE_LABEL_NAME, CLUSTER_LABEL_NAME, DATACENTER_LABEL_NAME, RACK_LABEL_NAME);
-    public final static List<String> DEFAULT_LABEL_VALUES = Arrays.asList(HOST_ID, POD_NAME, CLUSTER_NAME, DATACENTER_NAME, RACK_NAME);
+    public final static List<String> DEFAULT_LABEL_VALUES = Arrays.asList(HOST_ID, INSTANCE_NAME, CLUSTER_NAME, DATACENTER_NAME, RACK_NAME);
 
     public static final double[] PRECOMPUTED_QUANTILES = new double[]{0.5, 0.75, 0.95, 0.98, 0.99, 0.999};
 

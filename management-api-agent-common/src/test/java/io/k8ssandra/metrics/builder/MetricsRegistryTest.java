@@ -5,12 +5,15 @@ import com.codahale.metrics.Timer;
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.k8ssandra.metrics.builder.filter.FilteringSpec;
+import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.prometheus.client.Collector;
 import org.apache.cassandra.metrics.CassandraMetricsRegistry;
 import org.apache.cassandra.metrics.DefaultNameFactory;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +30,8 @@ public class MetricsRegistryTest {
     @Test
     public void verifyRegistryListener() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
-        CassandraMetricDefinitionFilter metricFilter = new CassandraMetricDefinitionFilter(Lists.newArrayList(specDefault));
-        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, metricFilter);
+        Configuration config = new Configuration(Arrays.asList(specDefault));
+        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
         int metricsCount = 10;
         for (int i = 0; i < metricsCount; i++) {
             registry.counter(createMetricName(String.format("c_nr_%d", i)));
@@ -64,8 +67,8 @@ public class MetricsRegistryTest {
     public void verifyRegistryFilteredListener() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
         FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test_g_a.*", "drop");
-        CassandraMetricDefinitionFilter metricFilter = new CassandraMetricDefinitionFilter(Lists.newArrayList(specDefault, spec));
-        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, metricFilter);
+        Configuration config = new Configuration(Arrays.asList(specDefault, spec));
+        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
         int metricsCount = 10;
         for (int i = 0; i < metricsCount; i++) {
             registry.register(createMetricName(String.format("g_nr_%d", i)), (Gauge<Integer>) () -> 3);
@@ -85,8 +88,8 @@ public class MetricsRegistryTest {
     @Test
     public void timerTest() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
-        CassandraMetricDefinitionFilter metricFilter = new CassandraMetricDefinitionFilter(Lists.newArrayList(specDefault));
-        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, metricFilter);
+        Configuration config = new Configuration(Arrays.asList(specDefault));
+        CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
 
         Timer timer = registry.timer(createMetricName("test_timer"));
         timer.update(42, TimeUnit.NANOSECONDS);

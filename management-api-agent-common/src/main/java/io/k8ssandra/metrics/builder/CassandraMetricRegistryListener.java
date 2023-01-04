@@ -2,6 +2,7 @@ package io.k8ssandra.metrics.builder;
 
 import com.codahale.metrics.*;
 import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
+import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 import org.apache.cassandra.metrics.DecayingEstimatedHistogramReservoir;
 import org.apache.cassandra.utils.EstimatedHistogram;
@@ -32,11 +33,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
     private Method decayingHistogramOffsetMethod = null;
 
-    public CassandraMetricRegistryListener(ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, CassandraMetricDefinitionFilter metricFilter) throws NoSuchMethodException {
-        parser = new CassandraMetricNameParser(CassandraMetricsTools.DEFAULT_LABEL_NAMES, CassandraMetricsTools.DEFAULT_LABEL_VALUES);
+    public CassandraMetricRegistryListener(ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, Configuration config) throws NoSuchMethodException {
+        parser = new CassandraMetricNameParser(CassandraMetricsTools.DEFAULT_LABEL_NAMES, CassandraMetricsTools.DEFAULT_LABEL_VALUES, config);
         cache = new ConcurrentHashMap<>();
+
+        // Initialize filtering
+        this.metricFilter = new CassandraMetricDefinitionFilter(config.getFilters());
         this.familyCache = familyCache;
-        this.metricFilter = metricFilter;
     }
 
     public void updateCache(String dropwizardName, String metricName, RefreshableMetricFamilySamples prototype) {

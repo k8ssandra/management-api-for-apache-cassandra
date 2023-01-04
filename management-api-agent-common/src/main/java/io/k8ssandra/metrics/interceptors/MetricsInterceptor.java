@@ -41,11 +41,8 @@ public class MetricsInterceptor
         // Read Configuration file
         Configuration config = ConfigReader.readConfig();
 
-        // Initialize filtering
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(config.getFilters());
-
         // Add Cassandra metrics
-        new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, filter).register();
+        new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, config).register();
 
         // Add JVM metrics
         DefaultExports.initialize();

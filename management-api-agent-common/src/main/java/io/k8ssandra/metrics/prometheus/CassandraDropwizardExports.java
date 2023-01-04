@@ -5,6 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import io.k8ssandra.metrics.builder.CassandraMetricRegistryListener;
 import io.k8ssandra.metrics.builder.RefreshableMetricFamilySamples;
 import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
+import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 import org.slf4j.LoggerFactory;
 
@@ -24,24 +25,16 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
     private ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache;
 
     /**
-     * Creates a new CassandraDropwizardExports with {@link MetricFilter#ALL}.
-     *
-     * @param registry a metric registry to export in prometheus.
-     */
-    public CassandraDropwizardExports(MetricRegistry registry) throws NoSuchMethodException {
-        this(registry, new CassandraMetricDefinitionFilter(new ArrayList<>()));
-    }
-
-    /**
      * Creates a new CassandraDropwizardExports with a custom {@link MetricFilter}.
      *
      * @param registry     a metric registry to export in prometheus.
-     * @param metricFilter a custom metric filter.
+     * @param config        a custom metric filter.
      */
-    public CassandraDropwizardExports(MetricRegistry registry, CassandraMetricDefinitionFilter metricFilter) throws NoSuchMethodException {
+    public CassandraDropwizardExports(MetricRegistry registry, Configuration config) throws NoSuchMethodException {
         this.registry = registry;
         this.familyCache = new ConcurrentHashMap<>();
-        registry.addListener(new CassandraMetricRegistryListener(this.familyCache, metricFilter));
+
+        registry.addListener(new CassandraMetricRegistryListener(this.familyCache, config));
     }
 
     @Override

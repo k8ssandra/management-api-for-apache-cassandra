@@ -10,3 +10,7 @@ filters:
     separator: ","
     regex: "^(a|b|c),.*"
     action: "drop"
+labels:
+  env:
+    pod_name: "POD_NAME"
+    node_name: "NODE_NAME"

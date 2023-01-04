@@ -29,6 +29,10 @@ public class ConfigReaderTest {
         assertEquals("127.0.0.1", configuration.getEndpointConfiguration().getHost());
 
         assertNull(configuration.getEndpointConfiguration().getTlsConfig());
+        assertNotNull(configuration.getLabels());
+        assertNotNull(configuration.getLabels().getEnvVariables());
+        assertEquals(2, configuration.getLabels().getEnvVariables().size());
+        assertEquals("POD_NAME", configuration.getLabels().getEnvVariables().get("pod_name"));
     }
 
     @Test
@@ -40,6 +44,7 @@ public class ConfigReaderTest {
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(2, configuration.getFilters().size());
         assertEquals(9103, configuration.getEndpointConfiguration().getPort());
+        assertNull(configuration.getLabels());
 
         assertNotNull(configuration.getEndpointConfiguration());
         assertNotNull(configuration.getEndpointConfiguration().getTlsConfig());

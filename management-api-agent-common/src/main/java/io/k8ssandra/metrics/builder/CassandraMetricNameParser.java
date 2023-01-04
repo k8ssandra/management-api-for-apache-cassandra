@@ -1,9 +1,11 @@
 package io.k8ssandra.metrics.builder;
 
+import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CassandraMetricNameParser {
     public final static String KEYSPACE_METRIC_PREFIX = "org.apache.cassandra.metrics.keyspace.";
@@ -15,9 +17,23 @@ public class CassandraMetricNameParser {
     public final static String KEYSPACE_LABEL_NAME = "keyspace";
     public final static String TABLE_LABEL_NAME = "table";
 
-    public CassandraMetricNameParser(List<String> defaultLabelNames, List<String> defaultLabelValues) {
+    public CassandraMetricNameParser(List<String> defaultLabelNames, List<String> defaultLabelValues, Configuration config) {
         this.defaultLabelNames = defaultLabelNames;
         this.defaultLabelValues = defaultLabelValues;
+
+        if (config.getLabels() != null && config.getLabels().getEnvVariables() != null && config.getLabels().getEnvVariables().size() > 0) {
+            this.parseEnvVariablesAsLabels(config.getLabels().getEnvVariables());
+        }
+    }
+
+    private void parseEnvVariablesAsLabels(Map<String, String> envSettings) {
+        for (Map.Entry<String, String> entry : envSettings.entrySet()) {
+            String envValue = System.getenv(entry.getValue());
+            if (envValue != null) {
+                defaultLabelNames.add(entry.getKey());
+                defaultLabelValues.add(envValue);
+            }
+        }
     }
 
     /**
