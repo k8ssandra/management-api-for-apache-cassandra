@@ -4,7 +4,6 @@ import com.codahale.metrics.*;
 import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
-import org.apache.cassandra.metrics.DecayingEstimatedHistogramReservoir;
 import org.apache.cassandra.utils.EstimatedHistogram;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +12,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import static io.k8ssandra.metrics.builder.CassandraMetricsTools.*;
@@ -251,11 +249,10 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         removeFromCache(name);
     }
 
-    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count, double factor) {
+    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count) {
         proto.setFiller((samples) -> {
             Snapshot snapshot = timer.getSnapshot();
 
-            // MCAC compatible code starts here..
             long[] buckets = CassandraMetricsTools.INPUT_BUCKETS;
             long[] values = snapshot.getValues();
             String snapshotClass = snapshot.getClass().getName();
@@ -338,40 +335,11 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                     count.getLabelValues(),
                     cumulativeCount);
             samples.add(countSample);
-
-            // End MCAC comp. code
-
-            // Add precomputed quantile values also
-/*
-            double[] quantileValues = new double[]{
-                    snapshot.getMedian(),
-                    snapshot.get75thPercentile(),
-                    snapshot.get95thPercentile(),
-                    snapshot.get98thPercentile(),
-                    snapshot.get99thPercentile(),
-                    snapshot.get999thPercentile()
-            };
-            for(int i = 0; i < PRECOMPUTED_QUANTILES.length; i++) {
-                List<String> quantileLabelValues = new ArrayList<>(proto.getLabelValues().size() + 1);
-                int k = 0;
-                for(; k < proto.getLabelValues().size(); k++) {
-                    quantileLabelValues.add(k, proto.getLabelValues().get(k));
-                }
-                quantileLabelValues.add(k, PRECOMPUTED_QUANTILES_TEXT[i]);
-                Collector.MetricFamilySamples.Sample quantileSample = new Collector.MetricFamilySamples.Sample(
-                        proto.getMetricName(),
-                        proto.getLabelNames(),
-                        quantileLabelValues,
-                        quantileValues[i] * factor);
-                samples.add(quantileSample);
-            }
-*/
         });
     }
 
     @Override
     public void onTimerAdded(String dropwizardName, Timer timer) {
-        double factor = 1.0D / TimeUnit.SECONDS.toNanos(1L);
         List<String> additionalLabelNames = new ArrayList<>();
         additionalLabelNames.add(QUANTILE_LABEL_NAME);
         List<String> additionalBucketLabel = new ArrayList<>();
@@ -380,7 +348,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         final CassandraMetricDefinition buckets = parser.parseDropwizardMetric(dropwizardName, "_bucket", additionalBucketLabel, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
 
-        setTimerFiller(timer, proto, buckets, count, factor);
+        setTimerFiller(timer, proto, buckets, count);
 
         RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.HISTOGRAM, "", new ArrayList<>());
         familySamples.addDefinition(proto);
