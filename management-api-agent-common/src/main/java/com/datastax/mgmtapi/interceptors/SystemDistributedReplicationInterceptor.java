@@ -38,6 +38,7 @@ public class SystemDistributedReplicationInterceptor
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemDistributedReplicationInterceptor.class);
     private static final String SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_dc_names";
     private static final String SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_per_dc";
+    private static final String SPACE_REPLACEMENT_CHARS_DC_NAMES = "__";
     /**
      * This DC_RF property is used to specify different RF per DC, instead of a single RF for all DCs
      * The format of the property value should be <dc1_name>:<dc1_rf>,<dc2_name>:<dc2_rf>,....
@@ -58,7 +59,7 @@ public class SystemDistributedReplicationInterceptor
             {
                 dcRfOverrides = new HashMap<>();
                 String mappings = System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY);
-                for (String mapping : mappings.split(","))
+                for (String mapping : mappings.replace(SPACE_REPLACEMENT_CHARS_DC_NAMES, " ").split(","))
                 {
                     String map = mapping.trim();
                     List<String> parts = Arrays.stream(map.split(":"))
@@ -108,7 +109,7 @@ public class SystemDistributedReplicationInterceptor
         {
             dcRfOverrides = parseDcRfOverrides();
             rfOverride = Integer.getInteger(SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY, null);
-            dcOverride = Arrays.stream(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY, "")
+            dcOverride = Arrays.stream(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY, "").replace(SPACE_REPLACEMENT_CHARS_DC_NAMES, " ")
                     .split(","))
                     .map(String::trim)
                     .collect(Collectors.toList());
