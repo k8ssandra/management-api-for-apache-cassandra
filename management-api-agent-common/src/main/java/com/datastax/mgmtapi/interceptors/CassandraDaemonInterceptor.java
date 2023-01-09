@@ -12,7 +12,6 @@ import com.google.common.collect.ImmutableMap;
 import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
@@ -35,9 +34,6 @@ public class CassandraDaemonInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(CassandraDaemonInterceptor.class);
     private static final String socketFileStr = System.getProperty("db.unix_socket_file");
-    public static final int HIGH_WATER_MARK = 32 * 1024;
-    public static final int LOW_WATER_MARK = 8 * 1024;
-
 
     public static ElementMatcher<? super TypeDescription> type()
     {
@@ -67,7 +63,6 @@ public class CassandraDaemonInterceptor
 
             final EventLoopGroup group = new EpollEventLoopGroup(8);
             final Server.ConnectionTracker connectionTracker = new Server.ConnectionTracker();
-            final WriteBufferWaterMark waterMark = new WriteBufferWaterMark(LOW_WATER_MARK, HIGH_WATER_MARK);
 
             IPCController controller = IPCController.newServer()
                     .withEventLoop(group)
@@ -76,7 +71,8 @@ public class CassandraDaemonInterceptor
                     .withChannelOptions(
                             ImmutableMap.of(
                                     ChannelOption.ALLOCATOR, CBUtil.allocator,
-                                    ChannelOption.WRITE_BUFFER_WATER_MARK, waterMark)
+                                    ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 32 * 1024,
+                                    ChannelOption.WRITE_BUFFER_LOW_WATER_MARK, 8 * 1024)
                     ).build();
 
 
