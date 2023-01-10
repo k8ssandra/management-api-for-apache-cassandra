@@ -10,7 +10,7 @@ ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
 
 # Get commandline parameters
-ARG DSE_VERSION=6.8.30
+ARG DSE_VERSION=6.8.31
 ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
@@ -107,6 +107,17 @@ RUN mkdir $MAAC_PATH \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-4*
 #############################################################
 
+###
+# Download CDC Agent jarfile
+###
+ARG CDC_AGENT_VERSION=2.2.2
+ARG CDC_AGENT_EDITION=agent-dse4
+# Download CDC agent
+ENV CDC_AGENT_PATH=/opt/cdc_agent
+RUN mkdir ${CDC_AGENT_PATH} && \
+  curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
@@ -118,6 +129,7 @@ ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
 ENV CASSANDRA_CONF ${DSE_HOME}/resources/cassandra/conf
 ENV MAAC_PATH /opt/management-api
+ENV CDC_AGENT_PATH=/opt/cdc_agent
 
 RUN set -eux; \
     apt-get update; \
@@ -148,6 +160,9 @@ RUN (for dir in /var/lib/cassandra \
 # Use OSS Management API
 RUN rm -rf $DSE_HOME/resources/management-api
 COPY --chown=dse:dse --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
+
+# Add CDC Agent
+COPY --chown=dse:dse --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
 
 ENV PATH $DSE_HOME/bin:$PATH
 ENV HOME $DSE_HOME
