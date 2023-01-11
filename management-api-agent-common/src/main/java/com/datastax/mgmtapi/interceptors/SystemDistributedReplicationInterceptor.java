@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,8 @@ import static net.bytebuddy.matcher.ElementMatchers.nameEndsWith;
 public class SystemDistributedReplicationInterceptor
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(SystemDistributedReplicationInterceptor.class);
-    private static final String SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_dc_names";
-    private static final String SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_per_dc";
+    static final String SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_dc_names";
+    static final String SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication_per_dc";
     /**
      * This DC_RF property is used to specify different RF per DC, instead of a single RF for all DCs
      * The format of the property value should be <dc1_name>:<dc1_rf>,<dc2_name>:<dc2_rf>,....
@@ -47,9 +48,9 @@ public class SystemDistributedReplicationInterceptor
      * If both this override and either of the above overrides are present, this value will take
      * precedence.
      */
-    private static final String SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication";
+    static final String SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY = "cassandra.system_distributed_replication";
 
-    private static Map<String, String> parseDcRfOverrides()
+    static Map<String, String> parseDcRfOverrides()
     {
         Map<String, String> dcRfOverrides = null;
         try
@@ -57,7 +58,8 @@ public class SystemDistributedReplicationInterceptor
             if (System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY) != null)
             {
                 dcRfOverrides = new HashMap<>();
-                String mappings = System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY);
+                String mappings = StringEscapeUtils.unescapeJava(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY));
+
                 for (String mapping : mappings.split(","))
                 {
                     String map = mapping.trim();
@@ -72,7 +74,7 @@ public class SystemDistributedReplicationInterceptor
                     }
                     else {
                         String dc = parts.get(0);
-                        Integer rf = Integer.parseInt(parts.get(1));
+                        int rf = Integer.parseInt(parts.get(1));
                         if (rf <= 0 || rf > 5)
                         {
                             LOGGER.error("Invalid repliction factor specified for {}: {}",
@@ -81,7 +83,7 @@ public class SystemDistributedReplicationInterceptor
                         }
                         else
                         {
-                            dcRfOverrides.put(dc, rf.toString());
+                            dcRfOverrides.put(dc, Integer.toString(rf));
                         }
                     }
                 }
@@ -108,7 +110,7 @@ public class SystemDistributedReplicationInterceptor
         {
             dcRfOverrides = parseDcRfOverrides();
             rfOverride = Integer.getInteger(SYSTEM_DISTRIBUTED_NTS_RF_OVERRIDE_PROPERTY, null);
-            dcOverride = Arrays.stream(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY, "")
+            dcOverride = Arrays.stream(StringEscapeUtils.unescapeJava(System.getProperty(SYSTEM_DISTRIBUTED_NTS_DC_OVERRIDE_PROPERTY, ""))
                     .split(","))
                     .map(String::trim)
                     .collect(Collectors.toList());
