@@ -56,6 +56,31 @@
                     <version>${junit.version}</version>
                     <scope>test</scope>
                 </dependency>
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-all</artifactId>
+                    <version>${netty.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.prometheus</groupId>
+                    <artifactId>simpleclient_hotspot</artifactId>
+                    <version>${prometheus.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.prometheus</groupId>
+                    <artifactId>simpleclient_common</artifactId>
+                    <version>${prometheus.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-yaml</artifactId>
+                    <version>${jackson-dataformat.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.codahale.metrics</groupId>
+                    <artifactId>metrics-core</artifactId>
+                    <version>3.0.2</version>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>

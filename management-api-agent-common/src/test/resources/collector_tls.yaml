@@ -1,0 +1,15 @@
+endpoint:
+  port: 9103
+  tls:
+    ca.crt: "/etc/ssl/ca.crt"
+    tls.crt: "/etc/ssl/tls.crt"
+    tls.key: "/etc/ssl/tls.key"
+filters:
+  - source_labels: ["__tag1__", "__tag2__"]
+    separator: ";"
+    regex: "(.*);(b.*)"
+    action: "drop"
+  - source_labels: ["__tag1__", "__tag2__"]
+    separator: ","
+    regex: "^(a|b|c),.*"
+    action: "drop"

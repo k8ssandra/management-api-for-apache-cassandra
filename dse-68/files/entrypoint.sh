@@ -122,6 +122,10 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
         fi
     fi
 
+    if [ ! -z "$MGMT_API_DISABLE_MCAC" ]; then
+      echo "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+    fi
+
     MGMT_API_ARGS=""
 
     # Hardcoding these for now

@@ -42,7 +42,7 @@ _sed-in-place() {
 
 _metrics_collector_supported() {
     # currently, metrics collector does not work on arm64
-    [ "$(uname -m)" != "aarch64" ]
+    [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ]
 }
 
 _needs_nodetool_fix() {

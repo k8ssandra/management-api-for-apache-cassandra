@@ -5,19 +5,13 @@
  */
 package com.datastax.mgmtapi;
 
-import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor4x;
-import com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor;
-import com.datastax.mgmtapi.interceptors.CassandraDaemonInterceptor;
-import com.datastax.mgmtapi.interceptors.CassandraRoleManagerInterceptor;
-import com.datastax.mgmtapi.interceptors.QueryHandlerInterceptor;
+import com.datastax.mgmtapi.interceptors.*;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import org.apache.cassandra.gms.GossiperInterceptor;
 
 import java.lang.instrument.Instrumentation;
 
-import static net.bytebuddy.matcher.ElementMatchers.any;
-import static net.bytebuddy.matcher.ElementMatchers.isSynthetic;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class Agent {
 
