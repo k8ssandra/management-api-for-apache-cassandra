@@ -66,7 +66,12 @@ COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
+RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH} && \
+    # create symlinks for jarfiles
+    cd ${MAAC_PATH} && \
+    ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
+    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
