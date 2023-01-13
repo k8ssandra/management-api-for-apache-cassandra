@@ -60,6 +60,7 @@
                     <groupId>io.netty</groupId>
                     <artifactId>netty-all</artifactId>
                     <version>${netty.version}</version>
+                    <scope>provided</scope>
                 </dependency>
                 <dependency>
                     <groupId>io.prometheus</groupId>
@@ -77,9 +78,10 @@
                     <version>${jackson-dataformat.version}</version>
                 </dependency>
                 <dependency>
-                    <groupId>com.codahale.metrics</groupId>
+                    <groupId>io.dropwizard.metrics</groupId>
                     <artifactId>metrics-core</artifactId>
-                    <version>3.0.2</version>
+                    <version>${dropwizard-metrics.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>
