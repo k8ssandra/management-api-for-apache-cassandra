@@ -107,7 +107,7 @@ if [ "$1" = 'mgmtapi' ]; then
         fi
     fi
 
-    MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent*.jar)"
+    MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
     if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
         # ensure newline at end of file
         echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
@@ -216,7 +216,7 @@ if [ "$1" = 'mgmtapi' ]; then
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
     fi
 
-    MGMT_API_JAR="$(find "${MAAC_PATH}" -name *server*.jar)"
+    MGMT_API_JAR="${MAAC_PATH}/datastax-mgmtapi-server.jar"
 
     # use default of 128m heap if env variable not set
     : "${MGMT_API_HEAP_SIZE:=128m}"

@@ -170,14 +170,14 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     fi
 
     # Add Management API Agent to JVM_OPTS
-    MGMT_AGENT_JAR="$(find "${MAAC_PATH}" -name *datastax-mgmtapi-agent-dse*.jar)"
+    MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
     if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
         # ensure newline at end of file
         echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
         echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
-    MGMT_API_JAR="$(find "${MAAC_PATH}" -name *server*.jar)"
+    MGMT_API_JAR="${MAAC_PATH}/datastax-mgmtapi-server.jar"
 
     # use default of 128m heap if env variable not set
     : "${MGMT_API_HEAP_SIZE:=128m}"

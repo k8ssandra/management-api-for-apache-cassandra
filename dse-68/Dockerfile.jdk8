@@ -105,7 +105,12 @@ RUN mkdir $MAAC_PATH \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
-    && rm $MAAC_PATH/datastax-mgmtapi-*common*
+    && rm $MAAC_PATH/datastax-mgmtapi-*common* \
+    && cd ${MAAC_PATH} \
+    && ln -s datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
+    && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
+    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+
 #############################################################
 
 ###
@@ -161,10 +166,6 @@ RUN (for dir in /var/lib/cassandra \
 # Use OSS Management API
 RUN rm -rf $DSE_HOME/resources/management-api
 COPY --chown=dse:dse --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
-# Create symlink for agent and server jarfiles
-RUN cd $MAAC_PATH && \
-    ln -s datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
-    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
 
 # Add CDC Agent
 COPY --chown=dse:dse --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
