@@ -3,10 +3,11 @@ ARG CASSANDRA_VERSION=4.0.7
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
 
 ARG METRICS_COLLECTOR_VERSION=0.3.4
-ARG CDC_AGENT_VERSION=2.0.0
+ARG CDC_AGENT_VERSION=2.2.2
 ARG CDC_AGENT_EDITION=agent-c4
 
 WORKDIR /build
+ENV MAAC_PATH /opt/management-api
 
 COPY pom.xml ./
 COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
@@ -25,7 +26,15 @@ COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
-RUN mvn -q -ff package -DskipTests
+RUN mkdir ${MAAC_PATH} && \
+    mvn -q -ff package -DskipTests && \
+    find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
+    rm $MAAC_PATH/datastax-mgmtapi-agent-3* && \
+    rm $MAAC_PATH/datastax-mgmtapi-*common* && \
+    cd ${MAAC_PATH} && \
+    ln -s datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar && \
+    ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
+    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
 
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
@@ -59,8 +68,7 @@ ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
 # https://issues.apache.org/jira/browse/CASSANDRA-16027
 ENV MGMT_API_LOG_DIR /var/log/cassandra
 
-COPY --from=builder --chown=cassandra:root /build/management-api-agent-4.x/target/datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar
-COPY --from=builder --chown=cassandra:root /build/management-api-server/target/datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar ${MAAC_PATH}/
+COPY --from=builder --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
