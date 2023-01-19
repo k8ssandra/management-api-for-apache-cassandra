@@ -197,7 +197,7 @@ jobs:
   publish-dse-ubi:
     name: Publish DSE UBI image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: build-dse
+    needs: publish-dse-ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
