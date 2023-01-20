@@ -79,12 +79,17 @@ public class CassandraMetricNameParser {
             labelValues.add(table);
         }
 
-        metricName = this.clean(Collector.sanitizeMetricName(metricName + suffix));
+        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName) + suffix));
 
         labelNames.addAll(additionalLabelNames);
         labelValues.addAll(additionalLabelValues);
 
         return new CassandraMetricDefinition(metricName, labelNames, labelValues);
+    }
+
+    private String removeDoubleUnderscore(String name) {
+        name = name.replaceAll("_+", "_");
+        return name;
     }
 
     // This is the method used in the MCAC
