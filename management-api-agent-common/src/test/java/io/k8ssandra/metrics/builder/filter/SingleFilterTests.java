@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 public class SingleFilterTests {
     /**
-         - source_labels: [__name__]
+         - sourceLabels: [__name__]
            separator: "@"
            regex: "org_apache_cassandra_metrics_table_.*"
            action: "drop"
@@ -33,7 +33,7 @@ public class SingleFilterTests {
     }
 
     /**
-     - source_labels: [__name__, table]
+     - sourceLabels: [__name__, table]
        separator: "@"
        regex: "(org_apache_cassandra_metrics_table_.*)@dropped_columns"
        action: "keep"
@@ -64,7 +64,7 @@ public class SingleFilterTests {
      * Drop all table metrics, except those with label table=dropped_columns
      * Don't drop other metrics
 
-     - source_labels: [__name__, table]
+     - sourceLabels: [__name__, table]
        separator: "@"
        regex: "(org_apache_cassandra_metrics_table_.*)@\b(?!dropped_columns\b)\w+"
        action: "drop"

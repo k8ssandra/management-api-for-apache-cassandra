@@ -2,11 +2,11 @@ endpoint:
   address: "127.0.0.1"
   port: 9001
 filters:
-  - source_labels: ["__tag1__", "__tag2__"]
+  - sourceLabels: ["__tag1__", "__tag2__"]
     separator: ";"
     regex: "(.*);(b.*)"
     action: "drop"
-  - source_labels: ["__tag1__", "__tag2__"]
+  - sourceLabels: ["__tag1__", "__tag2__"]
     separator: ","
     regex: "^(a|b|c),.*"
     action: "drop"

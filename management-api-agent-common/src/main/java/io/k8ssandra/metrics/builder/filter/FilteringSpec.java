@@ -10,16 +10,19 @@ import java.util.regex.Pattern;
 /**
  * Supports a subset of ServiceMonitorSpec's relabeling rules.
  *
- *             - source_labels: [subsystem, server]
- *               separator: "@"
- *               regex: "kata@webserver"
- *               action: "drop"
+ * - sourceLabels: [subsystem, server]
+ * separator: "@"
+ * regex: "kata@webserver"
+ * action: "drop"
  *
- * Like Prometheus, the metric name is available as source_label "__name__" and the original Cassandra metric
+ * Like Prometheus, the metric name is available as source_label "__name__" and
+ * the original Cassandra metric
  * name is available as "__origname__"
  */
 public class FilteringSpec {
-    public enum Action { drop, keep };
+    public enum Action {
+        drop, keep
+    };
 
     public static final String METRIC_NAME_LABELNAME = "__name__";
 
@@ -27,7 +30,7 @@ public class FilteringSpec {
 
     public static final String DEFAULT_SEPARATOR = "@";
 
-    @JsonProperty("source_labels")
+    @JsonProperty("sourceLabels")
     private List<String> sourceLabels;
 
     @JsonProperty(value = "separator", defaultValue = DEFAULT_SEPARATOR)
@@ -54,7 +57,7 @@ public class FilteringSpec {
         StringJoiner joiner = new StringJoiner(DEFAULT_SEPARATOR);
         for (String sourceLabel : sourceLabels) {
             String labelValue = labels.get(sourceLabel);
-            if(labelValue == null) {
+            if (labelValue == null) {
                 labelValue = "";
             }
             joiner.add(labelValue);
@@ -64,7 +67,7 @@ public class FilteringSpec {
 
         boolean match = regexp.matcher(value).matches();
 
-        switch(action) {
+        switch (action) {
             case drop:
                 return !match;
             default:
