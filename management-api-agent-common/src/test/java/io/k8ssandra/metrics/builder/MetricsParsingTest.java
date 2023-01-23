@@ -38,4 +38,12 @@ public class MetricsParsingTest {
                 .collect(Collectors.toMap(_i -> keyIter.next(), _i -> valIter.next()));
     }
 
+    @Test
+    public void parseWeirdNames() {
+        String dropwizardName = "com.datastax._weird_.constellation.schema$all*..__";
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Arrays.asList(""), Arrays.asList(""), new Configuration());
+        CassandraMetricDefinition metricDefinition = parser.parseDropwizardMetric(dropwizardName, "", new ArrayList<>(), new ArrayList<>());
+
+        assertEquals("com_datastax_weird_constellation_schema_all_", metricDefinition.getMetricName());
+    }
 }
