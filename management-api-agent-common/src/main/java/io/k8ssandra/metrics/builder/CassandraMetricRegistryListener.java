@@ -249,7 +249,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         removeFromCache(name);
     }
 
-    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count) {
+    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count, CassandraMetricDefinition sum) {
         proto.setFiller((samples) -> {
             Snapshot snapshot = timer.getSnapshot();
 
@@ -329,6 +329,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                     cumulativeCount);
             samples.add(sample);
 
+            // Add sum by calculating it from the mean. This isn't exact, but it's the only exposed way
+            double sumValue = snapshot.getMean() * cumulativeCount;
+            Collector.MetricFamilySamples.Sample sumSample = new Collector.MetricFamilySamples.Sample(
+                    sum.getMetricName(),
+                    sum.getLabelNames(),
+                    sum.getLabelValues(),
+                    sumValue);
+            samples.add(sumSample);
+
             Collector.MetricFamilySamples.Sample countSample = new Collector.MetricFamilySamples.Sample(
                     count.getMetricName(),
                     count.getLabelNames(),
@@ -347,8 +356,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
         final CassandraMetricDefinition buckets = parser.parseDropwizardMetric(dropwizardName, "_bucket", additionalBucketLabel, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
+        final CassandraMetricDefinition sum = parser.parseDropwizardMetric(dropwizardName, "_sum", new ArrayList<>(), new ArrayList<>());
 
-        setTimerFiller(timer, proto, buckets, count);
+        setTimerFiller(timer, proto, buckets, count, sum);
 
         RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.HISTOGRAM, "", new ArrayList<>());
         familySamples.addDefinition(proto);
