@@ -260,7 +260,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
             if (snapshotClass.contains("EstimatedHistogramReservoirSnapshot")) {
                 // OSS versions
                 buckets = CassandraMetricsTools.DECAYING_BUCKETS;
-            } else if (snapshotClass.equals("DecayingEstimatedHistogram")) {
+            } else if (snapshotClass.contains("DecayingEstimatedHistogram")) {
                 // DSE
                 try {
                     if (decayingHistogramOffsetMethod == null) {
