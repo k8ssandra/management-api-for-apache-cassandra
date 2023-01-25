@@ -50,6 +50,7 @@ jobs:
       - name: Upload DSE mgmt-api
         uses: actions/upload-artifact@v3
         with:
+          name: oss-snapshots.zip
           path: |
             management-api-agent-4*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
             management-api-agent-3*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
