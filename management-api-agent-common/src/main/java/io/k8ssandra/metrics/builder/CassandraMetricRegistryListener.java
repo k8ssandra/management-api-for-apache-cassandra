@@ -269,14 +269,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
                     buckets = (long[]) decayingHistogramOffsetMethod.invoke(snapshot);
                 } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                    logger.error(String.format("Unable to getOffsets for DSE, snapshotClass: %s", snapshotClass), e);
-//                    throw new RuntimeException(e);
+                    logger.debug(String.format("Unable to getOffsets for DSE, snapshotClass: %s", snapshotClass), e);
                 }
             }
 
             // This can happen if histogram isn't EstimatedDecay or EstimatedHistogram
             if (values.length != buckets.length) {
-                logger.error(String.format("Values and bucket lengths do not match: %d != %d. SnapshotClass: %s", values.length, buckets.length, snapshotClass));
+                logger.debug(String.format("Values and bucket lengths do not match: %d != %d. SnapshotClass: %s", values.length, buckets.length, snapshotClass));
                 return;
             }
 
