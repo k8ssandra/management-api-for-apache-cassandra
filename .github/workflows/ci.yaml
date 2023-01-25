@@ -47,6 +47,13 @@ jobs:
       - name: Build with Maven and run tests
         run: |
           mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }} -Drun41tests=${{ matrix.run41tests }}
+      - name: Upload DSE mgmt-api
+        uses: actions/upload-artifact@v3
+        with:
+          name: oss-snapshots.zip
+          path: |
+            management-api-agent-4*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
+            management-api-agent-3*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
   build-dse:
     if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest
@@ -90,6 +97,12 @@ jobs:
           EOF
           cp ~/.m2/settings.xml settings.xml
           mvn -B -q install --file pom.xml -P dse -DrunDSEtests=true
+      - name: Upload DSE mgmt-api
+        uses: actions/upload-artifact@v3
+        with:
+          name: datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
+          path: management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
+
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}

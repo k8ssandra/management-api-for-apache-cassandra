@@ -249,7 +249,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         removeFromCache(name);
     }
 
-    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count) {
+    private void setTimerFiller(Timer timer, CassandraMetricDefinition proto, CassandraMetricDefinition bucket, CassandraMetricDefinition count, CassandraMetricDefinition sum) {
         proto.setFiller((samples) -> {
             Snapshot snapshot = timer.getSnapshot();
 
@@ -260,7 +260,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
             if (snapshotClass.contains("EstimatedHistogramReservoirSnapshot")) {
                 // OSS versions
                 buckets = CassandraMetricsTools.DECAYING_BUCKETS;
-            } else if (snapshotClass.equals("DecayingEstimatedHistogram")) {
+            } else if (snapshotClass.contains("DecayingEstimatedHistogram")) {
                 // DSE
                 try {
                     if (decayingHistogramOffsetMethod == null) {
@@ -269,12 +269,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
                     buckets = (long[]) decayingHistogramOffsetMethod.invoke(snapshot);
                 } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                    throw new RuntimeException(e);
+                    logger.debug(String.format("Unable to getOffsets for DSE, snapshotClass: %s", snapshotClass), e);
                 }
             }
 
             // This can happen if histogram isn't EstimatedDecay or EstimatedHistogram
             if (values.length != buckets.length) {
+                logger.debug(String.format("Values and bucket lengths do not match: %d != %d. SnapshotClass: %s", values.length, buckets.length, snapshotClass));
                 return;
             }
 
@@ -329,6 +330,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                     cumulativeCount);
             samples.add(sample);
 
+            // Add sum by calculating it from the mean. This isn't exact, but it's the only exposed way
+            double sumValue = snapshot.getMean() * cumulativeCount;
+            Collector.MetricFamilySamples.Sample sumSample = new Collector.MetricFamilySamples.Sample(
+                    sum.getMetricName(),
+                    sum.getLabelNames(),
+                    sum.getLabelValues(),
+                    sumValue);
+            samples.add(sumSample);
+
             Collector.MetricFamilySamples.Sample countSample = new Collector.MetricFamilySamples.Sample(
                     count.getMetricName(),
                     count.getLabelNames(),
@@ -347,8 +357,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         final CassandraMetricDefinition proto = parser.parseDropwizardMetric(dropwizardName, "", additionalLabelNames, new ArrayList<>());
         final CassandraMetricDefinition buckets = parser.parseDropwizardMetric(dropwizardName, "_bucket", additionalBucketLabel, new ArrayList<>());
         final CassandraMetricDefinition count = parser.parseDropwizardMetric(dropwizardName, "_count", new ArrayList<>(), new ArrayList<>());
+        final CassandraMetricDefinition sum = parser.parseDropwizardMetric(dropwizardName, "_sum", new ArrayList<>(), new ArrayList<>());
 
-        setTimerFiller(timer, proto, buckets, count);
+        setTimerFiller(timer, proto, buckets, count, sum);
 
         RefreshableMetricFamilySamples familySamples = new RefreshableMetricFamilySamples(proto.getMetricName(), Collector.Type.HISTOGRAM, "", new ArrayList<>());
         familySamples.addDefinition(proto);

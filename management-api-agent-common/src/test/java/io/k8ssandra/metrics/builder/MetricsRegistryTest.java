@@ -105,18 +105,23 @@ public class MetricsRegistryTest {
 
         HashMap<String, Double> bucketMap = new HashMap<>(LATENCY_BUCKETS.length + 1);
         Double countValue = -1.0D;
+        Double sumValue = -1.0D;
         for (Collector.MetricFamilySamples mfs : collect) {
             for (Collector.MetricFamilySamples.Sample s : mfs.samples) {
                 if(s.name.equals("org_apache_cassandra_metrics_test_test_timer_test_bucket")) {
                     bucketMap.put(s.labelValues.get(5), s.value);
                 } else if(s.name.equals("org_apache_cassandra_metrics_test_test_timer_test_count")) {
                     countValue = s.value;
+                } else if(s.name.equals("org_apache_cassandra_metrics_test_test_timer_test_sum")) {
+                    sumValue = s.value;
                 }
             }
         }
 
         assertEquals(LATENCY_BUCKETS.length + 1, bucketMap.keySet().size());
         assertEquals(countValue, bucketMap.get("+Inf"));
+        assertTrue(countValue > 0);
+        assertTrue(sumValue > 0);
 
         registry.remove(createMetricName("test_timer"));
     }
