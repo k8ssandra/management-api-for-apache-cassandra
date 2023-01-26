@@ -16,7 +16,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithName() {
-        FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
@@ -40,7 +40,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithNameLabelCombo() {
-        FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@dropped_columns", "keep");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@dropped_columns", "keep");
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
@@ -71,7 +71,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithNameLabelComboWithExcept() {
-        FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!dropped_columns\\b)\\w+", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!dropped_columns\\b)\\w+", "drop");
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
@@ -93,7 +93,7 @@ public class SingleFilterTests {
 
     @Test
     public void OnlyMatchingLabel() {
-        FilteringSpec tableLabelFilter = new FilteringSpec(Lists.newArrayList("table"), "@", ".+", "drop");
+        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(tableLabelFilter));
 
         CassandraMetricDefinition hasTableLabel = new CassandraMetricDefinition("has_table_label", Lists.newArrayList("table"), Lists.newArrayList("value"));

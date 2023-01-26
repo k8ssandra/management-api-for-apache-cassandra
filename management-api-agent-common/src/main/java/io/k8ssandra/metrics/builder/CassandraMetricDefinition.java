@@ -15,6 +15,8 @@ public class CassandraMetricDefinition implements Consumer<List<Collector.Metric
     private final String metricName;
     private Supplier<Double> valueGetter;
 
+    private boolean keep = true;
+
     private Consumer<List<Collector.MetricFamilySamples.Sample>> filler;
 
     public CassandraMetricDefinition(String metricName, List<String> labelNames, List<String> labelValues) {

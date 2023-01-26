@@ -1,6 +1,19 @@
 endpoint:
   address: "127.0.0.1"
   port: 9001
+relabels:
+  - sourceLabels: ["__tag1__", "__tag2__"]
+    separator: ";"
+    regex: "(.*);(b.*)"
+    action: "drop"
+  - sourceLabels: ["__tag1__", "__tag2__"]
+    separator: ","
+    regex: "^(a|b|c),.*"
+    action: "drop"
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.streaming\\.(\\w+)\\.(.+)$"
+    replacement: "$2"
+    sourceLabels: ["__origname__"]
+    targetLabel: "peer_ip"
 filters:
   - sourceLabels: ["__tag1__", "__tag2__"]
     separator: ";"

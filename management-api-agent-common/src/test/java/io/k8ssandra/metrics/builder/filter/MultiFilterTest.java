@@ -14,10 +14,10 @@ public class MultiFilterTest {
     @Test
     public void DropMultipleMetrics() {
         // drop jvm_classes_loaded
-        FilteringSpec dropJVM = new FilteringSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop");
+        RelabelSpec dropJVM = new RelabelSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop");
 
         // drop table metrics
-        FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
 
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(dropJVM, spec));
 
@@ -46,10 +46,10 @@ public class MultiFilterTest {
     @Test
     public void KeepAndDropSubset() {
         // Keep only production cluster metrics
-        FilteringSpec clusterFilter = new FilteringSpec(Lists.newArrayList("cluster"), "@", "production", "keep");
+        RelabelSpec clusterFilter = new RelabelSpec(Lists.newArrayList("cluster"), "@", "production", "keep");
 
         // But drop all with table label
-        FilteringSpec tableLabelFilter = new FilteringSpec(Lists.newArrayList("table"), "@", ".+", "drop");
+        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
 
         CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(clusterFilter, tableLabelFilter));
 

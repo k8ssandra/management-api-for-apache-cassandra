@@ -11,17 +11,16 @@ import java.util.regex.Pattern;
  * Supports a subset of ServiceMonitorSpec's relabeling rules.
  *
  * - sourceLabels: [subsystem, server]
- * separator: "@"
- * regex: "kata@webserver"
- * action: "drop"
+ *   separator: "@"
+ *   regex: "kata@webserver"
+ *   action: "drop"
  *
  * Like Prometheus, the metric name is available as source_label "__name__" and
- * the original Cassandra metric
- * name is available as "__origname__"
+ * the original Cassandra metric name is available as "__origname__"
  */
-public class FilteringSpec {
+public class RelabelSpec {
     public enum Action {
-        drop, keep
+        drop, keep, replacement
     };
 
     public static final String METRIC_NAME_LABELNAME = "__name__";
@@ -33,6 +32,12 @@ public class FilteringSpec {
     @JsonProperty("sourceLabels")
     private List<String> sourceLabels;
 
+    @JsonProperty("targetLabel")
+    private String targetLabel;
+
+    @JsonProperty("replacement")
+    private String replacement;
+
     @JsonProperty(value = "separator", defaultValue = DEFAULT_SEPARATOR)
     private String separator;
 
@@ -42,37 +47,38 @@ public class FilteringSpec {
     @JsonProperty("action")
     private Action action;
 
-    public FilteringSpec() {
+    public RelabelSpec() {
 
     }
 
-    public FilteringSpec(List<String> sourceLabels, String separator, String regex, String action) {
+    public RelabelSpec(List<String> sourceLabels, String separator, String regex, String action) {
         this.sourceLabels = sourceLabels;
         this.separator = separator;
         this.regexp = Pattern.compile(regex);
         this.action = Action.valueOf(action);
     }
 
-    public boolean filter(Map<String, String> labels) {
-        StringJoiner joiner = new StringJoiner(DEFAULT_SEPARATOR);
-        for (String sourceLabel : sourceLabels) {
-            String labelValue = labels.get(sourceLabel);
-            if (labelValue == null) {
-                labelValue = "";
-            }
-            joiner.add(labelValue);
-        }
-
-        String value = joiner.toString();
-
-        boolean match = regexp.matcher(value).matches();
-
-        switch (action) {
-            case drop:
-                return !match;
-            default:
-                return match;
-        }
+    public List<String> getSourceLabels() {
+        return sourceLabels;
     }
 
+    public String getTargetLabel() {
+        return targetLabel;
+    }
+
+    public String getSeparator() {
+        return separator;
+    }
+
+    public Pattern getRegexp() {
+        return regexp;
+    }
+
+    public Action getAction() {
+        return action;
+    }
+
+    public String getReplacement() {
+        return replacement;
+    }
 }

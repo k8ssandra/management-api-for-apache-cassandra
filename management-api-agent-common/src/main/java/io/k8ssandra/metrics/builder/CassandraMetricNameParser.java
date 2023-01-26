@@ -1,11 +1,12 @@
 package io.k8ssandra.metrics.builder;
 
+import io.k8ssandra.metrics.builder.filter.RelabelSpec;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CassandraMetricNameParser {
     public final static String KEYSPACE_METRIC_PREFIX = "org.apache.cassandra.metrics.keyspace.";
@@ -17,12 +18,22 @@ public class CassandraMetricNameParser {
     public final static String KEYSPACE_LABEL_NAME = "keyspace";
     public final static String TABLE_LABEL_NAME = "table";
 
+    private final List<RelabelSpec> replacements = new ArrayList<>();
+
     public CassandraMetricNameParser(List<String> defaultLabelNames, List<String> defaultLabelValues, Configuration config) {
         this.defaultLabelNames = defaultLabelNames;
         this.defaultLabelValues = defaultLabelValues;
 
         if (config.getLabels() != null && config.getLabels().getEnvVariables() != null && config.getLabels().getEnvVariables().size() > 0) {
             this.parseEnvVariablesAsLabels(config.getLabels().getEnvVariables());
+        }
+
+        if(config.getRelabels() != null) {
+            for (RelabelSpec relabel : config.getRelabels()) {
+                if(relabel.getAction() == RelabelSpec.Action.replacement) {
+                    replacements.add(relabel);
+                }
+            }
         }
     }
 
@@ -78,13 +89,88 @@ public class CassandraMetricNameParser {
             labelNames.add(TABLE_LABEL_NAME);
             labelValues.add(table);
         }
+        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName)));
 
+        // Add replacement rules here
+        metricName = replace(dropwizardName, metricName, labelNames, labelValues);
+
+        // Reclean with suffix added
         metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName) + suffix));
 
         labelNames.addAll(additionalLabelNames);
         labelValues.addAll(additionalLabelValues);
 
         return new CassandraMetricDefinition(metricName, labelNames, labelValues);
+    }
+
+    private String replace(String dropwizardName, String metricName, List<String> labelNames, List<String> labelValues) {
+        boolean keep = true;
+
+        // Return value is the new metricName, labelNames / labelValues are modified
+        for (RelabelSpec relabel : replacements) {
+            // Shared code with the other filter infra.. perhaps we should just use a single impl?
+            HashMap<String, String> labels = getLabels(dropwizardName, metricName, labelNames, labelValues);
+
+            String separator = relabel.getSeparator();
+            if(separator == null) {
+                separator = RelabelSpec.DEFAULT_SEPARATOR;
+            }
+            StringJoiner joiner = new StringJoiner(separator);
+            for (String sourceLabel : relabel.getSourceLabels()) {
+                String labelValue = labels.get(sourceLabel);
+                if (labelValue == null) {
+                    labelValue = "";
+                }
+                joiner.add(labelValue);
+            }
+
+            String value = joiner.toString();
+
+            switch(relabel.getAction()) {
+                case replacement:
+                    if(relabel.getTargetLabel() == null || relabel.getTargetLabel().length() < 1) {
+                        // This is invalid definition, just skip it
+                        continue;
+                    }
+
+                    Pattern inputMatcher = relabel.getRegexp();
+                    Matcher replacer = inputMatcher.matcher(value);
+                    String output = replacer.replaceAll(relabel.getReplacement());
+
+                    if(relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
+                        metricName = output;
+                    } else {
+                        labelNames.add(relabel.getTargetLabel());
+                        labelValues.add(output);
+                    }
+                    break;
+                case drop:
+                    boolean noMatch = !relabel.getRegexp().matcher(value).matches();
+                    keep &= noMatch;
+                    break;
+                case keep:
+                    boolean match = relabel.getRegexp().matcher(value).matches();
+                    keep &= match;
+                    break;
+                default:
+            }
+
+            // What if there are multiple inputs?
+        }
+
+        return metricName;
+    }
+
+    private HashMap<String, String> getLabels(String dropwizardName, String metricName, List<String> labelNames, List<String> labelValues) {
+        HashMap<String, String> labels = new HashMap<>();
+        for(int i = 0; i < labelValues.size(); i++) {
+            labels.put(labelNames.get(i), labelValues.get(i));
+        }
+
+        labels.put(RelabelSpec.METRIC_NAME_LABELNAME, metricName);
+        labels.put(RelabelSpec.CASSANDRA_METRIC_NAME_LABELNAME, dropwizardName);
+
+        return labels;
     }
 
     private String removeDoubleUnderscore(String name) {
