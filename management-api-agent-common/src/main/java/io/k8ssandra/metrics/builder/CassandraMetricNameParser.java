@@ -31,9 +31,7 @@ public class CassandraMetricNameParser {
         }
 
         if(config.getRelabels() != null) {
-            for (RelabelSpec relabel : config.getRelabels()) {
-                replacements.add(relabel);
-            }
+            replacements.addAll(config.getRelabels());
         }
     }
 
@@ -97,12 +95,13 @@ public class CassandraMetricNameParser {
             String value = joiner.toString();
             Pattern inputPattern = relabel.getRegexp();
             Matcher inputMatcher = inputPattern.matcher(value);
-            if(!inputMatcher.matches()) {
-                continue;
-            }
 
             switch(relabel.getAction()) {
                 case replace:
+                    if(!inputMatcher.matches()) {
+                        continue;
+                    }
+
                     if(relabel.getTargetLabel() == null || relabel.getTargetLabel().length() < 1) {
                         // This is invalid definition, just skip it
                         continue;
