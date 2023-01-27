@@ -25,7 +25,7 @@ public class ConfigReaderTest {
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
         assertEquals(3, configuration.getRelabels().size());
-        assertEquals(9001, configuration.getEndpointConfiguration().getPort());
+        assertEquals(9000, configuration.getEndpointConfiguration().getPort());
         assertEquals("127.0.0.1", configuration.getEndpointConfiguration().getHost());
 
         assertNull(configuration.getEndpointConfiguration().getTlsConfig());

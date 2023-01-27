@@ -1,4 +1,4 @@
-package io.k8ssandra.metrics.builder.filter;
+package io.k8ssandra.metrics.builder.relabel;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
@@ -16,10 +16,10 @@ public class MultiFilterTest {
     @Test
     public void DropMultipleMetrics() {
         // drop jvm_classes_loaded
-        RelabelSpec dropJVM = new RelabelSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop");
+        RelabelSpec dropJVM = new RelabelSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop", "", "");
 
         // drop table metrics
-        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop", "", "");
 
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(dropJVM, spec));
@@ -52,10 +52,10 @@ public class MultiFilterTest {
     @Test
     public void KeepAndDropSubset() {
         // Keep only production cluster metrics
-        RelabelSpec clusterFilter = new RelabelSpec(Lists.newArrayList("cluster"), "@", "production", "keep");
+        RelabelSpec clusterFilter = new RelabelSpec(Lists.newArrayList("cluster"), "@", "production", "keep", "", "");
 
         // But drop all with table label
-        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
+        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop", "", "");
 
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(clusterFilter, tableLabelFilter));

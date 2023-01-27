@@ -1,10 +1,10 @@
-package io.k8ssandra.metrics.builder.filter;
+package io.k8ssandra.metrics.builder.relabel;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 
 import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
 import java.util.regex.Pattern;
 
 /**
@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  */
 public class RelabelSpec {
     public enum Action {
-        drop, keep, replacement
+        drop, keep, replace
     };
 
     public static final String METRIC_NAME_LABELNAME = "__name__";
@@ -45,17 +45,22 @@ public class RelabelSpec {
     private Pattern regexp;
 
     @JsonProperty("action")
-    private Action action;
+    private Action action = Action.replace;
 
     public RelabelSpec() {
 
     }
 
-    public RelabelSpec(List<String> sourceLabels, String separator, String regex, String action) {
+    @VisibleForTesting
+    public RelabelSpec(List<String> sourceLabels, String separator, String regex, String action, String targetLabel, String replacement) {
         this.sourceLabels = sourceLabels;
         this.separator = separator;
         this.regexp = Pattern.compile(regex);
-        this.action = Action.valueOf(action);
+        if(!Strings.isNullOrEmpty(action)) {
+            this.action = Action.valueOf(action);
+        }
+        this.targetLabel = targetLabel;
+        this.replacement = replacement;
     }
 
     public List<String> getSourceLabels() {

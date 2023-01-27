@@ -1,7 +1,7 @@
 package io.k8ssandra.metrics.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.k8ssandra.metrics.builder.filter.RelabelSpec;
+import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
 
 import java.util.ArrayList;
 import java.util.List;

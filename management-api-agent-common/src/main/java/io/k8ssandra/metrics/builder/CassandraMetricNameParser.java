@@ -1,7 +1,8 @@
 package io.k8ssandra.metrics.builder;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.k8ssandra.metrics.builder.filter.RelabelSpec;
+import com.google.common.collect.Lists;
+import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 
@@ -54,53 +55,19 @@ public class CassandraMetricNameParser {
      * @return
      */
     public CassandraMetricDefinition parseDropwizardMetric(String dropwizardName, String suffix, List<String> additionalLabelNames, List<String> additionalLabelValues) {
-        String metricName = dropwizardName;
-
-        List<String> labelNames = new ArrayList<>();
-        List<String> labelValues = new ArrayList<>();
-
-        labelNames.addAll(defaultLabelNames);
-        labelValues.addAll(defaultLabelValues);
-
-        if(dropwizardName.startsWith(KEYSPACE_METRIC_PREFIX)) {
-            int keyspaceIndex = dropwizardName.lastIndexOf(".");
-
-            // Remove keyspace from the metric name
-            metricName = dropwizardName.substring(0, keyspaceIndex);
-
-            // Add keyspace as the label
-            String keyspace = dropwizardName.substring(keyspaceIndex+1);
-            labelNames.add(KEYSPACE_LABEL_NAME);
-            labelValues.add(keyspace);
-        } else if(dropwizardName.startsWith(TABLE_METRIC_PREFIX)) {
-            int tableIndex = dropwizardName.lastIndexOf(".");
-            // len(org.apache.cassandra.metrics.Table.) == 35
-            int keyspaceIndex = dropwizardName.substring(0, tableIndex).lastIndexOf(".");
-
-            metricName = dropwizardName.substring(0, keyspaceIndex);
-
-            String keyspace = dropwizardName.substring(keyspaceIndex+1, tableIndex);
-            String table = dropwizardName.substring(tableIndex+1);
-
-            // Add keyspace and table as labels
-            labelNames.add(KEYSPACE_LABEL_NAME);
-            labelValues.add(keyspace);
-            labelNames.add(TABLE_LABEL_NAME);
-            labelValues.add(table);
-        }
-        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName)));
-
+        List<String> labelNames = Lists.newArrayList(defaultLabelNames);
+        List<String> labelValues = Lists.newArrayList(defaultLabelValues);
         labelNames.addAll(additionalLabelNames);
         labelValues.addAll(additionalLabelValues);
 
+        String metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(dropwizardName)));;
         CassandraMetricDefinition metricDef = new CassandraMetricDefinition(metricName, labelNames, labelValues);
 
-        // Add replacement rules here
+        // Process replace rules here
         replace(dropwizardName, metricDef);
 
         // Reclean with suffix added
-        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix));
-        metricDef.setMetricName(metricName);
+        metricDef.setMetricName(removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
 
         return metricDef;
     }
@@ -130,7 +97,7 @@ public class CassandraMetricNameParser {
             String value = joiner.toString();
 
             switch(relabel.getAction()) {
-                case replacement:
+                case replace:
                     if(relabel.getTargetLabel() == null || relabel.getTargetLabel().length() < 1) {
                         // This is invalid definition, just skip it
                         continue;

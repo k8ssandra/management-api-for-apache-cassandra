@@ -1,4 +1,4 @@
-package io.k8ssandra.metrics.builder.filter;
+package io.k8ssandra.metrics.builder.relabel;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
@@ -18,7 +18,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithName() {
-        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop", "", "");
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(spec));
         CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
@@ -46,7 +46,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithNameLabelCombo() {
-        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@dropped_columns", "keep");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@dropped_columns", "keep", "", "");
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(spec));
         CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
@@ -82,7 +82,7 @@ public class SingleFilterTests {
      */
     @Test
     public void TestDropWithNameLabelComboWithExcept() {
-        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!dropped_columns\\b)\\w+", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!dropped_columns\\b)\\w+", "drop", "", "");
 
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(spec));
@@ -110,7 +110,7 @@ public class SingleFilterTests {
 
     @Test
     public void OnlyMatchingLabel() {
-        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
+        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop", "", "");
         Configuration config = new Configuration();
         config.setRelabels(Lists.newArrayList(tableLabelFilter));
         CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);

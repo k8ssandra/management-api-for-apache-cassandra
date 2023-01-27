@@ -3,7 +3,7 @@ package io.k8ssandra.metrics.builder;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.Lists;
-import io.k8ssandra.metrics.builder.filter.RelabelSpec;
+import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.prometheus.client.Collector;
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 public class MetricsRegistryTest {
 
     // We need this default filter, because the CassandraMetricsRegistry might have some metrics already registered when it starts up (and it does)
-    private RelabelSpec specDefault = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test.*", "keep");
+    private RelabelSpec specDefault = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test.*", "keep", "", "");
 
     @Test
     public void verifyRegistryListener() throws Exception {
@@ -65,7 +65,7 @@ public class MetricsRegistryTest {
     @Test
     public void verifyRegistryFilteredListener() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
-        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test_g_a.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test_g_a.*", "drop", "", "");
         Configuration config = new Configuration();
         config.setRelabels(Arrays.asList(specDefault, spec));
         CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);

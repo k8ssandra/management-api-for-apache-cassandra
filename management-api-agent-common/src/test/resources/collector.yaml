@@ -1,6 +1,6 @@
 endpoint:
   address: "127.0.0.1"
-  port: 9001
+  port: 9000
 relabels:
   - sourceLabels: ["__tag1__", "__tag2__"]
     separator: ";"
