@@ -1,0 +1,168 @@
+endpoint:
+  address: "127.0.0.1"
+  port: 9000
+relabels:
+  # All the special rules from https://cassandra.apache.org/doc/latest/cassandra/operating/metrics.html
+
+  # Table metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: keyspace
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)"
+    replacement: $3
+    sourceLabels:
+    - __origname__
+    targetLabel: table
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)"
+    replacement: org_apache_cassandra_metrics_table_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # Keyspace metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.keyspace\\.(\\w+)\\.(\\w+)"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: keyspace
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.keyspace\\.(\\w+)\\.(\\w+)"
+    replacement: org_apache_cassandra_metrics_keyspace_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # ThreadPool Metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ThreadPools\\.(\\w+)\\.(\\w+)\\.(\\w+).*"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: pool_type
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ThreadPools\\.(\\w+)\\.(\\w+)\\.(\\w+).*"
+    replacement: $3
+    sourceLabels:
+    - __origname__
+    targetLabel: pool_name
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ThreadPools\\.(\\w+)\\.(\\w+)\\.(\\w+).*"
+    replacement: org_apache_cassandra_metrics_thread_pools_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # Client Request Metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ClientRequest\\.(\\w+)\\.(\\w+)$"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: request_type
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ClientRequest\\.(\\w+)\\.(\\w+)$"
+    replacement: org_apache_cassandra_metrics_client_request_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ClientRequest\\.(\\w+)\\.(\\w+)\\.(\\w+)$"
+    replacement: $3
+    sourceLabels:
+    - __origname__
+    targetLabel: cl
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ClientRequest\\.(\\w+)\\.(\\w+)\\.(\\w+)$"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: request_type
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ClientRequest\\.(\\w+)\\.(\\w+)\\.(\\w+)$"
+    replacement: org_apache_cassandra_metrics_client_request_$1_cl
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # Cache Metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Cache\\.(\\w+)\\.(\\w+)"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: cache
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Cache\\.(\\w+)\\.(\\w+)"
+    replacement: org_apache_cassandra_metrics_cache_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # CQL Metrics
+  # DroppedMessage metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.DroppedMessage\\.(\\w+)\\.(\\w+)"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: message_type
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.DroppedMessage\\.(\\w+)\\.(\\w+)"
+    replacement: org_apache_cassandra_metrics_dropped_message_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # Streaming metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Streaming\\.(\\w+)\\.(.+)$"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: peer_ip
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Streaming\\.(\\w+)\\.(.+)$"
+    replacement: org_apache_cassandra_metrics_streaming_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.streaming\\.(\\w+)$"
+    replacement: org_apache_cassandra_metrics_streaming_$1
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  # Compaction metrics
+  # CommitLog metrics
+  # Storage metrics
+  # HintedHandoff metrics
+  # HintsService metrics
+  # SSTable Index metrics
+  # BufferPool metrics
+  # Client metrics
+  # Batch metrics
+  # JVM metrics
+  - regex: "jvm\\.buffers\\.(\\w+)\\.(\\w+)"
+    replacement: $1
+    sourceLabels:
+      - __origname__
+    targetLabel: buffer_type
+  - regex: "jvm\\.buffers\\.(\\w+)\\.(\\w+)"
+    replacement: jvm_buffers_$2
+    sourceLabels:
+      - __origname__
+    targetLabel: __name__
+  - regex: "jvm\\.gc\\.(\\w+)\\.(\\w+)"
+    replacement: $1
+    sourceLabels:
+    - __origname__
+    targetLabel: collector_type
+  - regex: "jvm\\.gc\\.(\\w+)\\.(\\w+)"
+    replacement: jvm_gc_$2
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  - regex: "jvm\\.memory\\.(\\w+)\\.(\\w+)"
+    replacement: $1
+    sourceLabels:
+    - __origname__
+    targetLabel: memory_type
+  - regex: "jvm\\.memory\\.(\\w+)\\.(\\w+)"
+    replacement: jvm_memory_$2
+    sourceLabels:
+    - __origname__
+    targetLabel: __name__
+  - regex: "jvm\\.memory\\.pools\\.(\\w+)\\.(\\w+)"
+    replacement: $2
+    sourceLabels:
+    - __origname__
+    targetLabel: pool_name
+  - regex: "jvm\\.memory\\.pools\\.(\\w+)\\.(\\w+)"
+    replacement: jvm_memory_pools_$2
+    sourceLabels:
+    - mcac
+    targetLabel: __name__
+labels:
+  env:
+    pod_name: "POD_NAME"
+    node_name: "NODE_NAME"

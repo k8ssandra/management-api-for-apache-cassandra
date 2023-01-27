@@ -95,6 +95,11 @@ public class CassandraMetricNameParser {
             }
 
             String value = joiner.toString();
+            Pattern inputPattern = relabel.getRegexp();
+            Matcher inputMatcher = inputPattern.matcher(value);
+            if(!inputMatcher.matches()) {
+                continue;
+            }
 
             switch(relabel.getAction()) {
                 case replace:
@@ -103,9 +108,7 @@ public class CassandraMetricNameParser {
                         continue;
                     }
 
-                    Pattern inputMatcher = relabel.getRegexp();
-                    Matcher replacer = inputMatcher.matcher(value);
-                    String output = replacer.replaceAll(relabel.getReplacement());
+                    String output = inputMatcher.replaceAll(relabel.getReplacement());
 
                     if(relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
                         metricDefinition.setMetricName(output);
