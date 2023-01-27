@@ -4,7 +4,7 @@ endpoint:
     ca.crt: "/etc/ssl/ca.crt"
     tls.crt: "/etc/ssl/tls.crt"
     tls.key: "/etc/ssl/tls.key"
-filters:
+relabels:
   - sourceLabels: ["__tag1__", "__tag2__"]
     separator: ";"
     regex: "(.*);(b.*)"

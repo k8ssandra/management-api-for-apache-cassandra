@@ -1,11 +1,9 @@
 package io.k8ssandra.metrics.builder;
 
-import io.k8ssandra.metrics.builder.parsing.Replacements;
 import io.k8ssandra.metrics.config.Configuration;
 import org.junit.Test;
 
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -49,13 +47,13 @@ public class MetricsParsingTest {
         assertEquals("com_datastax_weird_constellation_schema_all_", metricDefinition.getMetricName());
     }
 
-    @Test
-    public void replacementTable() {
-        String dropwizardName = "org.apache.cassandra.metrics.Table.RepairedDataTrackingOverreadRows.system_schema.aggregates";
-        Replacements replacements = new Replacements();
-        String regexp = "org\\.apache\\.cassandra\\.metrics\\.(\\w+)\\.(.+)$";
-        String replacement = "$1 $2";
-        replacements.replaceDropwizardMetric(dropwizardName, regexp, replacement);
-
-    }
+//    @Test
+//    public void replacementTable() {
+//        String dropwizardName = "org.apache.cassandra.metrics.Table.RepairedDataTrackingOverreadRows.system_schema.aggregates";
+//        Replacements replacements = new Replacements();
+//        String regexp = "org\\.apache\\.cassandra\\.metrics\\.(\\w+)\\.(.+)$";
+//        String replacement = "$1 $2";
+//        replacements.replaceDropwizardMetric(dropwizardName, regexp, replacement);
+//
+//    }
 }

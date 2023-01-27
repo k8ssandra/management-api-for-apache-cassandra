@@ -1,5 +1,6 @@
 package io.k8ssandra.metrics.builder;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.k8ssandra.metrics.builder.filter.RelabelSpec;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
@@ -30,9 +31,7 @@ public class CassandraMetricNameParser {
 
         if(config.getRelabels() != null) {
             for (RelabelSpec relabel : config.getRelabels()) {
-                if(relabel.getAction() == RelabelSpec.Action.replacement) {
-                    replacements.add(relabel);
-                }
+                replacements.add(relabel);
             }
         }
     }
@@ -91,25 +90,29 @@ public class CassandraMetricNameParser {
         }
         metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName)));
 
-        // Add replacement rules here
-        metricName = replace(dropwizardName, metricName, labelNames, labelValues);
-
-        // Reclean with suffix added
-        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricName) + suffix));
-
         labelNames.addAll(additionalLabelNames);
         labelValues.addAll(additionalLabelValues);
 
-        return new CassandraMetricDefinition(metricName, labelNames, labelValues);
+        CassandraMetricDefinition metricDef = new CassandraMetricDefinition(metricName, labelNames, labelValues);
+
+        // Add replacement rules here
+        replace(dropwizardName, metricDef);
+
+        // Reclean with suffix added
+        metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix));
+        metricDef.setMetricName(metricName);
+
+        return metricDef;
     }
 
-    private String replace(String dropwizardName, String metricName, List<String> labelNames, List<String> labelValues) {
+    @VisibleForTesting
+    public void replace(String dropwizardName, CassandraMetricDefinition metricDefinition) {
         boolean keep = true;
 
         // Return value is the new metricName, labelNames / labelValues are modified
         for (RelabelSpec relabel : replacements) {
             // Shared code with the other filter infra.. perhaps we should just use a single impl?
-            HashMap<String, String> labels = getLabels(dropwizardName, metricName, labelNames, labelValues);
+            HashMap<String, String> labels = getLabels(dropwizardName, metricDefinition.getMetricName(), metricDefinition.getLabelNames(), metricDefinition.getLabelValues());
 
             String separator = relabel.getSeparator();
             if(separator == null) {
@@ -138,10 +141,10 @@ public class CassandraMetricNameParser {
                     String output = replacer.replaceAll(relabel.getReplacement());
 
                     if(relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
-                        metricName = output;
+                        metricDefinition.setMetricName(output);
                     } else {
-                        labelNames.add(relabel.getTargetLabel());
-                        labelValues.add(output);
+                        metricDefinition.getLabelNames().add(relabel.getTargetLabel());
+                        metricDefinition.getLabelValues().add(output);
                     }
                     break;
                 case drop:
@@ -154,11 +157,10 @@ public class CassandraMetricNameParser {
                     break;
                 default:
             }
-
-            // What if there are multiple inputs?
         }
 
-        return metricName;
+        // Set keep here and discard later in the process
+        metricDefinition.setKeep(keep);
     }
 
     private HashMap<String, String> getLabels(String dropwizardName, String metricName, List<String> labelNames, List<String> labelValues) {

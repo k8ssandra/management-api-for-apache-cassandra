@@ -13,7 +13,7 @@ public class ConfigReaderTest {
         System.clearProperty(ConfigReader.CONFIG_PATH_PROPERTY);
 
         Configuration configuration = ConfigReader.readConfig();
-        assertEquals(0, configuration.getFilters().size());
+        assertEquals(0, configuration.getRelabels().size());
         assertNull(configuration.getEndpointConfiguration());
     }
 
@@ -24,7 +24,7 @@ public class ConfigReaderTest {
 
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
-        assertEquals(2, configuration.getFilters().size());
+        assertEquals(3, configuration.getRelabels().size());
         assertEquals(9001, configuration.getEndpointConfiguration().getPort());
         assertEquals("127.0.0.1", configuration.getEndpointConfiguration().getHost());
 
@@ -42,7 +42,7 @@ public class ConfigReaderTest {
 
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
-        assertEquals(2, configuration.getFilters().size());
+        assertEquals(2, configuration.getRelabels().size());
         assertEquals(9103, configuration.getEndpointConfiguration().getPort());
         assertNull(configuration.getLabels());
 

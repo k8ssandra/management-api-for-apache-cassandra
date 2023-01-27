@@ -2,6 +2,8 @@ package io.k8ssandra.metrics.builder.filter;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
+import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
+import io.k8ssandra.metrics.config.Configuration;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
@@ -17,19 +19,23 @@ public class SingleFilterTests {
     @Test
     public void TestDropWithName() {
         RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(spec));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system", "peers_v2"));
 
-        assertFalse(filter.matches(tableDefinition, "org.apache.cassandra.metrics.Table.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Table.RangeLatency", tableDefinition);
+        assertFalse(tableDefinition.isKeep());
 
         CassandraMetricDefinition keyspaceDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_keyspace_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
 
-        assertTrue(filter.matches(keyspaceDefinition, "org.apache.cassandra.metrics.Keyspace.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Keyspace.RangeLatency", keyspaceDefinition);
+        assertTrue(keyspaceDefinition.isKeep());
     }
 
     /**
@@ -41,23 +47,28 @@ public class SingleFilterTests {
     @Test
     public void TestDropWithNameLabelCombo() {
         RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@dropped_columns", "keep");
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(spec));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system", "peers_v2"));
-        assertFalse(filter.matches(tableDefinition, "org.apache.cassandra.metrics.Table.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Table.RangeLatency", tableDefinition);
+        assertFalse(tableDefinition.isKeep());
 
         CassandraMetricDefinition tableDefinitionKeep = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_estimated_partition_size_histogram",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system", "dropped_columns"));
-        assertTrue(filter.matches(tableDefinitionKeep, "org.apache.cassandra.metrics.Keyspace.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Keyspace.RangeLatency", tableDefinitionKeep);
+        assertTrue(tableDefinitionKeep.isKeep());
 
         CassandraMetricDefinition keyspaceDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_keyspace_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
 
-        assertFalse(filter.matches(keyspaceDefinition, "org.apache.cassandra.metrics.Keyspace.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Keyspace.RangeLatency", keyspaceDefinition);
+        assertFalse(keyspaceDefinition.isKeep());
     }
 
     /**
@@ -72,38 +83,49 @@ public class SingleFilterTests {
     @Test
     public void TestDropWithNameLabelComboWithExcept() {
         RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!dropped_columns\\b)\\w+", "drop");
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(spec));
+
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(spec));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system", "peers_v2"));
-        assertFalse(filter.matches(tableDefinition, "org.apache.cassandra.metrics.Table.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Table.RangeLatency", tableDefinition);
+        assertFalse(tableDefinition.isKeep());
 
         CassandraMetricDefinition tableDefinitionKeep = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_estimated_partition_size_histogram",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system", "dropped_columns"));
-        assertTrue(filter.matches(tableDefinitionKeep, "org.apache.cassandra.metrics.Keyspace.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Keyspace.RangeLatency", tableDefinitionKeep);
+        assertTrue(tableDefinitionKeep.isKeep());
 
         CassandraMetricDefinition keyspaceDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_keyspace_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
                 Lists.newArrayList("6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
 
-        assertTrue(filter.matches(keyspaceDefinition, "org.apache.cassandra.metrics.Keyspace.RangeLatency"));
+        parser.replace("org.apache.cassandra.metrics.Keyspace.RangeLatency", keyspaceDefinition);
+        assertTrue(keyspaceDefinition.isKeep());
     }
 
     @Test
     public void OnlyMatchingLabel() {
         RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(tableLabelFilter));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(tableLabelFilter));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition hasTableLabel = new CassandraMetricDefinition("has_table_label", Lists.newArrayList("table"), Lists.newArrayList("value"));
-        assertFalse(filter.matches(hasTableLabel, ""));
+        parser.replace("", hasTableLabel);
+        assertFalse(hasTableLabel.isKeep());
 
         CassandraMetricDefinition hasNoLabels = new CassandraMetricDefinition("has_table_label", Lists.newArrayList(), Lists.newArrayList());
-        assertTrue(filter.matches(hasNoLabels, ""));
+        parser.replace("", hasNoLabels);
+        assertTrue(hasNoLabels.isKeep());
 
         CassandraMetricDefinition hasOtherLabels = new CassandraMetricDefinition("has_table_label", Lists.newArrayList("keyspace"), Lists.newArrayList("value"));
-        assertTrue(filter.matches(hasOtherLabels, ""));
+        parser.replace("", hasOtherLabels);
+        assertTrue(hasOtherLabels.isKeep());
     }
 
 }

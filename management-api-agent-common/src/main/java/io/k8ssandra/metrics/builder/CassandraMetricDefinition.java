@@ -12,7 +12,7 @@ public class CassandraMetricDefinition implements Consumer<List<Collector.Metric
 
     private final List<String> labelNames;
     private final List<String> labelValues;
-    private final String metricName;
+    private String metricName;
     private Supplier<Double> valueGetter;
 
     private boolean keep = true;
@@ -58,5 +58,17 @@ public class CassandraMetricDefinition implements Consumer<List<Collector.Metric
     @Override
     public void accept(List<Collector.MetricFamilySamples.Sample> samples) {
         this.filler.accept(samples);
+    }
+
+    public boolean isKeep() {
+        return keep;
+    }
+
+    public void setKeep(boolean keep) {
+        this.keep = keep;
+    }
+
+    public void setMetricName(String metricName) {
+        this.metricName = metricName;
     }
 }

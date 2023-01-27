@@ -28,7 +28,8 @@ public class MetricsRegistryTest {
     @Test
     public void verifyRegistryListener() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
-        Configuration config = new Configuration(Arrays.asList(specDefault));
+        Configuration config = new Configuration();
+        config.setRelabels(Arrays.asList(specDefault));
         CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
         int metricsCount = 10;
         for (int i = 0; i < metricsCount; i++) {
@@ -65,7 +66,8 @@ public class MetricsRegistryTest {
     public void verifyRegistryFilteredListener() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
         RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_test_g_a.*", "drop");
-        Configuration config = new Configuration(Arrays.asList(specDefault, spec));
+        Configuration config = new Configuration();
+        config.setRelabels(Arrays.asList(specDefault, spec));
         CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
         int metricsCount = 10;
         for (int i = 0; i < metricsCount; i++) {
@@ -86,7 +88,8 @@ public class MetricsRegistryTest {
     @Test
     public void timerTest() throws Exception {
         CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
-        Configuration config = new Configuration(Arrays.asList(specDefault));
+        Configuration config = new Configuration();
+        config.setRelabels(Arrays.asList(specDefault));
         CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
 
         Timer timer = registry.timer(createMetricName("test_timer"));

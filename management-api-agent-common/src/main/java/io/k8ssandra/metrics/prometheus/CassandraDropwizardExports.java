@@ -4,7 +4,6 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import io.k8ssandra.metrics.builder.CassandraMetricRegistryListener;
 import io.k8ssandra.metrics.builder.RefreshableMetricFamilySamples;
-import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 import org.slf4j.LoggerFactory;

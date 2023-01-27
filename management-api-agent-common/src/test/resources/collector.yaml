@@ -14,15 +14,6 @@ relabels:
     replacement: "$2"
     sourceLabels: ["__origname__"]
     targetLabel: "peer_ip"
-filters:
-  - sourceLabels: ["__tag1__", "__tag2__"]
-    separator: ";"
-    regex: "(.*);(b.*)"
-    action: "drop"
-  - sourceLabels: ["__tag1__", "__tag2__"]
-    separator: ","
-    regex: "^(a|b|c),.*"
-    action: "drop"
 labels:
   env:
     pod_name: "POD_NAME"

@@ -2,6 +2,8 @@ package io.k8ssandra.metrics.builder.filter;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
+import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
+import io.k8ssandra.metrics.config.Configuration;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -19,7 +21,10 @@ public class MultiFilterTest {
         // drop table metrics
         RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
 
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(dropJVM, spec));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(dropJVM, spec));
+
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
@@ -35,7 +40,8 @@ public class MultiFilterTest {
         List<CassandraMetricDefinition> passed = new ArrayList<>(1);
 
         for (CassandraMetricDefinition definition : definitions) {
-            if(filter.matches(definition, "")) {
+            parser.replace("", definition);
+            if(definition.isKeep()) {
                 passed.add(definition);
             }
         }
@@ -51,7 +57,10 @@ public class MultiFilterTest {
         // But drop all with table label
         RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop");
 
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(clusterFilter, tableLabelFilter));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(clusterFilter, tableLabelFilter));
+
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinitionTest = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
@@ -73,7 +82,8 @@ public class MultiFilterTest {
         List<CassandraMetricDefinition> passed = new ArrayList<>(1);
 
         for (CassandraMetricDefinition definition : definitions) {
-            if(filter.matches(definition, "")) {
+            parser.replace("", definition);
+            if(definition.isKeep()) {
                 passed.add(definition);
             }
         }
