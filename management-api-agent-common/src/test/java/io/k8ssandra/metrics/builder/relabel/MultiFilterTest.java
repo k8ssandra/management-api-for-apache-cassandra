@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class MultiFilterTest {
 
@@ -91,5 +91,21 @@ public class MultiFilterTest {
         assertEquals(1, passed.size());
         assertEquals("org_apache_cassandra_metrics_keyspace_range_latency_count", passed.get(0).getMetricName());
         assertEquals("production", passed.get(0).getLabelValues().get(1));
+    }
+
+    @Test
+    public void dropFromPreviousReplacement() {
+        RelabelSpec tableExtractor = new RelabelSpec(Lists.newArrayList("__origname__"), "", "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)", "replace", "table", "$3" );
+        RelabelSpec tableRenamer = new RelabelSpec(Lists.newArrayList("__origname__"), "", "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)", "replace", "__name__", "org_apache_cassandra_metrics_table_$1" );
+        RelabelSpec keepDroppedColumns = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!DroppedColumns\\b)\\w+", "drop", "", "");
+
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(tableExtractor, tableRenamer, keepDroppedColumns));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
+
+        CassandraMetricDefinition tableMetric = parser.parseDropwizardMetric("org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.DroppedColumns", "", Lists.newArrayList(), Lists.newArrayList());
+        CassandraMetricDefinition tableMetricToDrop = parser.parseDropwizardMetric("org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.SecondaryTable", "", Lists.newArrayList(), Lists.newArrayList());
+        assertTrue(tableMetric.isKeep());
+        assertFalse(tableMetricToDrop.isKeep());
     }
 }
