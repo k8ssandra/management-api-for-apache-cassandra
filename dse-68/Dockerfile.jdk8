@@ -148,6 +148,7 @@ RUN set -x \
     && useradd -m -d "$DSE_HOME" -r -g dse -G root --uid=999 dse
 
 COPY dse-68/files /
+COPY dse-68/files/metric-collector.yaml ${MAAC_PATH}/configs/metric-collector.yaml
 
 COPY --chown=dse:dse --from=dse-server-prep $DSE_HOME $DSE_HOME
 COPY --chown=dse:dse --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
@@ -197,7 +198,7 @@ EXPOSE 5598 5599
 EXPOSE 10000
 
 # DSE METRICS REPORTER PORT
-EXPOSE 9103
+EXPOSE 9103 9000
 
 # Run DSE in foreground by default
 ENTRYPOINT [ "/entrypoint.sh", "dse", "cassandra", "-f" ]

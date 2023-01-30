@@ -67,6 +67,7 @@ COPY --chown=dse:root --from=dse-server-base $MAAC_PATH $MAAC_PATH
 # Add CDC Agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH
+COPY dse-68/files/metric-collector.yaml ${MAAC_PATH}/configs/metric-collector.yaml
 
 # Adjust directories for ldconfig usage
 RUN chmod g+w /etc /etc/ld.so.cache
@@ -96,7 +97,7 @@ EXPOSE 5598 5599
 EXPOSE 10000
 
 # DSE METRICS REPORTER PORT
-EXPOSE 9103
+EXPOSE 9103 9000
 
 # Run DSE in foreground by default
 ENTRYPOINT [ "/entrypoint.sh", "dse", "cassandra", "-f", "-R" ]
