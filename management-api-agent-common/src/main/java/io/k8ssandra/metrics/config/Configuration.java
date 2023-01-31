@@ -36,4 +36,8 @@ public class Configuration {
     public void setRelabels(List<RelabelSpec> relabels) {
         this.relabels = relabels;
     }
+
+    public void setLabels(LabelConfiguration labels) {
+        this.labels = labels;
+    }
 }

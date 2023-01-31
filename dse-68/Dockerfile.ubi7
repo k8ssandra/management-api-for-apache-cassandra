@@ -67,7 +67,6 @@ COPY --chown=dse:root --from=dse-server-base $MAAC_PATH $MAAC_PATH
 # Add CDC Agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH
-COPY dse-68/files/metric-collector.yaml ${MAAC_PATH}/configs/metric-collector.yaml
 
 # Adjust directories for ldconfig usage
 RUN chmod g+w /etc /etc/ld.so.cache

@@ -83,7 +83,6 @@ COPY --from=builder --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
-COPY resources/metric-collector.yaml ${MAAC_PATH}/configs/metric-collector.yaml
 
 # Setup user and fixup permissions
 RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}

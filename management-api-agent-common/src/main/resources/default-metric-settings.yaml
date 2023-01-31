@@ -1,5 +1,3 @@
-endpoint:
-  port: 9000
 relabels:
   # All the special rules from https://cassandra.apache.org/doc/latest/cassandra/operating/metrics.html
 

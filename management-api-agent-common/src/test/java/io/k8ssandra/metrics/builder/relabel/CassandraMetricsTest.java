@@ -7,8 +7,6 @@ import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
 import org.junit.Test;
 
-import java.net.URL;
-
 import static org.junit.Assert.assertEquals;
 
 public class CassandraMetricsTest {
@@ -18,12 +16,7 @@ public class CassandraMetricsTest {
      */
     @Test
     public void smokeTest() {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        URL resource = classLoader.getResource("collector-full.yaml");
-
-        System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
         Configuration configuration = ConfigReader.readConfig();
-
         CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), configuration);
 
         // Table
