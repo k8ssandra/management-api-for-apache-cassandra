@@ -15,8 +15,7 @@ public class ConfigReader {
 
     public static Configuration readConfig() {
         // Read first the default settings from the agent, which are prepended to the Configuration relabels and labels
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        URL resource = classLoader.getResource("default-metric-settings.yaml");
+        URL resource = ConfigReader.class.getClass().getResource("/default-metric-settings.yaml");
         String defaultSettings = resource.getFile();
 
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
