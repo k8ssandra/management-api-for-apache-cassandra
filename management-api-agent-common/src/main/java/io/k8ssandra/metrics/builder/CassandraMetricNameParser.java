@@ -23,8 +23,10 @@ public class CassandraMetricNameParser {
     private final List<RelabelSpec> replacements = new ArrayList<>();
 
     public CassandraMetricNameParser(List<String> defaultLabelNames, List<String> defaultLabelValues, Configuration config) {
-        this.defaultLabelNames = defaultLabelNames;
-        this.defaultLabelValues = defaultLabelValues;
+        this.defaultLabelNames = new ArrayList<>(defaultLabelNames.size() + 2);
+        this.defaultLabelValues = new ArrayList<>(defaultLabelValues.size() + 2);
+        this.defaultLabelNames.addAll(defaultLabelNames);
+        this.defaultLabelValues.addAll(defaultLabelValues);
 
         if (config.getLabels() != null && config.getLabels().getEnvVariables() != null && config.getLabels().getEnvVariables().size() > 0) {
             this.parseEnvVariablesAsLabels(config.getLabels().getEnvVariables());
