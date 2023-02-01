@@ -57,14 +57,15 @@ public class CassandraMetricNameParser {
     public CassandraMetricDefinition parseDropwizardMetric(String dropwizardName, String suffix, List<String> additionalLabelNames, List<String> additionalLabelValues) {
         List<String> labelNames = Lists.newArrayList(defaultLabelNames);
         List<String> labelValues = Lists.newArrayList(defaultLabelValues);
-        labelNames.addAll(additionalLabelNames);
-        labelValues.addAll(additionalLabelValues);
 
         String metricName = removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(dropwizardName)));;
         CassandraMetricDefinition metricDef = new CassandraMetricDefinition(metricName, labelNames, labelValues);
 
         // Process replace rules here
         replace(dropwizardName, metricDef);
+
+        labelNames.addAll(additionalLabelNames);
+        labelValues.addAll(additionalLabelValues);
 
         // Reclean with suffix added
         metricDef.setMetricName(removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
