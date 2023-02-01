@@ -1,14 +1,15 @@
 package io.k8ssandra.metrics.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.k8ssandra.metrics.builder.filter.FilteringSpec;
+import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Configuration {
-    @JsonProperty("filters")
-    private List<FilteringSpec> filters;
+
+    @JsonProperty("relabels")
+    private List<RelabelSpec> relabels;
 
     @JsonProperty("endpoint")
     private EndpointConfiguration endpointConfiguration;
@@ -17,15 +18,7 @@ public class Configuration {
     private LabelConfiguration labels;
 
     public Configuration() {
-        filters = new ArrayList<>();
-    }
-
-    public Configuration(List<FilteringSpec> filters) {
-        this.filters = filters;
-    }
-
-    public List<FilteringSpec> getFilters() {
-        return filters;
+        relabels = new ArrayList<>();
     }
 
     public EndpointConfiguration getEndpointConfiguration() {
@@ -34,5 +27,17 @@ public class Configuration {
 
     public LabelConfiguration getLabels() {
         return labels;
+    }
+
+    public List<RelabelSpec> getRelabels() {
+        return relabels;
+    }
+
+    public void setRelabels(List<RelabelSpec> relabels) {
+        this.relabels = relabels;
+    }
+
+    public void setLabels(LabelConfiguration labels) {
+        this.labels = labels;
     }
 }

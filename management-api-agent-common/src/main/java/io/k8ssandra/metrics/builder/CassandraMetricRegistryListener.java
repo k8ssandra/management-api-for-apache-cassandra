@@ -1,7 +1,6 @@
 package io.k8ssandra.metrics.builder;
 
 import com.codahale.metrics.*;
-import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 import org.apache.cassandra.utils.EstimatedHistogram;
@@ -22,8 +21,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
     private final CassandraMetricNameParser parser;
 
-    private final CassandraMetricDefinitionFilter metricFilter;
-
     private final ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache;
 
     // This cache is used for the remove purpose, we need dropwizardName -> metricName mapping
@@ -35,13 +32,12 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         parser = new CassandraMetricNameParser(CassandraMetricsTools.DEFAULT_LABEL_NAMES, CassandraMetricsTools.DEFAULT_LABEL_VALUES, config);
         cache = new ConcurrentHashMap<>();
 
-        // Initialize filtering
-        this.metricFilter = new CassandraMetricDefinitionFilter(config.getFilters());
         this.familyCache = familyCache;
     }
 
     public void updateCache(String dropwizardName, String metricName, RefreshableMetricFamilySamples prototype) {
-        prototype.getDefinitions().removeIf(next -> !metricFilter.matches(next, dropwizardName));
+        // Filter unwanted definitions
+        prototype.getDefinitions().removeIf(next -> !next.isKeep());
 
         if (prototype.getDefinitions().size() < 1) {
             return;

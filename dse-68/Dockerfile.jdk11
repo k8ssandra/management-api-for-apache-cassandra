@@ -196,7 +196,7 @@ EXPOSE 5598 5599
 EXPOSE 10000
 
 # DSE METRICS REPORTER PORT
-EXPOSE 9103
+EXPOSE 9103 9000
 
 # Run DSE in foreground by default
 ENTRYPOINT [ "/entrypoint.sh", "dse", "cassandra", "-f" ]

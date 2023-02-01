@@ -12,8 +12,8 @@ public class ConfigReaderTest {
     public void readEmptyConfig() {
         System.clearProperty(ConfigReader.CONFIG_PATH_PROPERTY);
 
-        Configuration configuration = ConfigReader.readConfig();
-        assertEquals(0, configuration.getFilters().size());
+        Configuration configuration = ConfigReader.readCustomConfig();
+        assertEquals(0, configuration.getRelabels().size());
         assertNull(configuration.getEndpointConfiguration());
     }
 
@@ -23,9 +23,9 @@ public class ConfigReaderTest {
         URL resource = classLoader.getResource("collector.yaml");
 
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
-        Configuration configuration = ConfigReader.readConfig();
-        assertEquals(2, configuration.getFilters().size());
-        assertEquals(9001, configuration.getEndpointConfiguration().getPort());
+        Configuration configuration = ConfigReader.readCustomConfig();
+        assertEquals(3, configuration.getRelabels().size());
+        assertEquals(9000, configuration.getEndpointConfiguration().getPort());
         assertEquals("127.0.0.1", configuration.getEndpointConfiguration().getHost());
 
         assertNull(configuration.getEndpointConfiguration().getTlsConfig());
@@ -41,8 +41,8 @@ public class ConfigReaderTest {
         URL resource = classLoader.getResource("collector_tls.yaml");
 
         System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
-        Configuration configuration = ConfigReader.readConfig();
-        assertEquals(2, configuration.getFilters().size());
+        Configuration configuration = ConfigReader.readCustomConfig();
+        assertEquals(2, configuration.getRelabels().size());
         assertEquals(9103, configuration.getEndpointConfiguration().getPort());
         assertNull(configuration.getLabels());
 

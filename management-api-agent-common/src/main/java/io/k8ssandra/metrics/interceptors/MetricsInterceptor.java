@@ -1,7 +1,5 @@
 package io.k8ssandra.metrics.interceptors;
 
-import com.datastax.mgmtapi.NodeOpsProvider;
-import io.k8ssandra.metrics.builder.filter.CassandraMetricDefinitionFilter;
 import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.http.NettyMetricsHttpServer;

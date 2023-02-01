@@ -1,25 +1,30 @@
-package io.k8ssandra.metrics.builder.filter;
+package io.k8ssandra.metrics.builder.relabel;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
+import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
+import io.k8ssandra.metrics.config.Configuration;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class MultiFilterTest {
 
     @Test
     public void DropMultipleMetrics() {
         // drop jvm_classes_loaded
-        FilteringSpec dropJVM = new FilteringSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop");
+        RelabelSpec dropJVM = new RelabelSpec(Lists.newArrayList("__name__"), "", "jvm_classes_loaded.*", "drop", "", "");
 
         // drop table metrics
-        FilteringSpec spec = new FilteringSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop");
+        RelabelSpec spec = new RelabelSpec(Lists.newArrayList("__name__"), "", "org_apache_cassandra_metrics_table_.*", "drop", "", "");
 
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(dropJVM, spec));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(dropJVM, spec));
+
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinition = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
@@ -35,7 +40,8 @@ public class MultiFilterTest {
         List<CassandraMetricDefinition> passed = new ArrayList<>(1);
 
         for (CassandraMetricDefinition definition : definitions) {
-            if(filter.matches(definition, "")) {
+            parser.replace("", definition);
+            if(definition.isKeep()) {
                 passed.add(definition);
             }
         }
@@ -46,12 +52,15 @@ public class MultiFilterTest {
     @Test
     public void KeepAndDropSubset() {
         // Keep only production cluster metrics
-        FilteringSpec clusterFilter = new FilteringSpec(Lists.newArrayList("cluster"), "@", "production", "keep");
+        RelabelSpec clusterFilter = new RelabelSpec(Lists.newArrayList("cluster"), "@", "production", "keep", "", "");
 
         // But drop all with table label
-        FilteringSpec tableLabelFilter = new FilteringSpec(Lists.newArrayList("table"), "@", ".+", "drop");
+        RelabelSpec tableLabelFilter = new RelabelSpec(Lists.newArrayList("table"), "@", ".+", "drop", "", "");
 
-        CassandraMetricDefinitionFilter filter = new CassandraMetricDefinitionFilter(Lists.newArrayList(clusterFilter, tableLabelFilter));
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(clusterFilter, tableLabelFilter));
+
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
         CassandraMetricDefinition tableDefinitionTest = new CassandraMetricDefinition("org_apache_cassandra_metrics_table_range_latency_count",
                 Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
@@ -73,7 +82,8 @@ public class MultiFilterTest {
         List<CassandraMetricDefinition> passed = new ArrayList<>(1);
 
         for (CassandraMetricDefinition definition : definitions) {
-            if(filter.matches(definition, "")) {
+            parser.replace("", definition);
+            if(definition.isKeep()) {
                 passed.add(definition);
             }
         }
@@ -81,5 +91,21 @@ public class MultiFilterTest {
         assertEquals(1, passed.size());
         assertEquals("org_apache_cassandra_metrics_keyspace_range_latency_count", passed.get(0).getMetricName());
         assertEquals("production", passed.get(0).getLabelValues().get(1));
+    }
+
+    @Test
+    public void dropFromPreviousReplacement() {
+        RelabelSpec tableExtractor = new RelabelSpec(Lists.newArrayList("__origname__"), "", "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)", "replace", "table", "$3" );
+        RelabelSpec tableRenamer = new RelabelSpec(Lists.newArrayList("__origname__"), "", "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)", "replace", "__name__", "org_apache_cassandra_metrics_table_$1" );
+        RelabelSpec keepDroppedColumns = new RelabelSpec(Lists.newArrayList("__name__", "table"), "@", "(org_apache_cassandra_metrics_table_.*)@\\b(?!DroppedColumns\\b)\\w+", "drop", "", "");
+
+        Configuration config = new Configuration();
+        config.setRelabels(Lists.newArrayList(tableExtractor, tableRenamer, keepDroppedColumns));
+        CassandraMetricNameParser parser = new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
+
+        CassandraMetricDefinition tableMetric = parser.parseDropwizardMetric("org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.DroppedColumns", "", Lists.newArrayList(), Lists.newArrayList());
+        CassandraMetricDefinition tableMetricToDrop = parser.parseDropwizardMetric("org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.SecondaryTable", "", Lists.newArrayList(), Lists.newArrayList());
+        assertTrue(tableMetric.isKeep());
+        assertFalse(tableMetricToDrop.isKeep());
     }
 }
