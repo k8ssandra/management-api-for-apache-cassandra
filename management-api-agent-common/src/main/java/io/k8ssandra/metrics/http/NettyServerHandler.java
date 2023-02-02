@@ -28,7 +28,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
         if (httpObject instanceof HttpRequest) {
             HttpRequest req = (HttpRequest) httpObject;
 
-            URI uri = new URI(req.uri());
+            URI uri = new URI(req.getUri());
             if (!uri.getPath().equals("/metrics")) {
                 // Send 404?
                 FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
@@ -51,21 +51,21 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
 
     private boolean writeResponse(HttpRequest request, ChannelHandlerContext ctx, String contentType) {
         // Decide whether to close the connection or not.
-        boolean keepAlive = HttpUtil.isKeepAlive(request);
+        boolean keepAlive = HttpHeaders.isKeepAlive(request); // Keep HttpHeaders instead of HttpUtil to get Netty 4.0.x compatibility
         // Build the response object.
         // TODO We should probably use something more performant.. copyBuffer for single thread (blocking) seems weird
         FullHttpResponse response = new DefaultFullHttpResponse(
-                HttpVersion.HTTP_1_1, request.decoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
+                HttpVersion.HTTP_1_1, request.getDecoderResult().isSuccess() ? HttpResponseStatus.OK : HttpResponseStatus.BAD_REQUEST,
                 Unpooled.copiedBuffer(writer.toString(), CharsetUtil.UTF_8));
 
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
 
         if (keepAlive) {
             // Add 'Content-Length' header only for a keep-alive connection.
-            response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, response.content().readableBytes());
             // Add keep alive header as per:
             // - https://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
 
         // Write the response.
