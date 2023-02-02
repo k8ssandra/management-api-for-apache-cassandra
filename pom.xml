@@ -24,7 +24,7 @@
         <mockito.version>3.5.13</mockito.version>
         <prometheus.version>0.16.0</prometheus.version>
         <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version> <!-- This old version is used by Cassandra 4.x -->
-        <jackson-dataformat.version>2.14.0</jackson-dataformat.version>
+        <jackson-dataformat.version>2.13.2</jackson-dataformat.version>
     </properties>
 
     <dependencies>
