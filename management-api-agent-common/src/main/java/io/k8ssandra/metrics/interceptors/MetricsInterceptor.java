@@ -14,6 +14,8 @@ import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.cassandra.metrics.CassandraMetricsRegistry;
+import org.apache.cassandra.utils.CassandraVersion;
+import org.apache.cassandra.utils.FBUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,8 @@ import java.util.concurrent.Callable;
 public class MetricsInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(MetricsInterceptor.class);
+
+    private static final CassandraVersion MIN_CASSANDRA_VERSION = new CassandraVersion("3.11.13");
 
     public static ElementMatcher<? super TypeDescription> type()
     {
@@ -34,6 +38,12 @@ public class MetricsInterceptor
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
+        CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
+        if(!MIN_CASSANDRA_VERSION.isSupportedBy(cassandraVersion)) {
+            logger.error("/metrics endpoint is not supported in versions older than {}", MIN_CASSANDRA_VERSION);
+            return;
+        }
+
         logger.info("Starting Metric Collector for Apache Cassandra");
 
         // Read Configuration file
