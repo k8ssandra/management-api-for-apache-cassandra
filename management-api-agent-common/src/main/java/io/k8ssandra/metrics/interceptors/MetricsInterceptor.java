@@ -25,7 +25,6 @@ public class MetricsInterceptor
 {
     private static final Logger logger = LoggerFactory.getLogger(MetricsInterceptor.class);
 
-    private static final CassandraVersion MIN_CASSANDRA_VERSION = new CassandraVersion("3.11.13");
 
     public static ElementMatcher<? super TypeDescription> type()
     {
@@ -38,10 +37,15 @@ public class MetricsInterceptor
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
-        CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
-        if(MIN_CASSANDRA_VERSION.compareTo(cassandraVersion) > 0) {
-            logger.error("/metrics endpoint is not supported in versions older than {}", MIN_CASSANDRA_VERSION);
-            return;
+        try{
+            final CassandraVersion minCassandraVersion = new CassandraVersion("3.11.13");
+            CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
+            if(minCassandraVersion.compareTo(cassandraVersion) > 0) {
+                logger.error("/metrics endpoint is not supported in versions older than {}", minCassandraVersion);
+                return;
+            }
+        } catch (java.lang.NoClassDefFoundError expected) {
+            // We're dealing with DSE here and can safely ignore this
         }
 
         logger.info("Starting Metric Collector for Apache Cassandra");
