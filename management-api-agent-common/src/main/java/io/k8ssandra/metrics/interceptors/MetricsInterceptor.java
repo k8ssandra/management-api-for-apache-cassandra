@@ -37,10 +37,17 @@ public class MetricsInterceptor
     }
 
     public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
-        try{
-            final CassandraVersion minCassandraVersion = new CassandraVersion("3.11.13");
+        try {
             CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
-            if(minCassandraVersion.compareTo(cassandraVersion) > 0) {
+
+            CassandraVersion minCassandraVersion;
+            if (cassandraVersion.major < 4) {
+                minCassandraVersion = new CassandraVersion("3.11.13");
+            } else {
+                minCassandraVersion = new CassandraVersion("4.0.4");
+            }
+
+            if (minCassandraVersion.compareTo(cassandraVersion) > 0) {
                 logger.error("/metrics endpoint is not supported in versions older than {}", minCassandraVersion);
                 return;
             }
