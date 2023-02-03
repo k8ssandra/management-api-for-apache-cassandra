@@ -55,28 +55,32 @@ public class MetricsInterceptor
             // We're dealing with DSE here and can safely ignore this
         }
 
-        logger.info("Starting Metric Collector for Apache Cassandra");
+        try {
+            logger.info("Starting Metric Collector for Apache Cassandra");
 
-        // Read Configuration file
-        Configuration config = ConfigReader.readConfig();
+            // Read Configuration file
+            Configuration config = ConfigReader.readConfig();
 
-        // Add Cassandra metrics
-        new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, config).register();
+            // Add Cassandra metrics
+            new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, config).register();
 
-        // Add JVM metrics
-        DefaultExports.initialize();
+            // Add JVM metrics
+            DefaultExports.initialize();
 
-        // Create /metrics handler. Note, this doesn't support larger than nThreads=1
-        final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
+            // Create /metrics handler. Note, this doesn't support larger than nThreads=1
+            final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
 
-        // Share them from HTTP server
-        NettyMetricsHttpServer server = new NettyMetricsHttpServer(config);
-        server.start(httpGroup);
+            // Share them from HTTP server
+            NettyMetricsHttpServer server = new NettyMetricsHttpServer(config);
+            server.start(httpGroup);
 
-        logger.info("Metrics collector started");
+            logger.info("Metrics collector started");
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            httpGroup.shutdownGracefully();
-        }));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                httpGroup.shutdownGracefully();
+            }));
+        } catch(Throwable t) {
+            logger.error("Unable to start metrics endpoint", t);
+        }
     }
 }
