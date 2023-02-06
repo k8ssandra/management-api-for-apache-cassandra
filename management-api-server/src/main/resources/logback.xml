@@ -1,13 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   Copyright DataStax, Inc.
 
   Please see the included license file for details.
 -->
-
 <configuration debug="false" scan="true" scanPeriod="60 seconds">
   <!-- Shutdown hook ensures that async appender flushes -->
   <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-
   <appender name="STDOUT" target="System.out" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%-5level [%thread] %date{ISO8601} %F:%L - %msg%n</pattern>
@@ -16,8 +15,7 @@
       <level>INFO</level>
     </filter>
   </appender>
-
   <root level="INFO">
-    <appender-ref ref="STDOUT" />
+    <appender-ref ref="STDOUT"/>
   </root>
 </configuration>
