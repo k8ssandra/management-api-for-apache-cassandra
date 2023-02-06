@@ -4,28 +4,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EndpointConfiguration {
 
-    @JsonProperty("port")
-    private int port;
+  @JsonProperty("port")
+  private int port;
 
-    @JsonProperty("address")
-    private String host;
+  @JsonProperty("address")
+  private String host;
 
-    @JsonProperty("tls")
-    private TLSConfiguration tlsConfig;
+  @JsonProperty("tls")
+  private TLSConfiguration tlsConfig;
 
-    public EndpointConfiguration() {
+  public EndpointConfiguration() {}
 
-    }
+  public int getPort() {
+    return port;
+  }
 
-    public int getPort() {
-        return port;
-    }
+  public String getHost() {
+    return host;
+  }
 
-    public String getHost() {
-        return host;
-    }
-
-    public TLSConfiguration getTlsConfig() {
-        return tlsConfig;
-    }
+  public TLSConfiguration getTlsConfig() {
+    return tlsConfig;
+  }
 }

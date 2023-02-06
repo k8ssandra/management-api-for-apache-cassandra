@@ -7,7 +7,6 @@ package com.datastax.mgmtapi;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
 
-public interface CassandraAPIServiceProvider
-{
-    CassandraAPI getCassandraAPI();
+public interface CassandraAPIServiceProvider {
+  CassandraAPI getCassandraAPI();
 }

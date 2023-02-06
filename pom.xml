@@ -109,7 +109,7 @@
             <exclude>**/target/**</exclude>
             <exclude>**/dependency-reduced-pom.xml</exclude>
             <exclude>**/.flattened-pom.xml</exclude>
-            <exclude>docs/**</exclude>
+            <excluse>settings.xml</excluse>
           </excludes>
         </configuration>
       </plugin>

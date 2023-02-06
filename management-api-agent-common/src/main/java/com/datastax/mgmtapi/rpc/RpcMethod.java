@@ -1,7 +1,7 @@
 /**
  * Copyright DataStax, Inc.
  *
- * Please see the included license file for details.
+ * <p>Please see the included license file for details.
  */
 package com.datastax.mgmtapi.rpc;
 
@@ -12,11 +12,11 @@ import org.apache.cassandra.service.ClientState;
 
 public interface RpcMethod {
 
-    String getName();
+  String getName();
 
-    public int getArgumentCount();
+  public int getArgumentCount();
 
-    public ColumnSpecification getArgumentSpecification(int i);
+  public ColumnSpecification getArgumentSpecification(int i);
 
-    public Object execute(ClientState state, List<ByteBuffer> parameters);
+  public Object execute(ClientState state, List<ByteBuffer> parameters);
 }

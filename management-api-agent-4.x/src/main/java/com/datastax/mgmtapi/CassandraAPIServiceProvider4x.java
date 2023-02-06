@@ -1,7 +1,7 @@
 /**
  * Copyright DataStax, Inc.
  *
- * Please see the included license file for details.
+ * <p>Please see the included license file for details.
  */
 package com.datastax.mgmtapi;
 
@@ -14,5 +14,4 @@ public class CassandraAPIServiceProvider4x implements CassandraAPIServiceProvide
   public CassandraAPI getCassandraAPI() {
     return new CassandraAPI4x();
   }
-
 }

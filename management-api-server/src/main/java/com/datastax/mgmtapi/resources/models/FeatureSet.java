@@ -3,63 +3,61 @@ package com.datastax.mgmtapi.resources.models;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
-
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
 public class FeatureSet implements Serializable {
 
-    public enum Feature {
-        ASYNC_SSTABLE_TASKS("async_sstable_tasks"),
-        FULL_QUERY_LOGGING("full_query_logging"),
-        REBUILD("rebuild"),
-        ASYNC_UPGRADE_SSTABLE_TASK("async_upgrade_sstable_task"),
-        ASYNC_COMPACTION_TASKS("async_compaction_task"),
-        ASYNC_SCRUB_TASK("async_scrub_task"),
-        ASYNC_MOVE_TASK("async_move_task");
+  public enum Feature {
+    ASYNC_SSTABLE_TASKS("async_sstable_tasks"),
+    FULL_QUERY_LOGGING("full_query_logging"),
+    REBUILD("rebuild"),
+    ASYNC_UPGRADE_SSTABLE_TASK("async_upgrade_sstable_task"),
+    ASYNC_COMPACTION_TASKS("async_compaction_task"),
+    ASYNC_SCRUB_TASK("async_scrub_task"),
+    ASYNC_MOVE_TASK("async_move_task");
 
-        @JsonValue
-        private String featureName;
+    @JsonValue private String featureName;
 
-        Feature(String name) {
-            this.featureName = name;
-        }
+    Feature(String name) {
+      this.featureName = name;
     }
-    
+  }
 
-    @JsonProperty(value = "cassandra_version")
-    private String cassandraVersion;
+  @JsonProperty(value = "cassandra_version")
+  private String cassandraVersion;
 
-    @JsonProperty(value = "mgmt_version")
-    private String mgmtVersion;
+  @JsonProperty(value = "mgmt_version")
+  private String mgmtVersion;
 
-    @JsonProperty(value = "features")
-    private List<Feature> features;
+  @JsonProperty(value = "features")
+  private List<Feature> features;
 
-    /**
-     * Simplified method to return all Features as the available list
-     */
-    public FeatureSet(String cassandraVersion, String managementApiVersion) {
-        this(cassandraVersion, managementApiVersion, Arrays.asList(Feature.values()));
-    }
+  /** Simplified method to return all Features as the available list */
+  public FeatureSet(String cassandraVersion, String managementApiVersion) {
+    this(cassandraVersion, managementApiVersion, Arrays.asList(Feature.values()));
+  }
 
-    @JsonCreator
-    public FeatureSet(@JsonProperty(value = "cassandra_version") String cassandraVersion, @JsonProperty(value = "mgmt_version") String managementApiVersion, @JsonProperty(value = "features") List<Feature> availableFeatures) {
-        this.cassandraVersion = cassandraVersion;
-        this.mgmtVersion = managementApiVersion;
-        this.features = availableFeatures;
-    }
+  @JsonCreator
+  public FeatureSet(
+      @JsonProperty(value = "cassandra_version") String cassandraVersion,
+      @JsonProperty(value = "mgmt_version") String managementApiVersion,
+      @JsonProperty(value = "features") List<Feature> availableFeatures) {
+    this.cassandraVersion = cassandraVersion;
+    this.mgmtVersion = managementApiVersion;
+    this.features = availableFeatures;
+  }
 
-    public String getCassandraVersion() {
-        return cassandraVersion;
-    }
+  public String getCassandraVersion() {
+    return cassandraVersion;
+  }
 
-    public String getMgmtVersion() {
-        return mgmtVersion;
-    }
+  public String getMgmtVersion() {
+    return mgmtVersion;
+  }
 
-    public List<Feature> getFeatures() {
-        return features;
-    }
+  public List<Feature> getFeatures() {
+    return features;
+  }
 }

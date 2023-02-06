@@ -5,14 +5,13 @@
  */
 package com.datastax.mgmtapi.shims;
 
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
@@ -24,72 +23,63 @@ import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.transport.Server;
 
-/**
- * Place to abstract C* apis that change across versions
- */
-public interface CassandraAPI
-{
-    
-    default public void enableFullQuerylog()
-    {
-        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
-    }
-    
-    default public void disableFullQuerylog() 
-    {
-        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
-    }
-    
-    default public boolean isFullQueryLogEnabled() 
-    {
-        throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
-        
-    }
+/** Place to abstract C* apis that change across versions */
+public interface CassandraAPI {
 
-    void decommission(boolean force) throws InterruptedException;
+  public default void enableFullQuerylog() {
+    throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+  }
 
-    default void rebuild(String srcDc)
-    {
-        getStorageService().rebuild(srcDc);
-    }
+  public default void disableFullQuerylog() {
+    throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+  }
 
-    Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
+  public default boolean isFullQueryLogEnabled() {
+    throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
+  }
 
-    SeedProvider getK8SeedProvider();
+  void decommission(boolean force) throws InterruptedException;
 
-    Set<InetAddress> reloadSeeds();
+  default void rebuild(String srcDc) {
+    getStorageService().rebuild(srcDc);
+  }
 
-    ChannelInitializer<Channel> makeSocketInitializer(final Server.ConnectionTracker connectionTracker);
+  Map<List<Long>, List<String>> checkConsistencyLevel(String consistencyLevelName, Integer rfPerDc);
 
-    List<Map<String,String>> getEndpointStates();
+  SeedProvider getK8SeedProvider();
 
-    List<Map<String, List<Map<String, String>>>> getStreamInfo();
+  Set<InetAddress> reloadSeeds();
 
-    default UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel)
-    {
-        return QueryProcessor.process(query, consistencyLevel);
-    }
+  ChannelInitializer<Channel> makeSocketInitializer(
+      final Server.ConnectionTracker connectionTracker);
 
-    StorageService getStorageService();
+  List<Map<String, String>> getEndpointStates();
 
-    IRoleManager getRoleManager();
+  List<Map<String, List<Map<String, String>>>> getStreamInfo();
 
-    CompactionManager getCompactionManager();
+  default UntypedResultSet processQuery(String query, ConsistencyLevel consistencyLevel) {
+    return QueryProcessor.process(query, consistencyLevel);
+  }
 
-    Gossiper getGossiper();
+  StorageService getStorageService();
 
-    default Object handleRpcResult(Callable<Object> rpcResult) throws Exception
-    {
-        return rpcResult.call();
-    }
+  IRoleManager getRoleManager();
 
-    String getLocalDataCenter();
+  CompactionManager getCompactionManager();
 
-    RpcStatementShim makeRpcStatement(String method, String[] params);
+  Gossiper getGossiper();
 
-    HintsService getHintsService();
+  default Object handleRpcResult(Callable<Object> rpcResult) throws Exception {
+    return rpcResult.call();
+  }
 
-    default List<String> getKeyspaces() {
-        return StorageService.instance.getKeyspaces();
-    }
+  String getLocalDataCenter();
+
+  RpcStatementShim makeRpcStatement(String method, String[] params);
+
+  HintsService getHintsService();
+
+  default List<String> getKeyspaces() {
+    return StorageService.instance.getKeyspaces();
+  }
 }

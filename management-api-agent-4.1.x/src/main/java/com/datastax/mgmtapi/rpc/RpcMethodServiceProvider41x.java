@@ -1,7 +1,7 @@
 /**
  * Copyright DataStax, Inc.
  *
- * Please see the included license file for details.
+ * <p>Please see the included license file for details.
  */
 package com.datastax.mgmtapi.rpc;
 
@@ -13,5 +13,4 @@ public class RpcMethodServiceProvider41x implements RpcMethodServiceProvider {
   public RpcMethod getRpcMethod(Method method, RpcObject rpcObject) {
     return new RpcMethod41x(method, rpcObject);
   }
-
 }
