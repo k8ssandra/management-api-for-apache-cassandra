@@ -110,6 +110,7 @@
             <exclude>**/dependency-reduced-pom.xml</exclude>
             <exclude>**/.flattened-pom.xml</exclude>
             <excluse>settings.xml</excluse>
+            <exclude>**/.cassandra-bin/**</exclude>
           </excludes>
         </configuration>
       </plugin>
