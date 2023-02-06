@@ -1,3 +1,8 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package io.k8ssandra.metrics.http;
 
 import io.netty.buffer.Unpooled;

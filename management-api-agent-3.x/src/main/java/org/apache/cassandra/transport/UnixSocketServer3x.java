@@ -1,7 +1,7 @@
-/**
+/*
  * Copyright DataStax, Inc.
  *
- * <p>Please see the included license file for details.
+ * Please see the included license file for details.
  */
 package org.apache.cassandra.transport;
 

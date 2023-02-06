@@ -1,3 +1,8 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package com.datastax.mgmtapi.resources.v1;
 
 import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;

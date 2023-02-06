@@ -1,3 +1,8 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package com.datastax.mgmtapi.interceptors;
 
 import static com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor.SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY;

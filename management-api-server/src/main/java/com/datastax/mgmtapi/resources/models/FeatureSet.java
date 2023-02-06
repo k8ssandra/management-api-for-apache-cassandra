@@ -1,3 +1,8 @@
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 package com.datastax.mgmtapi.resources.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
