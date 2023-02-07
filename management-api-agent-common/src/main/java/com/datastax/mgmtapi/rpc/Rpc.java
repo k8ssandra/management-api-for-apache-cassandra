@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright DataStax, Inc.
  *
  * Please see the included license file for details.
@@ -9,13 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- *  Method annotation for methods that can be called via RPC.
+ * Method annotation for methods that can be called via RPC.
  *
- *  ANNOTATING WITH RPC INDICATES THAT THE METHOD IS THREAD SAFE.
+ * <p>ANNOTATING WITH RPC INDICATES THAT THE METHOD IS THREAD SAFE.
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Rpc
-{
-    String name();
-    boolean multiRow() default false;
+public @interface Rpc {
+  String name();
+
+  boolean multiRow() default false;
 }

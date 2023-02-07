@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright DataStax, Inc.
  *
  * Please see the included license file for details.
@@ -10,26 +10,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Objects;
 
+public class RepairRequest {
 
-public class RepairRequest
-{
+  @JsonProperty(value = "keyspace_name", required = true)
+  public final String keyspaceName;
 
-    @JsonProperty(value = "keyspace_name", required = true)
-    public final String keyspaceName;
+  @JsonProperty(value = "tables", required = false)
+  public final List<String> tables;
 
-    @JsonProperty(value = "tables", required = false)
-    public final List<String> tables;
+  @JsonProperty(value = "full", required = false)
+  public final Boolean full;
 
-    @JsonProperty(value = "full", required = false)
-    public final Boolean full;
-
-    @JsonCreator
-    public RepairRequest(@JsonProperty("keyspace_name") String keyspaceName, @JsonProperty("tables") List<String> tables, @JsonProperty(value = "full") Boolean full)
-    {
-        this.keyspaceName = keyspaceName;
-        this.tables = tables;
-        this.full = full == null ? Boolean.FALSE : full;
-    }
+  @JsonCreator
+  public RepairRequest(
+      @JsonProperty("keyspace_name") String keyspaceName,
+      @JsonProperty("tables") List<String> tables,
+      @JsonProperty(value = "full") Boolean full) {
+    this.keyspaceName = keyspaceName;
+    this.tables = tables;
+    this.full = full == null ? Boolean.FALSE : full;
+  }
 
   @Override
   public int hashCode() {
@@ -42,31 +42,25 @@ public class RepairRequest
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-    {
-        return true;
+    if (this == obj) {
+      return true;
     }
-    if (obj == null)
-    {
-        return false;
+    if (obj == null) {
+      return false;
     }
-    if (getClass() != obj.getClass())
-    {
-        return false;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
 
     final RepairRequest other = (RepairRequest) obj;
-    if (!Objects.equals(this.keyspaceName, other.keyspaceName))
-    {
-        return false;
+    if (!Objects.equals(this.keyspaceName, other.keyspaceName)) {
+      return false;
     }
-    if (!Objects.equals(this.tables, other.tables))
-    {
-        return false;
+    if (!Objects.equals(this.tables, other.tables)) {
+      return false;
     }
-    if (!Objects.equals(this.full, other.full))
-    {
-        return false;
+    if (!Objects.equals(this.full, other.full)) {
+      return false;
     }
     return true;
   }

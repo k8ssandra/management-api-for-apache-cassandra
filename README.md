@@ -184,6 +184,105 @@ Please see the [DSE README](management-api-agent-dse-6.8/README.md) for details.
 
 # Making changes
 
+## Code Formatting
+
+### Gogle Java Style
+
+The project uses [google-java-format](https://github.com/google/google-java-format) and enforces the
+[Google Java Style](https://google.github.io/styleguide/javaguide.html) for all Java souce files. The
+Maven plugin is configured to check the style during compile and it will fail the compile if it finds
+a file that does not adhere to the coding standard.
+
+#### Checking the format
+
+If you want to check the formatting from the command line after making changes, you can simply run:
+
+    mvn fmt:check
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse fmt:check
+
+#### Formatting the code
+
+If you want have the plugin format the code for you, you can simply run:
+
+    mvn fmt:format
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse fmt:format
+
+#### Using Checkstyle in an IDE
+
+You can also install a checkstyle file in some popular IDEs to automatically format your code. The
+Google checkstyle file can be found here: [google_checks.xml](checkstyle/google_checks.xml)
+
+Refer to your IDE's documentation for installing and setting up checkstyle.
+
+### Source code headers
+
+In addtion to Java style formatting, the project also enforces that source files have the correct
+header. Source files include `.java`, `.xml` and `.properties` files. The Header should be:
+
+    /*
+     * Copyright DataStax, Inc.
+     *
+     * Please see the included license file for details.
+     */
+
+for Java files. For XML and Properties files, the same header should exist, with the appropriate
+comment characters replacing the Java comment characters above.
+
+Just like the Coding style, the Headers are checked at compile time and will fail the compie if
+they aren't correct.
+
+#### Checking the headers
+
+If you want to check the headers from the command line after making changes, you can simply run:
+
+    mvn license:check
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse license:check
+
+#### Formatting the code
+
+If you want have the plugin format the headers for you, you can simply run:
+
+    mvn license:format
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse license:format
+
+### XML formatting
+
+The projet also enforces a standard XML format. Again, it is checked at compile time and will fail
+the compile if XML files are not formatted correctly. See the plugin documentation for formatting
+details here: https://acegi.github.io/xml-format-maven-plugin/?utm_source=mavenlibs.com
+
+#### Checking XML file formatting
+
+If you want to check XML files from the command line after making changes, you can simply run:
+
+    mvn xml-format:xml-check
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse xml-format:xml-check
+
+#### Formatting XML files
+
+If you want have the plugin format XML files for you, you can simply run:
+
+    mvn xml-format:xml-format
+
+NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+
+    mvn -Pdse xml-format:xml-format
+
 ## Design Summary
 
 The architecture of this repository is laid as follows, front-to-back:

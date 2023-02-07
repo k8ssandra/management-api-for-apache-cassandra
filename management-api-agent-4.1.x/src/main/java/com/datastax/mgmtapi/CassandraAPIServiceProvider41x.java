@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright DataStax, Inc.
  *
  * Please see the included license file for details.
@@ -14,5 +14,4 @@ public class CassandraAPIServiceProvider41x implements CassandraAPIServiceProvid
   public CassandraAPI getCassandraAPI() {
     return new CassandraAPI41x();
   }
-
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright DataStax, Inc.
  *
  * Please see the included license file for details.
@@ -13,5 +13,4 @@ public class RpcMethodServiceProvider4x implements RpcMethodServiceProvider {
   public RpcMethod getRpcMethod(Method method, RpcObject rpcObject) {
     return new RpcMethod4x(method, rpcObject);
   }
-
 }
