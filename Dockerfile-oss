@@ -1,6 +1,6 @@
 ARG CASSANDRA_VERSION=3.11.14
 
-FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as builder
+FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as builder
 
 ARG METRICS_COLLECTOR_VERSION=0.3.4
 ARG CDC_AGENT_VERSION=2.2.2

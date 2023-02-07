@@ -34,6 +34,10 @@
     <coveo.format.version>2.9</coveo.format.version>
     <xml.format.version>3.2.2</xml.format.version>
     <mycila.license.version>4.1</mycila.license.version>
+    <maven.compiler.version>3.10.1</maven.compiler.version>
+    <maven.test.version>3.0.0-M8</maven.test.version>
+    <maven.resource.version>3.3.0</maven.resource.version>
+    <maven.shade.version>3.4.1</maven.shade.version>
   </properties>
   <dependencies/>
   <profiles>
@@ -90,6 +94,36 @@
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>${mycila.license.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven.test.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven.test.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.version}</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <encoding>UTF-8</encoding>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven.resource.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>${maven.shade.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
