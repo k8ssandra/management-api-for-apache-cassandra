@@ -1,0 +1,110 @@
+ARG CASSANDRA_VERSION=trunk
+
+FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:8u345 as builder
+
+ARG METRICS_COLLECTOR_VERSION=0.3.4
+ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-${CASSANDRA_VERSION}
+ARG CDC_AGENT_VERSION=2.2.2
+ARG CDC_AGENT_EDITION=agent-c4
+
+WORKDIR /build
+ENV MAAC_PATH /opt/management-api
+
+COPY pom.xml ./
+COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
+COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
+COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
+COPY management-api-agent-4.1.x/pom.xml ./management-api-agent-4.1.x/pom.xml
+COPY management-api-common/pom.xml ./management-api-common/pom.xml
+COPY management-api-server/pom.xml ./management-api-server/pom.xml
+# this duplicates work done in the next steps, but this should provide
+# a solid cache layer that only gets reset on pom.xml changes
+RUN mvn -q -ff -T 1C install -DskipOpenApi && rm -rf target
+
+COPY management-api-agent-common ./management-api-agent-common
+COPY management-api-agent-3.x ./management-api-agent-3.x
+COPY management-api-agent-4.x ./management-api-agent-4.x
+COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
+COPY management-api-common ./management-api-common
+COPY management-api-server ./management-api-server
+RUN mkdir ${MAAC_PATH} && \
+    mvn -q -ff package -DskipTests && \
+    find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
+    rm $MAAC_PATH/datastax-mgmtapi-agent-3* && \
+    rm $MAAC_PATH/datastax-mgmtapi-*common* && \
+    cd ${MAAC_PATH} && \
+    ln -s datastax-mgmtapi-agent-4.1.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar && \
+    ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
+    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+
+# Download and extract Metrics Collector
+ENV MCAC_PATH /opt/metrics-collector
+RUN mkdir ${MCAC_PATH} && \
+    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz
+
+ENV USER_HOME_PATH /home/cassandra
+RUN mkdir ${USER_HOME_PATH}
+# Download CDC agent
+ENV CDC_AGENT_PATH=/opt/cdc_agent
+RUN mkdir ${CDC_AGENT_PATH} && \
+  curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+
+FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:8u345 as cass-builder
+WORKDIR /build
+RUN set -eux && rm -fr /etc/apt/sources.list.d/* && rm -rf /var/lib/apt/lists/* && apt-get update && apt-get install -y --no-install-recommends git ant ant-optional make
+RUN git clone https://github.com/apache/cassandra.git
+RUN cd cassandra && ant jar artifacts
+
+#FROM cassandra:${CASSANDRA_VERSION} as oss41
+#
+#ARG TARGETARCH
+#
+#ENV CASSANDRA_PATH /opt/cassandra
+#ENV MAAC_PATH /opt/management-api
+#ENV MCAC_PATH /opt/metrics-collector
+#ENV CDC_AGENT_PATH=/opt/cdc_agent
+#ENV USER_HOME_PATH /home/cassandra
+#
+#ENV CASSANDRA_HOME ${CASSANDRA_PATH}
+#ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
+#ENV CASSANDRA_LOGS ${CASSANDRA_PATH}/logs
+## Log directory for Management API startup logs to avoid issues:
+## https://datastax.jira.com/browse/DB-4627
+## https://issues.apache.org/jira/browse/CASSANDRA-16027
+#ENV MGMT_API_LOG_DIR /var/log/cassandra
+#
+#COPY --from=builder --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
+#COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+#COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
+#COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
+#
+## Setup user and fixup permissions
+#RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
+#
+#ENV TINI_VERSION v0.19.0
+#ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
+#RUN chmod +x /tini
+#
+#RUN set -eux; \
+#  rm -fr /etc/apt/sources.list.d/*; \
+#  rm -rf /var/lib/apt/lists/*; \
+#  apt-get update; \
+#  apt-get install -y --no-install-recommends wget iproute2; \
+#  rm -rf /var/lib/apt/lists/*
+#
+## backwards compat with upstream ENTRYPOINT
+#COPY scripts/docker-entrypoint.sh /usr/local/bin/
+#RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
+#  ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh && \
+## fix for the missing mtab in the containerd
+#  ln -sf /proc/mounts /etc/mtab
+#
+#EXPOSE 9103 9000
+#EXPOSE 8080
+#
+#USER cassandra
+#
+#ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
+#CMD ["mgmtapi"]

@@ -76,6 +76,24 @@
         <module>management-api-server</module>
       </modules>
     </profile>
+    <profile>
+      <id>trunk</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <dseIncluded>false</dseIncluded>
+      </properties>
+      <modules>
+        <module>management-api-common</module>
+        <module>management-api-agent-common</module>
+        <module>management-api-agent-3.x</module>
+        <module>management-api-agent-4.x</module>
+        <module>management-api-agent-4.1.x</module>
+        <module>management-api-agent-4.2.x</module>
+        <module>management-api-server</module>
+      </modules>
+    </profile>
   </profiles>
   <build>
     <pluginManagement>
