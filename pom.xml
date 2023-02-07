@@ -124,6 +124,7 @@
             <exclude>**/.flattened-pom.xml</exclude>
             <excluse>settings.xml</excluse>
             <exclude>**/.cassandra-bin/**</exclude>
+            <exclude>checkstyle/**</exclude>
           </excludes>
         </configuration>
       </plugin>
