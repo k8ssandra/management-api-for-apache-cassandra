@@ -932,6 +932,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   }
 
   private Pair<Integer, String> responseAsCodeAndBody(FullHttpResponse r) {
-    return Pair.of(r.status().code(), r.content().toString(UTF_8));
+    return Pair.of(r.status().code(), r.content().retain().toString(UTF_8));
   }
 }
