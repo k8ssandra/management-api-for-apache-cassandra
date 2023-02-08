@@ -72,7 +72,7 @@ RUN set -x \
 #  && rm -rf /tmp/mgmtapi-jars \
 #  && echo DONE
 
-FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as mgmtapi-setup
 
 WORKDIR /
 

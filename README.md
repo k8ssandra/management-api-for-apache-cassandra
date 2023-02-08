@@ -52,6 +52,11 @@
 
 ## Building
 
+### Minimum Java Version
+
+The project has been updated to now require JDK11 or newer to build. The jarfile artifacts
+are still compiled to Java8 as Java8 is still what some Cassandra versiosn ship with.
+
 ### Supported Image Matrix
 
 The following versions of Cassandra and DSE are published to Docker and supported:
@@ -70,12 +75,12 @@ The following versions of Cassandra and DSE are published to Docker and supporte
       k8ssandra/cass-management-api:4.0.6
       k8ssandra/cass-management-api:4.0.7
       k8ssandra/cass-management-api:4.1.0
-      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8 and jdk11 based images)
-      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8 and jdk11 based images)
-      datastax/dse-mgmtapi-6_8:6.8.28 (jdk8 and jdk11 based images)
-      datastax/dse-mgmtapi-6_8:6.8.29 (jdk8 and jdk11 based images)
-      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8 and jdk11 based images)
-      datastax/dse-mgmtapi-6_8:6.8.31 (jdk8 and jdk11 based images)
+      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.28 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.29 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.31 (jdk8, jdk11 and ubi7 based images)
 
 ### Containers
 
