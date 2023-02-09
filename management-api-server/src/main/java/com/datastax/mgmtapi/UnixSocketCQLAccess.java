@@ -78,7 +78,7 @@ public class UnixSocketCQLAccess {
 
   public static Optional<CqlSession> get(File unixSocket) {
     if (!unixSocket.exists()) {
-      logger.info(
+      logger.debug(
           "Cannot create Driver CQLSession as the driver socket has not been created. This should resolve once Cassandra has started and created the socket at {}",
           unixSocket.getAbsolutePath());
       return Optional.empty();
