@@ -47,7 +47,7 @@ jobs:
       - name: Build with Maven and run tests
         run: |
           mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }} -Drun41tests=${{ matrix.run41tests }}
-      - name: Upload DSE mgmt-api
+      - name: Upload mgmt-api agents
         uses: actions/upload-artifact@v3
         with:
           name: oss-snapshots.zip

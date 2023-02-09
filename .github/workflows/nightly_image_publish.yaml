@@ -1,11 +1,9 @@
 name: Nightly Image Publish
 
 on:
-  ## remove this after the tagging has been verified
-  workflow_dispatch:
-#  schedule:
-#    # * is a special character in YAML so you have to quote this string
-#    - cron:  '4 20 * * *'
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '4 20 * * *'
 
 jobs:
   build-oss-4-2x:
@@ -21,7 +19,6 @@ jobs:
         with:
           images: k8ssandra/cass-management-api
           flavor: |
-            latest=true
             prefix=${{ matrix.cassandra-version }}-nightly-
           tags: |
             type=raw,value=latest
