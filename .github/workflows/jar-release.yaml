@@ -35,11 +35,18 @@ jobs:
            </servers>
           </settings>
           EOF
-          mvn -q -ff package -DskipTests -P dse
+          mvn -q -ff package -DskipTests -P dse -P trunk
       - name: zip-up
         run: |
-          zip jars.zip management-api-agent-common/target/datastax-mgmtapi-agent-*.jar management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar management-api-agent-4.1.x/target/datastax-mgmtapi-agent-*.jar management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-*.jar management-api-server/target/datastax-mgmtapi-server-*.jar management-api-common/target/datastax-mgmtapi-common-*.jar
-
+          zip jars.zip \
+          management-api-agent-common/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-4.1.x/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-4.2.x/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-*.jar \
+          management-api-server/target/datastax-mgmtapi-server-*.jar \
+          management-api-common/target/datastax-mgmtapi-common-*.jar
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
