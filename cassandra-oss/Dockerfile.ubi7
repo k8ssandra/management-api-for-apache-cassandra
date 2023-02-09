@@ -1,21 +1,19 @@
 # Copyright DataStax, Inc, 2020
 #   Please review the included LICENSE file for more information.
 #
-ARG BASETAG=7.8
-FROM registry.access.redhat.com/ubi7/ubi-minimal:${BASETAG} AS builder
+ARG BASETAG=8.7
+FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} AS builder
 
 ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
-ARG CASSANDRA_VERSION=trunk
 ARG METRICS_COLLECTOR_VERSION=0.3.4
 ARG TINI_VERSION=0.19.0
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Update base layer
-RUN microdnf update && rm -rf /var/cache/yum
-
+RUN microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-RUN microdnf install shadow-utils tar gzip unzip && microdnf clean all
+    && microdnf install shadow-utils tar gzip unzip && microdnf clean all
 
 # COPY in files if they are available locally
 COPY * /
@@ -24,7 +22,7 @@ WORKDIR /
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
-    if test ! -e datastax-mcac-agent-0.1.9.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
+    if test ! -e datastax-mcac-agent-{METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
 
 # Install tini
@@ -35,7 +33,7 @@ RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/re
 #############################################################
 
 # Build and extract Cassandra
-FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:8u345 as cass-builder
+FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
 ENV CASSANDRA_PATH /opt/cassandra
 WORKDIR /build
 RUN set -x \
@@ -43,16 +41,17 @@ RUN set -x \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get update \
     && apt-get install -y --no-install-recommends git ant ant-optional make maven \
-    && git clone https://github.com/apache/cassandra.git \
+    && git clone -b trunk --single-branch https://github.com/apache/cassandra.git \
     && cd cassandra \
-    && ant artifacts mvn-install \
+    && ant -q -S echo-base-version > /build/cassandra.version \
+    && ant artifacts mvn-install -Duse.jdk11=true \
     && mkdir ${CASSANDRA_PATH} \
-    && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-4.2-SNAPSHOT-bin.tar.gz \
+    && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-$(cat /build/cassandra.version)-SNAPSHOT-bin.tar.gz \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc
 
 #############################################################
 # Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim as mgmtapi-setup
 
 WORKDIR /
 
@@ -107,12 +106,12 @@ RUN mkdir ${CDC_AGENT_PATH} && \
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi7/ubi-minimal:${BASETAG} as cass-trunk
+FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as cass-trunk
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="Apache Cassandra"
 LABEL vendor="DataStax, Inc"
-LABEL release="${VERSION}"
+LABEL release="4.2-SNAPSHOT"
 LABEL summary="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
 LABEL description="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
 
@@ -129,13 +128,11 @@ ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
 ENV CASSANDRA_LOG_DIR /var/log/cassandra
 
 # Update base layer
-RUN microdnf update && rm -rf /var/cache/yum
-
+RUN microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-RUN microdnf install --nodocs java-1.8.0-openjdk-headless python zlib findutils which hostname iproute && \
-    microdnf clean all
-
-RUN set -x \
+    && microdnf install --nodocs java-11-openjdk-headless python3 zlib findutils which hostname iproute shadow-utils procps util-linux glibc-langpack-en \
+    && microdnf clean all \
+# Add Cassandra user
     && groupadd -r cassandra --gid=998 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra
 
@@ -172,8 +169,8 @@ USER cassandra:cassandra
 # Expose CASSANDRA folders
 VOLUME ["/config", "/var/lib/cassandra", "/var/log/cassandra"]
 
-# MANAGEMENT API, METRICS
-EXPOSE 8080 9103
+# MANAGEMENT API, MCAC METRICS, NON-MCAC METRICS
+EXPOSE 8080 9103 9000
 
 # CASSANDRA PORTS (INTRA-NODE, TLS INTRA-NODE, JMX, CQL, THRIFT, DSEFS INTRA-NODE, INTRA-NODE MESSAGING SERVICE)
 EXPOSE 7000 7001 7199 8609 9042 9160

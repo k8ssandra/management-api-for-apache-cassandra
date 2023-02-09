@@ -44,7 +44,7 @@ As Management API releases are published, a build of this image should like in D
 To build a Docker image for yourself, execute the following from the root of the project:
 
 ```sh
-docker buildx build --load --progress plain --build-arg --tag cass-trunk --file cassandra-oss/Dockerfile.ubi7 --target cass-trunk --platform linux/amd64 .
+docker buildx build --load --progress plain --tag cass-trunk --file cassandra-oss/Dockerfile.ubi7 --target cass-trunk --platform linux/amd64 .
 ```
 
 You can replace the tag `cass-trunk` with whatever you like.
