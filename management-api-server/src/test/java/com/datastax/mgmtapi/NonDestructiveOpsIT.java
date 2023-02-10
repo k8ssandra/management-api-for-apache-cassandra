@@ -14,6 +14,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
@@ -270,7 +271,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
   @Test
   public void testResetLocalSchema() throws IOException, URISyntaxException {
-    assumeTrue(this.version != "4_1" && IntegrationTestUtils.shouldRun());
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    // Reset schema does not work on Cassandra 4.1+
+    assumeFalse("4_1".equals(this.version));
+    assumeFalse("trunk".equals(this.version));
     ensureStarted();
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
