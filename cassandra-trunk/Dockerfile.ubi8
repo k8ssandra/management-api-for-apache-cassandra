@@ -148,7 +148,7 @@ COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder /usr/local/bin/tini /usr/local/bin/tini
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root $CDC_AGENT_PATH $CDC_AGENT_PATH
-COPY --chown=cassandra:root cassandra-oss/files /
+COPY --chown=cassandra:root cassandra-trunk/files /
 
 # Fix permissions
 #RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \

@@ -93,6 +93,7 @@ public abstract class BaseDockerIntegrationTest {
     if (Boolean.getBoolean("run311tests")) versions.add("3_11");
     if (Boolean.getBoolean("run40tests")) versions.add("4_0");
     if (Boolean.getBoolean("run41tests")) versions.add("4_1");
+    if (Boolean.getBoolean("runTrunktests")) versions.add("trunk");
     if (Boolean.getBoolean("runDSEtests")) versions.add("dse-68");
 
     return versions;
