@@ -43,10 +43,10 @@ RUN set -x \
     && apt-get install -y --no-install-recommends git ant ant-optional make maven \
     && git clone -b trunk --single-branch https://github.com/apache/cassandra.git \
     && cd cassandra \
-    && ant -q -S echo-base-version > /build/cassandra.version \
+    #&& ant -q -S echo-base-version > /build/cassandra.version \
     && ant artifacts mvn-install -Duse.jdk11=true \
     && mkdir ${CASSANDRA_PATH} \
-    && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-$(cat /build/cassandra.version)-SNAPSHOT-bin.tar.gz \
+    && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-4.2-SNAPSHOT-bin.tar.gz \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc
 
 #############################################################
