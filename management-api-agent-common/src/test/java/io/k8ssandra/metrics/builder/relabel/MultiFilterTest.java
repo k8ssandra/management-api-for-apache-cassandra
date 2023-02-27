@@ -204,43 +204,31 @@ public class MultiFilterTest {
   @Test
   public void verifyTagValueIsOverridden() {
     RelabelSpec tableExtractor =
-            new RelabelSpec(
-                    Lists.newArrayList("__origname__"),
-                    "",
-                    "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)",
-                    "replace",
-                    "table",
-                    "$3");
+        new RelabelSpec(
+            Lists.newArrayList("__origname__"),
+            "",
+            "org\\.apache\\.cassandra\\.metrics\\.Table\\.(\\w+)\\.(\\w+)\\.(\\w+)",
+            "replace",
+            "table",
+            "$3");
 
     RelabelSpec addFirstTagValue =
-            new RelabelSpec(
-                    Lists.newArrayList("table"),
-                    "",
-                    ".+",
-                    "",
-                    "should_drop",
-                    "true");
+        new RelabelSpec(Lists.newArrayList("table"), "", ".+", "", "should_drop", "true");
 
     RelabelSpec addSecondTagValue =
-            new RelabelSpec(
-                    Lists.newArrayList("table"),
-                    "",
-                    ".+",
-                    "",
-                    "should_drop",
-                    "false");
+        new RelabelSpec(Lists.newArrayList("table"), "", ".+", "", "should_drop", "false");
 
     Configuration config = new Configuration();
     config.setRelabels(Lists.newArrayList(tableExtractor, addFirstTagValue, addSecondTagValue));
     CassandraMetricNameParser parser =
-            new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
+        new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
     CassandraMetricDefinition aMetric =
-            parser.parseDropwizardMetric(
-                    "org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.DroppedColumns",
-                    "",
-                    Lists.newArrayList(),
-                    Lists.newArrayList());
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.DroppedColumns",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
 
     assertEquals(2, aMetric.getLabelValues().size());
     assertEquals(2, aMetric.getLabelNames().size());

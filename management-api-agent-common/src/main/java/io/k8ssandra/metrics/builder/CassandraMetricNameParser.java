@@ -141,16 +141,17 @@ public class CassandraMetricNameParser {
           if (relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
             metricDefinition.setMetricName(output);
           } else {
-            // Not the most effective way of doing this (map would be better - but perf is not an issue since this isn't done in the hotpath)
+            // Not the most effective way of doing this (map would be better - but perf is not an
+            // issue since this isn't done in the hotpath)
             boolean replaced = false;
-            for(int i = 0; i < metricDefinition.getLabelNames().size(); i++) {
-              if(metricDefinition.getLabelNames().get(i).equals(relabel.getTargetLabel())) {
+            for (int i = 0; i < metricDefinition.getLabelNames().size(); i++) {
+              if (metricDefinition.getLabelNames().get(i).equals(relabel.getTargetLabel())) {
                 // Replace existing label value
                 metricDefinition.getLabelValues().set(i, output);
                 replaced = true;
               }
             }
-            if(!replaced) {
+            if (!replaced) {
               metricDefinition.getLabelNames().add(relabel.getTargetLabel());
               metricDefinition.getLabelValues().add(output);
             }
