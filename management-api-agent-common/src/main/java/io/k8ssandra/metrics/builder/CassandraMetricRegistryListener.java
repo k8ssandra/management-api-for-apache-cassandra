@@ -28,13 +28,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.cassandra.utils.EstimatedHistogram;
+import org.apache.cassandra.utils.FBUtilities;
 import org.slf4j.LoggerFactory;
 
 public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
   private static final org.slf4j.Logger logger =
       LoggerFactory.getLogger(CassandraMetricRegistryListener.class);
+  /**
+   * For DSE versions less than 6.8.33, there is a metric initialization bug that results in a NPE
+   * when certain metrics are added (see DSP-23192). For those versions, we will avoid adding
+   * metrics with the prefix below, as they will cause the server to crash.
+   */
+  private static final String METRICS_FILTER_PREFIX =
+      "org.apache.cassandra.metrics.StorageAttachedIndex";
+  /** Minimum DSE version for which the above filter does not need to be applied. */
+  private static final int MIN_DSE_PATCH_VERSION = 33;
+
+  private static final Pattern VERSION_PATTERN =
+      Pattern.compile("([1-9]\\d*)\\.(\\d+)\\.(\\d+)(?:-([a-zA-Z0-9]+))?");
 
   private final CassandraMetricNameParser parser;
 
@@ -93,7 +108,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                     || cmd.getMetricName().equals(metricName + "_count")
                     || cmd.getMetricName().equals(metricName + "_total"));
 
-    if (familySampler.getDefinitions().size() == 0) {
+    if (familySampler.getDefinitions().isEmpty()) {
       this.familyCache.remove(metricName);
       cache.remove(dropwizardName);
     }
@@ -153,6 +168,31 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
   @Override
   public void onGaugeAdded(String dropwizardName, Gauge<?> gauge) {
+
+    String serverVersion = FBUtilities.getReleaseVersionString();
+    if (serverVersion.startsWith("6.8")) {
+      // it's DSE 6.8, see if the version is low enough to require filtering
+      Matcher matcher = VERSION_PATTERN.matcher(serverVersion);
+      if (matcher.matches()) {
+        int patchVersion = Integer.parseInt(matcher.group(3));
+        if (MIN_DSE_PATCH_VERSION > patchVersion
+            && dropwizardName.startsWith(METRICS_FILTER_PREFIX)) {
+          // we need to filter
+          logger.warn(
+              "DSE Server verson is lower than 6.8.33. Filtering metric: " + dropwizardName);
+          // return;
+        }
+      }
+    }
+    try {
+      // try to get the gauge
+      gauge.getValue();
+    } catch (Throwable t) {
+      // the gauge wasn't initialized correctly
+      logger.warn("Error fetching Gauge value, gauge will be discarded: " + dropwizardName);
+      logger.debug("Exception caught fetching gauge", t);
+      return;
+    }
     if (gauge.getValue() instanceof long[]) {
       // Treat this as a histogram, not gauge
       List<String> additionalLabelNames = new ArrayList<>();
