@@ -61,12 +61,15 @@ are still compiled to Java8 as Java8 is still what some Cassandra versiosn ship 
 
 The following versions of Cassandra and DSE are published to Docker and supported:
 
+Cassandra 3.11.x
       k8ssandra/cass-management-api:3.11.7
       k8ssandra/cass-management-api:3.11.8
       k8ssandra/cass-management-api:3.11.11
       k8ssandra/cass-management-api:3.11.12
       k8ssandra/cass-management-api:3.11.13
       k8ssandra/cass-management-api:3.11.14
+
+Cassandra 4.0.x
       k8ssandra/cass-management-api:4.0.0
       k8ssandra/cass-management-api:4.0.1
       k8ssandra/cass-management-api:4.0.3
@@ -74,8 +77,15 @@ The following versions of Cassandra and DSE are published to Docker and supporte
       k8ssandra/cass-management-api:4.0.5
       k8ssandra/cass-management-api:4.0.6
       k8ssandra/cass-management-api:4.0.7
+      k8ssandra/cass-management-api:4.0.8
+
+Cassandra 4.1.x
       k8ssandra/cass-management-api:4.1.0
-      k8ssandra/cass-management-api:4.2.0 (Current Cassandra trunk)
+
+Cassandra trunk
+      k8ssandra/cass-management-api:4.2.0
+
+DSE 6.8.x
       datastax/dse-mgmtapi-6_8:6.8.25 (jdk8, jdk11 and ubi7 based images)
       datastax/dse-mgmtapi-6_8:6.8.26 (jdk8, jdk11 and ubi7 based images)
       datastax/dse-mgmtapi-6_8:6.8.28 (jdk8, jdk11 and ubi7 based images)
