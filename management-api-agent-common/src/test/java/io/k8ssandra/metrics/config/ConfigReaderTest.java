@@ -59,4 +59,16 @@ public class ConfigReaderTest {
     assertEquals("/etc/ssl/tls.crt", tlsConfig.getTlsCertPath());
     assertEquals("/etc/ssl/tls.key", tlsConfig.getTlsKeyPath());
   }
+
+  @Test
+  public void verifyCustomRelabelRulesAreAppended() {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    URL resource = classLoader.getResource("collector_tls.yaml");
+
+    System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
+    Configuration configuration = ConfigReader.readConfig();
+    assertEquals(30, configuration.getRelabels().size());
+    assertEquals("(.*);(b.*)", configuration.getRelabels().get(28).getRegexp().toString());
+    assertEquals("^(a|b|c),.*", configuration.getRelabels().get(29).getRegexp().toString());
+  }
 }

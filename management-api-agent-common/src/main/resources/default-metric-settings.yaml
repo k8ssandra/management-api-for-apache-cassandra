@@ -157,7 +157,7 @@ relabels:
   - regex: "jvm\\.memory\\.pools\\.(\\w+)\\.(\\w+)"
     replacement: jvm_memory_pools_$2
     sourceLabels:
-      - mcac
+      - __origname__
     targetLabel: __name__
 labels:
   env:

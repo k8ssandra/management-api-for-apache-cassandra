@@ -19,14 +19,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CassandraMetricNameParser {
-  public static final String KEYSPACE_METRIC_PREFIX = "org.apache.cassandra.metrics.keyspace.";
-  public static final String TABLE_METRIC_PREFIX = "org.apache.cassandra.metrics.Table.";
-
   private final List<String> defaultLabelNames;
   private final List<String> defaultLabelValues;
-
-  public static final String KEYSPACE_LABEL_NAME = "keyspace";
-  public static final String TABLE_LABEL_NAME = "table";
 
   private final List<RelabelSpec> replacements = new ArrayList<>();
 
@@ -76,7 +70,7 @@ public class CassandraMetricNameParser {
 
     String metricName =
         removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(dropwizardName)));
-    ;
+
     CassandraMetricDefinition metricDef =
         new CassandraMetricDefinition(metricName, labelNames, labelValues);
 
@@ -88,8 +82,8 @@ public class CassandraMetricNameParser {
 
     // Reclean with suffix added
     metricDef.setMetricName(
-        removeDoubleUnderscore(
-            Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
+            removeDoubleUnderscore(
+                    Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
 
     return metricDef;
   }
@@ -139,7 +133,9 @@ public class CassandraMetricNameParser {
           String output = inputMatcher.replaceAll(relabel.getReplacement());
 
           if (relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
-            metricDefinition.setMetricName(output);
+            metricDefinition.setMetricName(
+                    removeDoubleUnderscore(
+                            Collector.sanitizeMetricName(this.clean(output))));
           } else {
             // Not the most effective way of doing this (map would be better - but perf is not an
             // issue since this isn't done in the hotpath)
