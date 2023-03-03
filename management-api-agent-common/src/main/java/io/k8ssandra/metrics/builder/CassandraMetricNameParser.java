@@ -82,8 +82,8 @@ public class CassandraMetricNameParser {
 
     // Reclean with suffix added
     metricDef.setMetricName(
-            removeDoubleUnderscore(
-                    Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
+        removeDoubleUnderscore(
+            Collector.sanitizeMetricName(this.clean(metricDef.getMetricName()) + suffix)));
 
     return metricDef;
   }
@@ -134,8 +134,7 @@ public class CassandraMetricNameParser {
 
           if (relabel.getTargetLabel().equals(RelabelSpec.METRIC_NAME_LABELNAME)) {
             metricDefinition.setMetricName(
-                    removeDoubleUnderscore(
-                            Collector.sanitizeMetricName(this.clean(output))));
+                removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(output))));
           } else {
             // Not the most effective way of doing this (map would be better - but perf is not an
             // issue since this isn't done in the hotpath)

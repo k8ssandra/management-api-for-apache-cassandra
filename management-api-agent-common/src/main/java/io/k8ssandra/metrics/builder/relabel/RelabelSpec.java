@@ -96,13 +96,22 @@ public class RelabelSpec {
 
   @Override
   public String toString() {
-    return "RelabelSpec{" +
-            "sourceLabels=" + sourceLabels +
-            ", targetLabel='" + targetLabel + '\'' +
-            ", replacement='" + replacement + '\'' +
-            ", separator='" + separator + '\'' +
-            ", regexp=" + regexp +
-            ", action=" + action +
-            '}';
+    return "RelabelSpec{"
+        + "sourceLabels="
+        + sourceLabels
+        + ", targetLabel='"
+        + targetLabel
+        + '\''
+        + ", replacement='"
+        + replacement
+        + '\''
+        + ", separator='"
+        + separator
+        + '\''
+        + ", regexp="
+        + regexp
+        + ", action="
+        + action
+        + '}';
   }
 }
