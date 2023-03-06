@@ -51,6 +51,20 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   private static final Pattern VERSION_PATTERN =
       Pattern.compile("([1-9]\\d*)\\.(\\d+)\\.(\\d+)(?:-([a-zA-Z0-9]+))?");
 
+  private static final String SERVER_VERSION = FBUtilities.getReleaseVersionString();
+  private static final int SERVER_PATCH_VERSION;
+
+  static {
+    Matcher matcher = VERSION_PATTERN.matcher(SERVER_VERSION);
+    if (matcher.matches()) {
+      SERVER_PATCH_VERSION = Integer.parseInt(matcher.group(3));
+    } else {
+      // unexpected Server version
+      logger.warn("Unexpected Server Version string: " + SERVER_VERSION);
+      SERVER_PATCH_VERSION = -1;
+    }
+  }
+
   private final CassandraMetricNameParser parser;
 
   private final ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache;
@@ -169,19 +183,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   @Override
   public void onGaugeAdded(String dropwizardName, Gauge<?> gauge) {
 
-    String serverVersion = FBUtilities.getReleaseVersionString();
-    if (serverVersion.startsWith("6.8")) {
+    if (SERVER_VERSION.startsWith("6.8")) {
       // it's DSE 6.8, see if the version is low enough to require filtering
-      Matcher matcher = VERSION_PATTERN.matcher(serverVersion);
-      if (matcher.matches()) {
-        int patchVersion = Integer.parseInt(matcher.group(3));
-        if (MIN_DSE_PATCH_VERSION > patchVersion
-            && dropwizardName.startsWith(METRICS_FILTER_PREFIX)) {
-          // we need to filter
-          logger.warn(
-              "DSE Server verson is lower than 6.8.33. Filtering metric: " + dropwizardName);
-          // return;
-        }
+      if (MIN_DSE_PATCH_VERSION > SERVER_PATCH_VERSION
+          && dropwizardName.startsWith(METRICS_FILTER_PREFIX)) {
+        // we need to filter
+        logger.warn("DSE Server verson is lower than 6.8.33. Filtering metric: " + dropwizardName);
+        return;
       }
     }
     try {
