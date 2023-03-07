@@ -1,5 +1,5 @@
 
-ARG VERSION=6.8.32
+ARG VERSION=6.8.33
 ARG BASETAG=7.8
 
 FROM datastax/dse-mgmtapi-6_8:${VERSION} AS dse-server-base
