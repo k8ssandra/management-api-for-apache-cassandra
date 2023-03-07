@@ -7,17 +7,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [3.11, 4.0, 4.1]
+        cassandra-version: ['3.11', '4.0', '4.1']
         include:
-          - cassandra-version: 3.11
+          - cassandra-version: '3.11'
             run311tests: true
             run40tests: false
             run41tests: false
-          - cassandra-version: 4.0
+          - cassandra-version: '4.0'
             run311tests: false
             run40tests: true
             run41tests: false
-          - cassandra-version: 4.1
+          - cassandra-version: '4.1'
             run311tests: false
             run40tests: false
             run41tests: true
