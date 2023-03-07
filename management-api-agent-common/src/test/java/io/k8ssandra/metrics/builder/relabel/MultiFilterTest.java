@@ -12,6 +12,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
 import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
+import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
 import java.util.ArrayList;
 import java.util.List;
@@ -216,10 +217,16 @@ public class MultiFilterTest {
         new RelabelSpec(Lists.newArrayList("table"), "", ".+", "", "should_drop", "true");
 
     RelabelSpec addSecondTagValue =
-        new RelabelSpec(Lists.newArrayList("table"), "", ".+", "", "should_drop", "false");
+        new RelabelSpec(
+            Lists.newArrayList("table"), "", "DroppedColumns", "", "should_drop", "false");
+
+    RelabelSpec keepDroppedColumns =
+        new RelabelSpec(Lists.newArrayList("should_drop"), "", "true", "drop", "", "");
 
     Configuration config = new Configuration();
-    config.setRelabels(Lists.newArrayList(tableExtractor, addFirstTagValue, addSecondTagValue));
+    config.setRelabels(
+        Lists.newArrayList(
+            tableExtractor, addFirstTagValue, addSecondTagValue, keepDroppedColumns));
     CassandraMetricNameParser parser =
         new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
 
@@ -230,11 +237,55 @@ public class MultiFilterTest {
             Lists.newArrayList(),
             Lists.newArrayList());
 
+    CassandraMetricDefinition secondMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.Table.MetricName.KeyspaceName.SeriouslyDroppedColumns",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+
     assertEquals(2, aMetric.getLabelValues().size());
     assertEquals(2, aMetric.getLabelNames().size());
 
     assertEquals("table", aMetric.getLabelNames().get(0));
     assertEquals("should_drop", aMetric.getLabelNames().get(1));
     assertEquals("false", aMetric.getLabelValues().get(1));
+
+    assertEquals("true", secondMetric.getLabelValues().get(1));
+
+    assertTrue(aMetric.isKeep());
+    assertFalse(secondMetric.isKeep());
+  }
+
+  @Test
+  public void shouldDropTest() {
+    // This reads the default relabeling rules for Cassandra also
+    Configuration config = ConfigReader.readConfig();
+
+    RelabelSpec dropAllTables =
+        new RelabelSpec(Lists.newArrayList("table"), "", ".+", "", "should_drop", "true");
+
+    RelabelSpec spareMemTables =
+        new RelabelSpec(
+            Lists.newArrayList("__name__"),
+            "",
+            "org_apache_cassandra_metrics_table_memtable.*",
+            "",
+            "should_drop",
+            "false");
+
+    config.getRelabels().addAll(Lists.newArrayList(dropAllTables, spareMemTables));
+    CassandraMetricNameParser parser =
+        new CassandraMetricNameParser(Lists.newArrayList(), Lists.newArrayList(), config);
+
+    CassandraMetricDefinition aMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.Table.MemtablePool_BlockedOnAllocation.system.peer_events",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+
+    assertEquals("should_drop", aMetric.getLabelNames().get(aMetric.getLabelNames().size() - 1));
+    assertEquals("false", aMetric.getLabelValues().get(aMetric.getLabelValues().size() - 1));
   }
 }

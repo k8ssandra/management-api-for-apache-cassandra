@@ -93,4 +93,25 @@ public class RelabelSpec {
   public String getReplacement() {
     return replacement;
   }
+
+  @Override
+  public String toString() {
+    return "RelabelSpec{"
+        + "sourceLabels="
+        + sourceLabels
+        + ", targetLabel='"
+        + targetLabel
+        + '\''
+        + ", replacement='"
+        + replacement
+        + '\''
+        + ", separator='"
+        + separator
+        + '\''
+        + ", regexp="
+        + regexp
+        + ", action="
+        + action
+        + '}';
+  }
 }

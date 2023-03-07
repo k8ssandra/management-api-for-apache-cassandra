@@ -110,7 +110,7 @@ public class MetricsRegistryTest {
   public void timerTest() throws Exception {
     CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
     Configuration config = new Configuration();
-    config.setRelabels(Arrays.asList(specDefault));
+    //    config.setRelabels(Arrays.asList(specDefault));
     CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
 
     Timer timer = registry.timer(createMetricName("test_timer"));
