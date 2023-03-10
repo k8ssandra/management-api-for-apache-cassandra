@@ -41,7 +41,7 @@ import org.apache.cassandra.locator.AbstractReplicationStrategy;
 import org.apache.cassandra.locator.EndpointsForRange;
 import org.apache.cassandra.locator.IEndpointSnitch;
 import org.apache.cassandra.locator.InetAddressAndPort;
-import org.apache.cassandra.locator.K8SeedProvider42x;
+import org.apache.cassandra.locator.K8SeedProvider50x;
 import org.apache.cassandra.locator.ReplicaPlans;
 import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.locator.TokenMetadata;
@@ -53,17 +53,17 @@ import org.apache.cassandra.streaming.StreamManager;
 import org.apache.cassandra.streaming.StreamState;
 import org.apache.cassandra.streaming.management.StreamStateCompositeData;
 import org.apache.cassandra.transport.Server;
-import org.apache.cassandra.transport.UnixSocketServer42x;
+import org.apache.cassandra.transport.UnixSocketServer50x;
 import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraAPI42x implements CassandraAPI {
-  private static final Logger logger = LoggerFactory.getLogger(CassandraAPI42x.class);
+public class CassandraAPI50x implements CassandraAPI {
+  private static final Logger logger = LoggerFactory.getLogger(CassandraAPI50x.class);
 
   private static final Supplier<SeedProvider> seedProvider =
-      Suppliers.memoize(() -> new K8SeedProvider42x());
+      Suppliers.memoize(() -> new K8SeedProvider50x());
 
   @Override
   public void enableFullQuerylog() {
@@ -226,7 +226,7 @@ public class CassandraAPI42x implements CassandraAPI {
   @Override
   public ChannelInitializer<Channel> makeSocketInitializer(
       Server.ConnectionTracker connectionTracker) {
-    return UnixSocketServer42x.makeSocketInitializer(connectionTracker);
+    return UnixSocketServer50x.makeSocketInitializer(connectionTracker);
   }
 
   @Override
@@ -313,7 +313,7 @@ public class CassandraAPI42x implements CassandraAPI {
 
   @Override
   public RpcStatementShim makeRpcStatement(String method, String[] params) {
-    return new RpcStatement42x(method, params);
+    return new RpcStatement50x(method, params);
   }
 
   @Override

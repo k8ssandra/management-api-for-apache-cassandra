@@ -22,7 +22,7 @@ import org.apache.cassandra.cql3.ResultSet.ResultMetadata;
 import org.apache.cassandra.db.marshal.AbstractType;
 import org.apache.cassandra.db.marshal.TupleType;
 
-public class ObjectSerializer42x<T> implements ObjectSerializer<T> {
+public class ObjectSerializer50x<T> implements ObjectSerializer<T> {
   public final ImmutableSortedMap<String, FieldSerializer> serializers;
 
   public class FieldSerializer {
@@ -61,11 +61,11 @@ public class ObjectSerializer42x<T> implements ObjectSerializer<T> {
    * the double types. Also, this will only serialize **PUBLIC** fields (perhaps this should be
    * changed; it's not totally clear). Tag accordingly.
    */
-  public ObjectSerializer42x(Class<T> clazz, Type genericType) {
+  public ObjectSerializer50x(Class<T> clazz, Type genericType) {
     serializers =
-        GenericSerializer42x.simpleType(genericType)
+        GenericSerializer50x.simpleType(genericType)
             ? ImmutableSortedMap.<String, FieldSerializer>of(
-                "result", new FieldSerializer(GenericSerializer42x.getType(genericType), x -> x))
+                "result", new FieldSerializer(GenericSerializer50x.getType(genericType), x -> x))
             : ImmutableSortedMap.copyOf(
                 Arrays.stream(clazz.getFields())
                     .collect(
@@ -73,11 +73,11 @@ public class ObjectSerializer42x<T> implements ObjectSerializer<T> {
                             field -> field.getName(),
                             field ->
                                 new FieldSerializer(
-                                    GenericSerializer42x.getType(field.getType()), field))));
+                                    GenericSerializer50x.getType(field.getType()), field))));
     // currently not recursive; multiple ways to do it
   }
 
-  public ObjectSerializer42x(Class<T> clazz) {
+  public ObjectSerializer50x(Class<T> clazz) {
     this(clazz, clazz);
   }
 

@@ -12,11 +12,11 @@ import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
-public class RpcStatement42x implements RpcStatementShim {
+public class RpcStatement50x implements RpcStatementShim {
   private final String method;
   private final String[] params;
 
-  public RpcStatement42x(String method, String[] params) {
+  public RpcStatement50x(String method, String[] params) {
     this.method = method;
     this.params = params;
   }
