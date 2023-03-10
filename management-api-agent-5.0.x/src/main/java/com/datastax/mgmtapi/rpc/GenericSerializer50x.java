@@ -30,7 +30,7 @@ import org.apache.cassandra.serializers.TypeSerializer;
  * Uses reflection to look up an appropriate TypeSerializer/AbstractType to serialize objects
  * without writing annoying ByteBufferUtil.bytes(X/Y/Z) boilerplate.
  */
-class GenericSerializer42x {
+class GenericSerializer50x {
   /**
    * I considered using the drivers code (CodecRegistry, TypeCodec, etc) but decided that it made
    * more sense to use the server side stuff from Cassandra.

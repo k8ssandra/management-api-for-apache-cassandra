@@ -30,19 +30,19 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RpcMethod42x implements RpcMethod {
-  private static final Logger logger = LoggerFactory.getLogger(RpcMethod42x.class);
+public class RpcMethod50x implements RpcMethod {
+  private static final Logger logger = LoggerFactory.getLogger(RpcMethod50x.class);
   private final Method method;
   private final RpcObject rpcObject;
   private final String name;
   private final List<TypeSerializer> argSerializers;
   private final List<AbstractType> argTypes;
   private final List<String> argNames;
-  private final ObjectSerializer42x retSerializer;
+  private final ObjectSerializer50x retSerializer;
   private final OptionalInt clientStateArgIdx;
   private final List<Pair<Integer, RpcParam>> params;
 
-  <R> RpcMethod42x(Method method, RpcObject rpcObject) {
+  <R> RpcMethod50x(Method method, RpcObject rpcObject) {
     this.method = method;
     this.rpcObject = rpcObject;
     this.name = method.getAnnotation(Rpc.class).name();
@@ -78,12 +78,12 @@ public class RpcMethod42x implements RpcMethod {
     Type[] genericParamTypes = method.getGenericParameterTypes();
     this.argSerializers =
         params.stream()
-            .map(p -> GenericSerializer42x.getSerializer(genericParamTypes[p.getKey()]))
+            .map(p -> GenericSerializer50x.getSerializer(genericParamTypes[p.getKey()]))
             .collect(Collectors.toList());
 
     this.argTypes =
         params.stream()
-            .map(p -> GenericSerializer42x.getTypeOrException(genericParamTypes[p.getKey()]))
+            .map(p -> GenericSerializer50x.getTypeOrException(genericParamTypes[p.getKey()]))
             .collect(Collectors.toList());
 
     this.argNames = params.stream().map(p -> p.getValue().name()).collect(Collectors.toList());
@@ -97,10 +97,10 @@ public class RpcMethod42x implements RpcMethod {
       Preconditions.checkArgument(
           elemType instanceof Class<?>,
           "If multi-row result set is request, the element type must be a Class");
-      this.retSerializer = new ObjectSerializer42x<>((Class<?>) elemType);
+      this.retSerializer = new ObjectSerializer50x<>((Class<?>) elemType);
     } else {
       this.retSerializer =
-          new ObjectSerializer42x<>(method.getReturnType(), method.getGenericReturnType());
+          new ObjectSerializer50x<>(method.getReturnType(), method.getGenericReturnType());
     }
   }
 

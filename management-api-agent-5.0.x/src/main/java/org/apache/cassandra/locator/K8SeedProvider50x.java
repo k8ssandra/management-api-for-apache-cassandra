@@ -17,10 +17,10 @@ import org.apache.cassandra.config.DatabaseDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class K8SeedProvider42x implements SeedProvider {
-  private static final Logger logger = LoggerFactory.getLogger(K8SeedProvider42x.class);
+public class K8SeedProvider50x implements SeedProvider {
+  private static final Logger logger = LoggerFactory.getLogger(K8SeedProvider50x.class);
 
-  public K8SeedProvider42x() {}
+  public K8SeedProvider50x() {}
 
   public List<InetAddressAndPort> getSeeds() {
     Config conf;

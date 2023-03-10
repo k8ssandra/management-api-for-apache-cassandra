@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [4.2]
+        cassandra-version: ['5.0']
     runs-on: ubuntu-latest
     steps:
       - name: Setup Docker meta

@@ -1,7 +1,7 @@
 # Management API for Cassandra trunk
 
 This Maven sub-module if for building a Management API agent that works with Cassandra trunk. Currently,
-the version in trunk is 4.2-SNAPSHOT. When 4.2 is released, this sub-module should become a standard
+the version in trunk is 5.0-SNAPSHOT. When 5.0 is released, this sub-module should become a standard
 module and a new one created for trunk.
 
 ## Build Prerequisites
@@ -37,7 +37,7 @@ mvn package -P trunk
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:4.2.0
+    k8ssandra/cass-management-api:5.0.0
 
 ### Building images locally
 
@@ -55,6 +55,6 @@ The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:4.2.0
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.0
 ```
 

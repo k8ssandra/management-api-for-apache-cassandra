@@ -37,7 +37,7 @@ import org.apache.cassandra.utils.MonotonicClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UnixSocketServer42x {
+public class UnixSocketServer50x {
   private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
 
   // Names of handlers used in pre-V5 pipelines
