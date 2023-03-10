@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-oss-4-2x:
+  build-oss-trunk:
     strategy:
       fail-fast: false
       matrix:
