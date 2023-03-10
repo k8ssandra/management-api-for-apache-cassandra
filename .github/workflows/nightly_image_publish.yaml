@@ -4,6 +4,7 @@ on:
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '4 20 * * *'
+  workflow_dispatch:
 
 jobs:
   build-oss-4-2x:
