@@ -84,6 +84,7 @@ Cassandra 4.0.x
 Cassandra 4.1.x
 
       k8ssandra/cass-management-api:4.1.0
+      k8ssandra/cass-management-api:4.1.1
 
 Cassandra trunk
 
