@@ -80,6 +80,7 @@ Cassandra 4.0.x
       k8ssandra/cass-management-api:4.0.6
       k8ssandra/cass-management-api:4.0.7
       k8ssandra/cass-management-api:4.0.8
+      k8ssandra/cass-management-api:4.0.9
 
 Cassandra 4.1.x
 
