@@ -207,19 +207,36 @@ public class DseAPI68 implements CassandraAPI {
   public List<Map<String, String>> getEndpointStates() {
     List<Map<String, String>> result = new ArrayList<>();
 
+    IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
+
     for (InetAddress endpoint : Gossiper.instance.getAllEndpoints()) {
       EndpointState state = Gossiper.instance.getEndpointStateForEndpoint(endpoint);
       Map<String, String> states = new HashMap<>();
       for (Map.Entry<ApplicationState, VersionedValue> s : state.states()) {
-        states.put(s.getKey().name(), s.getValue().value);
+        String value = (s.getKey() == ApplicationState.TOKENS) ?
+                formatTokens(partitioner, s) :
+                s.getValue().value;
+        states.put(s.getKey().name(), value);
       }
 
       states.put("ENDPOINT_IP", endpoint.getHostAddress());
       states.put("IS_ALIVE", Boolean.toString(state.isAlive()));
+      states.put("PARTITIONER", partitioner.getClass().getName());
       result.add(states);
     }
 
     return result;
+  }
+
+  private String formatTokens(IPartitioner partitioner, Map.Entry<ApplicationState, VersionedValue> s) {
+    try {
+      byte[] bytes = s.getValue().value.getBytes(StandardCharsets.ISO_8859_1);
+      Collection<Token> tokens = TokenSerializer.deserialize(
+              partitioner, new DataInputStream(new ByteArrayInputStream(bytes)));
+      return tokens.stream().map(Token::toString).collect(Collectors.joining(","));
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   @Override

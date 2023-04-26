@@ -7,6 +7,7 @@ package com.datastax.mgmtapi;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +36,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -326,7 +328,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     URI uri = new URIBuilder(BASE_PATH + "/metadata/endpoints").build();
-    String response =
+    String responseJson =
         client
             .get(uri.toURL())
             .thenApply(
@@ -335,8 +337,19 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                 })
             .join();
 
-    assertNotNull(response);
-    assertNotEquals("", response);
+    assertNotNull(responseJson);
+    assertNotEquals("", responseJson);
+
+    Map<String, Object> response =
+        new ObjectMapper().readValue(responseJson, new TypeReference<Map<String, Object>>() {});
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> entity = (List<Map<String, String>>) response.get("entity");
+    Map<String, String> endpoint = entity.get(0);
+    assertThat(endpoint.get("PARTITIONER")).endsWith("Murmur3Partitioner");
+    Iterable<String> tokens = Splitter.on(",").split(endpoint.get("TOKENS"));
+    assertThat(tokens)
+        .allSatisfy(
+            token -> assertThatCode(() -> Long.parseLong(token)).doesNotThrowAnyException());
   }
 
   @Test
