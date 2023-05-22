@@ -29,7 +29,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=sha,format=short
+            type=sha,format=short,prefix=${{ matrix.cassandra-version }}-nightly-
       - uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
