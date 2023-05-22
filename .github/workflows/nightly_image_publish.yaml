@@ -5,6 +5,11 @@ on:
     # * is a special character in YAML so you have to quote this string
     - cron:  '4 20 * * *'
   workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Cassandra trunk commit SHA to build'
+        required: false
+        type: string
 
 jobs:
   build-oss-trunk:
@@ -24,6 +29,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=schedule,pattern={{date 'YYYYMMDD'}}
+            type=sha,format=short
       - uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
