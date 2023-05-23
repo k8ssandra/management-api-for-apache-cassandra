@@ -20,6 +20,15 @@ jobs:
         cassandra-version: ['5.0']
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Cassandra
+        id: checkout_cassandra
+        uses: actions/checkout@v3
+        with:
+          repository: 'apache/cassandra'
+      - name: Get Cassandra COMMIT SHA
+        id: get_sha
+        run: |
+          echo "COMMITSHA=$(git rev-parse --short ${{ inputs.sha }})" >> $GITHUB_ENV
       - name: Setup Docker scheduled meta
         if: ${{ github.event_name == 'schedule' }}
         id: meta_schedule
@@ -31,7 +40,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=schedule,pattern={{date 'YYYYMMDD'}}
-            type=sha,format=short,prefix=${{ matrix.cassandra-version }}-nightly-
+            type=raw,value=${{ env.COMMITSHA }}
       - name: Setup Docker on demand meta
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: meta_on_demand
@@ -41,8 +50,9 @@ jobs:
           flavor: |
             prefix=${{ matrix.cassandra-version }}-
           tags: |
-            type=sha,format=short,prefix=${{ matrix.cassandra-version }}-
-      - uses: actions/checkout@v3
+            type=raw,value=${{ env.COMMITSHA }}
+      - name: Checkout Management API
+        uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Setup Buildx
@@ -77,4 +87,4 @@ jobs:
           tags: ${{ steps.meta_on_demand.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: cass-trunk
-          build-args: COMMITSHA=${{ inputs.sha }}
+          build-args: COMMITSHA=${{ env.COMMITSHA }}
