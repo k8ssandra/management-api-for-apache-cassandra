@@ -9,6 +9,7 @@ on:
       sha:
         description: 'Cassandra trunk commit SHA to build'
         required: false
+        deafulat: 'HEAD'
         type: string
 
 jobs:
@@ -19,14 +20,9 @@ jobs:
         cassandra-version: ['5.0']
     runs-on: ubuntu-latest
     steps:
-<<<<<<< Updated upstream
-      - name: Setup Docker meta
-        id: meta
-=======
       - name: Setup Docker scheduled meta
         if: ${{ github.event_name == 'schedule' }}
         id: meta_schedule
->>>>>>> Stashed changes
         uses: docker/metadata-action@v4
         with:
           images: k8ssandra/cass-management-api
@@ -36,8 +32,6 @@ jobs:
             type=raw,value=latest
             type=schedule,pattern={{date 'YYYYMMDD'}}
             type=sha,format=short,prefix=${{ matrix.cassandra-version }}-nightly-
-<<<<<<< Updated upstream
-=======
       - name: Setup Docker on demand meta
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: meta_on_demand
@@ -48,7 +42,6 @@ jobs:
             prefix=${{ matrix.cassandra-version }}-
           tags: |
             type=sha,format=short,prefix=${{ matrix.cassandra-version }}-
->>>>>>> Stashed changes
       - uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -63,22 +56,16 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Publish ${{ matrix.cassandra-version }} to Registry
-<<<<<<< Updated upstream
-        id: docker_build
-=======
         if: ${{ github.event_name == 'schedule' }}
         id: docker_build_schedule
->>>>>>> Stashed changes
         uses: docker/build-push-action@v3
         with:
           file: cassandra-trunk/Dockerfile.ubi8
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
+          tags: ${{ steps.meta_schedule.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
           target: cass-trunk
-<<<<<<< Updated upstream
-=======
       - name: Publish ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: docker_build_on_demand
@@ -91,4 +78,3 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: cass-trunk
           build-args: COMMITSHA=${{ inputs.sha }}
->>>>>>> Stashed changes
