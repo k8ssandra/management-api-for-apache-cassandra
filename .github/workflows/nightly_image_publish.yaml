@@ -9,7 +9,7 @@ on:
       sha:
         description: 'Cassandra trunk commit SHA to build'
         required: false
-        deafulat: 'HEAD'
+        default: 'HEAD'
         type: string
 
 jobs:
