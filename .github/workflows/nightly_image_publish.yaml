@@ -25,8 +25,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: 'apache/cassandra'
-      - name: Get Cassandra COMMIT SHA
-        id: get_sha
+      - name: Get scheduled Cassandra COMMIT SHA
+        if: ${{ github.event_name == 'schedule' }}
+        id: get_sha_scheduled
+        run: |
+          echo "COMMITSHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Get on-demand Cassandra COMMIT SHA
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        id: get_sha_on_demand
         run: |
           echo "COMMITSHA=$(git rev-parse --short ${{ inputs.sha }})" >> $GITHUB_ENV
       - name: Setup Docker scheduled meta
@@ -65,7 +71,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Publish ${{ matrix.cassandra-version }} to Registry
+      - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'schedule' }}
         id: docker_build_schedule
         uses: docker/build-push-action@v3
@@ -76,7 +82,7 @@ jobs:
           tags: ${{ steps.meta_schedule.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: cass-trunk
-      - name: Publish ${{ matrix.cassandra-version }} to Registry
+      - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: docker_build_on_demand
         uses: docker/build-push-action@v3
