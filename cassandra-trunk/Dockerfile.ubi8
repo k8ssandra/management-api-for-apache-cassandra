@@ -34,6 +34,8 @@ RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/re
 
 # Build and extract Cassandra
 FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
+ARG REPO=https://github.com/apache/cassandra.git
+ARG BRANCH=trunk
 ARG COMMITSHA="HEAD"
 ENV CASSANDRA_PATH /opt/cassandra
 WORKDIR /build
@@ -42,7 +44,7 @@ RUN set -x \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get update \
     && apt-get install -y --no-install-recommends git ant ant-optional make maven \
-    && git clone -b trunk --single-branch https://github.com/apache/cassandra.git \
+    && git clone -b ${BRANCH} --single-branch ${REPO} \
     && cd cassandra \
     && git checkout $(git rev-parse --short ${COMMITSHA}) \
     #&& ant -q -S echo-base-version > /build/cassandra.version \
