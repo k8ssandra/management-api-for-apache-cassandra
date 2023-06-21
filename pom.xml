@@ -94,6 +94,24 @@
         <module>management-api-server</module>
       </modules>
     </profile>
+    <profile>
+      <id>dse7</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <dseIncluded>true</dseIncluded>
+      </properties>
+      <modules>
+        <module>management-api-common</module>
+        <module>management-api-agent-common</module>
+        <module>management-api-agent-3.x</module>
+        <module>management-api-agent-4.x</module>
+        <module>management-api-agent-4.1.x</module>
+        <module>management-api-agent-dse7</module>
+        <module>management-api-server</module>
+      </modules>
+    </profile>
   </profiles>
   <build>
     <pluginManagement>
