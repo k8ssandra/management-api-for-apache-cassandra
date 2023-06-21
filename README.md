@@ -82,11 +82,13 @@ Cassandra 4.0.x
       k8ssandra/cass-management-api:4.0.7
       k8ssandra/cass-management-api:4.0.8
       k8ssandra/cass-management-api:4.0.9
+      k8ssandra/cass-management-api:4.0.10
 
 Cassandra 4.1.x
 
       k8ssandra/cass-management-api:4.1.0
       k8ssandra/cass-management-api:4.1.1
+      k8ssandra/cass-management-api:4.1.2
 
 Cassandra trunk
 
@@ -104,6 +106,7 @@ DSE 6.8.x
       datastax/dse-mgmtapi-6_8:6.8.33 (jdk8, jdk11 and ubi7 based images)
       datastax/dse-mgmtapi-6_8:6.8.34 (jdk8, jdk11 and ubi7 based images)
       datastax/dse-mgmtapi-6_8:6.8.35 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.36 (jdk8, jdk11 and ubi7 based images)
 
 ### Cassandra trunk
 
