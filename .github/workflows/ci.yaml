@@ -91,8 +91,8 @@ jobs:
                 <id>artifactory-releases</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
-           </servers>
+              </server>
+            </servers>
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
@@ -139,8 +139,32 @@ jobs:
                 <id>artifactory-releases</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
-           </servers>
+              </server>
+            </servers>
+            <profile>
+              <id>artifactory</id>
+              <activation>
+                <activeByDefault>true</activeByDefault>
+              </activation>
+              <repositories>
+                <repository>
+                  <id>artifactory</id>
+                  <name>DataStax Artifactory Lab</name>
+                  <releases>
+                    <enabled>true</enabled>
+                    <updatePolicy>never</updatePolicy>
+                    <checksumPolicy>fail</checksumPolicy>
+                  </releases>
+                  <snapshots>
+                    <enabled>true</enabled>
+                    <updatePolicy>always</updatePolicy>
+                    <checksumPolicy>fail</checksumPolicy>
+                  </snapshots>
+                  <url>https://repo.aws.dsinternal.org/artifactory/dse</url>
+                  <layout>default</layout>
+                </repository>
+              </repositories>
+            </profile>
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
@@ -224,8 +248,8 @@ jobs:
                 <id>artifactory-releases</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
-           </servers>
+              </server>
+            </servers>
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
@@ -278,8 +302,8 @@ jobs:
                 <id>artifactory-releases</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
-           </servers>
+              </server>
+            </servers>
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
