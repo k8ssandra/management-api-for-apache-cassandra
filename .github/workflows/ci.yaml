@@ -102,6 +102,54 @@ jobs:
         with:
           name: datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
           path: management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
+  build-dse7:
+    if: github.repository_owner == 'k8ssandra'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          version: latest
+      - name: Build with Maven and run tests
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          mvn -B -q install --file pom.xml -P dse7
+      - name: Upload DSE mgmt-api
+        uses: actions/upload-artifact@v3
+        with:
+          name: datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
+          path: management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
 
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image
