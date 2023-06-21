@@ -40,7 +40,7 @@ jobs:
            </servers>
           </settings>
           EOF
-          mvn -q -ff package -DskipTests -P dse
+          mvn -q -ff package -DskipTests -P dse,dse7
       - name: zip-up
         run: |
           zip jars.zip \
