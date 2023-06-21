@@ -18,7 +18,7 @@
     <revision>0.1.0-SNAPSHOT</revision>
     <driver.version>4.15.0</driver.version>
     <cassandra3.version>3.11.15</cassandra3.version>
-    <cassandra4.version>4.0.9</cassandra4.version>
+    <cassandra4.version>4.0.10</cassandra4.version>
     <docker.java.version>3.2.13</docker.java.version>
     <junit.version>4.13.2</junit.version>
     <bytebuddy.version>1.12.19</bytebuddy.version>
