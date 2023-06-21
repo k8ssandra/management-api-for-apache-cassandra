@@ -154,7 +154,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
-          path: management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
+          path: management-api-agent-dse7/target/datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
 
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image
