@@ -15,6 +15,12 @@
   </parent>
   <groupId>com.datastax</groupId>
   <artifactId>datastax-mgmtapi-agent-dse7</artifactId>
+  <repositories>
+    <repository>
+      <id>artifactory</id>
+      <url>https://repo.datastax.com/dse</url>
+    </repository>
+  </repositories>
   <dependencies>
     <dependency>
       <groupId>com.datastax</groupId>
