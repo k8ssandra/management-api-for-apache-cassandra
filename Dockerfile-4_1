@@ -35,21 +35,24 @@ RUN mkdir ${MAAC_PATH} && \
     cd ${MAAC_PATH} && \
     ln -s datastax-mgmtapi-agent-4.1.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar && \
     ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
-    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+    chmod -R g+w ${MAAC_PATH}
 
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
+    chmod -R g+w ${MCAC_PATH}
 
 ENV USER_HOME_PATH /home/cassandra
-RUN mkdir ${USER_HOME_PATH}
+RUN mkdir ${USER_HOME_PATH} && chmod -R g+w ${USER_HOME_PATH}
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM cassandra:${CASSANDRA_VERSION} as oss41
 
@@ -75,7 +78,9 @@ COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
+RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH} && \
+    # we don't need recursive chnages here because the files in the directories already have group write
+    chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} ${CDC_AGENT_PATH}
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
@@ -98,7 +103,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103 9000
 EXPOSE 8080
 
-USER cassandra
+USER cassandra:root
 
 ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
 CMD ["mgmtapi"]

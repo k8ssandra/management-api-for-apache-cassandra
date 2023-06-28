@@ -23,7 +23,8 @@ WORKDIR /
 ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-{METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz && \
+    chmod -R g+w ${MCAC_PATH}
 
 # Install tini
 RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-amd64"; fi && \
@@ -36,6 +37,7 @@ RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/re
 FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
 ARG COMMITSHA="HEAD"
 ENV CASSANDRA_PATH /opt/cassandra
+ENV CASSANDRA_FILES_PATH /opt/cassandra_files
 WORKDIR /build
 RUN set -x \
     && rm -fr /etc/apt/sources.list.d/* \
@@ -47,9 +49,11 @@ RUN set -x \
     && git checkout $(git rev-parse --short ${COMMITSHA}) \
     #&& ant -q -S echo-base-version > /build/cassandra.version \
     && ant artifacts mvn-install -Duse.jdk11=true \
-    && mkdir ${CASSANDRA_PATH} \
+    && mkdir ${CASSANDRA_PATH} ${CASSANDRA_FILES_PATH} \
     && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-5.0-SNAPSHOT-bin.tar.gz \
-    && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc
+    && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc \
+    && chmod -R g+w ${CASSANDRA_PATH}
+COPY cassandra-trunk/files ${CASSANDRA_FILES_PATH}
 
 #############################################################
 # Build the Management API
@@ -92,7 +96,8 @@ RUN mkdir $MAAC_PATH \
     && cd ${MAAC_PATH} \
     && ln -s datastax-mgmtapi-agent-5.0.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
     && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
-    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+    chmod -R g+w ${MAAC_PATH}
 
 ###
 # Download CDC Agent jarfile
@@ -103,7 +108,8 @@ ARG CDC_AGENT_EDITION=agent-c4
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  chmod -R g+w ${CDC_AGENT_PATH}
 
 ############################################################
 
@@ -112,7 +118,7 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as cass-trunk
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="Apache Cassandra"
 LABEL vendor="DataStax, Inc"
-LABEL release="4.2-SNAPSHOT"
+LABEL release="5.0-SNAPSHOT"
 LABEL summary="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
 LABEL description="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
 
@@ -128,6 +134,8 @@ ENV CASSANDRA_HOME ${CASSANDRA_PATH}
 ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
 ENV CASSANDRA_LOG_DIR /var/log/cassandra
 
+ENV CASSANDRA_FILES_PATH /opt/cassandra_files
+
 # Update base layer
 RUN microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
@@ -135,7 +143,7 @@ RUN microdnf update && rm -rf /var/cache/yum \
     && microdnf clean all \
 # Add Cassandra user
     && groupadd -r cassandra --gid=998 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra
+    && useradd -m -d "$CASSANDRA_HOME" -r -g root -G cassandra --uid=999 cassandra
 
 # Copy user accounts information
 #COPY --from=builder /etc/passwd /etc/passwd
@@ -150,7 +158,7 @@ COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder /usr/local/bin/tini /usr/local/bin/tini
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root $CDC_AGENT_PATH $CDC_AGENT_PATH
-COPY --chown=cassandra:root cassandra-trunk/files /
+COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_FILES_PATH} /
 
 # Fix permissions
 #RUN chown -R cassandra:root ${CASSANDRA_PATH} ${MAAC_PATH} ${MCAC_PATH} && \
@@ -162,10 +170,12 @@ RUN (for dir in /var/lib/cassandra \
                 /config ; do \
         mkdir -p $dir && chown -R cassandra:root $dir && chmod 775 $dir ; \
     done ) && \
-    touch config/foo
+    touch config/foo && \
+    # change mode of directories
+    chmod 775 ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH}
 
 # Set user to run as
-USER cassandra:cassandra
+USER cassandra:root
 
 # Expose CASSANDRA folders
 VOLUME ["/config", "/var/lib/cassandra", "/var/log/cassandra"]

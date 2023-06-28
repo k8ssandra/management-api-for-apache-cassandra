@@ -15,7 +15,7 @@ ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
-ARG DSE_AGENT_VERSION=6.8.24
+ARG DSE_AGENT_VERSION=6.8.26
 ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
 ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
 
@@ -109,7 +109,8 @@ RUN mkdir $MAAC_PATH \
     && cd ${MAAC_PATH} \
     && ln -s datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
     && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
-    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+    chmod -R g+w ${MAAC_PATH}
 
 #############################################################
 
@@ -122,7 +123,8 @@ ARG CDC_AGENT_EDITION=agent-dse4
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
 
@@ -149,8 +151,8 @@ RUN set -x \
 
 COPY dse-68/files /
 
-COPY --chown=dse:dse --from=dse-server-prep $DSE_HOME $DSE_HOME
-COPY --chown=dse:dse --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
+COPY --chown=dse:root --from=dse-server-prep $DSE_HOME $DSE_HOME
+COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
 
 # Create folders
 RUN (for dir in /var/lib/cassandra \
@@ -160,21 +162,21 @@ RUN (for dir in /var/lib/cassandra \
                 /var/log/cassandra \
                 /var/log/spark \
                 /config ; do \
-        mkdir -p $dir && chown -R dse:dse $dir && chmod 777 $dir ; \
+        mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
     done )
 
 # Use OSS Management API
 RUN rm -rf $DSE_HOME/resources/management-api
-COPY --chown=dse:dse --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
+COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 
 # Add CDC Agent
-COPY --chown=dse:dse --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
+COPY --chown=dse:root --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
 
 ENV PATH $DSE_HOME/bin:$PATH
 ENV HOME $DSE_HOME
 WORKDIR $HOME
 
-USER dse
+USER dse:root
 
 # Expose DSE folders
 VOLUME ["/var/lib/cassandra", "/var/lib/spark", "/var/lib/dsefs", "/var/log/cassandra", "/var/log/spark"]
