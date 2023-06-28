@@ -21,7 +21,7 @@ WORKDIR /
 
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
-RUN mkdir ${MCAC_PATH} && \
+RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-{METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz && \
     chmod -R g+w ${MCAC_PATH}
@@ -37,7 +37,6 @@ RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/re
 FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
 ARG COMMITSHA="HEAD"
 ENV CASSANDRA_PATH /opt/cassandra
-ENV CASSANDRA_FILES_PATH /opt/cassandra_files
 WORKDIR /build
 RUN set -x \
     && rm -fr /etc/apt/sources.list.d/* \
@@ -49,7 +48,7 @@ RUN set -x \
     && git checkout $(git rev-parse --short ${COMMITSHA}) \
     #&& ant -q -S echo-base-version > /build/cassandra.version \
     && ant artifacts mvn-install -Duse.jdk11=true \
-    && mkdir ${CASSANDRA_PATH} ${CASSANDRA_FILES_PATH} \
+    && mkdir -m 775 ${CASSANDRA_PATH} ${CASSANDRA_FILES_PATH} \
     && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-5.0-SNAPSHOT-bin.tar.gz \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc \
     && chmod -R g+w ${CASSANDRA_PATH}
@@ -85,7 +84,7 @@ COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
-RUN mkdir $MAAC_PATH \
+RUN mkdir -m 775 $MAAC_PATH \
     && cd /tmp \
     && mvn -q -ff package -DskipTests -P trunk \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
@@ -106,7 +105,7 @@ ARG CDC_AGENT_VERSION=2.2.9
 ARG CDC_AGENT_EDITION=agent-c4
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
-RUN mkdir ${CDC_AGENT_PATH} && \
+RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
@@ -172,10 +171,10 @@ RUN (for dir in /var/lib/cassandra \
     done ) && \
     touch config/foo && \
     # change mode of directories
-    chmod 775 ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH}
+    chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH}
 
 # Set user to run as
-USER cassandra:root
+USER cassandra:cassandra
 
 # Expose CASSANDRA folders
 VOLUME ["/config", "/var/lib/cassandra", "/var/log/cassandra"]

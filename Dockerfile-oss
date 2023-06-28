@@ -26,7 +26,7 @@ COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
-RUN mkdir ${MAAC_PATH} && \
+RUN mkdir -m 775 ${MAAC_PATH} && \
     mvn -q -ff package -DskipTests && \
     find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
     rm $MAAC_PATH/datastax-mgmtapi-agent-4* && \
@@ -39,13 +39,13 @@ RUN mkdir ${MAAC_PATH} && \
 
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
-RUN mkdir ${MCAC_PATH} && \
+RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz && \
     chmod -R g+w ${MCAC_PATH}
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
-RUN mkdir ${CDC_AGENT_PATH} && \
+RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
@@ -92,7 +92,6 @@ RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH} 
     # we don't need recursive chnages here because the files in the directories already have group write
     chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} ${CDC_AGENT_PATH}
 
-
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
@@ -113,7 +112,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 EXPOSE 9103 9000
 EXPOSE 8080
 
-USER cassandra:root
+USER cassandra
 
 ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
 CMD ["mgmtapi"]
