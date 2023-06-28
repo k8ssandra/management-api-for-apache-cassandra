@@ -37,6 +37,7 @@ RUN if test ! -e tini-amd64; then curl -L -O "https://github.com/krallin/tini/re
 FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
 ARG COMMITSHA="HEAD"
 ENV CASSANDRA_PATH /opt/cassandra
+ENV CASSANDRA_FILES_PATH /opt/cassandra_files
 WORKDIR /build
 RUN set -x \
     && rm -fr /etc/apt/sources.list.d/* \
