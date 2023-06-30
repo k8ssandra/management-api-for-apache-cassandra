@@ -12,12 +12,11 @@ FROM registry.access.redhat.com/ubi7/ubi-minimal:${BASETAG} as dse68
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
-LABEL release="6.8.31"
+LABEL release="6.8.36"
 LABEL summary="The best distribution of Apache Cassandra™ with integrated Search, Analytics, and Graph capabilities"
 LABEL description="Built on the best distribution of Apache Cassandra™, DataStax Enterprise is the always-on database designed to allow you to effortlessly build and scale your apps, integrating graph, search, analytics, administration, developer tooling, and monitoring into a single unified platform. We power your apps' real-time moments so you can create instant insights and powerful customer experiences."
 
 ENV DSE_HOME /opt/dse
-ENV DSE_AGENT_HOME /opt/agent
 ENV PATH $DSE_HOME/bin:$PATH
 ENV HOME $DSE_HOME
 
@@ -69,7 +68,9 @@ ENV CDC_AGENT_PATH=/opt/cdc_agent
 COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH
 
 # Adjust directories for ldconfig usage
-RUN chmod g+w /etc /etc/ld.so.cache
+RUN chmod g+w /etc /etc/ld.so.cache  && \
+    # still need to change the mode of the COPY directories, though this does not duplicate layers
+    chmod g+w ${MAAC_PATH} ${DSE_HOME} ${CDC_AGENT_PATH}
 
 # Set user to run as
 USER dse:root

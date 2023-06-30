@@ -26,7 +26,7 @@ COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
-RUN mkdir ${MAAC_PATH} && \
+RUN mkdir -m 775 ${MAAC_PATH} && \
     mvn -q -ff package -DskipTests && \
     find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
     rm $MAAC_PATH/datastax-mgmtapi-agent-4* && \
@@ -34,21 +34,24 @@ RUN mkdir ${MAAC_PATH} && \
     cd ${MAAC_PATH} && \
     ln -s datastax-mgmtapi-agent-3.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar && \
     ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar && \
-    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+    ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+    chmod -R g+w ${MAAC_PATH}
 
 # Download and extract Metrics Collector
 ENV MCAC_PATH /opt/metrics-collector
-RUN mkdir ${MCAC_PATH} && \
+RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz && \
+    chmod -R g+w ${MCAC_PATH}
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
-RUN mkdir ${CDC_AGENT_PATH} && \
+RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  chmod -R g+w ${CDC_AGENT_PATH}
 
 ENV USER_HOME_PATH /home/cassandra
-RUN mkdir ${USER_HOME_PATH}
+RUN mkdir -m 775 ${USER_HOME_PATH}
 
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim as netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
@@ -59,7 +62,7 @@ FROM --platform=linux/arm64 cassandra:${CASSANDRA_VERSION} as oss311-arm64
 # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
 # Only replace this dependency for arm64 to avoid regressions
 RUN rm /opt/cassandra/lib/netty-all-*.jar
-COPY --from=netty4150 /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
+COPY --from=netty4150 --chown=cassandra:root /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
 
 FROM oss311-${TARGETARCH} as oss311
 
@@ -85,7 +88,9 @@ COPY --from=builder --chown=cassandra:root ${USER_HOME_PATH} ${USER_HOME_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 
 # Setup user and fixup permissions
-RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH}
+RUN chown -R cassandra:root ${CASSANDRA_PATH} && chmod -R g+w ${CASSANDRA_PATH} && \
+    # we don't need recursive chnages here because the files in the directories already have group write
+    chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${USER_HOME_PATH} ${CDC_AGENT_PATH}
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini

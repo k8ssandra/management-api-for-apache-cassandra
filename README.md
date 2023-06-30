@@ -90,9 +90,10 @@ Cassandra 4.1.x
       k8ssandra/cass-management-api:4.1.1
       k8ssandra/cass-management-api:4.1.2
 
-Cassandra trunk
+Cassandra trunk (currently, these are nightly builds)
 
-      k8ssandra/cass-management-api:4.2.0
+      k8ssandra/cass-management-api:5.0-nightly-latest or
+      k8ssandra/cass-management-api:5.0-nightly-YYYYMMDD
 
 DSE 6.8.x
 

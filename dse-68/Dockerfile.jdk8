@@ -15,7 +15,7 @@ ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
-ARG DSE_AGENT_VERSION=6.8.24
+ARG DSE_AGENT_VERSION=6.8.26
 ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
 ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
 
@@ -36,7 +36,8 @@ RUN set -x \
 # Use hard links to reduce the size impact of duplicate jars
     && apt-get update \
     && apt-get install -y --install-recommends rdfind \
-    && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME}
+    && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME} \
+    && chmod -R g+w ${DSE_HOME} ${DSE_AGENT_HOME}
 
 #############################################################
 
@@ -99,7 +100,7 @@ COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
-RUN mkdir $MAAC_PATH \
+RUN mkdir -m 775 $MAAC_PATH \
     && cd /tmp \
     && mvn -q -ff package -DskipTests -P dse \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
@@ -109,7 +110,8 @@ RUN mkdir $MAAC_PATH \
     && cd ${MAAC_PATH} \
     && ln -s datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
     && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
-    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar
+    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+    chmod -R g+w ${MAAC_PATH}
 
 #############################################################
 
@@ -120,16 +122,17 @@ ARG CDC_AGENT_VERSION=2.2.9
 ARG CDC_AGENT_EDITION=agent-dse4
 # Download CDC agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
-RUN mkdir ${CDC_AGENT_PATH} && \
+RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
-LABEL release="6.8.26"
+LABEL release="6.8.36"
 
 ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
@@ -149,8 +152,8 @@ RUN set -x \
 
 COPY dse-68/files /
 
-COPY --chown=dse:dse --from=dse-server-prep $DSE_HOME $DSE_HOME
-COPY --chown=dse:dse --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
+COPY --chown=dse:root --from=dse-server-prep $DSE_HOME $DSE_HOME
+COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
 
 # Create folders
 RUN (for dir in /var/lib/cassandra \
@@ -160,15 +163,18 @@ RUN (for dir in /var/lib/cassandra \
                 /var/log/cassandra \
                 /var/log/spark \
                 /config ; do \
-        mkdir -p $dir && chown -R dse:dse $dir && chmod 777 $dir ; \
+        mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
     done )
 
 # Use OSS Management API
 RUN rm -rf $DSE_HOME/resources/management-api
-COPY --chown=dse:dse --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
+COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 
 # Add CDC Agent
-COPY --chown=dse:dse --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
+COPY --chown=dse:root --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
+
+# Fix COPY directory modes
+RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
 ENV PATH $DSE_HOME/bin:$PATH
 ENV HOME $DSE_HOME
