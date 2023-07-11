@@ -242,6 +242,8 @@ jobs:
         with:
           images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to DockerHub
@@ -296,6 +298,8 @@ jobs:
         with:
           images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse68-ubi7-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Login to DockerHub
