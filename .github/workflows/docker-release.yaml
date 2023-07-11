@@ -97,7 +97,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
 
   build-dse-68-ubi7:
     needs: build-dse-68-ubuntu
@@ -164,7 +164,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
 
   build-oss-3-11x:
     strategy:
