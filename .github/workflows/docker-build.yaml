@@ -3,10 +3,6 @@ name: Docker Image build tests
 
 on: [push, pull_request]
 
-env:
-  REGISTRY_PATH: ${{ github.workspace }}/registry
-  CACHE_PATH: /tmp/.buildx-cache
-  
 jobs:
   docker-build-oss:
     name: Build ${{ matrix.cassandra-version }} Cassandra Docker image
@@ -37,7 +33,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build Cassandra ${{ matrix.cassandra-version }}
-        id: docker_build
+        id: docker_oss_build
         uses: docker/build-push-action@v3
         with:
           file: ${{ matrix.docker-file }}
@@ -86,7 +82,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
       - name: Build DSE 6.8-${{ matrix.jdk-version }}
-        id: docker_build
+        id: docker_dse_build
         uses: docker/build-push-action@v3
         with:
           file: dse-68/Dockerfile.${{ matrix.jdk-version }}
@@ -95,84 +91,20 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: dse68
-          cache-from: |
-            type=local,src=${{ env.CACHE_PATH }}
-            ${{ steps.meta.outputs.tags }}
-          cache-to: type=local,dest=${{ env.CACHE_PATH }}
-#  docker-build-dse-ubi:
-#    name: Build DSE UBI Docker image
-#    needs: docker-build-dse-ubuntu
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Check out source code
-#        uses: actions/checkout@v3
-#      - name: Setup Maven settings file
-#        run: |
-#          mkdir -p ~/.m2
-#          cat <<EOF > ~/.m2/settings.xml
-#          <settings>
-#            <servers>
-#              <server>
-#                <id>artifactory-snapshots</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#              <server>
-#                <id>artifactory-releases</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#            </servers>
-#          </settings>
-#          EOF
-#          cp ~/.m2/settings.xml settings.xml
-#      - name: Setup Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v4
-#        with:
-#          images: datastax/dse-mgmtapi-6_8
-#          tags: type=sha,prefix=dse68-ubi7-
-#      - name: Setup Docker DSE inherit meta
-#        id: dsemeta
-#        uses: docker/metadata-action@v4
-#        with:
-#          images: datastax/dse-mgmtapi-6_8
-#          tags: type=sha,prefix=dse68-jdk8-
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v2
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v2
-#      - name: Login to DockerHub
-#        uses: docker/login-action@v2
-#        with:
-#          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-#          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#      - name: Set outputs
-#        id: vars
-#        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-#      - name: Download Docker registry data from build job
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: docker-registry-data
-#          path: ${{ env.REGISTRY_PATH }}
-#      - name: Start Docker registry
-#        run: |
-#          docker run --rm --detach --publish 5000:5000 \
-#            --volume ${REGISTRY_PATH}:/var/lib/registry \
-#            --name registry registry:2
-#          sleep 10
-#      - name: Build DSE 6.8-ubi7
-#        id: docker_build
-#        uses: docker/build-push-action@v3
-#        with:
-#          file: dse-68/Dockerfile.ubi7
-#          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
-#          context: .
-#          push: false
-#          tags: ${{ steps.meta.outputs.tags }}
-#          platforms: linux/amd64,linux/arm64
-#          target: dse68
-#          cache-from: |
-#            type=local,src=${{ env.CACHE_PATH }}
-#            ${{ steps.dsemeta.outputs.tags }}
-#          cache-to: type=local,dest=${{ env.CACHE_PATH }}
+      # Build UBI image in the same job after the Ubuntu image, only for JDK8
+      - name: Set outputs for DSE UBI image
+        if: ${{ matrix.jdk-version == 'jdk8' }}
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build DSE UBI image
+        if: ${{ matrix.jdk-version == 'jdk8' }}
+        id: docker_dse_ubi_build
+        uses: docker/build-push-action@v3
+        with:
+          file: dse-68/Dockerfile.ubi7
+          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: dse68
