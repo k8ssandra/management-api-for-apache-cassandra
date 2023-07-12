@@ -104,7 +104,7 @@ jobs:
 #        id: docker_dse_ubi_build
 #        uses: docker/build-push-action@v3
 #        with:
-#          file: dse-68/Dockerfile.ubi7
+#          file: dse-68/Dockerfile.ubi8
 #          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
 #          context: .
 #          push: false
