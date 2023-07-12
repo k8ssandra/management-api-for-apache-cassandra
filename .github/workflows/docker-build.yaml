@@ -87,24 +87,27 @@ jobs:
         with:
           file: dse-68/Dockerfile.${{ matrix.jdk-version }}
           context: .
-          load: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64,linux/arm64
-          target: dse68
-      # Build UBI image in the same job after the Ubuntu image, only for JDK8
-      - name: Set outputs for DSE UBI image
-        if: ${{ matrix.jdk-version == 'jdk8' }}
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Build DSE UBI image
-        if: ${{ matrix.jdk-version == 'jdk8' }}
-        id: docker_dse_ubi_build
-        uses: docker/build-push-action@v3
-        with:
-          file: dse-68/Dockerfile.ubi7
-          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
-          context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: dse68
+      # Build UBI image in the same job after the Ubuntu image, only for JDK8
+      # This currently does not work since you can't build multi-arch images AND
+      # load them. The UBI images need to have the Ubuntu based images built
+      # and loaded (or published) before they can proceed. 
+#      - name: Set outputs for DSE UBI image
+#        if: ${{ matrix.jdk-version == 'jdk8' }}
+#        id: vars
+#        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+#      - name: Build DSE UBI image
+#        if: ${{ matrix.jdk-version == 'jdk8' }}
+#        id: docker_dse_ubi_build
+#        uses: docker/build-push-action@v3
+#        with:
+#          file: dse-68/Dockerfile.ubi7
+#          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
+#          context: .
+#          push: false
+#          tags: ${{ steps.meta.outputs.tags }}
+#          platforms: linux/amd64,linux/arm64
+#          target: dse68
