@@ -1,0 +1,113 @@
+
+name: Docker Image build tests
+
+on: [push, pull_request]
+
+jobs:
+  docker-build-oss:
+    name: Build ${{ matrix.cassandra-version }} Cassandra Docker image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - cassandra-version: '3.11'
+            docker-file: Dockerfile-oss
+            build-target: oss311
+          - cassandra-version: '4.0'
+            docker-file: Dockerfile-4_0
+            build-target: oss40
+          - cassandra-version: '4.1'
+            docker-file: Dockerfile-4_1
+            build-target: oss41
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v3
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: k8ssandra/cass-management-api
+          tags: type=sha,prefix=${{ matrix.cassandra-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build Cassandra ${{ matrix.cassandra-version }}
+        id: docker_oss_build
+        uses: docker/build-push-action@v4
+        with:
+          file: ${{ matrix.docker-file }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: ${{ matrix.build-target }}
+  docker-build-dse-ubuntu:
+    name: Build DSE Ubuntu Docker images
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk-version: [jdk8, jdk11]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v3
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Build DSE 6.8-${{ matrix.jdk-version }}
+        id: docker_dse_build
+        uses: docker/build-push-action@v4
+        with:
+          file: dse-68/Dockerfile.${{ matrix.jdk-version }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: dse68
+      # Build UBI image in the same job after the Ubuntu image, only for JDK8
+      # This currently does not work since you can't build multi-arch images AND
+      # load them. The UBI images need to have the Ubuntu based images built
+      # and loaded (or published) before they can proceed. 
+#      - name: Set outputs for DSE UBI image
+#        if: ${{ matrix.jdk-version == 'jdk8' }}
+#        id: vars
+#        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+#      - name: Build DSE UBI image
+#        if: ${{ matrix.jdk-version == 'jdk8' }}
+#        id: docker_dse_ubi_build
+#        uses: docker/build-push-action@v3
+#        with:
+#          file: dse-68/Dockerfile.ubi7
+#          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
+#          context: .
+#          push: false
+#          tags: ${{ steps.meta.outputs.tags }}
+#          platforms: linux/amd64,linux/arm64
+#          target: dse68
