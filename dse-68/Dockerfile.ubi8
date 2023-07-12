@@ -1,13 +1,13 @@
 
-ARG VERSION=6.8.36
-ARG BASETAG=7.8
+ARG VERSION=6.8.37
+ARG BASETAG=8.8
 
 FROM datastax/dse-mgmtapi-6_8:${VERSION} AS dse-server-base
 
 #############################################################
 
-# Based on ubi7 for Python 2 support, when moving to Python 3 use ubi8
-FROM registry.access.redhat.com/ubi7/ubi-minimal:${BASETAG} as dse68
+# Using UBI8 with Python 2 support, eventually we may switch to Python 3
+FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as dse68
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
@@ -24,7 +24,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python zlib libaio which findutils hostname && microdnf clean all
+    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en && microdnf clean all
 
 WORKDIR $HOME
 

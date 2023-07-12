@@ -97,17 +97,18 @@ Cassandra trunk (currently, these are nightly builds)
 
 DSE 6.8.x
 
-      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.28 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.29 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.31 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.32 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.33 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.34 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.35 (jdk8, jdk11 and ubi7 based images)
-      datastax/dse-mgmtapi-6_8:6.8.36 (jdk8, jdk11 and ubi7 based images)
+      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.28 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.29 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.31 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.32 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.33 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.34 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.35 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.36 (jdk8, jdk11 and ubi8 based images)
+      datastax/dse-mgmtapi-6_8:6.8.37 (jdk8, jdk11 and ubi8 based images)
 
 ### Cassandra trunk
 
