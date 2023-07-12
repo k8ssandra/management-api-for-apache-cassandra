@@ -63,7 +63,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest && matrix.image-base != 'jdk8' }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
         run: |
@@ -75,7 +75,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest && matrix.image-base == 'jdk8' }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
         run: |
@@ -88,7 +88,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest && matrix.image-base != 'jdk8' }}
         name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
         run: |
@@ -157,7 +157,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \
             --target dse68 \
-            --platform linux/amd64 .
+            --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
         run: |
