@@ -34,7 +34,7 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build Cassandra ${{ matrix.cassandra-version }}
         id: docker_oss_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: ${{ matrix.docker-file }}
           context: .
@@ -83,11 +83,11 @@ jobs:
         uses: docker/setup-buildx-action@v2
       - name: Build DSE 6.8-${{ matrix.jdk-version }}
         id: docker_dse_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: dse-68/Dockerfile.${{ matrix.jdk-version }}
           context: .
-          push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: dse68
