@@ -50,69 +50,108 @@
   Each Management API is responsible for the local node only.  Coordination across nodes
   is up to the caller.  That being said, complex health checks can be added via CQL.
 
+## Supported Image Matrix
+
+The following versions of Cassandra and DSE are published to Docker and supported:
+
+| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x |
+| ---------------- | --------------- | --------------- | --------- |
+| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    |
+| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    |
+| 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    |
+| 3.11.12          | 4.0.4           |                 | 6.8.29    |
+| 3.11.13          | 4.0.5           |                 | 6.8.30    |
+| 3.11.14          | 4.0.6           |                 | 6.8.31    |
+| 3.11.15          | 4.0.7           |                 | 6.8.32    |
+|                  | 4.0.8           |                 | 6.8.33    |
+|                  | 4.0.9           |                 | 6.8.34    |
+|                  | 4.0.10          |                 | 6.8.35    |
+|                  |                 |                 | 6.8.36    |
+|                  |                 |                 | 6.8.37    |
+
+- All supported images are available in `linux/amd64` or `linux/arm64` formats.
+- All images (with the exception of Cassandra trunk) are available as an Ubuntu based image or a RedHat UBI 8 based image.
+Cassandra trunk images are only RedHat UBI8 based.
+- All Cassandra 3.11.x images come with JDK 8
+- All Cassandra 4.0.x and 4.1.x images come with JDK 11
+- All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
+- All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
+
+### Docker coordinates for Cassandra OSS images
+
+#### Ubuntu based images (OSS)
+
+For all Ubuntu based OSS Cassandra images, the Docker coordinates are as follows:
+
+      k8ssandra/cass-management-api:<version>
+
+Example for Cassandra 4.0.10
+
+      k8ssandra/cass-management-api:4.0.10
+
+#### RedHat UBI 8 based images (OSS)
+
+For all RedHat UBI 8 based OSS Cassandra images, the Docker coordinates are as follows:
+
+      k8ssandra/cass-management-api:<version>-ubi8
+
+Example for Cassandra 4.0.10
+
+      k8ssandra/cass-management-api:4.0.10-ubi8
+
+### Docker coordinates for DSE 6.8.x images
+
+#### Ubuntu based images (DSE)
+
+For all JDK 8 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_8:<version>
+
+Example for DSE 6.8.31
+
+      datastax/dse-mgmtapi-6_8:6.8.31
+
+For all JDK 11 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_8:<version>-jdk11
+
+Example for DSE 6.8.31
+
+      datastax/dse-mgmtapi-6_8:6.8.31-jdk11
+
+#### RedHat UBI 8 based images (DSE)
+
+For all RedHat UBI 8 based DSE 6.8.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_8:<version>-ubi8
+
+Example for DSE 6.8.31
+
+      datastax/dse-mgmtapi-6_8:6.8.31-ubi8
+
+### Docker coordinates for Cassandra Trunk images
+
+We also build and publish Nightly images for Cassandra trunk. These images are only published with a RedHat UBI 8 base platform, with JDK 11.
+**NOTE: These are not production ready images. Use with caution!**
+
+The most recent nightly build is available at
+
+      k8ssandra/cass-management-api:5.0-nightly-latest
+
+You can also use an image built on a specific date
+
+      k8ssandra/cass-management-api:5.0-nightly-YYYYMMDD
+
+There is also an image tag for the specific Cassandra commit SHA (not all commits are built)
+
+      k8ssandra/cass-management-api:5.0-nightly-<Short SHA>
+
 ## Building
 
 ### Minimum Java Version
 
 The project has been updated to now require JDK11 or newer to build. The jarfile artifacts
-are still compiled to Java8 as Java8 is still what some Cassandra versiosn ship with.
-
-### Supported Image Matrix
-
-The following versions of Cassandra and DSE are published to Docker and supported:
-
-Cassandra 3.11.x (Ubuntu and UBI8.8 based images with JDK8)
-
-      k8ssandra/cass-management-api:3.11.7
-      k8ssandra/cass-management-api:3.11.8
-      k8ssandra/cass-management-api:3.11.11
-      k8ssandra/cass-management-api:3.11.12
-      k8ssandra/cass-management-api:3.11.13
-      k8ssandra/cass-management-api:3.11.14
-      k8ssandra/cass-management-api:3.11.15
-
-Cassandra 4.0.x (Ubuntu and UBI8.8 based images with JDK11)
-
-      k8ssandra/cass-management-api:4.0.0
-      k8ssandra/cass-management-api:4.0.1
-      k8ssandra/cass-management-api:4.0.3
-      k8ssandra/cass-management-api:4.0.4
-      k8ssandra/cass-management-api:4.0.5
-      k8ssandra/cass-management-api:4.0.6
-      k8ssandra/cass-management-api:4.0.7
-      k8ssandra/cass-management-api:4.0.8
-      k8ssandra/cass-management-api:4.0.9
-      k8ssandra/cass-management-api:4.0.10
-
-Cassandra 4.1.x (Ubuntu and UBI8.8 based images with JDK11)
-
-      k8ssandra/cass-management-api:4.1.0
-      k8ssandra/cass-management-api:4.1.1
-      k8ssandra/cass-management-api:4.1.2
-
-Cassandra trunk (currently, these are nightly builds, UBI8.7/8.8 based images with JDK11)
-
-      k8ssandra/cass-management-api:5.0-nightly-latest or
-      k8ssandra/cass-management-api:5.0-nightly-YYYYMMDD
-
-DSE 6.8.x (Ubuntu JDK8, Ubuntu JDK11 and UBI JDK8 based images)
-
-      datastax/dse-mgmtapi-6_8:6.8.25 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.26 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.28 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.29 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.30 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.31 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.32 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.33 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.34 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.35 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.36 (jdk8, jdk11 and ubi8 based images)
-      datastax/dse-mgmtapi-6_8:6.8.37 (jdk8, jdk11 and ubi8 based images)
-
-### Cassandra trunk
-
-For building an image based on the latest from Cassandra trunk, see this [README](management-api-agent-4.2.x/README.md)
+are still compiled to Java8 as Java8 is still what some Cassandra versions ship with.
 
 ### Containers
 
@@ -141,6 +180,14 @@ To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.
 **NOTE 3:** In order to run DSE integration tests, you must also enable the ````dse```` profile:
 
     mvn integration-test -P dse -DrunDSEtests=true
+
+### Cassandra trunk
+
+For building an image based on the latest from Cassandra trunk, see this [README](management-api-agent-5.0.x/README.md).
+
+### DSE 6.8.x
+
+For building an image based on DSE 6.8, see the [DSE README](management-api-agent-dse-6.8/README.md).
 
 ## REST API
    [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/k8ssandra/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
@@ -226,7 +273,7 @@ Please see the [DSE README](management-api-agent-dse-6.8/README.md) for details.
 ### Gogle Java Style
 
 The project uses [google-java-format](https://github.com/google/google-java-format) and enforces the
-[Google Java Style](https://google.github.io/styleguide/javaguide.html) for all Java souce files. The
+[Google Java Style](https://google.github.io/styleguide/javaguide.html) for all Java source files. The
 Maven plugin is configured to check the style during compile and it will fail the compile if it finds
 a file that does not adhere to the coding standard.
 
@@ -236,7 +283,7 @@ If you want to check the formatting from the command line after making changes, 
 
     mvn fmt:check
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse fmt:check
 
@@ -246,7 +293,7 @@ If you want have the plugin format the code for you, you can simply run:
 
     mvn fmt:format
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse fmt:format
 
@@ -259,7 +306,7 @@ Refer to your IDE's documentation for installing and setting up checkstyle.
 
 ### Source code headers
 
-In addtion to Java style formatting, the project also enforces that source files have the correct
+In addition to Java style formatting, the project also enforces that source files have the correct
 header. Source files include `.java`, `.xml` and `.properties` files. The Header should be:
 
     /*
@@ -271,7 +318,7 @@ header. Source files include `.java`, `.xml` and `.properties` files. The Header
 for Java files. For XML and Properties files, the same header should exist, with the appropriate
 comment characters replacing the Java comment characters above.
 
-Just like the Coding style, the Headers are checked at compile time and will fail the compie if
+Just like the Coding style, the Headers are checked at compile time and will fail the compile if
 they aren't correct.
 
 #### Checking the headers
@@ -280,7 +327,7 @@ If you want to check the headers from the command line after making changes, you
 
     mvn license:check
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse license:check
 
@@ -290,13 +337,13 @@ If you want have the plugin format the headers for you, you can simply run:
 
     mvn license:format
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse license:format
 
 ### XML formatting
 
-The projet also enforces a standard XML format. Again, it is checked at compile time and will fail
+The project also enforces a standard XML format. Again, it is checked at compile time and will fail
 the compile if XML files are not formatted correctly. See the plugin documentation for formatting
 details here: https://acegi.github.io/xml-format-maven-plugin/?utm_source=mavenlibs.com
 
@@ -306,7 +353,7 @@ If you want to check XML files from the command line after making changes, you c
 
     mvn xml-format:xml-check
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse xml-format:xml-check
 
@@ -316,7 +363,7 @@ If you want have the plugin format XML files for you, you can simply run:
 
     mvn xml-format:xml-format
 
-NOTE: If you are making changes in the DSE agent, you ened to enable the `dse` profile:
+NOTE: If you are making changes in the DSE agent, you need to enable the `dse` profile:
 
     mvn -Pdse xml-format:xml-format
 
@@ -326,8 +373,8 @@ The architecture of this repository is laid as follows, front-to-back:
 
 1. The `management-api-server/doc/openapi.json` documents the API.
 2. The server implements the HTTP verbs/endpoints under the `management-api-server/src/main/java/com/datastax/mgmtapi/resources` folder (e.g. `NodeOpsresources.java`).
-3. The server methods communicate back to the agents using `cqlService.executePreparedStatement()` calls which are routed as plaintext through a local socket. These calls return `ResultSet` objects, and to acess scalar values within these you are best to call `.one()` before checking for nulls and `.getObject(0)`. This java objectcan then be serialised into JSON for return to the client.
-4. The server communicates only with the `management-api-agent-common` subproject, which holds the unversioned `CassandraAPI` interface.
+3. The server methods communicate back to the agents using `cqlService.executePreparedStatement()` calls which are routed as plaintext through a local socket. These calls return `ResultSet` objects, and to access scalar values within these you are best to call `.one()` before checking for nulls and `.getObject(0)`. This java object can then be serialized into JSON for return to the client.
+4. The server communicates only with the `management-api-agent-common` sub-project, which holds the un-versioned `CassandraAPI` interface.
 5. The `management-api-agent-common/src/main/java/com/datastax/mgmtapi/NodeOpsProvider.java` routes commands through to specific versioned instances of `CassandraAPI` which is implemented in the version 3x/4x subprojects as `CassandraAPI4x`/`CassandraAPI3x`.
 
 Any change to add endpoints or features will need to make modifications in each of the above components to ensure that they propagate through.

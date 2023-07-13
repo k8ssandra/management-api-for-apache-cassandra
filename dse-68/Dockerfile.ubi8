@@ -1,13 +1,13 @@
-
 ARG VERSION=6.8.37
-ARG BASETAG=8.8
+ARG UBI_MAJOR=8
+ARG UBI_BASETAG=latest
 
 FROM datastax/dse-mgmtapi-6_8:${VERSION} AS dse-server-base
 
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
-FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as dse68
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as dse68
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"

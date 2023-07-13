@@ -1,6 +1,7 @@
-ARG BASETAG=8.8
+ARG UBI_MAJOR=8
+ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=4.0.10
-FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} AS builder
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG METRICS_COLLECTOR_VERSION=0.3.4
@@ -84,7 +85,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as oss40
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as oss40
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
 

@@ -1,9 +1,7 @@
-# Copyright DataStax, Inc, 2020
-#   Please review the included LICENSE file for more information.
-#
-ARG BASETAG=8.8
+ARG UBI_MAJOR=8
+ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=5.0-SNAPSHOT
-FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} AS builder
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG CASSANDRA_VERSION
 ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
@@ -110,7 +108,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:${BASETAG} as cass-trunk
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as cass-trunk
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
 
