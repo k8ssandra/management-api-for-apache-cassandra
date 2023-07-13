@@ -161,8 +161,6 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     [ ! -e "/etc/cassandra" ]; \
     mv $CASSANDRA_CONF /etc/cassandra && \
     ln -sT /etc/cassandra $CASSANDRA_CONF && \
-    # make /config
-    mkdir -m 775 /config && chown cassandra:root /config && \
     # change mode of directories
     chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
@@ -170,7 +168,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
 USER cassandra
 
 # Expose CASSANDRA folders
-VOLUME ["/config", "/var/lib/cassandra", "/var/log/cassandra"]
+VOLUME ["/var/lib/cassandra", "/var/log/cassandra"]
 
 # MANAGEMENT API, MCAC METRICS, NON-MCAC METRICS
 EXPOSE 8080 9103 9000
