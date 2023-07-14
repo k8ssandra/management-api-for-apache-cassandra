@@ -424,24 +424,18 @@ public class DockerHelper {
         case "4_1":
           config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1").toFile();
           config.target = "oss41";
-          config.envList =
-              Lists.newArrayList(
-                  "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "4_1_ubi":
           config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1.ubi8").toFile();
           config.target = "oss41";
-          config.envList =
-              Lists.newArrayList(
-                  "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "trunk":
           config.dockerFile =
               Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile.ubi8").toFile();
           config.target = "cass-trunk";
-          config.envList =
-              Lists.newArrayList(
-                  "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "dse-68":
           config.dockerFile =
