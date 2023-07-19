@@ -317,9 +317,9 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <id>clientgen</id>
+      <id>go-clientgen</id>
       <properties>
-        <openapi.tools.version>5.3.0</openapi.tools.version>
+        <openapi.tools.version>6.6.0</openapi.tools.version>
       </properties>
       <build>
         <plugins>
@@ -331,6 +331,42 @@
               <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
               <generatorName>go</generatorName>
               <skip>${skipOpenApi}</skip>
+              <output>${project.build.directory}/generated-sources/openapi/go-client</output>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <id>java-clientgen</id>
+      <properties>
+        <openapi.tools.version>6.6.0</openapi.tools.version>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-maven-plugin</artifactId>
+            <version>${openapi.tools.version}</version>
+            <configuration>
+              <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
+              <generatorName>java</generatorName>
+              <skip>${skipOpenApi}</skip>
+              <output>${project.build.directory}/generated-sources/openapi/java-client</output>
+              <apiPackage>com.datastax.mgmtapi.client.api</apiPackage>
+              <modelPackage>com.datastax.mgmtapi.client.model</modelPackage>
+              <invokerPackage>com.datastax.mgmtapi.client.invoker</invokerPackage>
             </configuration>
             <executions>
               <execution>
