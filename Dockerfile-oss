@@ -68,6 +68,13 @@ FROM oss311-${TARGETARCH} as oss311
 
 ARG TARGETARCH
 
+LABEL maintainer="DataStax, Inc <info@datastax.com>"
+LABEL name="Apache Cassandra"
+LABEL vendor="DataStax, Inc"
+LABEL release="${CASSANDRA_VERSION}"
+LABEL summary="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
+LABEL description="Apache Cassandra is an open source distributed database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. Cassandra offers robust support for clusters spanning multiple datacenters, with asynchronous masterless replication allowing low latency operations for all clients."
+
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
 ENV MCAC_PATH /opt/metrics-collector

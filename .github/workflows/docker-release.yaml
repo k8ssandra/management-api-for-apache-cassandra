@@ -151,7 +151,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg VERSION=${{ matrix.dse-version }} \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
@@ -163,7 +163,7 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
-            --build-arg VERSION=${{ matrix.dse-version }} \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse-68/Dockerfile.${{ matrix.image-base }} \

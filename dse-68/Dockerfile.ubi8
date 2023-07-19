@@ -1,18 +1,20 @@
-ARG VERSION=6.8.37
+ARG DSE_VERSION=6.8.37
 ARG UBI_MAJOR=8
 ARG UBI_BASETAG=latest
 
-FROM datastax/dse-mgmtapi-6_8:${VERSION} AS dse-server-base
+FROM datastax/dse-mgmtapi-6_8:${DSE_VERSION} AS dse-server-base
 
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as dse68
+ARG DSE_VERSION
+ENV DSE_VERSION=${DSE_VERSION}
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
-LABEL release="6.8.36"
+LABEL release="${DSE_VERSION}"
 LABEL summary="The best distribution of Apache Cassandra™ with integrated Search, Analytics, and Graph capabilities"
 LABEL description="Built on the best distribution of Apache Cassandra™, DataStax Enterprise is the always-on database designed to allow you to effortlessly build and scale your apps, integrating graph, search, analytics, administration, developer tooling, and monitoring into a single unified platform. We power your apps' real-time moments so you can create instant insights and powerful customer experiences."
 

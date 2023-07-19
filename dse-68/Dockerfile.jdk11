@@ -127,11 +127,13 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
+ARG DSE_VERSION
+ENV DSE_VERSION=${DSE_VERSION}
 
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
-LABEL release="6.8.36"
+LABEL release="$DSE_VERSION"
 
 ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
