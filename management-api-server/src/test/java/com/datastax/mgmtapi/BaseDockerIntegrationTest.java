@@ -91,10 +91,14 @@ public abstract class BaseDockerIntegrationTest {
     List<String> versions = new ArrayList<>(4);
 
     if (Boolean.getBoolean("run311tests")) versions.add("3_11");
+    if (Boolean.getBoolean("run311testsUBI")) versions.add("3_11_ubi");
     if (Boolean.getBoolean("run40tests")) versions.add("4_0");
+    if (Boolean.getBoolean("run40testsUBI")) versions.add("4_0_ubi");
     if (Boolean.getBoolean("run41tests")) versions.add("4_1");
+    if (Boolean.getBoolean("run41testsUBI")) versions.add("4_1_ubi");
     if (Boolean.getBoolean("runTrunktests")) versions.add("trunk");
     if (Boolean.getBoolean("runDSEtests")) versions.add("dse-68");
+    if (Boolean.getBoolean("runDSEtestsUBI")) versions.add("dse-68_ubi");
 
     return versions;
   }

@@ -19,6 +19,15 @@ jobs:
           - cassandra-version: '4.1'
             docker-file: Dockerfile-4_1
             build-target: oss41
+          - cassandra-version: '3.11-ubi8'
+            docker-file: Dockerfile-oss.ubi8
+            build-target: oss311
+          - cassandra-version: '4.0-ubi8'
+            docker-file: Dockerfile-4_0.ubi8
+            build-target: oss40
+          - cassandra-version: '4.1-ubi8'
+            docker-file: Dockerfile-4_1.ubi8
+            build-target: oss41
     steps:
       - name: Check out source code
         uses: actions/checkout@v3
@@ -43,7 +52,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.build-target }}
   docker-build-dse-ubuntu:
-    name: Build DSE Ubuntu Docker images
+    name: Build DSE 6.8 (${{ matrix.jdk-version }}) Ubuntu Docker image
     runs-on: ubuntu-latest
     strategy:
       matrix:

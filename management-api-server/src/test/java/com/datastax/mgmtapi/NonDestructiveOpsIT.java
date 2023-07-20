@@ -276,6 +276,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
     // Reset schema does not work on Cassandra 4.1+
     assumeFalse("4_1".equals(this.version));
+    assumeFalse("4_1_ubi".equals(this.version));
     assumeFalse("trunk".equals(this.version));
     ensureStarted();
 

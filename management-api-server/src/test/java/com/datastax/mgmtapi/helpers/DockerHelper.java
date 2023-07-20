@@ -406,8 +406,18 @@ public class DockerHelper {
           config.target = "oss311";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
+        case "3_11_ubi":
+          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss.ubi8").toFile();
+          config.target = "oss311";
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
+          break;
         case "4_0":
           config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0").toFile();
+          config.target = "oss40";
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
+          break;
+        case "4_0_ubi":
+          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0.ubi8").toFile();
           config.target = "oss40";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
@@ -416,17 +426,31 @@ public class DockerHelper {
           config.target = "oss41";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
+        case "4_1_ubi":
+          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1.ubi8").toFile();
+          config.target = "oss41";
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
+          break;
         case "trunk":
           config.dockerFile =
               Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile.ubi8").toFile();
           config.target = "cass-trunk";
-          config.envList =
-              Lists.newArrayList(
-                  "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
+          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "dse-68":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.jdk11").toFile();
+              Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.jdk8").toFile();
+          config.target = "dse68";
+          config.envList =
+              Lists.newArrayList(
+                  "MAX_HEAP_SIZE=500M",
+                  "HEAP_NEWSIZE=100M",
+                  "DS_LICENSE=accept",
+                  "USE_MGMT_API=true");
+          break;
+        case "dse-68_ubi":
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.ubi8").toFile();
           config.target = "dse68";
           config.envList =
               Lists.newArrayList(

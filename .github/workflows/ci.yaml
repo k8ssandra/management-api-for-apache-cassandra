@@ -7,20 +7,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: ['3.11', '4.0', '4.1']
+        cassandra-version: ['3.11', '4.0', '4.1', '3.11_ubi', '4.0_ubi', '4.1_ubi']
         include:
           - cassandra-version: '3.11'
             run311tests: true
+            run311testsUBI: false
             run40tests: false
+            run40testsUBI: false
             run41tests: false
+            run41testsUBI: false
           - cassandra-version: '4.0'
             run311tests: false
+            run311testsUBI: false
             run40tests: true
+            run40testsUBI: false
             run41tests: false
+            run41testsUBI: false
           - cassandra-version: '4.1'
             run311tests: false
+            run311testsUBI: false
             run40tests: false
+            run40testsUBI: false
             run41tests: true
+            run41testsUBI: false
+          - cassandra-version: '3.11_ubi'
+            run311tests: false
+            run311testsUBI: true
+            run40tests: false
+            run40testsUBI: false
+            run41tests: false
+            run41testsUBI: false
+          - cassandra-version: '4.0_ubi'
+            run311tests: false
+            run311testsUBI: false
+            run40tests: false
+            run40testsUBI: true
+            run41tests: false
+            run41testsUBI: false
+          - cassandra-version: '4.1_ubi'
+            run311tests: false
+            run311testsUBI: false
+            run40tests: false
+            run40testsUBI: false
+            run41tests: false
+            run41testsUBI: true
 
     runs-on: ubuntu-latest
 
@@ -46,7 +76,13 @@ jobs:
           version: latest
       - name: Build with Maven and run tests
         run: |
-          mvn -B -q install --file pom.xml -Drun311tests=${{ matrix.run311tests }} -Drun40tests=${{ matrix.run40tests }} -Drun41tests=${{ matrix.run41tests }}
+          mvn -B -q install --file pom.xml \
+          -Drun311tests=${{ matrix.run311tests }} \
+          -Drun40tests=${{ matrix.run40tests }} \
+          -Drun41tests=${{ matrix.run41tests }} \
+          -Drun311testsUBI=${{ matrix.run311testsUBI }} \
+          -Drun40testsUBI=${{ matrix.run40testsUBI }} \
+          -Drun41testsUBI=${{ matrix.run41testsUBI }}
       - name: Upload mgmt-api agents
         uses: actions/upload-artifact@v3
         with:
@@ -56,6 +92,17 @@ jobs:
             management-api-agent-3*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
   build-dse:
     if: github.repository_owner == 'k8ssandra'
+    strategy:
+      fail-fast: false
+      matrix:
+        platform-version: ['jdk8', 'ubi']
+        include:
+          - platform-version: 'jdk8'
+            runDSEtests: true
+            runDSEtestsUBI: false
+          - platform-version: 'ubi'
+            runDSEtests: false
+            runDSEtestsUBI: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -96,7 +143,9 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          mvn -B -q install --file pom.xml -P dse -DrunDSEtests=true
+          mvn -B -q install --file pom.xml -P dse \
+          -DrunDSEtests=${{ matrix.runDSEtests }} \
+          -DrunDSEtestsUBI=${{ matrix.runDSEtestsUBI }}
       - name: Upload DSE mgmt-api
         uses: actions/upload-artifact@v3
         with:
@@ -173,6 +222,15 @@ jobs:
           - cassandra-version: '4.1'
             docker-file: Dockerfile-4_1
             build-target: oss41
+          - cassandra-version: '3.11-ubi8'
+            docker-file: Dockerfile-oss.ubi8
+            build-target: oss311
+          - cassandra-version: '4.0-ubi8'
+            docker-file: Dockerfile-4_0.ubi8
+            build-target: oss40
+          - cassandra-version: '4.1-ubi8'
+            docker-file: Dockerfile-4_1.ubi8
+            build-target: oss41
     steps:
       - name: Check out source code
         uses: actions/checkout@v3
@@ -195,7 +253,7 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Build and push Cassandra ${{ matrix.cassandra-version }}
         id: docker_build
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: ${{ matrix.docker-file }}
           context: .
@@ -203,8 +261,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.build-target }}
+
   publish-dse-ubuntu:
-    name: Publish DSE Ubuntu images
+    name: Publish DSE 6.8 Ubuntu image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: build-dse
     runs-on: ubuntu-latest
@@ -263,7 +322,7 @@ jobs:
           target: dse68
 
   publish-dse-ubi:
-    name: Publish DSE UBI image
+    name: Publish DSE 6.8 UBI 8 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: publish-dse-ubuntu
     runs-on: ubuntu-latest

@@ -2,13 +2,14 @@ name: Check PR linked to issue
 on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize]
+  workflow_dispatch:
 
 jobs:
   check_pull_requests:
     runs-on: ubuntu-latest
     name: Check linked issues
     steps:
-      - uses: nearform/github-action-check-linked-issues@v1
+      - uses: nearform-actions/github-action-check-linked-issues@v1
         id: check-linked-issues
         with:
           exclude-branches: "dependabot/**"
