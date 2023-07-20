@@ -62,7 +62,6 @@ public class DockerHelper {
                   .maxConnections(100)
                   .build())
           .build();
-  ;
 
   // Cleanup hook to remove Docker images built for tests
   static {
