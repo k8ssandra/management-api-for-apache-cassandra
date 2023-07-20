@@ -367,6 +367,9 @@
               <apiPackage>com.datastax.mgmtapi.client.api</apiPackage>
               <modelPackage>com.datastax.mgmtapi.client.model</modelPackage>
               <invokerPackage>com.datastax.mgmtapi.client.invoker</invokerPackage>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>datastax-mgmtapi-client</artifactId>
+              <artifactVersion>${project.version}</artifactVersion>
             </configuration>
             <executions>
               <execution>

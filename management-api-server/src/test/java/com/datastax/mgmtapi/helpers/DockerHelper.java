@@ -61,7 +61,8 @@ public class DockerHelper {
                   .sslConfig(CONFIG.getSSLConfig())
                   .maxConnections(100)
                   .build())
-          .build();;
+          .build();
+  ;
 
   // Cleanup hook to remove Docker images built for tests
   static {

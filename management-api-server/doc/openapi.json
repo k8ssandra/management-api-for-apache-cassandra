@@ -1428,7 +1428,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Service is running"
@@ -1444,7 +1447,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Service is ready to handle requests"
