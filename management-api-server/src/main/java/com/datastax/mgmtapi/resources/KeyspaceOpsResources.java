@@ -15,6 +15,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -239,6 +240,7 @@ public class KeyspaceOpsResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
+              array = @ArraySchema(schema = @Schema(implementation = String.class)),
               examples =
                   @ExampleObject(
                       value =

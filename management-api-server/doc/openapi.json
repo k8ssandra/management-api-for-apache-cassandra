@@ -422,7 +422,13 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ]
+                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ],
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
               }
             },
             "description" : "List of Keyspaces"
@@ -1177,7 +1183,13 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : [ "table_1", "table_2" ]
+                "example" : [ "table_1", "table_2" ],
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
               }
             },
             "description" : "Table list"
