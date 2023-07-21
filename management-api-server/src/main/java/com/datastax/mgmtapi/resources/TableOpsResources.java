@@ -5,10 +5,8 @@
  */
 package com.datastax.mgmtapi.resources;
 
-import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResource;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
@@ -35,19 +33,12 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path("/api/v0/ops/tables")
-public class TableOpsResources {
-  private static final Logger logger = LoggerFactory.getLogger(TableOpsResources.class);
-
-  private final ManagementApplication app;
-  private final CqlService cqlService;
+public class TableOpsResources extends BaseResource {
 
   public TableOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -72,7 +63,7 @@ public class TableOpsResources {
             keyspaceName = "ALL";
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)",
               scrubRequest.disableSnapshot,
@@ -115,7 +106,7 @@ public class TableOpsResources {
             keyspaceName = "ALL";
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)",
               keyspaceName,
@@ -177,7 +168,7 @@ public class TableOpsResources {
               }
 
               String userDefinedFiles = String.join(",", compactRequest.userDefinedFiles);
-              cqlService.executePreparedStatement(
+              app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile,
                   "CALL NodeOps.forceUserDefinedCompaction(?, ?)",
                   userDefinedFiles,
@@ -199,7 +190,7 @@ public class TableOpsResources {
           }
 
           if (tokenProvided) {
-            cqlService.executePreparedStatement(
+            app.cqlService.executePreparedStatement(
                 app.dbUnixSocketFile,
                 "CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?, ?)",
                 keyspaceName,
@@ -208,7 +199,7 @@ public class TableOpsResources {
                 tables,
                 false);
           } else {
-            cqlService.executePreparedStatement(
+            app.cqlService.executePreparedStatement(
                 app.dbUnixSocketFile,
                 "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)",
                 compactRequest.splitOutput,
@@ -265,7 +256,7 @@ public class TableOpsResources {
                 .build();
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.garbageCollect(?, ?, ?, ?)",
               tombstoneOption,
@@ -299,7 +290,7 @@ public class TableOpsResources {
             keyspaceName = "ALL";
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.forceKeyspaceFlush(?, ?)", keyspaceName, tables);
 
           return Response.ok("OK").build();
@@ -334,10 +325,10 @@ public class TableOpsResources {
           .entity("List tables failed. Non-empty 'keyspaceName' must be provided")
           .build();
     }
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           ResultSet result =
-              cqlService.executePreparedStatement(
+              app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile, "CALL NodeOps.getTables(?)", keyspaceName);
           Row row = result.one();
           assert row != null;
@@ -370,9 +361,9 @@ public class TableOpsResources {
           .entity("Table creation failed: " + e.getMessage())
           .build();
     }
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.createTable(?, ?, ?, ?, ?, ?, ?, ?, ?)",
               request.keyspaceName,

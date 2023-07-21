@@ -5,8 +5,8 @@
  */
 package com.datastax.mgmtapi.resources;
 
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResource;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
@@ -35,20 +35,13 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path("/api/v0/ops/keyspace")
-public class KeyspaceOpsResources {
-  private static final Logger logger = LoggerFactory.getLogger(KeyspaceOpsResources.class);
+public class KeyspaceOpsResources extends BaseResource {
   private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-  private final ManagementApplication app;
-  private final CqlService cqlService;
-
   public KeyspaceOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -68,7 +61,7 @@ public class KeyspaceOpsResources {
               schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
   public Response cleanup(KeyspaceRequest keyspaceRequest) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           List<String> tables = keyspaceRequest.tables;
           if (CollectionUtils.isEmpty(tables)) {
@@ -87,7 +80,7 @@ public class KeyspaceOpsResources {
           return Response.ok(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)",
                       keyspaceRequest.jobs,
                       keyspaceName,
@@ -117,7 +110,7 @@ public class KeyspaceOpsResources {
   public Response refresh(
       @QueryParam(value = "keyspaceName") String keyspaceName,
       @QueryParam(value = "table") String table) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           if (StringUtils.isBlank(keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)
@@ -131,7 +124,7 @@ public class KeyspaceOpsResources {
                 .build();
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.loadNewSSTables(?, ?)", keyspaceName, table);
 
           return Response.ok("OK").build();
@@ -160,7 +153,7 @@ public class KeyspaceOpsResources {
       summary = "Create a new keyspace with the given name and replication settings",
       operationId = "createKeyspace")
   public Response create(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           if (StringUtils.isBlank(createOrAlterKeyspaceRequest.keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)
@@ -175,7 +168,7 @@ public class KeyspaceOpsResources {
                 .build();
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.createKeyspace(?, ?)",
               createOrAlterKeyspaceRequest.keyspaceName,
@@ -207,7 +200,7 @@ public class KeyspaceOpsResources {
       summary = "Alter the replication settings of an existing keyspace",
       operationId = "alterKeyspace")
   public Response alter(CreateOrAlterKeyspaceRequest createOrAlterKeyspaceRequest) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           if (StringUtils.isBlank(createOrAlterKeyspaceRequest.keyspaceName)) {
             return Response.status(HttpStatus.SC_BAD_REQUEST)
@@ -222,7 +215,7 @@ public class KeyspaceOpsResources {
                 .build();
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.alterKeyspace(?, ?)",
               createOrAlterKeyspaceRequest.keyspaceName,
@@ -248,10 +241,10 @@ public class KeyspaceOpsResources {
   @Consumes(MediaType.APPLICATION_JSON)
   @Operation(summary = "List the keyspaces existing in the cluster", operationId = "listKeyspaces")
   public Response list(@QueryParam(value = "keyspaceName") String keyspaceName) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           ResultSet result =
-              cqlService.executePreparedStatement(
+              app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile, "CALL NodeOps.getKeyspaces()");
           Row row = result.one();
           List<String> keyspaces = null;
@@ -312,10 +305,10 @@ public class KeyspaceOpsResources {
           .entity("Get keyspace replication failed. Non-empty 'keyspaceName' must be provided")
           .build();
     }
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           ResultSet result =
-              cqlService.executePreparedStatement(
+              app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile, "CALL NodeOps.getReplication(?)", keyspaceName);
           Row row = result.one();
           if (row == null) {

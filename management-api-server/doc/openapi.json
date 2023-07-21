@@ -1679,6 +1679,24 @@
         },
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version). This operation is asynchronous and returns immediately."
       }
+    },
+    "/api/v2/metadata/endpoints" : {
+      "get" : {
+        "operationId" : "getEndpointStates_1",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EndpointStatesResponse"
+                }
+              }
+            },
+            "description" : "Endpoint states"
+          }
+        },
+        "summary" : "Returns this nodes view of the endpoint states of nodes"
+      }
     }
   },
   "components" : {
@@ -1778,6 +1796,30 @@
           }
         },
         "required" : [ "columns", "keyspace_name", "table_name" ]
+      },
+      "EndpointStates" : {
+        "type" : "object",
+        "properties" : {
+          "states" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          }
+        },
+        "required" : [ "states" ]
+      },
+      "EndpointStatesResponse" : {
+        "type" : "object",
+        "properties" : {
+          "endpoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EndpointStates"
+            }
+          }
+        },
+        "required" : [ "endpoints" ]
       },
       "FeatureSet" : {
         "type" : "object",

@@ -11,6 +11,7 @@ import static com.datastax.mgmtapi.ManagementApplication.STATE.STOPPED;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.UnixCmds;
 import com.datastax.mgmtapi.UnixSocketCQLAccess;
+import com.datastax.mgmtapi.resources.common.BaseResource;
 import com.datastax.mgmtapi.util.ShellUtils;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.shaded.guava.common.collect.Streams;
@@ -49,9 +50,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/api/v0/lifecycle")
-public class LifecycleResources {
+public class LifecycleResources extends BaseResource {
   private static final Logger logger = LoggerFactory.getLogger(LifecycleResources.class);
-  private final ManagementApplication app;
 
   static final YAMLMapper yamlMapper = new YAMLMapper();
   static final String PROFILE_PATTERN = "[0-9a-zA-Z\\-_]+";
@@ -60,7 +60,7 @@ public class LifecycleResources {
   private ObjectMapper objectMapper = new ObjectMapper();
 
   public LifecycleResources(ManagementApplication app) {
-    this.app = app;
+    super(app);
   }
 
   /**
