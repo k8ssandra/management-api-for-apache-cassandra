@@ -7,12 +7,16 @@
       "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
     "title" : "Management API for Apache Cassandra™",
-    "version" : "0.1"
+    "version" : "0.1.66"
   },
+  "servers" : [ {
+    "description" : "This Server URL will likely only work in a development environment.",
+    "url" : "http://localhost:8080"
+  } ],
   "paths" : {
     "/api/v0/lifecycle/configure" : {
       "post" : {
-        "description" : "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
+        "description" : "Configure Cassandra. Will fail if Cassandra is already started",
         "operationId" : "configureNode",
         "parameters" : [ {
           "in" : "query",
@@ -38,7 +42,9 @@
                 "type" : "string"
               }
             }
-          }
+          },
+          "description" : "JSON or YAML configuration overrides",
+          "required" : true
         },
         "responses" : {
           "200" : {
@@ -75,6 +81,14 @@
             "description" : "Cassandra can't be configured while running"
           },
           "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "error message",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
             "description" : "Error configuring Cassandra"
           }
         }

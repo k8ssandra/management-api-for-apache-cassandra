@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -312,45 +311,68 @@ public class LifecycleResources extends BaseResource {
   }
 
   @Path("/configure")
-  /**
-   * Hiding both "configure" endpoints to prevent OpenAPI spec generation from happening. Having 2
-   * methods handling the same endpoint and only differing on the @Consumes request MIME type causes
-   * the generation to fail to document the endpoint correctly. For now, we will annotate both these
-   * methods with @Hidden so that they still exist but are not auto generated in the spec file. They
-   * are documented by hand in the openapi-configuration.json file in the resources directory of
-   * this project for now, as that file is merged with the auto-generated spec to produce the final
-   * spec file.
-   */
-  @Hidden
   @POST
-  @Consumes("application/json")
+  // @Consumes({"application/yaml", "text/yaml", "application/json"})
   @Operation(
       description = "Configure Cassandra. Will fail if Cassandra is already started",
-      operationId = "configureNodeJson")
+      operationId = "configureNode")
   @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Cassandra configured successfully",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Cassandra configure request is missing required data or has invalid data",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "config missing")))
+  @ApiResponse(
+      responseCode = "406",
+      description = "Cassandra can't be configured while running",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples =
+                  @ExampleObject(value = "Cassandra is running, try /api/v0/lifecycle/stop first")))
+  @ApiResponse(
+      responseCode = "500",
+      description = "Error configuring Cassandra",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "error message")))
   public synchronized Response configureNodeJson(
-      @QueryParam("profile") String profile, String config) {
+      @QueryParam("profile") String profile,
+      @RequestBody(
+              content = {
+                @Content(mediaType = "application/yaml"),
+                @Content(mediaType = "text/yaml"),
+                @Content(mediaType = "application/json")
+              },
+              required = true,
+              description = "JSON or YAML configuration overrides")
+          String config) {
     try {
+      // try to convert json to yaml
       JsonNode jn = objectMapper.readTree(config);
       String yaml = yamlMapper.writeValueAsString(jn);
       return configureNode(profile, yaml);
     } catch (IOException e) {
-      return Response.status(Response.Status.NOT_ACCEPTABLE)
-          .entity("Invalid JSON:" + e.getMessage())
-          .build();
+      // might be yaml already
+      return configureNode(profile, config);
     }
   }
 
-  @Path("/configure")
-  // Hiding this. See above.
-  @Hidden
-  @POST
-  @Consumes({"application/yaml", "text/yaml"})
-  @Operation(
-      description = "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
-      operationId = "configureNode")
-  @Produces(MediaType.TEXT_PLAIN)
-  public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml) {
+  private synchronized Response configureNode(String profile, String yaml) {
     if (app.getRequestedState() == STARTED) {
       return Response.status(Response.Status.NOT_ACCEPTABLE)
           .entity("Cassandra is running, try /api/v0/lifecycle/stop first\n")

@@ -318,15 +318,12 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <id>go-clientgen</id>
-      <properties>
-        <openapi.tools.version>6.6.0</openapi.tools.version>
-      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.openapitools</groupId>
             <artifactId>openapi-generator-maven-plugin</artifactId>
-            <version>${openapi.tools.version}</version>
+            <version>7.0.0-beta</version>
             <configuration>
               <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
               <generatorName>go</generatorName>
@@ -350,15 +347,12 @@
         <activeByDefault>true</activeByDefault>
       </activation>
       <id>java-clientgen</id>
-      <properties>
-        <openapi.tools.version>6.6.0</openapi.tools.version>
-      </properties>
       <build>
         <plugins>
           <plugin>
             <groupId>org.openapitools</groupId>
             <artifactId>openapi-generator-maven-plugin</artifactId>
-            <version>${openapi.tools.version}</version>
+            <version>7.0.0-beta</version>
             <configuration>
               <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
               <generatorName>java</generatorName>
@@ -368,8 +362,9 @@
               <modelPackage>com.datastax.mgmtapi.client.model</modelPackage>
               <invokerPackage>com.datastax.mgmtapi.client.invoker</invokerPackage>
               <groupId>${project.groupId}</groupId>
-              <artifactId>datastax-mgmtapi-client</artifactId>
+              <artifactId>datastax-mgmtapi-client-openapi</artifactId>
               <artifactVersion>${project.version}</artifactVersion>
+              <artifactUrl>http://example.com</artifactUrl>
             </configuration>
             <executions>
               <execution>

@@ -78,7 +78,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -DskipTests \
+    && mvn -q -ff package -DskipTests -DskipOpenApi \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-3.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \

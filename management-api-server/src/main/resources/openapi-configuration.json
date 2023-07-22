@@ -2,11 +2,9 @@
     "resourcePackages": [
         "com.datastax.mgmtapi.resources"
     ],
-    "prettyPrint": true,
-    "cacheTTL": 0,
     "openAPI": {
         "info": {
-            "version": "0.1",
+            "version": "0.1.66",
             "title": "Management API for Apache Cassandra™",
             "description": "This is a Restful service for operating Apache Cassandra.  You can find out more about the Management API on [Github](http://github.com/k8ssandra/management-api-for-apache-cassandra)",
             "license": {
@@ -14,77 +12,10 @@
                 "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
             }
         },
-        "paths": {
-            "/api/v0/lifecycle/configure": {
-                "post": {
-                    "description": "Configure Cassandra/DSE. Will fail if Cassandra/DSE is already started",
-                    "operationId": "configureNode",
-                    "parameters": [{
-                            "name": "profile",
-                            "in": "query",
-                            "schema": {
-                                "type": "string"
-                            }
-                        }],
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "application/yaml": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            },
-                            "text/yaml": {
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "200": {
-                            "content": {
-                                "text/plain": {
-                                    "example": "OK",
-                                    "schema": {
-                                        "type": "string"
-                                    }
-                                }
-                            },
-                            "description": "Cassandra configured successfully"
-                        },
-                        "400": {
-                            "content": {
-                                "text/plain": {
-                                    "example": "config missing",
-                                    "schema": {
-                                        "type": "string"
-                                    }
-                                }
-                            },
-                            "description": "Cassandra configure request is missing required data or has invalid data"
-                        },
-                        "406": {
-                            "content": {
-                                "text/plain": {
-                                    "example": "Cassandra is running, try /api/v0/lifecycle/stop first",
-                                    "schema": {
-                                        "type": "string"
-                                    }
-                                }
-                            },
-                            "description": "Cassandra can't be configured while running"
-                        },
-                        "500": {
-                            "description": "Error configuring Cassandra"
-                        }
-                    }
-                }
-            }
+        "servers": [
+            {
+                "url": "http://localhost:8080",
+                "description": "This Server URL will likely only work in a development environment."
+            }]
         }
     }
-}

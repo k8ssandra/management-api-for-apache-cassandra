@@ -139,7 +139,36 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
   }
 
   @Test
-  public void testSuperuserWasNotSet() throws IOException {
+  public void testSuperuserWasNotSet_json() throws IOException {
+    testSuperuserWasNotSet(CONTENT_TYPE.JSON);
+  }
+
+  @Test
+  public void testSuperuserWasNotSet_yaml() throws IOException {
+    testSuperuserWasNotSet(CONTENT_TYPE.YAML);
+  }
+
+  private enum CONTENT_TYPE {
+    YAML("yaml"),
+    JSON("json");
+    private final String contentType;
+    private final String sampleFile;
+
+    private CONTENT_TYPE(final String type) {
+      this.contentType = "application/" + type;
+      this.sampleFile = "operator-sample." + type;
+    }
+
+    public String getContentType() {
+      return contentType;
+    }
+
+    public String getSampleFile() {
+      return sampleFile;
+    }
+  }
+
+  private void testSuperuserWasNotSet(CONTENT_TYPE type) throws IOException {
     assumeTrue(IntegrationTestUtils.shouldRun());
 
     boolean ready = false;
@@ -153,8 +182,8 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
               .post(
                   URI.create(BASE_PATH + "/lifecycle/configure?profile=authtest").toURL(),
                   FileUtils.readFileToString(
-                      IntegrationTestUtils.getFile(this.getClass(), "operator-sample.yaml")),
-                  "application/yaml")
+                      IntegrationTestUtils.getFile(this.getClass(), type.getSampleFile())),
+                  type.contentType)
               .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
               .join();
 
