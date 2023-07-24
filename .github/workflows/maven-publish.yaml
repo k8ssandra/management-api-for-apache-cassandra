@@ -1,9 +1,8 @@
 name: Maven Package
-#on:
-#  push:
-#    tags:
-#      - 'v*.*.*'
-on: workflow_dispatch
+on:
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -57,5 +56,5 @@ jobs:
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           RELEASE_VERSION="${RELEASE_VERSION:1}"
-          REPO="gh::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
+          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
           mvn -B clean deploy -P dse -Drevision="$RELEASE_VERSION" -DskipTests -DaltDeploymentRepository="${REPO}" -DaltSnapshotDeploymentRepository="${REPO}"
