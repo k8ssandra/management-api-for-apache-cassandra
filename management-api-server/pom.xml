@@ -364,7 +364,15 @@
               <groupId>com.datastax.oss</groupId>
               <artifactId>datastax-mgmtapi-client-openapi</artifactId>
               <artifactVersion>${project.version}</artifactVersion>
-              <artifactDescription>OpenAPI generated client for Management API for Apache Cassandra</artifactDescription>
+              <!-- The following configuration options are documented here: https://openapi-generator.tech/docs/generators/java -->
+              <configOptions>
+                <artifactDescription>OpenAPI generated client for Management API for Apache Cassandra</artifactDescription>
+                <artifactUrl>https://github.com/k8ssandra/managemenr-api-for-apache-cassandra</artifactUrl>
+                <scmConnection>https://github.com/k8ssandra/management-api-for-apache-cassandra.git</scmConnection>
+                <scmDeveloperConnection>https://github.com/k8ssandra/management-api-for-apache-cassandra.git</scmDeveloperConnection>
+                <scmUrl>https://github.com/k8ssandra/management-api-for-apache-cassandra</scmUrl>
+                <licenseName>Apache-2.0</licenseName>
+              </configOptions>
             </configuration>
             <executions>
               <execution>
