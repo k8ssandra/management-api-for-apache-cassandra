@@ -1,6 +1,9 @@
 name: Java CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
 
 jobs:
   build-oss:
@@ -8,6 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         cassandra-version: ['3.11', '4.0', '4.1', '3.11_ubi', '4.0_ubi', '4.1_ubi']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT']
         include:
           - cassandra-version: '3.11'
             run311tests: true
@@ -82,20 +86,15 @@ jobs:
           -Drun41tests=${{ matrix.run41tests }} \
           -Drun311testsUBI=${{ matrix.run311testsUBI }} \
           -Drun40testsUBI=${{ matrix.run40testsUBI }} \
-          -Drun41testsUBI=${{ matrix.run41testsUBI }}
-      - name: Upload mgmt-api agents
-        uses: actions/upload-artifact@v3
-        with:
-          name: oss-snapshots.zip
-          path: |
-            management-api-agent-4*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
-            management-api-agent-3*/target/datastax-mgmtapi-agent-*-0.1.0-SNAPSHOT.jar
+          -Drun41testsUBI=${{ matrix.run41testsUBI }} \
+          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
   build-dse:
     if: github.repository_owner == 'k8ssandra'
     strategy:
       fail-fast: false
       matrix:
         platform-version: ['jdk8', 'ubi']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT']
         include:
           - platform-version: 'jdk8'
             runDSEtests: true
@@ -143,14 +142,9 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-          mvn -B -q install --file pom.xml -P dse \
+          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSEtests=${{ matrix.runDSEtests }} \
           -DrunDSEtestsUBI=${{ matrix.runDSEtestsUBI }}
-      - name: Upload DSE mgmt-api
-        uses: actions/upload-artifact@v3
-        with:
-          name: datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
-          path: management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-dse-6.8-0.1.0-SNAPSHOT.jar
   build-dse7:
     if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest
@@ -199,11 +193,6 @@ jobs:
           EOF
           cp ~/.m2/settings.xml settings.xml
           mvn -B -q install --file pom.xml -P dse7
-      - name: Upload DSE mgmt-api
-        uses: actions/upload-artifact@v3
-        with:
-          name: datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
-          path: management-api-agent-dse7/target/datastax-mgmtapi-agent-dse7-0.1.0-SNAPSHOT.jar
 
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image
