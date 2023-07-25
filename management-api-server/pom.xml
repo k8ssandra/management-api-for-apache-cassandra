@@ -361,7 +361,7 @@
               <apiPackage>com.datastax.mgmtapi.client.api</apiPackage>
               <modelPackage>com.datastax.mgmtapi.client.model</modelPackage>
               <invokerPackage>com.datastax.mgmtapi.client.invoker</invokerPackage>
-              <groupId>com.datastax.oss</groupId>
+              <groupId>${project.groupId}</groupId>
               <artifactId>datastax-mgmtapi-client-openapi</artifactId>
               <artifactVersion>${project.version}</artifactVersion>
               <!-- The following configuration options are documented here: https://openapi-generator.tech/docs/generators/java -->
