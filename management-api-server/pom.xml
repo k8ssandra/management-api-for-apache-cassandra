@@ -9,11 +9,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.datastax</groupId>
+    <groupId>io.k8ssandra</groupId>
     <artifactId>datastax-mgmtapi</artifactId>
     <version>${revision}</version>
   </parent>
-  <groupId>com.datastax</groupId>
   <artifactId>datastax-mgmtapi-server</artifactId>
   <properties>
     <rsapi.version>2.1.1</rsapi.version>
@@ -27,7 +26,7 @@
   </properties>
   <dependencies>
     <dependency>
-      <groupId>com.datastax</groupId>
+      <groupId>io.k8ssandra</groupId>
       <artifactId>datastax-mgmtapi-common</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -317,20 +316,62 @@
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
-      <id>clientgen</id>
-      <properties>
-        <openapi.tools.version>5.3.0</openapi.tools.version>
-      </properties>
+      <id>go-clientgen</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.openapitools</groupId>
             <artifactId>openapi-generator-maven-plugin</artifactId>
-            <version>${openapi.tools.version}</version>
+            <version>7.0.0-beta</version>
             <configuration>
               <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
               <generatorName>go</generatorName>
               <skip>${skipOpenApi}</skip>
+              <output>${project.build.directory}/generated-sources/openapi/go-client</output>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <id>java-clientgen</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.openapitools</groupId>
+            <artifactId>openapi-generator-maven-plugin</artifactId>
+            <version>7.0.0-beta</version>
+            <configuration>
+              <inputSpec>${project.basedir}/doc/openapi.json</inputSpec>
+              <generatorName>java</generatorName>
+              <skip>${skipOpenApi}</skip>
+              <output>${project.build.directory}/generated-sources/openapi/java-client</output>
+              <apiPackage>com.datastax.mgmtapi.client.api</apiPackage>
+              <modelPackage>com.datastax.mgmtapi.client.model</modelPackage>
+              <invokerPackage>com.datastax.mgmtapi.client.invoker</invokerPackage>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>datastax-mgmtapi-client-openapi</artifactId>
+              <artifactVersion>${project.version}</artifactVersion>
+              <!-- The following configuration options are documented here: https://openapi-generator.tech/docs/generators/java -->
+              <configOptions>
+                <artifactDescription>OpenAPI generated client for Management API for Apache Cassandra</artifactDescription>
+                <artifactUrl>https://github.com/k8ssandra/managemenr-api-for-apache-cassandra</artifactUrl>
+                <scmConnection>https://github.com/k8ssandra/management-api-for-apache-cassandra.git</scmConnection>
+                <scmDeveloperConnection>https://github.com/k8ssandra/management-api-for-apache-cassandra.git</scmDeveloperConnection>
+                <scmUrl>https://github.com/k8ssandra/management-api-for-apache-cassandra</scmUrl>
+                <licenseName>Apache-2.0</licenseName>
+              </configOptions>
             </configuration>
             <executions>
               <execution>

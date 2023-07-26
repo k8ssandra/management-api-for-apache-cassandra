@@ -1,0 +1,48 @@
+name: Publish OpenAPI Client
+on:
+  workflow_dispatch:
+jobs:
+  publish-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Compute commit SHA
+        run: |
+          echo "COMMITSHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Generate OpenAPI client source
+        run: |
+          mvn -B clean process-classes -Drevision="0.1.0-${{ env.COMMITSHA }}"
+      - name: Setup Maven settings.xml
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+      - name: Compile and deploy OpenAPI client
+        run: |
+          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
+          mvn -B clean deploy \
+          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+          -Drevision="0.1.0-${{ env.COMMITSHA }}" \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
