@@ -1,5 +1,8 @@
 name: Publish OpenAPI Client
 on:
+  push:
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
 jobs:
   publish-openapi:
