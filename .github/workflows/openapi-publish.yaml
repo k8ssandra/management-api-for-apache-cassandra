@@ -1,8 +1,5 @@
 name: Publish OpenAPI Client
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
 jobs:
   publish-openapi:
@@ -42,6 +39,10 @@ jobs:
           EOF
       - name: Compile and deploy OpenAPI client
         run: |
-          cd management-api-server/target/generated-sources/openapi/java-client
           REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
-          mvn -B clean deploy -Drevision="0.1.0-${{ env.COMMITSHA }}" -DskipTests -DaltDeploymentRepository="${REPO}" -DaltSnapshotDeploymentRepository="${REPO}"
+          mvn -B clean deploy \
+          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+          -Drevision="0.1.0-${{ env.COMMITSHA }}" \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
