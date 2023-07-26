@@ -391,17 +391,90 @@ git commit
 
 ## API Client Generation
 
-In addition to automatic OpenAPI document generation, a Golang client can be generated during the build by enabling the `clientgen` Maven profile. The client is built using the [OpenAPI Tools generator Maven plugin](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin) and can be used by Go projects to interact with the Management API. The client generation happens during the `process-classes` phase of the Maven build so that changes to the API implementation can be compiled into an OpenAPI document spec file [during the compile phase](#changes-to-api-endpoints) of the build. The client code is generated in the `target` directory under the [management-api-server](management-api-server) sub-module and should be located at
+In addition to automatic OpenAPI document generation, a Golang client or a Java client can be generated during the build (unfortunately, only 
+one of them can be generated at a time, but you can run the `process-classes` goal back-to-back to generate them both). The Java client generation
+is enabled by default (or can be explicitly enabled with the `java-clientgen` Maven profile). The Go client generation is disabled by default
+and can be enabled with the `go-clientgen` Maven profile. The clients are built using the
+[OpenAPI Tools generator Maven plugin](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-maven-plugin)
+and can be used by projects to interact with the Management API. The client generation happens during the `process-classes`
+phase of the Maven build so that changes to the API implementation can be compiled into an OpenAPI document spec file
+[during the compile phase](#changes-to-api-endpoints) of the build. The client code is generated in the `target` directory under
+the [management-api-server](management-api-server) sub-module and should be located at
 
 ```sh
 management-api-server/target/generated-sources/openapi
 ```
 
-To generate the client, run the following from the root of the project:
+To generate the Go client, run the following from the root of the project:
 
 ```sh
-mvn clean process-classes -Pclientgen
+mvn process-classes -P go-clientgen
 ```
+
+The Go client code will be generated in `management-api-server/target/generated-sources/openapi/go-client`
+
+To generate the Java client, run the following from the root of the project:
+
+```sh
+mvn process-classes -P java-clientgen
+```
+
+or simply:
+
+```sh
+mvn process-classes
+```
+
+The Java client code will be generated in `management-api-server/target/generated-sources/openapi/java-client`
+
+### Maven coordinates for the Java generated client
+
+This project also has a workflow_dispatch job that will publish the current `master` branch version of the Java
+generated client to the Datastax public Maven repository. To pull in this artifact in a Maven project, you will
+need to add the Datastax Artifactory repository to your Maven settings:
+
+```xml
+  <profiles>
+    <profile>
+      <id>datastax</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <repositories>
+        <repository>
+          <id>datastax-artifactory</id>
+          <name>DataStax Artifactory</name>
+          <releases>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
+            <checksumPolicy>warn</checksumPolicy>
+          </releases>
+          <url>https://repo.datastax.com</url>
+          <layout>default</layout>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+```
+
+At the current time, the artifact for the Java client will have a version that contains the Git Hash of the commit it
+was built from. To add the artifact to your Maven project as a dependency, you will need something like this in your pom.xml:
+
+```xml
+<project>
+  <dependencies>
+    <dependency>
+      <groupId>io.k8ssandra</groupId>
+      <artifactId>datastax-mgmtapi-client-openapi</artifactId>
+      <version>0.1.0-9d71b60</version>
+    </dependency>
+  </dependnecies>
+</project>
+```
+
+where `9d71b60` is the hash of the release you want.
+
+Eventually, this artifact will be published into Maven Central and have a regular release version (i.e. 0.1.0).
 
 ## Published Docker images
 
