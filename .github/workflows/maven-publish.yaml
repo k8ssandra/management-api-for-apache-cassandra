@@ -66,24 +66,24 @@ jobs:
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
-      - name: Deploy Artifacts to Datsatx Artifactory
-        run: |
-          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
-          mvn -B clean deploy \
-          -P dse,dse7 \
-          -Drevision="${{ env.RELEASE_VERSION }}" \
-          -DskipTests \
-          -DaltDeploymentRepository="${REPO}" \
-          -DaltSnapshotDeploymentRepository="${REPO}"
-      - name: Deploy OpenAPI client to GitHub Packages
-        run: |
-          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
-          mvn -B clean deploy \
-          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
-          -Drevision="${{ env.RELEASE_VERSION }}" \
-          -DskipTests \
-          -DaltDeploymentRepository="${REPO}" \
-          -DaltSnapshotDeploymentRepository="${REPO}"
+#      - name: Deploy Artifacts to Datsatx Artifactory
+#        run: |
+#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
+#          mvn -B clean deploy \
+#          -P dse,dse7 \
+#          -Drevision="${{ env.RELEASE_VERSION }}" \
+#          -DskipTests \
+#          -DaltDeploymentRepository="${REPO}" \
+#          -DaltSnapshotDeploymentRepository="${REPO}"
+#      - name: Deploy OpenAPI client to GitHub Packages
+#        run: |
+#          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
+#          mvn -B clean deploy \
+#          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+#          -Drevision="${{ env.RELEASE_VERSION }}" \
+#          -DskipTests \
+#          -DaltDeploymentRepository="${REPO}" \
+#          -DaltSnapshotDeploymentRepository="${REPO}"
       - name: Deploy OpenAPI client to Datastax Artifactory
         run: |
           REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
