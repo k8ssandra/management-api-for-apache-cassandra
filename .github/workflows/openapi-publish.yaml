@@ -39,7 +39,7 @@ jobs:
           EOF
       - name: Compile and deploy OpenAPI client
         run: |
-          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
+          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
           mvn -B clean deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
           -Drevision="0.1.0-${{ env.COMMITSHA }}" \

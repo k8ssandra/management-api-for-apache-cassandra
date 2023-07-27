@@ -68,7 +68,7 @@ jobs:
           -DaltSnapshotDeploymentRepository="${REPO}"
 #      - name: Deploy Artifacts to Datsatx Artifactory
 #        run: |
-#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
+#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
 #          mvn -B clean deploy \
 #          -P dse,dse7 \
 #          -Drevision="${{ env.RELEASE_VERSION }}" \
@@ -86,7 +86,7 @@ jobs:
 #          -DaltSnapshotDeploymentRepository="${REPO}"
       - name: Deploy OpenAPI client to Datastax Artifactory
         run: |
-          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-releases-local"
+          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
           mvn -B clean deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
           -Drevision="${{ env.RELEASE_VERSION }}" \
