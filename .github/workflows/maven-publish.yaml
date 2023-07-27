@@ -57,24 +57,24 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           RELEASE_VERSION="${RELEASE_VERSION:1}"
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
-      - name: Deploy Artifacts to GitHub Packages
-        run: |
-          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
-          mvn -B clean deploy \
-          -P dse,dse7 \
-          -Drevision="${{ env.RELEASE_VERSION }}" \
-          -DskipTests \
-          -DaltDeploymentRepository="${REPO}" \
-          -DaltSnapshotDeploymentRepository="${REPO}"
-#      - name: Deploy Artifacts to Datsatx Artifactory
+#      - name: Deploy Artifacts to GitHub Packages
 #        run: |
-#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+#          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
 #          mvn -B clean deploy \
 #          -P dse,dse7 \
 #          -Drevision="${{ env.RELEASE_VERSION }}" \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
+      - name: Deploy Artifacts to Datsatx Artifactory
+        run: |
+          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+          mvn -B clean deploy \
+          -P dse,dse7 \
+          -Drevision="${{ env.RELEASE_VERSION }}" \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
 #      - name: Deploy OpenAPI client to GitHub Packages
 #        run: |
 #          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
