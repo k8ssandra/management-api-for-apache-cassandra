@@ -12,6 +12,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -38,13 +39,18 @@ public class AuthResources {
   @ApiResponse(
       responseCode = "200",
       description = "Role created",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Username and/or password is empty",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "Username is empty")))
   public Response createRole(
       @QueryParam(value = "username") String name,

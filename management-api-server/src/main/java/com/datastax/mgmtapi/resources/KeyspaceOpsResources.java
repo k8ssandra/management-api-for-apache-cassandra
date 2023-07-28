@@ -15,6 +15,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -102,13 +103,18 @@ public class KeyspaceOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "SSTables loaded successfully",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Keyspace name or Table name not provided",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "Must provide a keyspace name")))
   @Operation(
       summary = "Load newly placed SSTables to the system without restart",
@@ -143,13 +149,18 @@ public class KeyspaceOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Keyspace created successfully",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Keyspace name or Replication Settings not provided",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value =
@@ -190,13 +201,18 @@ public class KeyspaceOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Keyspace Replication Settings altered successfully",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Keyspace name or Replication Settings not provided",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value =
@@ -239,6 +255,7 @@ public class KeyspaceOpsResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
+              array = @ArraySchema(schema = @Schema(implementation = String.class)),
               examples =
                   @ExampleObject(
                       value =
@@ -275,6 +292,7 @@ public class KeyspaceOpsResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value =
@@ -285,6 +303,7 @@ public class KeyspaceOpsResources {
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value =
@@ -295,6 +314,7 @@ public class KeyspaceOpsResources {
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value =
