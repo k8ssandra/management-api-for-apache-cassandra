@@ -5,10 +5,8 @@
  */
 package com.datastax.mgmtapi.resources.v1;
 
-import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
@@ -32,13 +30,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 
 @Path("/api/v1/ops/tables")
-public class TableOpsResources {
-  private final ManagementApplication app;
-  private final CqlService cqlService;
+public class TableOpsResources extends BaseResources {
 
   public TableOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -73,7 +68,7 @@ public class TableOpsResources {
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.scrub(?, ?, ?, ?, ?, ?, ?, ?)",
                       scrubRequest.disableSnapshot,
                       scrubRequest.skipCorrupted,
@@ -121,7 +116,7 @@ public class TableOpsResources {
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)",
                       keyspaceName,
                       !excludeCurrentVersion,
@@ -188,7 +183,7 @@ public class TableOpsResources {
               return Response.accepted(
                       ResponseTools.getSingleRowStringResponse(
                           app.dbUnixSocketFile,
-                          cqlService,
+                          app.cqlService,
                           "CALL NodeOps.forceUserDefinedCompaction(?, ?)",
                           userDefinedFiles,
                           true))
@@ -212,7 +207,7 @@ public class TableOpsResources {
             return Response.accepted(
                     ResponseTools.getSingleRowStringResponse(
                         app.dbUnixSocketFile,
-                        cqlService,
+                        app.cqlService,
                         "CALL NodeOps.forceKeyspaceCompactionForTokenRange(?, ?, ?, ?, ?)",
                         keyspaceName,
                         compactRequest.startToken,
@@ -224,7 +219,7 @@ public class TableOpsResources {
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)",
                       compactRequest.splitOutput,
                       keyspaceName,
