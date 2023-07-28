@@ -5,10 +5,8 @@
  */
 package com.datastax.mgmtapi.resources.v1;
 
-import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.cql.Row;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,14 +26,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/api/v1/ops/node")
-public class NodeOpsResources {
-
-  private final ManagementApplication app;
-  private final CqlService cqlService;
+public class NodeOpsResources extends BaseResources {
 
   public NodeOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -59,7 +53,7 @@ public class NodeOpsResources {
             Response.accepted(
                     ResponseTools.getSingleRowStringResponse(
                         app.dbUnixSocketFile,
-                        cqlService,
+                        app.cqlService,
                         "CALL NodeOps.decommission(?, ?)",
                         force,
                         true))
@@ -86,7 +80,10 @@ public class NodeOpsResources {
         () ->
             Response.accepted(
                     ResponseTools.getSingleRowStringResponse(
-                        app.dbUnixSocketFile, cqlService, "CALL NodeOps.rebuild(?)", srcDatacenter))
+                        app.dbUnixSocketFile,
+                        app.cqlService,
+                        "CALL NodeOps.rebuild(?)",
+                        srcDatacenter))
                 .build());
   }
 
@@ -108,7 +105,7 @@ public class NodeOpsResources {
     return handle(
         () -> {
           Row row =
-              cqlService
+              app.cqlService
                   .executePreparedStatement(
                       app.dbUnixSocketFile, "CALL NodeOps.getSchemaVersions()")
                   .one();
