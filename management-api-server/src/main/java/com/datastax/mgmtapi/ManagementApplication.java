@@ -12,6 +12,7 @@ import com.datastax.mgmtapi.resources.LifecycleResources;
 import com.datastax.mgmtapi.resources.MetadataResources;
 import com.datastax.mgmtapi.resources.NodeOpsResources;
 import com.datastax.mgmtapi.resources.TableOpsResources;
+import com.datastax.mgmtapi.resources.v2.MetadataResourcesV2;
 import com.google.common.collect.ImmutableSet;
 import io.swagger.v3.jaxrs2.SwaggerSerializers;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
@@ -65,6 +66,8 @@ public class ManagementApplication extends Application {
             new TableOpsResources(this),
             new com.datastax.mgmtapi.resources.v1.TableOpsResources(this),
             new AuthResources(this),
+            // v2 resources
+            new MetadataResourcesV2(this),
             new OpenApiResource(),
             new SwaggerSerializers());
   }
