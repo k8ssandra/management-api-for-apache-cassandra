@@ -1,6 +1,16 @@
 name: Publish OpenAPI Client
 on:
   workflow_dispatch:
+    inputs:
+      repository:
+        description: 'Maven Artifact Repository'
+        required: false
+        default: 'cloudsmith'
+        type: choice
+        options:
+        - cloudsmith
+        - datastax
+        - both
 jobs:
   publish-openapi:
     runs-on: ubuntu-latest
@@ -34,12 +44,28 @@ jobs:
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
               </server>
+              <server>
+                <id>cloudsmith</id>
+                <username>${{ secrets.CLOUDSMITH_USERNAME }}</username>
+                <password>${{ secrets.CLOUDSMITH_PASSWORD }}</password>
+              </server>
             </servers>
           </settings>
           EOF
-      - name: Compile and deploy OpenAPI client
+      - name: Compile and deploy OpenAPI client (Datastax Artifactory)
+        if: ${{ inputs.repository == 'datastax' || inputs.repository == 'both' }}
         run: |
           REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+          mvn -B clean deploy \
+          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+          -Drevision="0.1.0-${{ env.COMMITSHA }}" \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
+      - name: Compile and deploy OpenAPI client (Cloudsmith.io Artifactory)
+        if: ${{ inputs.repository == 'cloudsmith' || inputs.repository == 'both' }}
+        run: |
+          REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B clean deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
           -Drevision="0.1.0-${{ env.COMMITSHA }}" \

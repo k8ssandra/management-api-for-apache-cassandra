@@ -43,12 +43,17 @@ jobs:
                 <id>artifactory-releases</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
+              </server>
               <server>
                 <id>artifactory</id>
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-             </server>
+              </server>
+              <server>
+                <id>cloudsmith</id>
+                <username>${{ secrets.CLOUDSMITH_USERNAME }}</username>
+                <password>${{ secrets.CLOUDSMITH_PASSWORD }}</password>
+              </server>
            </servers>
           </settings>
           EOF
@@ -57,6 +62,7 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           RELEASE_VERSION="${RELEASE_VERSION:1}"
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+
 #      - name: Deploy Artifacts to GitHub Packages
 #        run: |
 #          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
@@ -66,15 +72,27 @@ jobs:
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
-      - name: Deploy Artifacts to Datsatx Artifactory
+
+#      - name: Deploy Artifacts to Datsatx Artifactory
+#        run: |
+#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+#          mvn -B clean deploy \
+#          -P dse,dse7 \
+#          -Drevision="${{ env.RELEASE_VERSION }}" \
+#          -DskipTests \
+#          -DaltDeploymentRepository="${REPO}" \
+#          -DaltSnapshotDeploymentRepository="${REPO}"
+
+      - name: Deploy Artifacts to Cloudsmith.io Artifactory
         run: |
-          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+          REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B clean deploy \
           -P dse,dse7 \
           -Drevision="${{ env.RELEASE_VERSION }}" \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
+
 #      - name: Deploy OpenAPI client to GitHub Packages
 #        run: |
 #          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
@@ -84,9 +102,20 @@ jobs:
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
-      - name: Deploy OpenAPI client to Datastax Artifactory
+
+#      - name: Deploy OpenAPI client to Datastax Artifactory
+#        run: |
+#          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+#          mvn -B clean deploy \
+#          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+#          -Drevision="${{ env.RELEASE_VERSION }}" \
+#          -DskipTests \
+#          -DaltDeploymentRepository="${REPO}" \
+#          -DaltSnapshotDeploymentRepository="${REPO}"
+
+      - name: Deploy OpenAPI client to Cloudsmith.io Artifactory
         run: |
-          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
+          REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B clean deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
           -Drevision="${{ env.RELEASE_VERSION }}" \
