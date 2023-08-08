@@ -28,13 +28,28 @@ public class Job {
   private long finishedTime;
   private Throwable error;
 
-  class StatusChange {
+  public class StatusChange {
     ProgressEventType status;
     long changeTime;
 
-    public StatusChange(ProgressEventType type) {
+    String message;
+
+    public StatusChange(ProgressEventType type, String message) {
       changeTime = System.currentTimeMillis();
       status = type;
+      this.message = message;
+    }
+
+    public ProgressEventType getStatus() {
+      return status;
+    }
+
+    public long getChangeTime() {
+      return changeTime;
+    }
+
+    public String getMessage() {
+      return message;
     }
   }
 
@@ -72,6 +87,10 @@ public class Job {
 
   public void setStatusChange(ProgressEventType type) {
     statusChanges.add(new StatusChange(type));
+  }
+
+  public List<StatusChange> getStatusChanges() {
+    return statusChanges;
   }
 
   public long getSubmitTime() {
