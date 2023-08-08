@@ -38,6 +38,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
+import javax.management.Notification;
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.TabularData;
 import org.apache.cassandra.auth.AuthenticatedUser;
@@ -52,6 +55,7 @@ import org.apache.cassandra.repair.RepairParallelism;
 import org.apache.cassandra.repair.messages.RepairOption;
 import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.utils.Pair;
+import org.apache.cassandra.utils.progress.ProgressEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -733,10 +737,11 @@ public class NodeOpsProvider {
   }
 
   @Rpc(name = "repair")
-  public void repair(
+  public String repair(
       @RpcParam(name = "keyspaceName") String keyspace,
       @RpcParam(name = "tables") List<String> tables,
-      @RpcParam(name = "full") Boolean full)
+      @RpcParam(name = "full") Boolean full,
+      @RpcParam(name = "async") boolean notifications)
       throws IOException {
     // At least one keyspace is required
     if (keyspace != null) {
@@ -756,8 +761,64 @@ public class NodeOpsProvider {
         // incremental repairs will fail if parallelism is not set
         repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
       }
-      ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
+
+      // Since Cassandra provides us with a async, we don't need to use our executor interface for this.
+      int repairJobId = ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
+
+      if(!notifications) {
+        return Integer.valueOf(repairJobId).toString();
+      }
+
+      String jobId = String.format("repair-%d", repairJobId);
+
+      final Job job = service.createJob("repair", jobId);
+      ShimLoader.instance.get().getStorageService().addNotificationListener((notification, handback) -> {
+        // https://github.com/apache/cassandra/blob/600f4d9a690dbd887d5e6298fe67e6bba982033d/src/java/org/apache/cassandra/utils/progress/jmx/JMXNotificationProgressListener.java#L26
+        if(notification.getType().equals("progress")) {
+          Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
+
+          ProgressEventType progress = ProgressEventType.values()[data.get("type")];
+
+          switch(progress) {
+            // TODO Finish these
+            case START:
+              job.setStatusChange(progress);
+              job.setStartTime(System.currentTimeMillis());
+              break;
+            case PROGRESS:
+              // Do we care? Progress of what..?
+              break;
+            case ERROR:
+            case ABORT:
+              job.setError(new RuntimeException(notification.getMessage()));
+              job.setStatus(Job.JobStatus.ERROR);
+              job.setFinishedTime(System.currentTimeMillis());
+              break;
+            case SUCCESS:
+              job.setStatusChange(progress);
+              // SUCCESS / ERROR do not mean the job has completed yet (COMPLETE is that)
+              break;
+            case COMPLETE:
+              job.setStatusChange(progress);
+              job.setStatus(Job.JobStatus.COMPLETED);
+              job.setFinishedTime(System.currentTimeMillis());
+              break;
+            case NOTIFICATION:
+              // Who cares..?
+              break;
+          }
+          service.updateJob(job);
+        }
+      }, (NotificationFilter) notification -> {
+        // Not real code, needs some casting first
+        int repairNo = Integer.parseInt(((String) notification.getSource()).split(":")[1]);
+        return repairNo == repairJobId;
+      }, null);
+
+      return job.getJobId();
     }
+
+    throw new RuntimeException("At least one keyspace must be defined");
   }
 
   @Rpc(name = "move")
