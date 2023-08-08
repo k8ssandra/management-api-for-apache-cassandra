@@ -7,7 +7,6 @@ package com.datastax.mgmtapi.util;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -46,13 +45,13 @@ public class JobExecutor {
   }
 
   public Job createJob(String jobType, String jobId) {
-      final Job job = new Job(jobType, jobId);
-      jobCache.put(jobId, job);
-      return job;
+    final Job job = new Job(jobType, jobId);
+    jobCache.put(jobId, job);
+    return job;
   }
 
   public void updateJob(Job job) {
-      jobCache.put(job.getJobId(), job);
+    jobCache.put(job.getJobId(), job);
   }
 
   public Job getJobWithId(String jobId) {

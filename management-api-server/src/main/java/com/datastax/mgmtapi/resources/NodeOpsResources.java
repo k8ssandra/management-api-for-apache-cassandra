@@ -506,7 +506,8 @@ public class NodeOpsResources extends BaseResources {
               "CALL NodeOps.repair(?, ?, ?)",
               repairRequest.keyspaceName,
               repairRequest.tables,
-              repairRequest.full, false);
+              repairRequest.full,
+              false);
 
           return Response.ok("OK").build();
         });

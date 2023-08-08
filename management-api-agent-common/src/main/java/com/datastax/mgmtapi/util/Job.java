@@ -6,12 +6,9 @@
 package com.datastax.mgmtapi.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.cassandra.utils.progress.ProgressEvent;
-import org.apache.cassandra.utils.progress.ProgressEventType;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import org.apache.cassandra.utils.progress.ProgressEventType;
 
 public class Job {
   public enum JobStatus {

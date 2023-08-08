@@ -122,43 +122,44 @@ public class NodeOpsResources extends BaseResources {
         });
   }
 
-    @POST
-    @Path("/repair")
-    @Produces(MediaType.TEXT_PLAIN)
-    @ApiResponse(
-            responseCode = "202",
-            description = "Job ID for successfully scheduled Cassandra repair request",
-            content =
-            @Content(
-                    mediaType = MediaType.TEXT_PLAIN,
-                    schema = @Schema(implementation = String.class),
-                    examples = @ExampleObject(value = "repair-1234567")))
-    @ApiResponse(
-            responseCode = "400",
-            description = "Repair request missing Keyspace name",
-            content =
-            @Content(
-                    mediaType = MediaType.TEXT_PLAIN,
-                    schema = @Schema(implementation = String.class),
-                    examples = @ExampleObject(value = "keyspaceName must be specified")))
-    @Operation(summary = "Execute a nodetool repair operation", operationId = "repair")
-    public Response repair(RepairRequest repairRequest) {
-        return handle(
-                () -> {
-                    if (repairRequest.keyspaceName == null) {
-                        return Response.status(Response.Status.BAD_REQUEST)
-                                .entity("keyspaceName must be specified")
-                                .build();
-                    }
-                    return Response.accepted(
-                                    ResponseTools.getSingleRowStringResponse(
-                                            app.dbUnixSocketFile,
-                                            cqlService,
-                                            "CALL NodeOps.repair(?, ?, ?)",
-                                            repairRequest.keyspaceName,
-                                            repairRequest.tables,
-                                            repairRequest.full, true))
-                            .build();
-                });
-    }
+  @POST
+  @Path("/repair")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "202",
+      description = "Job ID for successfully scheduled Cassandra repair request",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "repair-1234567")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Repair request missing Keyspace name",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "keyspaceName must be specified")))
+  @Operation(summary = "Execute a nodetool repair operation", operationId = "repair")
+  public Response repair(RepairRequest repairRequest) {
+    return handle(
+        () -> {
+          if (repairRequest.keyspaceName == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("keyspaceName must be specified")
+                .build();
+          }
+          return Response.accepted(
+                  ResponseTools.getSingleRowStringResponse(
+                      app.dbUnixSocketFile,
+                      cqlService,
+                      "CALL NodeOps.repair(?, ?, ?)",
+                      repairRequest.keyspaceName,
+                      repairRequest.tables,
+                      repairRequest.full,
+                      true))
+              .build();
+        });
+  }
 }
