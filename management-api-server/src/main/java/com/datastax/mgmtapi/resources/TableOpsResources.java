@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,7 +56,11 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Table scrub successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @Operation(summary = "Scrub (rebuild sstables for) one or more tables", operationId = "scrub")
   public Response scrub(ScrubRequest scrubRequest) {
     return handle(
@@ -93,7 +98,11 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "SSTable upgrade successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @Operation(
       summary =
           "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version)",
@@ -133,13 +142,18 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Table compaction successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Invalid table compaction request",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value = "Invalid option combination: Can not use split-output here")))
@@ -226,13 +240,18 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Table garbage collection successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Invalid table garbage collection request",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "tombstoneOption must be either ROW or CELL")))
   @Operation(
       summary = "Remove deleted data from one or more tables",
@@ -282,7 +301,11 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Table flush successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @Operation(summary = "Flush one or more tables", operationId = "flush")
   public Response flush(KeyspaceRequest keyspaceRequest) {
     return handle(
@@ -312,6 +335,7 @@ public class TableOpsResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
+              schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "[\n    \"table_1\",\n    \"table_2\"\n]")))
   @ApiResponse(
       responseCode = "400",
@@ -319,6 +343,7 @@ public class TableOpsResources {
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples =
                   @ExampleObject(
                       value = "List tables failed. Non-empty 'keyspaceName' must be provided")))
@@ -349,13 +374,18 @@ public class TableOpsResources {
   @ApiResponse(
       responseCode = "200",
       description = "Table creation successful",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(
       responseCode = "400",
       description = "Table creation failed",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "Table creation failed: some failure message")))
   @Consumes(MediaType.APPLICATION_JSON)
   @Operation(summary = "Create a new table in an existing keyspace", operationId = "createTable")

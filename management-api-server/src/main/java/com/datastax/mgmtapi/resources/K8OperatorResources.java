@@ -52,7 +52,11 @@ public class K8OperatorResources {
   @ApiResponse(
       responseCode = "200",
       description = "Service is running",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   public Response checkLiveness() {
     return Response.ok("OK").build();
   }
@@ -66,7 +70,11 @@ public class K8OperatorResources {
   @ApiResponse(
       responseCode = "200",
       description = "Service is ready to handle requests",
-      content = @Content(mediaType = MediaType.TEXT_PLAIN, examples = @ExampleObject(value = "OK")))
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
   @ApiResponse(responseCode = "500", description = "Service is not ready to handle requests")
   public Response checkReadiness() {
     return handle(

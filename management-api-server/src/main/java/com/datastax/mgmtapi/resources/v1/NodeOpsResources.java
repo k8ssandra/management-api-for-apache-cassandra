@@ -99,6 +99,9 @@ public class NodeOpsResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
+              // this should actually be a Response class object, but we don't have one. And a
+              // generic Map implementation here jsut results in a String typoe in the openAPI doc.
+              schema = @Schema(implementation = Map.class),
               examples =
                   @ExampleObject(
                       value =

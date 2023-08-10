@@ -355,7 +355,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Role created"
@@ -363,7 +366,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Username is empty"
+                "example" : "Username is empty",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Username and/or password is empty"
@@ -422,7 +428,13 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ]
+                "example" : [ "system_schema", "system", "system_auth", "system_distributed", "system_traces" ],
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
               }
             },
             "description" : "List of Keyspaces"
@@ -447,7 +459,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace Replication Settings altered successfully"
@@ -455,7 +470,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Altering Keyspace failed. Non-empty 'keyspace_name' must be provided"
+                "example" : "Altering Keyspace failed. Non-empty 'keyspace_name' must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name or Replication Settings not provided"
@@ -508,7 +526,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace created successfully"
@@ -516,7 +537,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Keyspace creation failed. Non-empty 'keyspace_name' must be provided"
+                "example" : "Keyspace creation failed. Non-empty 'keyspace_name' must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name or Replication Settings not provided"
@@ -545,7 +569,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "SSTables loaded successfully"
@@ -553,7 +580,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Must provide a keyspace name"
+                "example" : "Must provide a keyspace name",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name or Table name not provided"
@@ -580,6 +610,9 @@
                 "example" : {
                   "class" : "org.apache.cassandra.locator.SimpleStrategy",
                   "replication_factor" : "2"
+                },
+                "schema" : {
+                  "type" : "string"
                 }
               }
             },
@@ -588,7 +621,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Get keyspace replication failed. Non-empty 'keyspaceName' must be provided"
+                "example" : "Get keyspace replication failed. Non-empty 'keyspaceName' must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name not provided"
@@ -596,7 +632,10 @@
           "404" : {
             "content" : {
               "text/plain" : {
-                "example" : "Get keyspace replication failed. Keyspace 'my_keyspace' does not exist."
+                "example" : "Get keyspace replication failed. Keyspace 'my_keyspace' does not exist.",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name not found"
@@ -1177,7 +1216,10 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : [ "table_1", "table_2" ]
+                "example" : [ "table_1", "table_2" ],
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table list"
@@ -1185,7 +1227,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided"
+                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Keyspace name not provided"
@@ -1210,7 +1255,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table compaction successful"
@@ -1218,7 +1266,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Invalid option combination: Can not use split-output here"
+                "example" : "Invalid option combination: Can not use split-output here",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Invalid table compaction request"
@@ -1243,7 +1294,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table creation successful"
@@ -1251,7 +1305,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "Table creation failed: some failure message"
+                "example" : "Table creation failed: some failure message",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table creation failed"
@@ -1276,7 +1333,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table flush successful"
@@ -1308,7 +1368,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table garbage collection successful"
@@ -1316,7 +1379,10 @@
           "400" : {
             "content" : {
               "text/plain" : {
-                "example" : "tombstoneOption must be either ROW or CELL"
+                "example" : "tombstoneOption must be either ROW or CELL",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Invalid table garbage collection request"
@@ -1341,7 +1407,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Table scrub successful"
@@ -1373,7 +1442,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "SSTable upgrade successful"
@@ -1428,7 +1500,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Service is running"
@@ -1444,7 +1519,10 @@
           "200" : {
             "content" : {
               "text/plain" : {
-                "example" : "OK"
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Service is ready to handle requests"
@@ -1554,7 +1632,10 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : "{2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]}"
+                "example" : "{2207c2a9-f598-3971-986b-2926e09e239d: [10.244.1.4, 10.244.2.3, 10.244.3.3]}",
+                "schema" : {
+                  "type" : "string"
+                }
               }
             },
             "description" : "Gets the schema versions for each node. Useful for checking schema agreement"
