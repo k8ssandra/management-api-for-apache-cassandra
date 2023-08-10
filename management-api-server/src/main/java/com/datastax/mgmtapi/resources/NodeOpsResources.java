@@ -503,7 +503,7 @@ public class NodeOpsResources extends BaseResources {
           }
           app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
-              "CALL NodeOps.repair(?, ?, ?)",
+              "CALL NodeOps.repair(?, ?, ?, ?)",
               repairRequest.keyspaceName,
               repairRequest.tables,
               repairRequest.full,
