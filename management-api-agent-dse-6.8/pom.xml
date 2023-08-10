@@ -12,6 +12,7 @@
     <groupId>io.k8ssandra</groupId>
     <version>${revision}</version>
   </parent>
+  <version>${revision}</version>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>datastax-mgmtapi-agent-dse-6.8</artifactId>
   <repositories>
