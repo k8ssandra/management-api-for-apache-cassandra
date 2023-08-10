@@ -1657,7 +1657,40 @@ public class K8OperatorResourcesTest {
     assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
     verify(context.cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.repair(?, ?, ?)"), eq("test_ks"), eq(null), eq(true));
+            any(), eq("CALL NodeOps.repair(?, ?, ?, ?)"), eq("test_ks"), eq(null), eq(true), eq(false));
+  }
+
+  @Test
+  public void testRepairAsync() throws Exception {
+    Context context = setup();
+    when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+
+    RepairRequest repairRequest = new RepairRequest("test_ks", null, Boolean.TRUE);
+    String repairRequestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+    ResultSet mockResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(any(), any(), any()))
+        .thenReturn(mockResultSet);
+
+    when(mockResultSet.one()).thenReturn(mockRow);
+
+    when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+    MockHttpRequest request = MockHttpRequest.post("/api/v1/ops/node/repair")
+        .content(repairRequestAsJSON.getBytes())
+        .accept(MediaType.TEXT_PLAIN)
+        .contentType(MediaType.APPLICATION_JSON_TYPE);
+
+    MockHttpResponse response = context.invoke(request);
+
+    Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+    Assert.assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+    verify(context.cqlService)
+        .executePreparedStatement(
+            any(), eq("CALL NodeOps.repair(?, ?, ?, ?)"), eq("test_ks"), eq(null), eq(true), eq(true));
   }
 
   @Test

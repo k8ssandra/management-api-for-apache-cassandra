@@ -744,6 +744,54 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   }
 
   @Test
+  public void testAsyncRepair() throws IOException, URISyntaxException, InterruptedException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+    URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/repair");
+    URI repairUri = uriBuilder.build();
+
+    // execute repair
+    RepairRequest repairRequest = new RepairRequest("system_auth", null, Boolean.TRUE);
+    String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+    Pair<Integer, String> repairResponse =
+        client.post(repairUri.toURL(), null).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(repairResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
+    String jobId = repairResponse.getRight();
+    assertThat(jobId).isNotEmpty();
+
+    URI getJobDetailsUri =
+        new URIBuilder(BASE_PATH + "/ops/executor/job").addParameter("job_id", jobId).build();
+
+    await()
+        .atMost(Duration.ofMinutes(5))
+        .untilAsserted(
+            () -> {
+              Pair<Integer, String> getJobDetailsResponse =
+                  client
+                      .get(getJobDetailsUri.toURL())
+                      .thenApply(this::responseAsCodeAndBody)
+                      .join();
+              assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
+              Map<String, String> jobDetails =
+                  new JsonMapper()
+                      .readValue(
+                          getJobDetailsResponse.getRight(),
+                          new TypeReference<Map<String, String>>() {});
+              assertThat(jobDetails)
+                  .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
+                  .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("repair"))
+                  // if the server has only one token, the job will be completed, otherwise it will
+                  // end up in error
+                  .hasEntrySatisfying(
+                      "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
+            });
+  }
+
+  @Test
   public void testGetReplication() throws IOException, URISyntaxException {
     assumeTrue(IntegrationTestUtils.shouldRun());
     ensureStarted();
