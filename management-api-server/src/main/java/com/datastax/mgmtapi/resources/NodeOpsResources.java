@@ -7,12 +7,11 @@ package com.datastax.mgmtapi.resources;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
-import com.datastax.oss.driver.api.core.NoNodeAvailableException;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -23,7 +22,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -35,17 +33,13 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("/api/v0/ops/node")
-public class NodeOpsResources {
+public class NodeOpsResources extends BaseResources {
   private static final Logger logger = LoggerFactory.getLogger(NodeOpsResources.class);
-
-  private final ManagementApplication app;
-  private final CqlService cqlService;
 
   public static final Map<String, List<String>> classes =
       ImmutableMap.<String, List<String>>builder()
@@ -97,8 +91,7 @@ public class NodeOpsResources {
           .build();
 
   public NodeOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -116,7 +109,7 @@ public class NodeOpsResources {
   public Response decommission(@QueryParam(value = "force") boolean force) {
     return handle(
         () -> {
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.decommission(?, ?)", force, false);
 
           return Response.ok("OK").build();
@@ -141,7 +134,7 @@ public class NodeOpsResources {
   public Response setCompactionThroughput(@QueryParam(value = "value") int value) {
     return handle(
         () -> {
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.setCompactionThroughput(?)", value);
 
           return Response.ok("OK").build();
@@ -180,7 +173,7 @@ public class NodeOpsResources {
                 .build();
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.assassinate(?)", address);
 
           return Response.ok("OK").build();
@@ -214,7 +207,7 @@ public class NodeOpsResources {
           List<String> classQualifiers = classes.getOrDefault(target, ImmutableList.of(target));
 
           for (String classQualifier : classQualifiers) {
-            cqlService.executePreparedStatement(
+            app.cqlService.executePreparedStatement(
                 app.dbUnixSocketFile,
                 "CALL NodeOps.setLoggingLevel(?, ?)",
                 classQualifier,
@@ -244,7 +237,7 @@ public class NodeOpsResources {
     return handle(
         () -> {
           try {
-            cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.drain()");
+            app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.drain()");
 
             return Response.ok("OK").build();
           } catch (com.datastax.oss.driver.api.core.connection.ClosedConnectionException cce) {
@@ -273,9 +266,9 @@ public class NodeOpsResources {
     return handle(
         () -> {
           if (StringUtils.isBlank(host)) {
-            cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.truncateAllHints()");
+            app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.truncateAllHints()");
           } else {
-            cqlService.executePreparedStatement(
+            app.cqlService.executePreparedStatement(
                 app.dbUnixSocketFile, "CALL NodeOps.truncateHintsForHost(?)", host);
           }
 
@@ -298,7 +291,7 @@ public class NodeOpsResources {
   public Response resetLocalSchema() {
     return handle(
         () -> {
-          cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.resetLocalSchema()");
+          app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.resetLocalSchema()");
 
           return Response.ok("OK").build();
         });
@@ -321,7 +314,7 @@ public class NodeOpsResources {
   public Response reloadLocalSchema() {
     return handle(
         () -> {
-          cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadLocalSchema()");
+          app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadLocalSchema()");
 
           return Response.ok("OK").build();
         });
@@ -343,7 +336,7 @@ public class NodeOpsResources {
     return handle(
         () -> {
           Row row =
-              cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.getStreamInfo()").one();
+              app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.getStreamInfo()").one();
 
           Object queryResponse = null;
           if (row != null) {
@@ -371,7 +364,7 @@ public class NodeOpsResources {
     return handle(
         () -> {
           Row row =
-              cqlService
+              app.cqlService
                   .executePreparedStatement(
                       app.dbUnixSocketFile,
                       "CALL NodeOps.getSnapshotDetails(?, ?)",
@@ -443,7 +436,7 @@ public class NodeOpsResources {
             }
           }
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.takeSnapshot(?, ?, ?, ?, ?)",
               snapshotName,
@@ -473,7 +466,7 @@ public class NodeOpsResources {
       @QueryParam(value = "keyspaces") List<String> keyspaces) {
     return handle(
         () -> {
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.clearSnapshots(?, ?)", snapshotNames, keyspaces);
           return Response.ok("OK").build();
         });
@@ -507,7 +500,7 @@ public class NodeOpsResources {
                 .entity("keyspaceName must be specified")
                 .build();
           }
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.repair(?, ?, ?)",
               repairRequest.keyspaceName,
@@ -536,7 +529,7 @@ public class NodeOpsResources {
     return handle(
         () -> {
           logger.debug("Running CALL NodeOps.setFullQuerylog(?) " + fullQueryLoggingEnabled);
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile, "CALL NodeOps.setFullQuerylog(?)", fullQueryLoggingEnabled);
           return Response.ok("OK").build();
         });
@@ -561,7 +554,7 @@ public class NodeOpsResources {
         () -> {
           logger.debug("CALL NodeOps.isFullQueryLogEnabled()");
           Row row =
-              cqlService
+              app.cqlService
                   .executePreparedStatement(
                       app.dbUnixSocketFile, "CALL NodeOps.isFullQueryLogEnabled()")
                   .one();
@@ -607,24 +600,13 @@ public class NodeOpsResources {
 
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
-                      app.dbUnixSocketFile, cqlService, "CALL NodeOps.move(?, ?)", newToken, true))
+                      app.dbUnixSocketFile,
+                      app.cqlService,
+                      "CALL NodeOps.move(?, ?)",
+                      newToken,
+                      true))
               .build();
         });
-  }
-
-  public static Response handle(Callable<Response> action) {
-    try {
-      return action.call();
-    } catch (NoNodeAvailableException | ConnectionClosedException e) {
-      return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-          .entity("Internal connection to Cassandra closed")
-          .build();
-    } catch (Throwable t) {
-      logger.error("Error when executing request", t);
-      return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-          .entity(t.getLocalizedMessage())
-          .build();
-    }
   }
 
   private static final String STREAMING_INFO_RESPONSE_EXAMPLE =

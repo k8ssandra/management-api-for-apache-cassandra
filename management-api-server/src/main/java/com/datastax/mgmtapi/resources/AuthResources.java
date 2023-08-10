@@ -5,10 +5,8 @@
  */
 package com.datastax.mgmtapi.resources;
 
-import static com.datastax.mgmtapi.resources.NodeOpsResources.handle;
-
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.resources.common.BaseResources;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -23,13 +21,10 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 
 @Path("/api/v0/ops/auth")
-public class AuthResources {
-  private final ManagementApplication app;
-  private final CqlService cqlService;
+public class AuthResources extends BaseResources {
 
   public AuthResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -67,7 +62,7 @@ public class AuthResources {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode(), "Password is empty")
                 .build();
 
-          cqlService.executePreparedStatement(
+          app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
               "CALL NodeOps.createRole(?,?,?,?)",
               name,

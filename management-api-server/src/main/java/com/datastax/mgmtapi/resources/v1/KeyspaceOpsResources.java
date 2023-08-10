@@ -5,9 +5,8 @@
  */
 package com.datastax.mgmtapi.resources.v1;
 
-import com.datastax.mgmtapi.CqlService;
 import com.datastax.mgmtapi.ManagementApplication;
-import com.datastax.mgmtapi.resources.NodeOpsResources;
+import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,14 +26,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Path("/api/v1/ops/keyspace")
-public class KeyspaceOpsResources {
-
-  private final ManagementApplication app;
-  private final CqlService cqlService;
+public class KeyspaceOpsResources extends BaseResources {
 
   public KeyspaceOpsResources(ManagementApplication application) {
-    this.app = application;
-    this.cqlService = application.cqlService;
+    super(application);
   }
 
   @POST
@@ -62,7 +57,7 @@ public class KeyspaceOpsResources {
           "Triggers the immediate cleanup of keys no longer belonging to a node. By default, clean all keyspaces. This operation is asynchronous and returns immediately",
       operationId = "cleanup_v1")
   public Response cleanup(KeyspaceRequest keyspaceRequest) {
-    return NodeOpsResources.handle(
+    return handle(
         () -> {
           List<String> tables = keyspaceRequest.tables;
           if (CollectionUtils.isEmpty(tables)) {
@@ -81,7 +76,7 @@ public class KeyspaceOpsResources {
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.forceKeyspaceCleanup(?, ?, ?, ?)",
                       keyspaceRequest.jobs,
                       keyspaceName,
