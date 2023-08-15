@@ -922,6 +922,19 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             });
   }
 
+  @Test
+  public void testGetClusterName() throws IOException, URISyntaxException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+    URI uri = new URIBuilder(BASE_PATH + "/metadata/clustername").build();
+    String response = client.get(uri.toURL()).thenApply(this::responseAsString).join();
+    assertNotNull(response);
+    assertNotEquals("", response);
+    assertEquals("Test Cluster", response);
+  }
+
   private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName)
       throws IOException, URISyntaxException {
     CreateOrAlterKeyspaceRequest request =

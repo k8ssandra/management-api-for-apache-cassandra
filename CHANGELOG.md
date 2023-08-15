@@ -13,6 +13,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 [CHANGE]  [#323](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/323) Rename Maven artifact groupId from com.datastax to io.k8ssandra
 [FEATURE] [#323](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/323) Add OpenAPI Java client generation
 [FEATURE] [#337](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/337) Publish Maven artifacts to Cloudsmith.io
+[FEATURE] [#326](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/326) Provide topology endpoints in OpenAPI client
+[FEATURE] [#345](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/345) Implement host related methods
 [BUGFIX]  [#339](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/339) OpenAPI client publish does not also publish other artifacts
 
 

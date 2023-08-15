@@ -35,7 +35,7 @@ public class MetadataResources extends BaseResources {
   @Produces(MediaType.TEXT_PLAIN)
   @ApiResponse(
       responseCode = "200",
-      description = "Cassandra version'",
+      description = "Cassandra version",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
@@ -101,5 +101,21 @@ public class MetadataResources extends BaseResources {
           FeatureSet featureSet = new FeatureSet(cassandraVersion, "");
           return Response.ok(featureSet).build();
         });
+  }
+
+  @GET
+  @Path("/clustername")
+  @Operation(summary = "Returns the Cassandra cluster name", operationId = "getClusterName")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Cassandra Cluster Name",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "myCluster")))
+  public Response getClusterName() {
+    return executeWithStringResponse("CALL NodeOps.getClusterName()");
   }
 }

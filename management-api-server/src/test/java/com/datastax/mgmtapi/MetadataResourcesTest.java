@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import static com.datastax.mgmtapi.K8OperatorResourcesTest.setup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,6 +51,17 @@ public class MetadataResourcesTest {
     assertTrue(featureSet.getFeatures().size() > 0);
   }
 
+  @Test
+  public void testGetClusterName() throws Exception {
+    K8OperatorResourcesTest.Context context = setup();
+    MockHttpResponse response = getMockHttpResponse(context, "/metadata/clustername");
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+    String clusterName = response.getContentAsString();
+    Assert.assertTrue(
+        "Clustername expected to containe \"myCluster\", but was " + clusterName,
+        clusterName.contains("myCluster"));
+  }
+
   private MockHttpResponse getMockHttpResponse(K8OperatorResourcesTest.Context context, String path)
       throws URISyntaxException, ConnectionClosedException {
     ResultSet mockResultSet = mock(ResultSet.class);
@@ -60,12 +72,23 @@ public class MetadataResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
 
-    when(mockRow.getString(0)).thenReturn("1.2.3");
+    if (path.contains("versions")) {
+      when(mockRow.getString(0)).thenReturn("1.2.3");
+    } else if (path.contains("clustername")) {
+      when(mockRow.getString(0)).thenReturn("myCluster");
+    } else {
+      fail(
+          "Expected one of \"/metadata/versions/release\" or \"/metadata/clustername\" as the URI path");
+    }
 
     MockHttpResponse response = context.invoke(request);
 
     assertEquals(HttpStatus.SC_OK, response.getStatus());
-    verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
+    if (path.contains("versions")) {
+      verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
+    } else if (path.contains("clustername")) {
+      verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getClusterName()"));
+    }
     return response;
   }
 }
