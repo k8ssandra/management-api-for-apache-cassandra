@@ -82,8 +82,8 @@ public class Job {
     this.status = status;
   }
 
-  public void setStatusChange(ProgressEventType type) {
-    statusChanges.add(new StatusChange(type));
+  public void setStatusChange(ProgressEventType type, String message) {
+    statusChanges.add(new StatusChange(type, message));
   }
 
   public List<StatusChange> getStatusChanges() {
