@@ -213,51 +213,8 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "entity" : [ {
-                    "DC" : "datacenter1",
-                    "ENDPOINT_IP" : "172.17.0.2",
-                    "HOST_ID" : "5d2318b0-cfec-4697-8ed2-014b5f434ae8",
-                    "IS_ALIVE" : "true",
-                    "LOAD" : "135527.0",
-                    "NATIVE_ADDRESS_AND_PORT" : "172.17.0.2:9042",
-                    "NET_VERSION" : "12",
-                    "PARTITIONER" : "org.apache.cassandra.dht.Murmur3Partitioner",
-                    "RACK" : "rack1",
-                    "RELEASE_VERSION" : "4.0.1",
-                    "RPC_ADDRESS" : "172.17.0.2",
-                    "RPC_READY" : "true",
-                    "SCHEMA" : "2207c2a9-f598-3971-986b-2926e09e239d",
-                    "SSTABLE_VERSIONS" : "big-nb",
-                    "STATUS" : "NORMAL,-2444908528344618126",
-                    "STATUS_WITH_PORT" : "NORMAL,-2444908528344618126",
-                    "TOKENS" : "-2088271209278749360,-3055635452357284858,-4299155458037876832,-498266656764850722,-5378528265485478489,-6114443958196372130,-7190199839421951670,-8007871772034302464,-9025723176776729480,1120756638932192574,2098902091448306650,3877536392271893778,4973578292506832067,6064875403199044326,6909252050690206084,8349520280592789322"
-                  } ],
-                  "variant" : {
-                    "language" : null,
-                    "mediaType" : {
-                      "type" : "application",
-                      "subtype" : "json",
-                      "parameters" : { },
-                      "wildcardType" : false,
-                      "wildcardSubtype" : false
-                    },
-                    "encoding" : null,
-                    "languageString" : null
-                  },
-                  "annotations" : [ ],
-                  "mediaType" : {
-                    "type" : "application",
-                    "subtype" : "json",
-                    "parameters" : { },
-                    "wildcardType" : false,
-                    "wildcardSubtype" : false
-                  },
-                  "language" : null,
-                  "encoding" : null
-                },
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/EndpointStates"
                 }
               }
             },
@@ -1842,6 +1799,39 @@
         },
         "required" : [ "columns", "keyspace_name", "table_name" ]
       },
+      "EndpointStates" : {
+        "type" : "object",
+        "properties" : {
+          "annotations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "encoding" : {
+            "type" : "string"
+          },
+          "entity" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "additionalProperties" : {
+                "type" : "string"
+              }
+            }
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "mediaType" : {
+            "$ref" : "#/components/schemas/MediaType"
+          },
+          "variant" : {
+            "$ref" : "#/components/schemas/Variant"
+          }
+        },
+        "required" : [ "entity" ]
+      },
       "FeatureSet" : {
         "type" : "object",
         "properties" : {
@@ -1904,6 +1894,29 @@
           }
         },
         "required" : [ "jobs", "keyspace_name", "tables" ]
+      },
+      "MediaType" : {
+        "type" : "object",
+        "properties" : {
+          "parameters" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "subtype" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string"
+          },
+          "wildcardSubtype" : {
+            "type" : "string"
+          },
+          "wildcardType" : {
+            "type" : "string"
+          }
+        }
       },
       "RepairRequest" : {
         "type" : "object",
@@ -1990,6 +2003,23 @@
           },
           "table_name" : {
             "type" : "string"
+          }
+        }
+      },
+      "Variant" : {
+        "type" : "object",
+        "properties" : {
+          "encoding" : {
+            "type" : "string"
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "languageString" : {
+            "type" : "string"
+          },
+          "mediaType" : {
+            "$ref" : "#/components/schemas/MediaType"
           }
         }
       }
