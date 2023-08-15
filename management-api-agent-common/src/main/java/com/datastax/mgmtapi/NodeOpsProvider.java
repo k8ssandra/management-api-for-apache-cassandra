@@ -777,20 +777,17 @@ public class NodeOpsProvider {
           .getStorageService()
           .addNotificationListener(
               (notification, handback) -> {
-                // https://github.com/apache/cassandra/blob/600f4d9a690dbd887d5e6298fe67e6bba982033d/src/java/org/apache/cassandra/utils/progress/jmx/JMXNotificationProgressListener.java#L26
                 if (notification.getType().equals("progress")) {
                   Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
 
                   ProgressEventType progress = ProgressEventType.values()[data.get("type")];
 
                   switch (progress) {
-                      // TODO Finish these
                     case START:
-                      job.setStatusChange(progress);
+                      job.setStatusChange(progress, notification.getMessage());
                       job.setStartTime(System.currentTimeMillis());
                       break;
                     case PROGRESS:
-                      // Do we care? Progress of what..?
                       break;
                     case ERROR:
                     case ABORT:
@@ -799,16 +796,15 @@ public class NodeOpsProvider {
                       job.setFinishedTime(System.currentTimeMillis());
                       break;
                     case SUCCESS:
-                      job.setStatusChange(progress);
-                      // SUCCESS / ERROR do not mean the job has completed yet (COMPLETE is that)
+                      job.setStatusChange(progress, notification.getMessage());
+                      // SUCCESS / ERROR does not mean the job has completed yet (COMPLETE is that)
                       break;
                     case COMPLETE:
-                      job.setStatusChange(progress);
+                      job.setStatusChange(progress, notification.getMessage());
                       job.setStatus(Job.JobStatus.COMPLETED);
                       job.setFinishedTime(System.currentTimeMillis());
                       break;
                     case NOTIFICATION:
-                      // Who cares..?
                       break;
                   }
                   service.updateJob(job);
