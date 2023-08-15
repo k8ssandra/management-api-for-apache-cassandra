@@ -13,6 +13,7 @@
     <artifactId>datastax-mgmtapi</artifactId>
     <version>${revision}</version>
   </parent>
+  <version>${revision}</version>
   <artifactId>datastax-mgmtapi-server</artifactId>
   <properties>
     <rsapi.version>2.1.1</rsapi.version>

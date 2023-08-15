@@ -13,6 +13,7 @@
     <artifactId>datastax-mgmtapi</artifactId>
     <version>${revision}</version>
   </parent>
+  <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-5.0.x</artifactId>
   <properties>
     <cassandra5.version>5.0-SNAPSHOT</cassandra5.version>

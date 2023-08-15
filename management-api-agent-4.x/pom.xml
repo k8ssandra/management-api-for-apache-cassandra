@@ -13,6 +13,7 @@
     <artifactId>datastax-mgmtapi</artifactId>
     <version>${revision}</version>
   </parent>
+  <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-4.x</artifactId>
   <dependencies>
     <dependency>
