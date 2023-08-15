@@ -1657,7 +1657,12 @@ public class K8OperatorResourcesTest {
     assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
     verify(context.cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.repair(?, ?, ?, ?)"), eq("test_ks"), eq(null), eq(true), eq(false));
+            any(),
+            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("test_ks"),
+            eq(null),
+            eq(true),
+            eq(false));
   }
 
   @Test
@@ -1678,10 +1683,11 @@ public class K8OperatorResourcesTest {
 
     when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
-    MockHttpRequest request = MockHttpRequest.post("/api/v1/ops/node/repair")
-        .content(repairRequestAsJSON.getBytes())
-        .accept(MediaType.TEXT_PLAIN)
-        .contentType(MediaType.APPLICATION_JSON_TYPE);
+    MockHttpRequest request =
+        MockHttpRequest.post("/api/v1/ops/node/repair")
+            .content(repairRequestAsJSON.getBytes())
+            .accept(MediaType.TEXT_PLAIN)
+            .contentType(MediaType.APPLICATION_JSON_TYPE);
 
     MockHttpResponse response = context.invoke(request);
 
@@ -1690,7 +1696,12 @@ public class K8OperatorResourcesTest {
 
     verify(context.cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.repair(?, ?, ?, ?)"), eq("test_ks"), eq(null), eq(true), eq(true));
+            any(),
+            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("test_ks"),
+            eq(null),
+            eq(true),
+            eq(true));
   }
 
   @Test
