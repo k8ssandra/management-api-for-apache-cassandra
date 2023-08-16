@@ -759,7 +759,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
 
     Pair<Integer, String> repairResponse =
-        client.post(repairUri.toURL(), null).thenApply(this::responseAsCodeAndBody).join();
+        client.post(repairUri.toURL(), requestAsJSON).thenApply(this::responseAsCodeAndBody).join();
     assertThat(repairResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
     String jobId = repairResponse.getRight();
     assertThat(jobId).isNotEmpty();
