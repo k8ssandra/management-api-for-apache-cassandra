@@ -739,7 +739,7 @@ public class NodeOpsProvider {
       @RpcParam(name = "keyspaceName") String keyspace,
       @RpcParam(name = "tables") List<String> tables,
       @RpcParam(name = "full") Boolean full,
-      @RpcParam(name = "async") boolean notifications)
+      @RpcParam(name = "notifications") boolean notifications)
       throws IOException {
     // At least one keyspace is required
     if (keyspace != null) {
