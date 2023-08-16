@@ -153,7 +153,7 @@ public class NodeOpsResources extends BaseResources {
           return Response.accepted(
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
-                      cqlService,
+                      app.cqlService,
                       "CALL NodeOps.repair(?, ?, ?, ?)",
                       repairRequest.keyspaceName,
                       repairRequest.tables,
