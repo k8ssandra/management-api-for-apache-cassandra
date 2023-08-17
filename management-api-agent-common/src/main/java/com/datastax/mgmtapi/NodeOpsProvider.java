@@ -762,8 +762,12 @@ public class NodeOpsProvider {
 
       // Since Cassandra provides us with a async, we don't need to use our executor interface for
       // this.
-      int repairJobId =
+      final int repairJobId =
           ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
+
+      if (repairJobId == 0) {
+        throw new RuntimeException("ReplicationFactor is less than 2");
+      }
 
       if (!notifications) {
         return Integer.valueOf(repairJobId).toString();
@@ -779,7 +783,6 @@ public class NodeOpsProvider {
               (notification, handback) -> {
                 if (notification.getType().equals("progress")) {
                   Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
-
                   ProgressEventType progress = ProgressEventType.values()[data.get("type")];
 
                   switch (progress) {
@@ -787,6 +790,7 @@ public class NodeOpsProvider {
                       job.setStatusChange(progress, notification.getMessage());
                       job.setStartTime(System.currentTimeMillis());
                       break;
+                    case NOTIFICATION:
                     case PROGRESS:
                       break;
                     case ERROR:
@@ -804,16 +808,13 @@ public class NodeOpsProvider {
                       job.setStatus(Job.JobStatus.COMPLETED);
                       job.setFinishedTime(System.currentTimeMillis());
                       break;
-                    case NOTIFICATION:
-                      break;
                   }
                   service.updateJob(job);
                 }
               },
               (NotificationFilter)
                   notification -> {
-                    // Not real code, needs some casting first
-                    int repairNo =
+                    final int repairNo =
                         Integer.parseInt(((String) notification.getSource()).split(":")[1]);
                     return repairNo == repairJobId;
                   },
