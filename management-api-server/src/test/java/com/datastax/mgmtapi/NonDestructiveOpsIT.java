@@ -744,7 +744,8 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertTrue("Repair request was not successful", repairSuccessful);
   }
 
-  @Test
+  //  @Test
+  // Disabled because it can't be run against single node cluster
   public void testAsyncRepair() throws IOException, URISyntaxException, InterruptedException {
     assumeTrue(IntegrationTestUtils.shouldRun());
     ensureStarted();
@@ -785,8 +786,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
               assertThat(jobDetails)
                   .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
                   .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("repair"))
-                  // if the server has only one token, the job will be completed, otherwise it will
-                  // end up in error
                   .hasEntrySatisfying(
                       "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
             });
