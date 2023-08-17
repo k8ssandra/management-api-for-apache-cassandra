@@ -7,6 +7,8 @@ package com.datastax.mgmtapi.resources.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,5 +53,14 @@ public class EndpointStates extends BaseEntity {
       return false;
     }
     return super.equals(obj);
+  }
+
+  @Override
+  public String toString() {
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (JsonProcessingException je) {
+      return "Unable to parse endpoint states into an entity";
+    }
   }
 }

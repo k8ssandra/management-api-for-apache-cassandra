@@ -347,6 +347,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     List<Map<String, String>> entity = (List<Map<String, String>>) response.get("entity");
     Map<String, String> endpoint = entity.get(0);
     assertThat(endpoint.get("PARTITIONER")).endsWith("Murmur3Partitioner");
+    assertThat(endpoint.get("CLUSTER_NAME")).matches("Test Cluster");
     Iterable<String> tokens = Splitter.on(",").split(endpoint.get("TOKENS"));
     assertThat(tokens)
         .allSatisfy(
@@ -920,19 +921,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                   .hasEntrySatisfying(
                       "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
             });
-  }
-
-  @Test
-  public void testGetClusterName() throws IOException, URISyntaxException {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-    ensureStarted();
-
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-    URI uri = new URIBuilder(BASE_PATH + "/metadata/clustername").build();
-    String response = client.get(uri.toURL()).thenApply(this::responseAsString).join();
-    assertNotNull(response);
-    assertNotEquals("", response);
-    assertEquals("Test Cluster", response);
   }
 
   private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName)

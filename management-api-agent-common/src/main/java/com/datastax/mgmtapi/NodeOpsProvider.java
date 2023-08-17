@@ -778,9 +778,4 @@ public class NodeOpsProvider {
 
     return submitJob("move", moveOperation, async);
   }
-
-  @Rpc(name = "getClusterName")
-  public String getClusterName() {
-    return ShimLoader.instance.get().getStorageService().getClusterName();
-  }
 }

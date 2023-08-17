@@ -8,7 +8,6 @@ package com.datastax.mgmtapi;
 import static com.datastax.mgmtapi.K8OperatorResourcesTest.setup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,17 +24,15 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class MetadataResourcesTest {
-
   @Test
   public void testGetReleaseVersion() throws Exception {
     K8OperatorResourcesTest.Context context = setup();
     MockHttpResponse response = getMockHttpResponse(context, "/metadata/versions/release");
     assertEquals(HttpStatus.SC_OK, response.getStatus());
-    Assert.assertTrue(response.getContentAsString().contains("1.2.3"));
+    assertTrue(response.getContentAsString().contains("1.2.3"));
   }
 
   @Test
@@ -51,17 +48,6 @@ public class MetadataResourcesTest {
     assertTrue(featureSet.getFeatures().size() > 0);
   }
 
-  @Test
-  public void testGetClusterName() throws Exception {
-    K8OperatorResourcesTest.Context context = setup();
-    MockHttpResponse response = getMockHttpResponse(context, "/metadata/clustername");
-    assertEquals(HttpStatus.SC_OK, response.getStatus());
-    String clusterName = response.getContentAsString();
-    Assert.assertTrue(
-        "Clustername expected to containe \"myCluster\", but was " + clusterName,
-        clusterName.contains("myCluster"));
-  }
-
   private MockHttpResponse getMockHttpResponse(K8OperatorResourcesTest.Context context, String path)
       throws URISyntaxException, ConnectionClosedException {
     ResultSet mockResultSet = mock(ResultSet.class);
@@ -72,23 +58,12 @@ public class MetadataResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
 
-    if (path.contains("versions")) {
-      when(mockRow.getString(0)).thenReturn("1.2.3");
-    } else if (path.contains("clustername")) {
-      when(mockRow.getString(0)).thenReturn("myCluster");
-    } else {
-      fail(
-          "Expected one of \"/metadata/versions/release\" or \"/metadata/clustername\" as the URI path");
-    }
+    when(mockRow.getString(0)).thenReturn("1.2.3");
 
     MockHttpResponse response = context.invoke(request);
 
     assertEquals(HttpStatus.SC_OK, response.getStatus());
-    if (path.contains("versions")) {
-      verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
-    } else if (path.contains("clustername")) {
-      verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getClusterName()"));
-    }
+    verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.getReleaseVersion()"));
     return response;
   }
 }

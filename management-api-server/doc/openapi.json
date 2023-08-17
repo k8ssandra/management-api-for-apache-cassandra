@@ -206,25 +206,6 @@
         }
       }
     },
-    "/api/v0/metadata/clustername" : {
-      "get" : {
-        "operationId" : "getClusterName",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "text/plain" : {
-                "example" : "myCluster",
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            },
-            "description" : "Cassandra Cluster Name"
-          }
-        },
-        "summary" : "Returns the Cassandra cluster name"
-      }
-    },
     "/api/v0/metadata/endpoints" : {
       "get" : {
         "operationId" : "getEndpointStates",
