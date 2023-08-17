@@ -49,7 +49,7 @@ public class CassandraMetricDefinition
     this.filler = samples -> samples.add(buildSample());
   }
 
-  void setFiller(Consumer<List<Collector.MetricFamilySamples.Sample>> filler) {
+  public void setFiller(Consumer<List<Collector.MetricFamilySamples.Sample>> filler) {
     this.filler = filler;
   }
 

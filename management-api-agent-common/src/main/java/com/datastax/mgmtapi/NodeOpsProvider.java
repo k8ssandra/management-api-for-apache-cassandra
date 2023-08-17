@@ -778,4 +778,12 @@ public class NodeOpsProvider {
 
     return submitJob("move", moveOperation, async);
   }
+
+  @Rpc(name = "readiness")
+  public boolean ready() throws IOException {
+    logger.debug("Checking if Cassandra has readiness");
+    String query = QueryBuilder.selectFrom("system", "local").column("cluster_name").asCql();
+    UntypedResultSet rows = ShimLoader.instance.get().processQuery(query, ConsistencyLevel.ONE);
+    return rows != null && rows.size() > 0;
+  }
 }

@@ -75,8 +75,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   private Method decayingHistogramOffsetMethod = null;
 
   public CassandraMetricRegistryListener(
-      ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, Configuration config)
-      throws NoSuchMethodException {
+      ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, Configuration config) {
     parser =
         new CassandraMetricNameParser(
             CassandraMetricsTools.DEFAULT_LABEL_NAMES,
