@@ -1011,49 +1011,12 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "entity" : [ {
-                    "Column family name" : "size_estimates",
-                    "Keyspace name" : "system",
-                    "Size on disk" : "13 bytes",
-                    "Snapshot name" : "truncated-1639687082845-size_estimates",
-                    "True size" : "0 bytes"
-                  }, {
-                    "Column family name" : "table_estimates",
-                    "Keyspace name" : "system",
-                    "Size on disk" : "13 bytes",
-                    "Snapshot name" : "truncated-1639687082982-table_estimates",
-                    "True size" : "0 bytes"
-                  } ],
-                  "variant" : {
-                    "language" : null,
-                    "mediaType" : {
-                      "type" : "application",
-                      "subtype" : "json",
-                      "parameters" : { },
-                      "wildcardType" : false,
-                      "wildcardSubtype" : false
-                    },
-                    "encoding" : null,
-                    "languageString" : null
-                  },
-                  "annotations" : [ ],
-                  "mediaType" : {
-                    "type" : "application",
-                    "subtype" : "json",
-                    "parameters" : { },
-                    "wildcardType" : false,
-                    "wildcardSubtype" : false
-                  },
-                  "language" : null,
-                  "encoding" : null
-                },
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/SnapshotDetails"
                 }
               }
             },
-            "description" : "Cassandra snapshot details"
+            "description" : "Cassandra snapshot details. Use 'null' values for query parameters to exclude result filtering against the parameter."
           }
         },
         "summary" : "Retrieve snapshot details"
@@ -1954,6 +1917,39 @@
           }
         },
         "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ]
+      },
+      "SnapshotDetails" : {
+        "type" : "object",
+        "properties" : {
+          "annotations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "encoding" : {
+            "type" : "string"
+          },
+          "entity" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "additionalProperties" : {
+                "type" : "string"
+              }
+            }
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "mediaType" : {
+            "$ref" : "#/components/schemas/MediaType"
+          },
+          "variant" : {
+            "$ref" : "#/components/schemas/Variant"
+          }
+        },
+        "required" : [ "entity" ]
       },
       "StreamingInfo" : {
         "type" : "object",

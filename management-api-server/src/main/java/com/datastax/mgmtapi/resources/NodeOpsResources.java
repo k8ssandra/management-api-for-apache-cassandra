@@ -11,6 +11,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
+import com.datastax.mgmtapi.resources.models.SnapshotDetails;
 import com.datastax.mgmtapi.resources.models.StreamingInfo;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.cql.Row;
@@ -351,12 +352,12 @@ public class NodeOpsResources extends BaseResources {
   @Produces(MediaType.APPLICATION_JSON)
   @ApiResponse(
       responseCode = "200",
-      description = "Cassandra snapshot details",
+      description =
+          "Cassandra snapshot details. Use 'null' values for query parameters to exclude result filtering against the parameter.",
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(implementation = String.class),
-              examples = @ExampleObject(value = SNAPSHOT_DETAILS_RESPONSE_EXAMPLE)))
+              schema = @Schema(implementation = SnapshotDetails.class)))
   @Operation(summary = "Retrieve snapshot details", operationId = "getSnapshotDetails")
   public Response getSnapshotDetails(
       @QueryParam("snapshotNames") List<String> snapshotNames,
@@ -608,48 +609,6 @@ public class NodeOpsResources extends BaseResources {
               .build();
         });
   }
-
-  private static final String SNAPSHOT_DETAILS_RESPONSE_EXAMPLE =
-      "{\n"
-          + "    \"entity\": [\n"
-          + "        {\n"
-          + "            \"Column family name\": \"size_estimates\",\n"
-          + "            \"Keyspace name\": \"system\",\n"
-          + "            \"Size on disk\": \"13 bytes\",\n"
-          + "            \"Snapshot name\": \"truncated-1639687082845-size_estimates\",\n"
-          + "            \"True size\": \"0 bytes\"\n"
-          + "        },\n"
-          + "        {\n"
-          + "            \"Column family name\": \"table_estimates\",\n"
-          + "            \"Keyspace name\": \"system\",\n"
-          + "            \"Size on disk\": \"13 bytes\",\n"
-          + "            \"Snapshot name\": \"truncated-1639687082982-table_estimates\",\n"
-          + "            \"True size\": \"0 bytes\"\n"
-          + "        }\n"
-          + "    ],\n"
-          + "    \"variant\": {\n"
-          + "        \"language\": null,\n"
-          + "        \"mediaType\": {\n"
-          + "            \"type\": \"application\",\n"
-          + "            \"subtype\": \"json\",\n"
-          + "            \"parameters\": {},\n"
-          + "            \"wildcardType\": false,\n"
-          + "            \"wildcardSubtype\": false\n"
-          + "        },\n"
-          + "        \"encoding\": null,\n"
-          + "        \"languageString\": null\n"
-          + "    },\n"
-          + "    \"annotations\": [],\n"
-          + "    \"mediaType\": {\n"
-          + "        \"type\": \"application\",\n"
-          + "        \"subtype\": \"json\",\n"
-          + "        \"parameters\": {},\n"
-          + "        \"wildcardType\": false,\n"
-          + "        \"wildcardSubtype\": false\n"
-          + "    },\n"
-          + "    \"language\": null,\n"
-          + "    \"encoding\": null\n"
-          + "}";
 
   private static final String FQL_QUERY_RESPONSE_EXAMPLE =
       "{\n"
