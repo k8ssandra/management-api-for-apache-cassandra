@@ -1113,7 +1113,10 @@
               "application/json" : {
                 "example" : [ "table_1", "table_2" ],
                 "schema" : {
-                  "type" : "string"
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
                 }
               }
             },
