@@ -274,7 +274,7 @@
                 }
               }
             },
-            "description" : "Cassandra version'"
+            "description" : "Cassandra version"
           }
         },
         "summary" : "Returns the Cassandra release version"
@@ -1103,33 +1103,8 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "entity" : [ ],
-                  "variant" : {
-                    "language" : null,
-                    "mediaType" : {
-                      "type" : "application",
-                      "subtype" : "json",
-                      "parameters" : { },
-                      "wildcardType" : false,
-                      "wildcardSubtype" : false
-                    },
-                    "encoding" : null,
-                    "languageString" : null
-                  },
-                  "annotations" : [ ],
-                  "mediaType" : {
-                    "type" : "application",
-                    "subtype" : "json",
-                    "parameters" : { },
-                    "wildcardType" : false,
-                    "wildcardSubtype" : false
-                  },
-                  "language" : null,
-                  "encoding" : null
-                },
                 "schema" : {
-                  "type" : "string"
+                  "$ref" : "#/components/schemas/StreamingInfo"
                 }
               }
             },
@@ -1979,6 +1954,45 @@
           }
         },
         "required" : [ "check_data", "disable_snapshot", "jobs", "keyspace_name", "reinsert_overflowed_ttl", "skip_corrupted", "tables" ]
+      },
+      "StreamingInfo" : {
+        "type" : "object",
+        "properties" : {
+          "annotations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "encoding" : {
+            "type" : "string"
+          },
+          "entity" : {
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "additionalProperties" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "mediaType" : {
+            "$ref" : "#/components/schemas/MediaType"
+          },
+          "variant" : {
+            "$ref" : "#/components/schemas/Variant"
+          }
+        },
+        "required" : [ "entity" ]
       },
       "TakeSnapshotRequest" : {
         "type" : "object",
