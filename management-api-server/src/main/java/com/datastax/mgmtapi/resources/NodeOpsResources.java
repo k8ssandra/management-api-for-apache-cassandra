@@ -11,6 +11,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
+import com.datastax.mgmtapi.resources.models.StreamingInfo;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.google.common.collect.ImmutableList;
@@ -329,8 +330,7 @@ public class NodeOpsResources extends BaseResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(implementation = String.class),
-              examples = @ExampleObject(value = STREAMING_INFO_RESPONSE_EXAMPLE)))
+              schema = @Schema(implementation = StreamingInfo.class)))
   @Operation(summary = "Retrieve Streaming status information", operationId = "getStreamInfo")
   public Response getStreamInfo() {
     return handle(
@@ -608,33 +608,6 @@ public class NodeOpsResources extends BaseResources {
               .build();
         });
   }
-
-  private static final String STREAMING_INFO_RESPONSE_EXAMPLE =
-      "{\n"
-          + "    \"entity\": [],\n"
-          + "    \"variant\": {\n"
-          + "        \"language\": null,\n"
-          + "        \"mediaType\": {\n"
-          + "            \"type\": \"application\",\n"
-          + "            \"subtype\": \"json\",\n"
-          + "            \"parameters\": {},\n"
-          + "            \"wildcardType\": false,\n"
-          + "            \"wildcardSubtype\": false\n"
-          + "        },\n"
-          + "        \"encoding\": null,\n"
-          + "        \"languageString\": null\n"
-          + "    },\n"
-          + "    \"annotations\": [],\n"
-          + "    \"mediaType\": {\n"
-          + "        \"type\": \"application\",\n"
-          + "        \"subtype\": \"json\",\n"
-          + "        \"parameters\": {},\n"
-          + "        \"wildcardType\": false,\n"
-          + "        \"wildcardSubtype\": false\n"
-          + "    },\n"
-          + "    \"language\": null,\n"
-          + "    \"encoding\": null\n"
-          + "}";
 
   private static final String SNAPSHOT_DETAILS_RESPONSE_EXAMPLE =
       "{\n"

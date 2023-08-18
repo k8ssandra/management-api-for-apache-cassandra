@@ -221,6 +221,7 @@ public class CassandraAPI3x implements CassandraAPI {
       states.put("ENDPOINT_IP", entry.getKey().getHostAddress());
       states.put("IS_ALIVE", Boolean.toString(entry.getValue().isAlive()));
       states.put("PARTITIONER", partitioner.getClass().getName());
+      states.put("CLUSTER_NAME", getStorageService().getClusterName());
 
       result.add(states);
     }

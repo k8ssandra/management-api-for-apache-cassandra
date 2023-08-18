@@ -35,7 +35,7 @@ public class MetadataResources extends BaseResources {
   @Produces(MediaType.TEXT_PLAIN)
   @ApiResponse(
       responseCode = "200",
-      description = "Cassandra version'",
+      description = "Cassandra version",
       content =
           @Content(
               mediaType = MediaType.TEXT_PLAIN,
