@@ -347,6 +347,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     List<Map<String, String>> entity = (List<Map<String, String>>) response.get("entity");
     Map<String, String> endpoint = entity.get(0);
     assertThat(endpoint.get("PARTITIONER")).endsWith("Murmur3Partitioner");
+    assertThat(endpoint.get("CLUSTER_NAME")).matches("Test Cluster");
     Iterable<String> tokens = Splitter.on(",").split(endpoint.get("TOKENS"));
     assertThat(tokens)
         .allSatisfy(

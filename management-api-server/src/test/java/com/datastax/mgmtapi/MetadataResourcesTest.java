@@ -24,17 +24,15 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class MetadataResourcesTest {
-
   @Test
   public void testGetReleaseVersion() throws Exception {
     K8OperatorResourcesTest.Context context = setup();
     MockHttpResponse response = getMockHttpResponse(context, "/metadata/versions/release");
     assertEquals(HttpStatus.SC_OK, response.getStatus());
-    Assert.assertTrue(response.getContentAsString().contains("1.2.3"));
+    assertTrue(response.getContentAsString().contains("1.2.3"));
   }
 
   @Test
