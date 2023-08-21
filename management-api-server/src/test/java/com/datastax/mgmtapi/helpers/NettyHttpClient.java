@@ -180,7 +180,7 @@ public class NettyHttpClient {
     request.headers().set(HttpHeaderNames.HOST, url.getHost());
 
     // Send the HTTP request.
-    client.writeAndFlush(request);
+    client.writeAndFlush(request).awaitUninterruptibly();
 
     return result;
   }

@@ -765,17 +765,22 @@ public class NodeOpsProvider {
       final int repairJobId =
           ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
 
-      if (repairJobId == 0) {
-        throw new RuntimeException("ReplicationFactor is less than 2");
-      }
-
       if (!notifications) {
         return Integer.valueOf(repairJobId).toString();
       }
 
       String jobId = String.format("repair-%d", repairJobId);
-
       final Job job = service.createJob("repair", jobId);
+
+      if (repairJobId == 0) {
+        // Job is done and won't continue
+        job.setStatusChange(ProgressEventType.COMPLETE, "");
+        job.setStatus(Job.JobStatus.COMPLETED);
+        job.setFinishedTime(System.currentTimeMillis());
+        service.updateJob(job);
+        return job.getJobId();
+      }
+
       ShimLoader.instance
           .get()
           .getStorageService()
