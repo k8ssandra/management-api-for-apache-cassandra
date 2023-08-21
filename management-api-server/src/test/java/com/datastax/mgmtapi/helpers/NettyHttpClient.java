@@ -11,7 +11,6 @@ import com.datastax.mgmtapi.Cli;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -181,9 +180,7 @@ public class NettyHttpClient {
     request.headers().set(HttpHeaderNames.HOST, url.getHost());
 
     // Send the HTTP request.
-    ChannelFuture channelFuture = client.writeAndFlush(request).awaitUninterruptibly();
-    channelFuture.syncUninterruptibly();
-    channelFuture.channel().closeFuture().syncUninterruptibly();
+    client.writeAndFlush(request);
 
     return result;
   }

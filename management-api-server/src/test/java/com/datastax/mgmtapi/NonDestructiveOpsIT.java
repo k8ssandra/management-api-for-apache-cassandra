@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.IllegalReferenceCountException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -788,11 +789,18 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
         .atMost(Duration.ofMinutes(5))
         .untilAsserted(
             () -> {
-              Pair<Integer, String> getJobDetailsResponse =
-                  client
-                      .get(getJobDetailsUri.toURL())
-                      .thenApply(this::responseAsCodeAndBody)
-                      .join();
+              Pair<Integer, String> getJobDetailsResponse;
+              try {
+                getJobDetailsResponse =
+                    client
+                        .get(getJobDetailsUri.toURL())
+                        .thenApply(this::responseAsCodeAndBody)
+                        .join();
+              } catch (IllegalReferenceCountException e) {
+                // Just retry
+                assertFalse(true);
+                return;
+              }
               assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
               Map<String, String> jobDetails =
                   new JsonMapper()
