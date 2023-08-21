@@ -30,6 +30,7 @@ import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
+import com.datastax.mgmtapi.resources.models.Table;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -896,6 +897,54 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             "triggers",
             "types",
             "views");
+  }
+
+  @Test
+  public void testGetTablesV2() throws IOException, URISyntaxException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+    // missing keyspace
+    URI uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables").build();
+    Pair<Integer, String> response =
+        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
+    assertThat(response.getRight()).contains("Non-empty 'keyspaceName' must be provided");
+
+    // non existent keyspace
+    uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables?keyspaceName=nonexistent").build();
+    response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+    assertThat(response.getRight()).isEqualTo("[]");
+
+    // existing keyspace
+    uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables?keyspaceName=system_schema").build();
+    response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+
+    List<Table> actual =
+        new JsonMapper().readValue(response.getRight(), new TypeReference<List<Table>>() {});
+    assertThat(actual)
+        .extracting("name")
+        .contains(
+            "aggregates",
+            "columns",
+            "functions",
+            "indexes",
+            "keyspaces",
+            "tables",
+            "triggers",
+            "types",
+            "views");
+    assertThat(actual)
+        .allSatisfy(
+            table ->
+                assertThat(table.compaction)
+                    .containsEntry(
+                        "class",
+                        "org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy"));
   }
 
   @Test

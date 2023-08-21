@@ -64,6 +64,7 @@ public class ManagementApplication extends Application {
             new com.datastax.mgmtapi.resources.v1.NodeOpsResources(this),
             new TableOpsResources(this),
             new com.datastax.mgmtapi.resources.v1.TableOpsResources(this),
+            new com.datastax.mgmtapi.resources.v2.TableOpsResources(this),
             new AuthResources(this),
             new OpenApiResource(),
             new SwaggerSerializers());
