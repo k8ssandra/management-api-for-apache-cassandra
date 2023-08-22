@@ -1520,6 +1520,45 @@
         "summary" : "Rebuild data by streaming data from other nodes. This operation returns immediately with a job id."
       }
     },
+    "/api/v1/ops/node/repair" : {
+      "post" : {
+        "operationId" : "repair_1",
+        "requestBody" : {
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RepairRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "repair-1234567",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for successfully scheduled Cassandra repair request"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspaceName must be specified",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Repair request missing Keyspace name"
+          }
+        },
+        "summary" : "Execute a nodetool repair operation"
+      }
+    },
     "/api/v1/ops/node/schema/versions" : {
       "get" : {
         "operationId" : "getSchemaVersions",
@@ -1805,6 +1844,12 @@
             "type" : "string",
             "enum" : [ "ERROR", "COMPLETED", "WAITING" ]
           },
+          "status_changes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StatusChange"
+            }
+          },
           "submit_time" : {
             "type" : "integer",
             "format" : "int64"
@@ -1950,6 +1995,21 @@
           }
         },
         "required" : [ "entity" ]
+      },
+      "StatusChange" : {
+        "type" : "object",
+        "properties" : {
+          "change_time" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        }
       },
       "StreamingInfo" : {
         "type" : "object",
