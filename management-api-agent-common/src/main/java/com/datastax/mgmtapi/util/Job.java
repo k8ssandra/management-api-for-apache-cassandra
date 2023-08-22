@@ -6,7 +6,9 @@
 package com.datastax.mgmtapi.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.cassandra.utils.progress.ProgressEventType;
 
 public class Job {
   public enum JobStatus {
@@ -19,14 +21,43 @@ public class Job {
   private String jobType;
   private JobStatus status;
   private long submitTime;
+  private long startTime;
   private long finishedTime;
   private Throwable error;
 
-  public Job(String jobType) {
+  public class StatusChange {
+    ProgressEventType status;
+    long changeTime;
+
+    String message;
+
+    public StatusChange(ProgressEventType type, String message) {
+      changeTime = System.currentTimeMillis();
+      status = type;
+      this.message = message;
+    }
+
+    public ProgressEventType getStatus() {
+      return status;
+    }
+
+    public long getChangeTime() {
+      return changeTime;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+  }
+
+  private List<StatusChange> statusChanges;
+
+  public Job(String jobType, String jobId) {
     this.jobType = jobType;
-    jobId = UUID.randomUUID().toString();
+    this.jobId = jobId;
     submitTime = System.currentTimeMillis();
     status = JobStatus.WAITING;
+    statusChanges = new ArrayList<>();
   }
 
   @VisibleForTesting
@@ -51,6 +82,14 @@ public class Job {
     this.status = status;
   }
 
+  public void setStatusChange(ProgressEventType type, String message) {
+    statusChanges.add(new StatusChange(type, message));
+  }
+
+  public List<StatusChange> getStatusChanges() {
+    return statusChanges;
+  }
+
   public long getSubmitTime() {
     return submitTime;
   }
@@ -69,5 +108,9 @@ public class Job {
 
   public void setError(Throwable error) {
     this.error = error;
+  }
+
+  public void setStartTime(long startTime) {
+    this.startTime = startTime;
   }
 }
