@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.IllegalReferenceCountException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -551,7 +552,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .thenApply(this::responseAsString)
             .join();
 
-    createKeyspace(client, localDc, "someTestKeyspace");
+    createKeyspace(client, localDc, "someTestKeyspace", 1);
   }
 
   @Test
@@ -567,7 +568,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .join();
 
     String ks = "alteringKeyspaceTest";
-    createKeyspace(client, localDc, ks);
+    createKeyspace(client, localDc, ks, 1);
 
     CreateOrAlterKeyspaceRequest request =
         new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
@@ -594,7 +595,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .join();
 
     String ks = "getkeyspacestest";
-    createKeyspace(client, localDc, ks);
+    createKeyspace(client, localDc, ks, 1);
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace").build();
     String response = client.get(uri.toURL()).thenApply(this::responseAsString).join();
@@ -727,13 +728,22 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
     ensureStarted();
 
+    // create a keyspace with RF of at least 2
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
+    String localDc =
+        client
+            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+            .thenApply(this::responseAsString)
+            .join();
+
+    String ks = "someTestKeyspace";
+    createKeyspace(client, localDc, ks, 2);
 
     URIBuilder uriBuilder = new URIBuilder(BASE_PATH + "/ops/node/repair");
     URI repairUri = uriBuilder.build();
 
     // execute repair
-    RepairRequest repairRequest = new RepairRequest("system_auth", null, Boolean.TRUE);
+    RepairRequest repairRequest = new RepairRequest(ks, null, Boolean.TRUE);
     String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
 
     boolean repairSuccessful =
@@ -742,6 +752,68 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
             .join();
     assertTrue("Repair request was not successful", repairSuccessful);
+  }
+
+  @Test
+  public void testAsyncRepair() throws IOException, URISyntaxException, InterruptedException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    // create a keyspace with RF of at least 2
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+    String localDc =
+        client
+            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+            .thenApply(this::responseAsString)
+            .join();
+
+    String ks = "someTestKeyspace";
+    createKeyspace(client, localDc, ks, 2);
+
+    URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/repair");
+    URI repairUri = uriBuilder.build();
+
+    // execute repair
+    RepairRequest repairRequest = new RepairRequest("someTestKeyspace", null, Boolean.TRUE);
+    String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+
+    Pair<Integer, String> repairResponse =
+        client.post(repairUri.toURL(), requestAsJSON).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(repairResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
+    String jobId = repairResponse.getRight();
+    assertThat(jobId).isNotEmpty();
+
+    URI getJobDetailsUri =
+        new URIBuilder(BASE_PATH + "/ops/executor/job").addParameter("job_id", jobId).build();
+
+    await()
+        .atMost(Duration.ofMinutes(5))
+        .untilAsserted(
+            () -> {
+              Pair<Integer, String> getJobDetailsResponse;
+              try {
+                getJobDetailsResponse =
+                    client
+                        .get(getJobDetailsUri.toURL())
+                        .thenApply(this::responseAsCodeAndBody)
+                        .join();
+              } catch (IllegalReferenceCountException e) {
+                // Just retry
+                assertFalse(true);
+                return;
+              }
+              assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
+              Map<String, String> jobDetails =
+                  new JsonMapper()
+                      .readValue(
+                          getJobDetailsResponse.getRight(),
+                          new TypeReference<Map<String, String>>() {});
+              assertThat(jobDetails)
+                  .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
+                  .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("repair"))
+                  .hasEntrySatisfying(
+                      "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
+            });
   }
 
   @Test
@@ -757,7 +829,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .join();
 
     String ks = "getreplicationtest";
-    createKeyspace(client, localDc, ks);
+    createKeyspace(client, localDc, ks, 1);
 
     // missing keyspace
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/replication").build();
@@ -840,7 +912,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     // this test also tests case sensitivity in CQL identifiers.
     String ks = "CreateTableTest";
-    createKeyspace(client, localDc, ks);
+    createKeyspace(client, localDc, ks, 1);
 
     CreateTableRequest request =
         new CreateTableRequest(
@@ -923,11 +995,11 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             });
   }
 
-  private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName)
+  private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName, int rf)
       throws IOException, URISyntaxException {
     CreateOrAlterKeyspaceRequest request =
         new CreateOrAlterKeyspaceRequest(
-            keyspaceName, Arrays.asList(new ReplicationSetting(localDc, 1)));
+            keyspaceName, Arrays.asList(new ReplicationSetting(localDc, rf)));
     String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create").build();
@@ -951,6 +1023,11 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   }
 
   private Pair<Integer, String> responseAsCodeAndBody(FullHttpResponse r) {
-    return Pair.of(r.status().code(), r.content().toString(UTF_8));
+    FullHttpResponse copy = r.copy();
+    if (copy.content().readableBytes() > 0) {
+      return Pair.of(copy.status().code(), copy.content().toString(UTF_8));
+    }
+
+    return Pair.of(copy.status().code(), null);
   }
 }
