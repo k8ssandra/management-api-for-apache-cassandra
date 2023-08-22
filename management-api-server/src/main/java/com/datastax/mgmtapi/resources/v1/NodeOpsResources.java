@@ -8,6 +8,7 @@ package com.datastax.mgmtapi.resources.v1;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
+import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.oss.driver.api.core.cql.Row;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -118,6 +119,47 @@ public class NodeOpsResources extends BaseResources {
             schemaVersions = row.getMap(0, String.class, List.class);
           }
           return Response.ok(schemaVersions).build();
+        });
+  }
+
+  @POST
+  @Path("/repair")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "202",
+      description = "Job ID for successfully scheduled Cassandra repair request",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "repair-1234567")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Repair request missing Keyspace name",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "keyspaceName must be specified")))
+  @Operation(summary = "Execute a nodetool repair operation", operationId = "repair")
+  public Response repair(RepairRequest repairRequest) {
+    return handle(
+        () -> {
+          if (repairRequest.keyspaceName == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("keyspaceName must be specified")
+                .build();
+          }
+          return Response.accepted(
+                  ResponseTools.getSingleRowStringResponse(
+                      app.dbUnixSocketFile,
+                      app.cqlService,
+                      "CALL NodeOps.repair(?, ?, ?, ?)",
+                      repairRequest.keyspaceName,
+                      repairRequest.tables,
+                      repairRequest.full,
+                      true))
+              .build();
         });
   }
 }
