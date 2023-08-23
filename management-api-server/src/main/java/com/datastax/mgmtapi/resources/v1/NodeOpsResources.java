@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -154,11 +155,15 @@ public class NodeOpsResources extends BaseResources {
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
                       app.cqlService,
-                      "CALL NodeOps.repair(?, ?, ?, ?)",
+                      "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)",
                       repairRequest.keyspaceName,
                       repairRequest.tables,
                       repairRequest.full,
-                      true))
+                      true,
+                      Optional.empty(),
+                      Optional.empty(),
+                      Optional.empty(),
+                      Optional.empty()))
               .build();
         });
   }

@@ -1,5 +1,10 @@
-package com.datastax.mgmtapi.resources.v2.models;
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 
+package com.datastax.mgmtapi.resources.v2.models;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

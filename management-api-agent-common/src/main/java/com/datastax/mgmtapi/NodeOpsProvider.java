@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -750,105 +749,95 @@ public class NodeOpsProvider {
       @RpcParam(name = "repairThreadCount") Optional<Integer> repairThreadCount)
       throws IOException {
     // At least one keyspace is required
-    assert(keyspace != null);
+    assert (keyspace != null);
     Map<String, String> options = new HashMap<>();
-    repairParallelism.map(rPar ->
-        options.put(
-            RepairOption.PARALLELISM_KEY, rPar.getName()
-        )
-    );
+    repairParallelism.map(rPar -> options.put(RepairOption.PARALLELISM_KEY, rPar.getName()));
     options.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
-    repairThreadCount.map(tCount ->
-        options.put(
-          RepairOption.JOB_THREADS_KEY,
-          Integer.toString(tCount == 0 ? 1 : tCount))
-    );
+    repairThreadCount.map(
+        tCount ->
+            options.put(RepairOption.JOB_THREADS_KEY, Integer.toString(tCount == 0 ? 1 : tCount)));
     options.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
     options.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ","));
     if (full) {
-      associatedTokens.map(aTokens ->
-          options.put(
-            RepairOption.RANGES_KEY,
-            StringUtils.join(
-                aTokens
-                    .stream()
-                    .map(token -> token.getStart() + ":" + token.getEnd())
-                    .collect(Collectors.toList()),
-                ",")
-                )
-            );
-          }
-      datacenters.map( dcs ->
-          options.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ","))
-      );
+      associatedTokens.map(
+          aTokens ->
+              options.put(
+                  RepairOption.RANGES_KEY,
+                  StringUtils.join(
+                      aTokens.stream()
+                          .map(token -> token.getStart() + ":" + token.getEnd())
+                          .collect(Collectors.toList()),
+                      ",")));
+    }
+    datacenters.map(dcs -> options.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ",")));
 
-      // Since Cassandra provides us with a async, we don't need to use our executor interface for
-      // this.
-     final int repairJobId =
-    ShimLoader.instance.get().getStorageService().repairAsync(keyspace, options);
+    // Since Cassandra provides us with a async, we don't need to use our executor interface for
+    // this.
+    final int repairJobId =
+        ShimLoader.instance.get().getStorageService().repairAsync(keyspace, options);
 
-      if (!notifications) {
-        return Integer.valueOf(repairJobId).toString();
-      }
+    if (!notifications) {
+      return Integer.valueOf(repairJobId).toString();
+    }
 
-      String jobId = String.format("repair-%d", repairJobId);
-      final Job job = service.createJob("repair", jobId);
+    String jobId = String.format("repair-%d", repairJobId);
+    final Job job = service.createJob("repair", jobId);
 
-      if (repairJobId == 0) {
-        // Job is done and won't continue
-        job.setStatusChange(ProgressEventType.COMPLETE, "");
-        job.setStatus(Job.JobStatus.COMPLETED);
-        job.setFinishedTime(System.currentTimeMillis());
-        service.updateJob(job);
-        return job.getJobId();
-      }
-
-      ShimLoader.instance
-          .get()
-          .getStorageService()
-          .addNotificationListener(
-              (notification, handback) -> {
-                if (notification.getType().equals("progress")) {
-                  Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
-                  ProgressEventType progress = ProgressEventType.values()[data.get("type")];
-
-                  switch (progress) {
-                    case START:
-                      job.setStatusChange(progress, notification.getMessage());
-                      job.setStartTime(System.currentTimeMillis());
-                      break;
-                    case NOTIFICATION:
-                    case PROGRESS:
-                      break;
-                    case ERROR:
-                    case ABORT:
-                      job.setError(new RuntimeException(notification.getMessage()));
-                      job.setStatus(Job.JobStatus.ERROR);
-                      job.setFinishedTime(System.currentTimeMillis());
-                      break;
-                    case SUCCESS:
-                      job.setStatusChange(progress, notification.getMessage());
-                      // SUCCESS / ERROR does not mean the job has completed yet (COMPLETE is that)
-                      break;
-                    case COMPLETE:
-                      job.setStatusChange(progress, notification.getMessage());
-                      job.setStatus(Job.JobStatus.COMPLETED);
-                      job.setFinishedTime(System.currentTimeMillis());
-                      break;
-                  }
-                  service.updateJob(job);
-                }
-              },
-              (NotificationFilter)
-                  notification -> {
-                    final int repairNo =
-                        Integer.parseInt(((String) notification.getSource()).split(":")[1]);
-                    return repairNo == repairJobId;
-                  },
-              null);
-
+    if (repairJobId == 0) {
+      // Job is done and won't continue
+      job.setStatusChange(ProgressEventType.COMPLETE, "");
+      job.setStatus(Job.JobStatus.COMPLETED);
+      job.setFinishedTime(System.currentTimeMillis());
+      service.updateJob(job);
       return job.getJobId();
     }
+
+    ShimLoader.instance
+        .get()
+        .getStorageService()
+        .addNotificationListener(
+            (notification, handback) -> {
+              if (notification.getType().equals("progress")) {
+                Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
+                ProgressEventType progress = ProgressEventType.values()[data.get("type")];
+
+                switch (progress) {
+                  case START:
+                    job.setStatusChange(progress, notification.getMessage());
+                    job.setStartTime(System.currentTimeMillis());
+                    break;
+                  case NOTIFICATION:
+                  case PROGRESS:
+                    break;
+                  case ERROR:
+                  case ABORT:
+                    job.setError(new RuntimeException(notification.getMessage()));
+                    job.setStatus(Job.JobStatus.ERROR);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    break;
+                  case SUCCESS:
+                    job.setStatusChange(progress, notification.getMessage());
+                    // SUCCESS / ERROR does not mean the job has completed yet (COMPLETE is that)
+                    break;
+                  case COMPLETE:
+                    job.setStatusChange(progress, notification.getMessage());
+                    job.setStatus(Job.JobStatus.COMPLETED);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    break;
+                }
+                service.updateJob(job);
+              }
+            },
+            (NotificationFilter)
+                notification -> {
+                  final int repairNo =
+                      Integer.parseInt(((String) notification.getSource()).split(":")[1]);
+                  return repairNo == repairJobId;
+                },
+            null);
+
+    return job.getJobId();
+  }
 
   @Rpc(name = "move")
   public String move(

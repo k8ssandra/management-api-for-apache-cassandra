@@ -11,8 +11,8 @@ import java.util.Comparator;
 
 public final class RingRange {
 
-  public static final Comparator<RingRange> START_COMPARATOR
-      = (RingRange o1, RingRange o2) -> o1.start.compareTo(o2.start);
+  public static final Comparator<RingRange> START_COMPARATOR =
+      (RingRange o1, RingRange o2) -> o1.start.compareTo(o2.start);
 
   public final BigInteger start;
   public final BigInteger end;

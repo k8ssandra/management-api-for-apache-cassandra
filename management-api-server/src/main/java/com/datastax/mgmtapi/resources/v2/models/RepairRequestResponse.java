@@ -1,15 +1,22 @@
-package com.datastax.mgmtapi.resources.v2.models;
+/*
+ * Copyright DataStax, Inc.
+ *
+ * Please see the included license file for details.
+ */
 
-import java.util.Objects;
+package com.datastax.mgmtapi.resources.v2.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Objects;
 
 public class RepairRequestResponse {
   @JsonProperty(value = "repair_id", required = true)
   public final String repairID;
+
   @JsonCreator
-  public RepairRequestResponse(@JsonProperty(value = "repair_id", required = true) String repairID) {
+  public RepairRequestResponse(
+      @JsonProperty(value = "repair_id", required = true) String repairID) {
     this.repairID = repairID;
   }
 

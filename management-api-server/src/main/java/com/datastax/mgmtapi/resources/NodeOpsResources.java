@@ -508,7 +508,8 @@ public class NodeOpsResources extends BaseResources {
               repairRequest.keyspaceName,
               repairRequest.tables,
               repairRequest.full,
-              // The default repair does not allow for specifying things like parallelism, threadCounts, source DCs or ranges etc.
+              // The default repair does not allow for specifying things like parallelism,
+              // threadCounts, source DCs or ranges etc.
               Optional.empty(),
               Optional.empty(),
               Optional.empty(),
