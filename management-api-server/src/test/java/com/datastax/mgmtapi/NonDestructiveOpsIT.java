@@ -900,27 +900,27 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   }
 
   @Test
-  public void testGetTablesV2() throws IOException, URISyntaxException {
+  public void testGetTablesV1() throws IOException, URISyntaxException {
     assumeTrue(IntegrationTestUtils.shouldRun());
     ensureStarted();
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     // missing keyspace
-    URI uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables").build();
+    URI uri = new URIBuilder(BASE_PATH_V1 + "/ops/tables").build();
     Pair<Integer, String> response =
         client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
     assertThat(response.getRight()).contains("Non-empty 'keyspaceName' must be provided");
 
     // non existent keyspace
-    uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables?keyspaceName=nonexistent").build();
+    uri = new URIBuilder(BASE_PATH_V1 + "/ops/tables?keyspaceName=nonexistent").build();
     response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
     assertThat(response.getRight()).isEqualTo("[]");
 
     // existing keyspace
-    uri = new URIBuilder(BASE_PATH_V2 + "/ops/tables?keyspaceName=system_schema").build();
+    uri = new URIBuilder(BASE_PATH_V1 + "/ops/tables?keyspaceName=system_schema").build();
     response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 

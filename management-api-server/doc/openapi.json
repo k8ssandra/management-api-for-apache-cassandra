@@ -1581,6 +1581,46 @@
         "summary" : "Get schema versions."
       }
     },
+    "/api/v1/ops/tables" : {
+      "get" : {
+        "operationId" : "listTablesV1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "keyspaceName",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Table"
+                  }
+                }
+              }
+            },
+            "description" : "Table list"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Keyspace name not provided"
+          }
+        },
+        "summary" : "List the table names in the given keyspace"
+      }
+    },
     "/api/v1/ops/tables/compact" : {
       "post" : {
         "operationId" : "compact_1",
@@ -1678,46 +1718,6 @@
           }
         },
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version). This operation is asynchronous and returns immediately."
-      }
-    },
-    "/api/v2/ops/tables" : {
-      "get" : {
-        "operationId" : "listTables_1",
-        "parameters" : [ {
-          "in" : "query",
-          "name" : "keyspaceName",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/Table"
-                  }
-                }
-              }
-            },
-            "description" : "Table list"
-          },
-          "400" : {
-            "content" : {
-              "text/plain" : {
-                "example" : "List tables failed. Non-empty 'keyspaceName' must be provided",
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            },
-            "description" : "Keyspace name not provided"
-          }
-        },
-        "summary" : "List the table names in the given keyspace"
       }
     }
   },
