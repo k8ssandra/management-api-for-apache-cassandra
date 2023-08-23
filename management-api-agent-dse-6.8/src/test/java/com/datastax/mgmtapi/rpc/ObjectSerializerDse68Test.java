@@ -7,15 +7,16 @@ package com.datastax.mgmtapi.rpc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ObjectSerializer3xTest extends ObjectSerializerTestBase<ObjectSerializer3x<Example>> {
+public class ObjectSerializerDse68Test
+    extends ObjectSerializerTestBase<ObjectSerializerDse68<Example>> {
 
   @Override
-  protected ObjectSerializer3x<Example> createExampleSerializer() {
-    return new ObjectSerializer3x<>(Example.class);
+  protected ObjectSerializerDse68<Example> createExampleSerializer() {
+    return new ObjectSerializerDse68<>(Example.class);
   }
 
   @Override
-  protected String getCqlType(ObjectSerializer3x<Example> serializer, String fieldName) {
+  protected String getCqlType(ObjectSerializerDse68<Example> serializer, String fieldName) {
     assertThat(serializer.serializers).containsKey(fieldName);
     return serializer.serializers.get(fieldName).type.toString();
   }

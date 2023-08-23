@@ -73,7 +73,8 @@ public class ObjectSerializerDse7<T> implements ObjectSerializer<T> {
                             field -> field.getName(),
                             field ->
                                 new FieldSerializer(
-                                    GenericSerializerDse7.getType(field.getType()), field))));
+                                    GenericSerializerDse7.getType(field.getGenericType()),
+                                    field))));
     // currently not recursive; multiple ways to do it
   }
 
