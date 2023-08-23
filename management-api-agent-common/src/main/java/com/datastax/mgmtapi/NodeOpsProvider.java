@@ -744,10 +744,10 @@ public class NodeOpsProvider {
       @RpcParam(name = "tables") List<String> tables,
       @RpcParam(name = "full") Boolean full,
       @RpcParam(name = "notifications") boolean notifications,
-      @RpcParam(name = "repairParallelism") RepairParallelism repairParallelism,
-      @RpcParam(name = "datacenters") Collection<String> datacenters,
-      @RpcParam(name = "associatedTokens") List<RingRange> associatedTokens,
-      @RpcParam(name = "repairThreadCount") int repairThreadCount)
+      @RpcParam(name = "repairParallelism") Optional<RepairParallelism> repairParallelism,
+      @RpcParam(name = "datacenters") Optional<Collection<String>> datacenters,
+      @RpcParam(name = "associatedTokens") Optional<List<RingRange>> associatedTokens,
+      @RpcParam(name = "repairThreadCount") Optional<Integer> repairThreadCount)
       throws IOException {
     // At least one keyspace is required
     assert(keyspace != null);
@@ -776,7 +776,7 @@ public class NodeOpsProvider {
                     .collect(Collectors.toList()),
                 ",")
                 )
-            ));
+            );
           }
       datacenters.map( dcs ->
           options.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ","))
@@ -784,8 +784,8 @@ public class NodeOpsProvider {
 
       // Since Cassandra provides us with a async, we don't need to use our executor interface for
       // this.
-      final int repairJobId =
-          ShimLoader.instance.get().getStorageService().repairAsync(keyspace, options);
+     final int repairJobId =
+    ShimLoader.instance.get().getStorageService().repairAsync(keyspace, options);
 
       if (!notifications) {
         return Integer.valueOf(repairJobId).toString();
@@ -849,10 +849,6 @@ public class NodeOpsProvider {
 
       return job.getJobId();
     }
-
-    throw new RuntimeException("At least one keyspace must be defined");
-
-  }
 
   @Rpc(name = "move")
   public String move(
