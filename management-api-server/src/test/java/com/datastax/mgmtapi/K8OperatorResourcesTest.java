@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -1781,20 +1782,21 @@ public class K8OperatorResourcesTest {
   public void testListTables() throws Exception {
     Context context = setup();
     ResultSet mockResultSet = mock(ResultSet.class);
-    Row mockRow = mock(Row.class);
+    Row mockRow1 = mock(Row.class);
+    Row mockRow2 = mock(Row.class);
 
     MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/ops/tables?keyspaceName=ks1");
     when(context.cqlService.executePreparedStatement(any(), anyString(), anyString()))
         .thenReturn(mockResultSet);
-    when(mockResultSet.one()).thenReturn(mockRow);
-    List<String> result = ImmutableList.of("table1", "table2");
-    when(mockRow.getList(0, String.class)).thenReturn(result);
+    when(mockResultSet.all()).thenReturn(Lists.newArrayList(mockRow1, mockRow2));
+    when(mockRow1.getString("name")).thenReturn("table1");
+    when(mockRow2.getString("name")).thenReturn("table2");
 
     MockHttpResponse response = context.invoke(request);
 
     assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_OK);
     String[] actual = new JsonMapper().readValue(response.getContentAsString(), String[].class);
-    assertThat(actual).containsExactlyElementsOf(result);
+    assertThat(actual).containsExactly("table1", "table2");
     verify(context.cqlService)
         .executePreparedStatement(any(), eq("CALL NodeOps.getTables(?)"), eq("ks1"));
   }
