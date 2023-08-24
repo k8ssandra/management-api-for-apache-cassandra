@@ -17,7 +17,7 @@ public class RepairRequest {
   @JsonProperty(value = "keyspace", required = true)
   public final String keyspace;
 
-  @JsonProperty(value = "tables", required = true)
+  @JsonProperty(value = "tables")
   public final List<String> tables;
 
   @JsonProperty(value = "full_repair", defaultValue = "true")
@@ -41,7 +41,7 @@ public class RepairRequest {
   @JsonCreator
   public RepairRequest(
       @JsonProperty(value = "keyspace", required = true) String keyspace,
-      @JsonProperty(value = "tables", required = true) List<String> tables,
+      @JsonProperty(value = "tables") List<String> tables,
       @JsonProperty(value = "full_repair", defaultValue = "true") Boolean fullRepair,
       @JsonProperty(value = "notifications", defaultValue = "true") boolean notifications,
       @JsonProperty(value = "associated_tokens") List<RingRange> associatedTokens,
