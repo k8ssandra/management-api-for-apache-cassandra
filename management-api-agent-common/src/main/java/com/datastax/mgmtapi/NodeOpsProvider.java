@@ -536,17 +536,18 @@ public class NodeOpsProvider {
     return rows.one().getMap("replication", UTF8Type.instance, UTF8Type.instance);
   }
 
-  @Rpc(name = "getTables")
-  public List<String> getTables(@RpcParam(name = "keyspaceName") String keyspaceName) {
+  @Rpc(name = "getTables", multiRow = true)
+  public List<Table> getTables(@RpcParam(name = "keyspaceName") String keyspaceName) {
     String query =
         QueryBuilder.selectFrom("system_schema", "tables")
             .column("table_name")
+            .column("compaction")
             .where(Relation.column("keyspace_name").isEqualTo(QueryBuilder.literal(keyspaceName)))
             .asCql();
     UntypedResultSet rows = ShimLoader.instance.get().processQuery(query, ConsistencyLevel.ONE);
-    List<String> tables = new ArrayList<>();
+    List<Table> tables = new ArrayList<>();
     for (UntypedResultSet.Row row : rows) {
-      tables.add(row.getString("table_name"));
+      tables.add(new Table(row.getString("table_name"), row.getFrozenTextMap("compaction")));
     }
     return tables;
   }
