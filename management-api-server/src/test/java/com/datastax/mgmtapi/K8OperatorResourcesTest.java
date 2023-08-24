@@ -1647,7 +1647,7 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("test_ks"),
             eq(null),
             eq(true),

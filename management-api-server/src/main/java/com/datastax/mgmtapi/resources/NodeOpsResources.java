@@ -504,10 +504,11 @@ public class NodeOpsResources extends BaseResources {
           }
           app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
-              "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?)",
+              "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)",
               repairRequest.keyspaceName,
               repairRequest.tables,
               repairRequest.full,
+              false,
               // The default repair does not allow for specifying things like parallelism,
               // threadCounts, source DCs or ranges etc.
               Optional.empty(),
