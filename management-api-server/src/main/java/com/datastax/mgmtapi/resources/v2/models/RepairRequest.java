@@ -36,7 +36,7 @@ public class RepairRequest {
   public final Collection<String> datacenters;
 
   @JsonProperty(value = "repair_thread_count")
-  public final int repairThreadCount;
+  public final Integer repairThreadCount;
 
   @JsonCreator
   public RepairRequest(
@@ -47,7 +47,7 @@ public class RepairRequest {
       @JsonProperty(value = "associated_tokens") List<RingRange> associatedTokens,
       @JsonProperty(value = "repair_parallelism") RepairParallelism repairParallelism,
       @JsonProperty(value = "datacenters") Collection<String> datacenters,
-      @JsonProperty(value = "repair_thread_count") int repairThreadCount) {
+      @JsonProperty(value = "repair_thread_count") Integer repairThreadCount) {
     this.keyspace = keyspace;
     this.tables = tables;
     this.fullRepair = fullRepair;

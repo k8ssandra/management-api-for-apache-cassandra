@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
@@ -69,18 +70,6 @@ import org.junit.Test;
 public class K8OperatorResourcesTest {
 
   static String ROOT_PATH = "/api/v0";
-
-  static class Context {
-
-    Dispatcher dispatcher;
-    CqlService cqlService;
-
-    MockHttpResponse invoke(HttpRequest request) {
-      MockHttpResponse response = new MockHttpResponse();
-      dispatcher.invoke(request, response);
-      return response;
-    }
-  }
 
   static Context setup() {
     Context context = new Context();
@@ -1697,11 +1686,15 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("test_ks"),
-            eq(null),
-            eq(true),
-            eq(true));
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()));
   }
 
   @Test
@@ -2110,5 +2103,17 @@ public class K8OperatorResourcesTest {
 
     verify(context.cqlService, never())
         .executePreparedStatement(any(), eq("CALL NodeOps.move(?, ?)"), eq("1234"), eq(true));
+  }
+
+  static class Context {
+
+    Dispatcher dispatcher;
+    CqlService cqlService;
+
+    MockHttpResponse invoke(HttpRequest request) {
+      MockHttpResponse response = new MockHttpResponse();
+      dispatcher.invoke(request, response);
+      return response;
+    }
   }
 }
