@@ -1651,7 +1651,11 @@ public class K8OperatorResourcesTest {
             eq("test_ks"),
             eq(null),
             eq(true),
-            eq(false));
+            eq(false),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()),
+            eq(Optional.empty()));
   }
 
   @Test
@@ -1688,9 +1692,9 @@ public class K8OperatorResourcesTest {
             any(),
             eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("test_ks"),
-            eq(Optional.empty()),
-            eq(Optional.empty()),
-            eq(Optional.empty()),
+            eq(null),
+            eq(true),
+            eq(true),
             eq(Optional.empty()),
             eq(Optional.empty()),
             eq(Optional.empty()),

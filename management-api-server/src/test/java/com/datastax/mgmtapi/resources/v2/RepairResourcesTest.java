@@ -22,6 +22,7 @@ import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.core.Response;
@@ -43,13 +44,10 @@ public class RepairResourcesTest {
             any(), anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockResultSet);
     RepairResources unit = new RepairResources(app);
-    List<String> tables = new ArrayList<>();
-    tables.add("table1");
-    tables.add("table2");
     RepairRequest req =
         new RepairRequest(
             "keyspace",
-            tables,
+            Collections.singletonList("table1"),
             false,
             true,
             new ArrayList<RingRange>(),
