@@ -73,7 +73,7 @@ public class ObjectSerializer4x<T> implements ObjectSerializer<T> {
                             field -> field.getName(),
                             field ->
                                 new FieldSerializer(
-                                    GenericSerializer4x.getType(field.getType()), field))));
+                                    GenericSerializer4x.getType(field.getGenericType()), field))));
     // currently not recursive; multiple ways to do it
   }
 

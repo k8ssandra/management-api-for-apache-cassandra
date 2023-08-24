@@ -12,15 +12,16 @@ import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
-import com.datastax.oss.driver.api.core.cql.Row;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -326,7 +327,7 @@ public class TableOpsResources extends BaseResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(implementation = String.class),
+              array = @ArraySchema(schema = @Schema(implementation = String.class)),
               examples = @ExampleObject(value = "[\n    \"table_1\",\n    \"table_2\"\n]")))
   @ApiResponse(
       responseCode = "400",
@@ -352,9 +353,8 @@ public class TableOpsResources extends BaseResources {
           ResultSet result =
               app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile, "CALL NodeOps.getTables(?)", keyspaceName);
-          Row row = result.one();
-          assert row != null;
-          List<String> tables = row.getList(0, String.class);
+          List<String> tables =
+              result.all().stream().map(row -> row.getString("name")).collect(Collectors.toList());
           return Response.ok(tables, MediaType.APPLICATION_JSON).build();
         });
   }
