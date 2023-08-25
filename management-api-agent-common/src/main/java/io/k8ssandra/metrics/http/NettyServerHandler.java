@@ -5,6 +5,7 @@
  */
 package io.k8ssandra.metrics.http;
 
+import com.google.common.collect.Sets;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -16,11 +17,15 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
+import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 import java.io.StringWriter;
 import java.net.URI;
+import java.util.Enumeration;
+import java.util.List;
 
 public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   private final StringWriter writer = new StringWriter();
@@ -48,8 +53,19 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
       writer.getBuffer().setLength(0);
 
       String contentType = TextFormat.chooseContentType(req.headers().get("Accept"));
-      TextFormat.writeFormat(
-          contentType, writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+
+      QueryStringDecoder queryString = new QueryStringDecoder(req.getUri());
+      if (queryString.parameters().containsKey("name")) {
+        List<String> nameFilter = queryString.parameters().get("name");
+        Enumeration<Collector.MetricFamilySamples> filteredSamples =
+            CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(
+                Sets.newHashSet(nameFilter));
+
+        TextFormat.writeFormat(contentType, writer, filteredSamples);
+      } else {
+        TextFormat.writeFormat(
+            contentType, writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
+      }
 
       if (!writeResponse(req, ctx, contentType)) {
         // If keep-alive is off, close the connection once the content is fully written.
