@@ -7,18 +7,16 @@ package com.datastax.mgmtapi.resources.v2;
 
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
-import com.datastax.mgmtapi.resources.v2.models.RepairParallelism;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequest;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
-import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -73,40 +71,22 @@ public class RepairResourcesV2 extends BaseResources {
                 .entity("keyspaceName must be specified")
                 .build();
           }
-          // TODO: we need to think about how to handle unspecified/null values for the new
-          // arguments,
-          //  so that existing callers can still call v2 endpoint without args like
-          // repairParallelism etc.
-          //  I have something here but I don't like it.
-          Optional<List<RingRange>> associatedTokens =
-              request.associatedTokens == null
-                  ? Optional.empty()
-                  : Optional.of(request.associatedTokens);
-          Optional<RepairParallelism> repairParallelism =
-              request.repairParallelism == null
-                  ? Optional.empty()
-                  : Optional.of(request.repairParallelism);
-          Optional<Collection<String>> datacenters =
-              request.datacenters == null ? Optional.empty() : Optional.of(request.datacenters);
-          Optional<Integer> repairThreadCount =
-              request.repairThreadCount == null
-                  ? Optional.empty()
-                  : Optional.of(request.repairThreadCount);
 
           ResultSet res =
               app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile,
                   "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)",
                   request.keyspace,
-                  request.tables,
+                  sanitise(request.tables),
                   request.fullRepair,
                   request.notifications,
-                  repairParallelism,
-                  datacenters,
-                  associatedTokens,
-                  repairThreadCount);
+                  sanitise(request.repairParallelism),
+                  sanitise(request.datacenters),
+                  sanitise(request.associatedTokens),
+                  sanitise(request.repairThreadCount));
           try {
-            String repairID = res.one().getString(0);
+            Row row = res.one();
+            String repairID = row.getString(0);
             return Response.accepted(new RepairRequestResponse(repairID)).build();
           } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -114,5 +94,16 @@ public class RepairResourcesV2 extends BaseResources {
                 .build();
           }
         });
+  }
+
+  // sanitise checks for empty collections and null values and returns empty Optionals when they are
+  // found.
+  private <T> Optional<T> sanitise(T o) {
+    if (o instanceof Collection<?>) {
+      if (((Collection) o).isEmpty()) {
+        return Optional.empty();
+      }
+    }
+    return Optional.ofNullable(o);
   }
 }

@@ -11,12 +11,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 
 public class RepairRequest {
 
   @JsonProperty(value = "keyspace", required = true)
   public final String keyspace;
 
+  @Nullable
   @JsonProperty(value = "tables")
   public final List<String> tables;
 
@@ -26,15 +28,19 @@ public class RepairRequest {
   @JsonProperty(value = "notifications", defaultValue = "true")
   public final Boolean notifications;
 
+  @Nullable
   @JsonProperty(value = "associated_tokens")
   public final List<RingRange> associatedTokens;
 
+  @Nullable
   @JsonProperty(value = "repair_parallelism")
   public final RepairParallelism repairParallelism;
 
+  @Nullable
   @JsonProperty(value = "datacenters")
   public final Collection<String> datacenters;
 
+  @Nullable
   @JsonProperty(value = "repair_thread_count")
   public final Integer repairThreadCount;
 

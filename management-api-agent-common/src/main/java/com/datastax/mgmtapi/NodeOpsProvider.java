@@ -740,7 +740,7 @@ public class NodeOpsProvider {
   @Rpc(name = "repair")
   public String repair(
       @RpcParam(name = "keyspaceName") String keyspace,
-      @RpcParam(name = "tables") List<String> tables,
+      @RpcParam(name = "tables") Optional<List<String>> tables,
       @RpcParam(name = "full") Boolean full,
       @RpcParam(name = "notifications") boolean notifications,
       @RpcParam(name = "repairParallelism") Optional<RepairParallelism> repairParallelism,
@@ -758,7 +758,8 @@ public class NodeOpsProvider {
             repairSpec.put(
                 RepairOption.JOB_THREADS_KEY, Integer.toString(tCount == 0 ? 1 : tCount)));
     repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
-    repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ","));
+    tables.map(
+        tabs -> repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ",")));
     if (full) {
       associatedTokens.map(
           aTokens ->

@@ -6,6 +6,7 @@
 package com.datastax.mgmtapi.resources.v2;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -39,7 +40,8 @@ public class RepairResourcesV2Test {
             null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
     ResultSet mockResultSet = mock(ResultSet.class);
     Row mockRow = mock(Row.class);
-    when(mockRow.getString(anyString())).thenReturn("mockrepairID");
+    when(mockResultSet.one()).thenReturn(mockRow);
+    when(mockRow.getString(anyInt())).thenReturn("mockRepairID");
     when(mockCqlService.executePreparedStatement(
             any(), anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockResultSet);
@@ -55,20 +57,20 @@ public class RepairResourcesV2Test {
             new ArrayList<String>(),
             1);
     Response resp = unit.repair(req);
-    Assert.assertEquals(200, resp.getStatus());
-    Assert.assertEquals("mockrepairID", ((RepairRequestResponse) resp.getEntity()).repairID);
+    Assert.assertEquals(202, resp.getStatus());
+    Assert.assertEquals("mockRepairID", ((RepairRequestResponse) resp.getEntity()).repairID);
     verify(mockCqlService)
         .executePreparedStatement(
             any(),
             eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
-            eq("test_ks"),
-            eq(null),
+            eq("keyspace"),
+            eq(Optional.of(Collections.singletonList("table1"))),
+            eq(false),
             eq(true),
-            eq(true),
+            eq(Optional.of("dc_parallel")),
             eq(Optional.empty()),
             eq(Optional.empty()),
-            eq(Optional.empty()),
-            eq(1));
+            eq(Optional.of(1)));
   }
 
   @Test
