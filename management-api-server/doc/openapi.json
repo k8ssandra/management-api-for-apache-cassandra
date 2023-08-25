@@ -1657,6 +1657,27 @@
         "summary" : "Force a (major) compaction on one or more tables or user-defined compaction on given SSTables"
       }
     },
+    "/api/v1/ops/tables/compactions" : {
+      "get" : {
+        "operationId" : "getCompactions",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Compaction"
+                  }
+                }
+              }
+            },
+            "description" : "Compactions"
+          }
+        },
+        "summary" : "Returns active compactions"
+      }
+    },
     "/api/v1/ops/tables/scrub" : {
       "post" : {
         "operationId" : "scrub_1",
@@ -1779,6 +1800,52 @@
           }
         },
         "required" : [ "keyspace_name", "split_output", "user_defined" ]
+      },
+      "Compaction" : {
+        "type" : "object",
+        "properties" : {
+          "columnfamily" : {
+            "type" : "string"
+          },
+          "compactionId" : {
+            "type" : "string"
+          },
+          "completed" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "description" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "keyspace" : {
+            "type" : "string"
+          },
+          "operationId" : {
+            "type" : "string"
+          },
+          "operationType" : {
+            "type" : "string"
+          },
+          "sstables" : {
+            "type" : "string"
+          },
+          "targetDirectory" : {
+            "type" : "string"
+          },
+          "taskType" : {
+            "type" : "string"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "unit" : {
+            "type" : "string"
+          }
+        }
       },
       "CreateOrAlterKeyspaceRequest" : {
         "type" : "object",
