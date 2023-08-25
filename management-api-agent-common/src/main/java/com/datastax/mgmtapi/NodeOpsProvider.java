@@ -750,18 +750,19 @@ public class NodeOpsProvider {
       throws IOException {
     // At least one keyspace is required
     assert (keyspace != null);
-    Map<String, String> options = new HashMap<>();
-    repairParallelism.map(rPar -> options.put(RepairOption.PARALLELISM_KEY, rPar.getName()));
-    options.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
+    Map<String, String> repairSpec = new HashMap<>();
+    repairParallelism.map(rPar -> repairSpec.put(RepairOption.PARALLELISM_KEY, rPar.getName()));
+    repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
     repairThreadCount.map(
         tCount ->
-            options.put(RepairOption.JOB_THREADS_KEY, Integer.toString(tCount == 0 ? 1 : tCount)));
-    options.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
-    options.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ","));
+            repairSpec.put(
+                RepairOption.JOB_THREADS_KEY, Integer.toString(tCount == 0 ? 1 : tCount)));
+    repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
+    repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ","));
     if (full) {
       associatedTokens.map(
           aTokens ->
-              options.put(
+              repairSpec.put(
                   RepairOption.RANGES_KEY,
                   StringUtils.join(
                       aTokens.stream()
@@ -769,12 +770,13 @@ public class NodeOpsProvider {
                           .collect(Collectors.toList()),
                       ",")));
     }
-    datacenters.map(dcs -> options.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ",")));
+    datacenters.map(
+        dcs -> repairSpec.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ",")));
 
     // Since Cassandra provides us with a async, we don't need to use our executor interface for
     // this.
     final int repairJobId =
-        ShimLoader.instance.get().getStorageService().repairAsync(keyspace, options);
+        ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
 
     if (!notifications) {
       return Integer.valueOf(repairJobId).toString();

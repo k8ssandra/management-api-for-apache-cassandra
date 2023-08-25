@@ -9,6 +9,7 @@ package com.datastax.mgmtapi.resources.v2.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigInteger;
 import java.util.Comparator;
+import java.util.Objects;
 
 public final class RingRange {
   public static final Comparator<RingRange> START_COMPARATOR =
@@ -38,5 +39,19 @@ public final class RingRange {
 
   public BigInteger getEnd() {
     return end;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(start) + Objects.hashCode(end);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || !(o instanceof RingRange)) {
+      return false;
+    }
+    RingRange other = (RingRange) o;
+    return Objects.equals(start, other.start) && Objects.equals(end, other.end);
   }
 }

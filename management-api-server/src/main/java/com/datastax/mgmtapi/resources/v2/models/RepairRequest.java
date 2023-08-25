@@ -58,6 +58,7 @@ public class RepairRequest {
     this.repairThreadCount = repairThreadCount;
   }
 
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -74,6 +75,7 @@ public class RepairRequest {
         && Objects.equals(repairThreadCount, ((RepairRequest) o).repairThreadCount);
   }
 
+  @Override
   public int hashCode() {
     return Objects.hashCode(keyspace)
         + Objects.hashCode(tables)

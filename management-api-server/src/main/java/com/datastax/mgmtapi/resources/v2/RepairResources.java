@@ -35,7 +35,7 @@ public class RepairResources extends BaseResources {
   }
 
   @PUT
-  @Operation(summary = "Initiate a new repair", operationId = "v2PutRepair")
+  @Operation(summary = "Initiate a new repair", operationId = "putRepairV2")
   @Produces(MediaType.APPLICATION_JSON)
   @Consumes("application/json")
   @ApiResponse(

@@ -20,6 +20,7 @@ public class RepairRequestResponse {
     this.repairID = repairID;
   }
 
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -30,6 +31,7 @@ public class RepairRequestResponse {
     return Objects.equals(repairID, ((RepairRequestResponse) o).repairID);
   }
 
+  @Override
   public int hashCode() {
     return Objects.hashCode(repairID);
   }
