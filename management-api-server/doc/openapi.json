@@ -1679,7 +1679,7 @@
     },
     "/api/v2/repairs" : {
       "put" : {
-        "operationId" : "v2PutRepair",
+        "operationId" : "putRepairV2",
         "requestBody" : {
           "content" : {
             "application/json" : {

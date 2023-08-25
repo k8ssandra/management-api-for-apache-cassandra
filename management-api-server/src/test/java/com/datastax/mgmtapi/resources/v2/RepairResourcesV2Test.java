@@ -67,7 +67,7 @@ public class RepairResourcesV2Test {
             eq(Optional.of(Collections.singletonList("table1"))),
             eq(false),
             eq(true),
-            eq(Optional.of("dc_parallel")),
+            eq(Optional.of(RepairParallelism.DATACENTER_AWARE)),
             eq(Optional.empty()),
             eq(Optional.empty()),
             eq(Optional.of(1)));
