@@ -853,6 +853,11 @@ public class NodeOpsProvider {
     return job.getJobId();
   }
 
+  @Rpc(name = "stopAllRepairs")
+  public void stopAllRepairs() {
+    ShimLoader.instance.get().getStorageService().forceTerminateAllRepairSessions();
+  }
+
   @Rpc(name = "move")
   public String move(
       @RpcParam(name = "newToken") String newToken, @RpcParam(name = "async") boolean async)
