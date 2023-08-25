@@ -28,9 +28,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 @Path("/api/v2/repairs")
-public class RepairResources extends BaseResources {
+public class RepairResourcesV2 extends BaseResources {
 
-  public RepairResources(ManagementApplication application) {
+  public RepairResourcesV2(ManagementApplication application) {
     super(application);
   }
 

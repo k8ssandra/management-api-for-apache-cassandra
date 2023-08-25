@@ -29,7 +29,7 @@ import javax.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class RepairResourcesTest {
+public class RepairResourcesV2Test {
 
   @Test
   public void testRepairResourcesSuccess() throws Exception {
@@ -43,7 +43,7 @@ public class RepairResourcesTest {
     when(mockCqlService.executePreparedStatement(
             any(), anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockResultSet);
-    RepairResources unit = new RepairResources(app);
+    RepairResourcesV2 unit = new RepairResourcesV2(app);
     RepairRequest req =
         new RepairRequest(
             "keyspace",
@@ -83,7 +83,7 @@ public class RepairResourcesTest {
     when(mockCqlService.executePreparedStatement(
             any(), anyString(), any(), any(), any(), any(), any(), any(), any(), any()))
         .thenReturn(mockResultSet);
-    RepairResources unit = new RepairResources(app);
+    RepairResourcesV2 unit = new RepairResourcesV2(app);
     List<String> tables = new ArrayList<>();
     tables.add("table1");
     tables.add("table2");
