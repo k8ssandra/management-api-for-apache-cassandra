@@ -25,7 +25,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import javax.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Test;
@@ -64,13 +63,13 @@ public class RepairResourcesV2Test {
             any(),
             eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("keyspace"),
-            eq(Optional.of(Collections.singletonList("table1"))),
+            eq(Collections.singletonList("table1")),
             eq(false),
             eq(true),
-            eq(Optional.of(RepairParallelism.DATACENTER_AWARE)),
-            eq(Optional.empty()),
-            eq(Optional.empty()),
-            eq(Optional.of(1)));
+            eq(RepairParallelism.DATACENTER_AWARE.getName()),
+            eq(Collections.EMPTY_LIST),
+            eq(null),
+            eq(1));
   }
 
   @Test

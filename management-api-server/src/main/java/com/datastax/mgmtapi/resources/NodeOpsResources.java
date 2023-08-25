@@ -24,7 +24,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -511,10 +510,10 @@ public class NodeOpsResources extends BaseResources {
               false,
               // The default repair does not allow for specifying things like parallelism,
               // threadCounts, source DCs or ranges etc.
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty());
+              null,
+              null,
+              null,
+              0);
 
           return Response.ok("OK").build();
         });

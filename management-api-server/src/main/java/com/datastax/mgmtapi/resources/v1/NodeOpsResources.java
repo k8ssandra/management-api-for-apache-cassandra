@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -160,10 +159,10 @@ public class NodeOpsResources extends BaseResources {
                       repairRequest.tables,
                       repairRequest.full,
                       true,
-                      Optional.empty(),
-                      Optional.empty(),
-                      Optional.empty(),
-                      Optional.empty()))
+                      null,
+                      null,
+                      null,
+                      0))
               .build();
         });
   }
