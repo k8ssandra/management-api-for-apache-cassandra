@@ -8,6 +8,7 @@ package com.datastax.mgmtapi.resources.v2.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
 
 public class RepairRequestResponse {
@@ -34,5 +35,14 @@ public class RepairRequestResponse {
   @Override
   public int hashCode() {
     return Objects.hashCode(repairID);
+  }
+
+  @Override
+  public String toString() {
+    try {
+      return new ObjectMapper().writeValueAsString(this);
+    } catch (Exception e) {
+      return this.repairID;
+    }
   }
 }

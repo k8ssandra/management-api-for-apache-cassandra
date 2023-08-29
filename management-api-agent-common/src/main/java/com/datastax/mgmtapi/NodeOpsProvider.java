@@ -743,7 +743,7 @@ public class NodeOpsProvider {
       @RpcParam(name = "repairParallelism") String repairParallelism,
       @RpcParam(name = "datacenters") List<String> datacenters,
       @RpcParam(name = "associatedTokens") String ringRangeString,
-      @RpcParam(name = "repairThreadCount") int repairThreadCount)
+      @RpcParam(name = "repairThreadCount") Integer repairThreadCount)
       throws IOException {
     // At least one keyspace is required
     assert (keyspace != null);
@@ -765,12 +765,19 @@ public class NodeOpsProvider {
       // Incremental repair and parallelism should be set
       repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
     }
-    // thread count should be at least 1
-    repairSpec.put(
-        RepairOption.JOB_THREADS_KEY, Integer.toString(Integer.max(1, repairThreadCount)));
+    if (repairThreadCount != null) {
+      // if specified, the value should be at least 1
+      if (repairThreadCount.compareTo(Integer.valueOf(0)) <= 0) {
+        throw new IOException(
+            "Invalid repari thread count: "
+                + repairThreadCount
+                + ". Value should be greater than 0");
+      }
+      repairSpec.put(RepairOption.JOB_THREADS_KEY, repairThreadCount.toString());
+    }
     repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
-    // add ranges if reapir is full
-    if (full && ringRangeString != null && !ringRangeString.isEmpty()) {
+
+    if (ringRangeString != null && !ringRangeString.isEmpty()) {
       repairSpec.put(RepairOption.RANGES_KEY, ringRangeString);
     }
     // add datacenters to the repair spec

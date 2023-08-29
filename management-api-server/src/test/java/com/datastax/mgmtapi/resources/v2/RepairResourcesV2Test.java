@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.resources.v2;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -18,7 +19,6 @@ import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.v2.models.RepairParallelism;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequest;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
-import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import java.io.File;
@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.ws.rs.core.Response;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class RepairResourcesV2Test {
@@ -51,13 +50,13 @@ public class RepairResourcesV2Test {
             Collections.singletonList("table1"),
             false,
             true,
-            new ArrayList<RingRange>(),
+            Collections.EMPTY_LIST,
             RepairParallelism.DATACENTER_AWARE,
-            new ArrayList<String>(),
+            Collections.EMPTY_LIST,
             1);
     Response resp = unit.repair(req);
-    Assert.assertEquals(202, resp.getStatus());
-    Assert.assertEquals("mockRepairID", ((RepairRequestResponse) resp.getEntity()).repairID);
+    assertEquals(202, resp.getStatus());
+    assertEquals("mockRepairID", ((RepairRequestResponse) resp.getEntity()).repairID);
     verify(mockCqlService)
         .executePreparedStatement(
             any(),
@@ -69,7 +68,7 @@ public class RepairResourcesV2Test {
             eq(RepairParallelism.DATACENTER_AWARE.getName()),
             eq(Collections.EMPTY_LIST),
             eq(null),
-            eq(1));
+            eq(Integer.valueOf(1)));
   }
 
   @Test
@@ -94,11 +93,11 @@ public class RepairResourcesV2Test {
             tables,
             false,
             true,
-            new ArrayList<RingRange>(),
+            Collections.EMPTY_LIST,
             RepairParallelism.DATACENTER_AWARE,
-            new ArrayList<String>(),
+            Collections.EMPTY_LIST,
             1);
     Response resp = unit.repair(req);
-    Assert.assertEquals(500, resp.getStatus());
+    assertEquals(500, resp.getStatus());
   }
 }

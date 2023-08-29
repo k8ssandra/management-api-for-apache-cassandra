@@ -162,7 +162,7 @@ public class NodeOpsResources extends BaseResources {
                       null,
                       null,
                       null,
-                      0))
+                      null))
               .build();
         });
   }

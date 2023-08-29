@@ -513,7 +513,7 @@ public class NodeOpsResources extends BaseResources {
               null,
               null,
               null,
-              0);
+              null);
 
           return Response.ok("OK").build();
         });

@@ -1666,7 +1666,7 @@ public class K8OperatorResourcesTest {
             eq(null),
             eq(null),
             eq(null),
-            eq(0));
+            eq(null));
   }
 
   @Test
@@ -1709,7 +1709,7 @@ public class K8OperatorResourcesTest {
             eq(null),
             eq(null),
             eq(null),
-            eq(0));
+            eq(null));
   }
 
   @Test
