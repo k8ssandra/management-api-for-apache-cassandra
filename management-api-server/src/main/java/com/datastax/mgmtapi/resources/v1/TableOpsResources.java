@@ -9,11 +9,13 @@ import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
+import com.datastax.mgmtapi.resources.models.Compaction;
 import com.datastax.mgmtapi.resources.models.KeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.Table;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 import com.google.common.collect.Lists;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,6 +26,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,6 +42,9 @@ import org.apache.http.HttpStatus;
 
 @Path("/api/v1/ops/tables")
 public class TableOpsResources extends BaseResources {
+
+  private static final GenericType<List<Map<String, String>>> LIST_OF_MAP_OF_STRINGS =
+      GenericType.listOf(GenericType.mapOf(String.class, String.class));
 
   public TableOpsResources(ManagementApplication application) {
     super(application);
@@ -233,6 +240,33 @@ public class TableOpsResources extends BaseResources {
                       compactRequest.tables,
                       true))
               .build();
+        });
+  }
+
+  @GET
+  @Path("/compactions")
+  @Operation(summary = "Returns active compactions", operationId = "getCompactions")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Compactions",
+      content =
+          @Content(
+              mediaType = MediaType.APPLICATION_JSON,
+              array = @ArraySchema(schema = @Schema(implementation = Compaction.class))))
+  public Response getCompactions() {
+    return handle(
+        () -> {
+          ResultSet result =
+              app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.getCompactions()");
+          Row row = result.one();
+          assert row != null;
+          List<Compaction> compactions =
+              row.get(0, LIST_OF_MAP_OF_STRINGS).stream()
+                  .map(Compaction::fromMap)
+                  .collect(Collectors.toList());
+          return Response.ok(compactions, MediaType.APPLICATION_JSON).build();
         });
   }
 
