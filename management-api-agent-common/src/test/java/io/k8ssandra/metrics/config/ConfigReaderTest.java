@@ -6,8 +6,10 @@
 package io.k8ssandra.metrics.config;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.net.URL;
 import org.junit.Test;
@@ -21,6 +23,7 @@ public class ConfigReaderTest {
     Configuration configuration = ConfigReader.readCustomConfig();
     assertEquals(0, configuration.getRelabels().size());
     assertNull(configuration.getEndpointConfiguration());
+    assertFalse(configuration.isExtendedDisabled());
   }
 
   @Test
@@ -58,6 +61,8 @@ public class ConfigReaderTest {
     assertEquals("/etc/ssl/ca.crt", tlsConfig.getCaCertPath());
     assertEquals("/etc/ssl/tls.crt", tlsConfig.getTlsCertPath());
     assertEquals("/etc/ssl/tls.key", tlsConfig.getTlsKeyPath());
+
+    assertTrue(configuration.isExtendedDisabled());
   }
 
   @Test

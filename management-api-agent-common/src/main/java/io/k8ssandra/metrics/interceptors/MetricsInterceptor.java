@@ -74,7 +74,9 @@ public class MetricsInterceptor {
       DefaultExports.initialize();
 
       // Add task metrics
-      new CassandraTasksExports(CassandraMetricsRegistry.Metrics, config).register();
+      if(!config.isExtendedDisabled()) {
+        new CassandraTasksExports(CassandraMetricsRegistry.Metrics, config).register();
+      }
 
       // Create /metrics handler. Note, this doesn't support larger than nThreads=1
       final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
