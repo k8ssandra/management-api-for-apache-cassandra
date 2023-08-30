@@ -109,19 +109,7 @@ public class RepairResourcesV2Test {
             null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
     RepairResourcesV2 unit = new RepairResourcesV2(app);
     Response resp = unit.cancelAllRepairs();
-    Assert.assertEquals(202, resp.getStatus());
-    verify(mockCqlService).executePreparedStatement(any(), eq("CALL NodeOps.stopAllRepairs()"));
-  }
-
-  @Test
-  public void testCancelAllRepairs() throws Exception {
-    CqlService mockCqlService = mock(CqlService.class);
-    ManagementApplication app =
-        new ManagementApplication(
-            null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
-    RepairResourcesV2 unit = new RepairResourcesV2(app);
-    Response resp = unit.cancelAllRepairs();
-    Assert.assertEquals(202, resp.getStatus());
+    assertEquals(202, resp.getStatus());
     verify(mockCqlService).executePreparedStatement(any(), eq("CALL NodeOps.stopAllRepairs()"));
   }
 }

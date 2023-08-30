@@ -137,24 +137,4 @@ public class RepairResourcesV2 extends BaseResources {
   private String toRangeString(RingRange ringRange) {
     return String.join(":", ringRange.start.toString(), ringRange.end.toString());
   }
-
-  private String getParallelismName(RepairParallelism parallelism) {
-    return parallelism != null ? parallelism.getName() : null;
-  }
-
-private String getRingRangeString(List<RingRange> associatedTokens) {
-    if (associatedTokens != null && !associatedTokens.isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      for (RingRange ringRange : associatedTokens) {
-        sb.append(toRangeString(ringRange)).append(",");
-      }
-      // remove trailing comma
-      return sb.substring(0, sb.length() - 2);
-    }
-    return null;
-  }
-
-  private String toRangeString(RingRange ringRange) {
-    return String.join(":", ringRange.start.toString(), ringRange.end.toString());
-  }
 }
