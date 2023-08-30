@@ -381,6 +381,12 @@ public class NodeOpsProvider {
     return submitJob(OperationType.COMPACTION.name(), compactionOperation, async);
   }
 
+  @Rpc(name = "getCompactions")
+  public List<Map<String, String>> getCompactions() {
+    logger.debug("Getting active compactions");
+    return ShimLoader.instance.get().getCompactionManager().getCompactions();
+  }
+
   @Rpc(name = "garbageCollect")
   public void garbageCollect(
       @RpcParam(name = "tombstoneOption") String tombstoneOption,
