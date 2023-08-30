@@ -8,7 +8,6 @@ package com.datastax.mgmtapi;
 import com.datastax.mgmtapi.rpc.Rpc;
 import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
-import com.datastax.mgmtapi.rpc.models.RingRange;
 import com.datastax.mgmtapi.util.Job;
 import com.datastax.mgmtapi.util.JobExecutor;
 import com.datastax.oss.driver.api.core.CqlIdentifier;
@@ -35,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -56,7 +54,6 @@ import org.apache.cassandra.repair.messages.RepairOption;
 import org.apache.cassandra.service.StorageProxy;
 import org.apache.cassandra.utils.Pair;
 import org.apache.cassandra.utils.progress.ProgressEventType;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -740,39 +737,53 @@ public class NodeOpsProvider {
   @Rpc(name = "repair")
   public String repair(
       @RpcParam(name = "keyspaceName") String keyspace,
-      @RpcParam(name = "tables") Optional<List<String>> tables,
+      @RpcParam(name = "tables") List<String> tables,
       @RpcParam(name = "full") Boolean full,
       @RpcParam(name = "notifications") boolean notifications,
-      @RpcParam(name = "repairParallelism") Optional<RepairParallelism> repairParallelism,
-      @RpcParam(name = "datacenters") Optional<Collection<String>> datacenters,
-      @RpcParam(name = "associatedTokens") Optional<List<RingRange>> associatedTokens,
-      @RpcParam(name = "repairThreadCount") Optional<Integer> repairThreadCount)
+      @RpcParam(name = "repairParallelism") String repairParallelism,
+      @RpcParam(name = "datacenters") List<String> datacenters,
+      @RpcParam(name = "associatedTokens") String ringRangeString,
+      @RpcParam(name = "repairThreadCount") Integer repairThreadCount)
       throws IOException {
     // At least one keyspace is required
     assert (keyspace != null);
     Map<String, String> repairSpec = new HashMap<>();
-    repairParallelism.map(rPar -> repairSpec.put(RepairOption.PARALLELISM_KEY, rPar.getName()));
-    repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
-    repairThreadCount.map(
-        tCount ->
-            repairSpec.put(
-                RepairOption.JOB_THREADS_KEY, Integer.toString(tCount == 0 ? 1 : tCount)));
-    repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
-    tables.map(
-        tabs -> repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, StringUtils.join(tables, ",")));
-    if (full) {
-      associatedTokens.map(
-          aTokens ->
-              repairSpec.put(
-                  RepairOption.RANGES_KEY,
-                  StringUtils.join(
-                      aTokens.stream()
-                          .map(token -> token.getStart() + ":" + token.getEnd())
-                          .collect(Collectors.toList()),
-                      ",")));
+    // add tables/column families
+    if (tables != null && !tables.isEmpty()) {
+      repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, String.join(",", tables));
     }
-    datacenters.map(
-        dcs -> repairSpec.put(RepairOption.DATACENTERS_KEY, StringUtils.join(dcs, ",")));
+    // set incremental reapir
+    repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
+    // Parallelism should be set if it's requested OR if incremental repair is requested.
+    if (!full) {
+      // Incremental repair requested, make sure parallelism is correct
+      if (repairParallelism != null
+          && !RepairParallelism.PARALLEL.getName().equals(repairParallelism)) {
+        throw new IOException(
+            "Invalid repair combination. Incremental repair if Parallelism is not set");
+      }
+      // Incremental repair and parallelism should be set
+      repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
+    }
+    if (repairThreadCount != null) {
+      // if specified, the value should be at least 1
+      if (repairThreadCount.compareTo(Integer.valueOf(0)) <= 0) {
+        throw new IOException(
+            "Invalid repari thread count: "
+                + repairThreadCount
+                + ". Value should be greater than 0");
+      }
+      repairSpec.put(RepairOption.JOB_THREADS_KEY, repairThreadCount.toString());
+    }
+    repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
+
+    if (ringRangeString != null && !ringRangeString.isEmpty()) {
+      repairSpec.put(RepairOption.RANGES_KEY, ringRangeString);
+    }
+    // add datacenters to the repair spec
+    if (datacenters != null && !datacenters.isEmpty()) {
+      repairSpec.put(RepairOption.DATACENTERS_KEY, String.join(",", datacenters));
+    }
 
     // Since Cassandra provides us with a async, we don't need to use our executor interface for
     // this.

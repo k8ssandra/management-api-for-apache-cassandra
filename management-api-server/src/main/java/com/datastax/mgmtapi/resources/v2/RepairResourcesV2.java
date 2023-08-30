@@ -7,8 +7,10 @@ package com.datastax.mgmtapi.resources.v2;
 
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
+import com.datastax.mgmtapi.resources.v2.models.RepairParallelism;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequest;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
+import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +18,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -77,13 +78,13 @@ public class RepairResourcesV2 extends BaseResources {
                   app.dbUnixSocketFile,
                   "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)",
                   request.keyspace,
-                  sanitise(request.tables),
+                  request.tables,
                   request.fullRepair,
                   request.notifications,
-                  sanitise(request.repairParallelism),
-                  sanitise(request.datacenters),
-                  sanitise(request.associatedTokens),
-                  sanitise(request.repairThreadCount));
+                  getParallelismName(request.repairParallelism),
+                  request.datacenters,
+                  getRingRangeString(request.associatedTokens),
+                  request.repairThreadCount);
           try {
             Row row = res.one();
             String repairID = row.getString(0);
@@ -96,14 +97,23 @@ public class RepairResourcesV2 extends BaseResources {
         });
   }
 
-  // sanitise checks for empty collections and null values and returns empty Optionals when they are
-  // found.
-  private <T> Optional<T> sanitise(T o) {
-    if (o instanceof Collection<?>) {
-      if (((Collection) o).isEmpty()) {
-        return Optional.empty();
+  private String getParallelismName(RepairParallelism parallelism) {
+    return parallelism != null ? parallelism.getName() : null;
+  }
+
+  private String getRingRangeString(List<RingRange> associatedTokens) {
+    if (associatedTokens != null && !associatedTokens.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      for (RingRange ringRange : associatedTokens) {
+        sb.append(toRangeString(ringRange)).append(",");
       }
+      // remove trailing comma
+      return sb.substring(0, sb.length() - 2);
     }
-    return Optional.ofNullable(o);
+    return null;
+  }
+
+  private String toRangeString(RingRange ringRange) {
+    return String.join(":", ringRange.start.toString(), ringRange.end.toString());
   }
 }

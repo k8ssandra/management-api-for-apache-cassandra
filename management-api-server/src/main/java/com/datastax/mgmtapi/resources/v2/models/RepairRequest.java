@@ -3,12 +3,10 @@
  *
  * Please see the included license file for details.
  */
-
 package com.datastax.mgmtapi.resources.v2.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -38,7 +36,7 @@ public class RepairRequest {
 
   @Nullable
   @JsonProperty(value = "datacenters")
-  public final Collection<String> datacenters;
+  public final List<String> datacenters;
 
   @Nullable
   @JsonProperty(value = "repair_thread_count")
@@ -52,7 +50,7 @@ public class RepairRequest {
       @JsonProperty(value = "notifications", defaultValue = "true") boolean notifications,
       @JsonProperty(value = "associated_tokens") List<RingRange> associatedTokens,
       @JsonProperty(value = "repair_parallelism") RepairParallelism repairParallelism,
-      @JsonProperty(value = "datacenters") Collection<String> datacenters,
+      @JsonProperty(value = "datacenters") List<String> datacenters,
       @JsonProperty(value = "repair_thread_count") Integer repairThreadCount) {
     this.keyspace = keyspace;
     this.tables = tables;
@@ -72,13 +70,14 @@ public class RepairRequest {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    return Objects.equals(keyspace, ((RepairRequest) o).keyspace)
-        && Objects.equals(tables, ((RepairRequest) o).tables)
-        && Objects.equals(fullRepair, ((RepairRequest) o).fullRepair)
-        && Objects.equals(associatedTokens, ((RepairRequest) o).associatedTokens)
-        && Objects.equals(datacenters, ((RepairRequest) o).datacenters)
-        && Objects.equals(repairParallelism, ((RepairRequest) o).repairParallelism)
-        && Objects.equals(repairThreadCount, ((RepairRequest) o).repairThreadCount);
+    RepairRequest other = (RepairRequest) o;
+    return Objects.equals(keyspace, other.keyspace)
+        && Objects.equals(tables, other.tables)
+        && Objects.equals(fullRepair, other.fullRepair)
+        && Objects.equals(associatedTokens, other.associatedTokens)
+        && Objects.equals(datacenters, other.datacenters)
+        && Objects.equals(repairParallelism, other.repairParallelism)
+        && Objects.equals(repairThreadCount, other.repairThreadCount);
   }
 
   @Override
