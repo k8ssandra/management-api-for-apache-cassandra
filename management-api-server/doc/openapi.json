@@ -1678,6 +1678,23 @@
       }
     },
     "/api/v2/repairs" : {
+      "delete" : {
+        "operationId" : "deleteRepairsV2",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "example" : "Accepted",
+                "schema" : {
+                  "$ref" : "#/components/schemas/RepairRequestResponse"
+                }
+              }
+            },
+            "description" : "Cancel repairs Successfully requested"
+          }
+        },
+        "summary" : "Cancel all repairs"
+      },
       "put" : {
         "operationId" : "putRepairV2",
         "requestBody" : {
@@ -1690,10 +1707,10 @@
           }
         },
         "responses" : {
-          "200" : {
+          "202" : {
             "content" : {
               "application/json" : {
-                "example" : "OK",
+                "example" : "Accepted",
                 "schema" : {
                   "$ref" : "#/components/schemas/RepairRequestResponse"
                 }
