@@ -154,11 +154,15 @@ public class NodeOpsResources extends BaseResources {
                   ResponseTools.getSingleRowStringResponse(
                       app.dbUnixSocketFile,
                       app.cqlService,
-                      "CALL NodeOps.repair(?, ?, ?, ?)",
+                      "CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)",
                       repairRequest.keyspaceName,
                       repairRequest.tables,
                       repairRequest.full,
-                      true))
+                      true,
+                      null,
+                      null,
+                      null,
+                      null))
               .build();
         });
   }
