@@ -746,96 +746,123 @@ public class NodeOpsProvider {
       @RpcParam(name = "keyspaceName") String keyspace,
       @RpcParam(name = "tables") List<String> tables,
       @RpcParam(name = "full") Boolean full,
-      @RpcParam(name = "notifications") boolean notifications)
+      @RpcParam(name = "notifications") boolean notifications,
+      @RpcParam(name = "repairParallelism") String repairParallelism,
+      @RpcParam(name = "datacenters") List<String> datacenters,
+      @RpcParam(name = "associatedTokens") String ringRangeString,
+      @RpcParam(name = "repairThreadCount") Integer repairThreadCount)
       throws IOException {
     // At least one keyspace is required
-    if (keyspace != null) {
-      // create the repair spec
-      Map<String, String> repairSpec = new HashMap<>();
-
-      // add any specified tables to the repair spec
-      if (tables != null && !tables.isEmpty()) {
-        // set the tables/column families
-        repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, String.join(",", tables));
+    assert (keyspace != null);
+    Map<String, String> repairSpec = new HashMap<>();
+    // add tables/column families
+    if (tables != null && !tables.isEmpty()) {
+      repairSpec.put(RepairOption.COLUMNFAMILIES_KEY, String.join(",", tables));
+    }
+    // set incremental reapir
+    repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
+    // Parallelism should be set if it's requested OR if incremental repair is requested.
+    if (!full) {
+      // Incremental repair requested, make sure parallelism is correct
+      if (repairParallelism != null
+          && !RepairParallelism.PARALLEL.getName().equals(repairParallelism)) {
+        throw new IOException(
+            "Invalid repair combination. Incremental repair if Parallelism is not set");
       }
-
-      // handle incremental vs full
-      boolean isIncremental = Boolean.FALSE.equals(full);
-      repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(isIncremental));
-      if (isIncremental) {
-        // incremental repairs will fail if parallelism is not set
-        repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
+      // Incremental repair and parallelism should be set
+      repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
+    }
+    if (repairThreadCount != null) {
+      // if specified, the value should be at least 1
+      if (repairThreadCount.compareTo(Integer.valueOf(0)) <= 0) {
+        throw new IOException(
+            "Invalid repari thread count: "
+                + repairThreadCount
+                + ". Value should be greater than 0");
       }
+      repairSpec.put(RepairOption.JOB_THREADS_KEY, repairThreadCount.toString());
+    }
+    repairSpec.put(RepairOption.TRACE_KEY, Boolean.toString(Boolean.FALSE));
 
-      // Since Cassandra provides us with a async, we don't need to use our executor interface for
-      // this.
-      final int repairJobId =
-          ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
+    if (ringRangeString != null && !ringRangeString.isEmpty()) {
+      repairSpec.put(RepairOption.RANGES_KEY, ringRangeString);
+    }
+    // add datacenters to the repair spec
+    if (datacenters != null && !datacenters.isEmpty()) {
+      repairSpec.put(RepairOption.DATACENTERS_KEY, String.join(",", datacenters));
+    }
 
-      if (!notifications) {
-        return Integer.valueOf(repairJobId).toString();
-      }
+    // Since Cassandra provides us with a async, we don't need to use our executor interface for
+    // this.
+    final int repairJobId =
+        ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
 
-      String jobId = String.format("repair-%d", repairJobId);
-      final Job job = service.createJob("repair", jobId);
+    if (!notifications) {
+      return Integer.valueOf(repairJobId).toString();
+    }
 
-      if (repairJobId == 0) {
-        // Job is done and won't continue
-        job.setStatusChange(ProgressEventType.COMPLETE, "");
-        job.setStatus(Job.JobStatus.COMPLETED);
-        job.setFinishedTime(System.currentTimeMillis());
-        service.updateJob(job);
-        return job.getJobId();
-      }
+    String jobId = String.format("repair-%d", repairJobId);
+    final Job job = service.createJob("repair", jobId);
 
-      ShimLoader.instance
-          .get()
-          .getStorageService()
-          .addNotificationListener(
-              (notification, handback) -> {
-                if (notification.getType().equals("progress")) {
-                  Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
-                  ProgressEventType progress = ProgressEventType.values()[data.get("type")];
-
-                  switch (progress) {
-                    case START:
-                      job.setStatusChange(progress, notification.getMessage());
-                      job.setStartTime(System.currentTimeMillis());
-                      break;
-                    case NOTIFICATION:
-                    case PROGRESS:
-                      break;
-                    case ERROR:
-                    case ABORT:
-                      job.setError(new RuntimeException(notification.getMessage()));
-                      job.setStatus(Job.JobStatus.ERROR);
-                      job.setFinishedTime(System.currentTimeMillis());
-                      break;
-                    case SUCCESS:
-                      job.setStatusChange(progress, notification.getMessage());
-                      // SUCCESS / ERROR does not mean the job has completed yet (COMPLETE is that)
-                      break;
-                    case COMPLETE:
-                      job.setStatusChange(progress, notification.getMessage());
-                      job.setStatus(Job.JobStatus.COMPLETED);
-                      job.setFinishedTime(System.currentTimeMillis());
-                      break;
-                  }
-                  service.updateJob(job);
-                }
-              },
-              (NotificationFilter)
-                  notification -> {
-                    final int repairNo =
-                        Integer.parseInt(((String) notification.getSource()).split(":")[1]);
-                    return repairNo == repairJobId;
-                  },
-              null);
-
+    if (repairJobId == 0) {
+      // Job is done and won't continue
+      job.setStatusChange(ProgressEventType.COMPLETE, "");
+      job.setStatus(Job.JobStatus.COMPLETED);
+      job.setFinishedTime(System.currentTimeMillis());
+      service.updateJob(job);
       return job.getJobId();
     }
 
-    throw new RuntimeException("At least one keyspace must be defined");
+    ShimLoader.instance
+        .get()
+        .getStorageService()
+        .addNotificationListener(
+            (notification, handback) -> {
+              if (notification.getType().equals("progress")) {
+                Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
+                ProgressEventType progress = ProgressEventType.values()[data.get("type")];
+
+                switch (progress) {
+                  case START:
+                    job.setStatusChange(progress, notification.getMessage());
+                    job.setStartTime(System.currentTimeMillis());
+                    break;
+                  case NOTIFICATION:
+                  case PROGRESS:
+                    break;
+                  case ERROR:
+                  case ABORT:
+                    job.setError(new RuntimeException(notification.getMessage()));
+                    job.setStatus(Job.JobStatus.ERROR);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    break;
+                  case SUCCESS:
+                    job.setStatusChange(progress, notification.getMessage());
+                    // SUCCESS / ERROR does not mean the job has completed yet (COMPLETE is that)
+                    break;
+                  case COMPLETE:
+                    job.setStatusChange(progress, notification.getMessage());
+                    job.setStatus(Job.JobStatus.COMPLETED);
+                    job.setFinishedTime(System.currentTimeMillis());
+                    break;
+                }
+                service.updateJob(job);
+              }
+            },
+            (NotificationFilter)
+                notification -> {
+                  final int repairNo =
+                      Integer.parseInt(((String) notification.getSource()).split(":")[1]);
+                  return repairNo == repairJobId;
+                },
+            null);
+
+    return job.getJobId();
+  }
+
+  @Rpc(name = "stopAllRepairs")
+  public void stopAllRepairs() {
+    ShimLoader.instance.get().getStorageService().forceTerminateAllRepairSessions();
   }
 
   @Rpc(name = "move")

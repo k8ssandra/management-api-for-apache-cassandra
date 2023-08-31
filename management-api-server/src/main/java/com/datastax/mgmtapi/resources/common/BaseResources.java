@@ -65,6 +65,7 @@ public abstract class BaseResources {
           .entity("Internal connection to Cassandra closed")
           .build();
     } catch (Throwable t) {
+      t.printStackTrace();
       return Response.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
           .entity(t.getLocalizedMessage())
           .build();

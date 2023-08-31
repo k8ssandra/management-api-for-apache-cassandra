@@ -1659,11 +1659,15 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("test_ks"),
             eq(null),
             eq(true),
-            eq(false));
+            eq(false),
+            eq(null),
+            eq(null),
+            eq(null),
+            eq(null));
   }
 
   @Test
@@ -1698,11 +1702,15 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.repair(?, ?, ?, ?)"),
+            eq("CALL NodeOps.repair(?, ?, ?, ?, ?, ?, ?, ?)"),
             eq("test_ks"),
             eq(null),
             eq(true),
-            eq(true));
+            eq(true),
+            eq(null),
+            eq(null),
+            eq(null),
+            eq(null));
   }
 
   @Test

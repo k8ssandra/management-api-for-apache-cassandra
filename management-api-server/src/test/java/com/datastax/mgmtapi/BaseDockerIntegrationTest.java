@@ -60,7 +60,7 @@ public abstract class BaseDockerIntegrationTest {
           System.err.flush();
 
           if (null != docker) {
-            int numberOfLines = 100;
+            int numberOfLines = 1000;
             System.out.printf("=====> Showing last %d entries of system.log%n", numberOfLines);
             docker.tailSystemLog(numberOfLines);
             System.out.printf("=====> End of last %d entries of system.log%n", numberOfLines);
