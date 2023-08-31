@@ -2147,10 +2147,12 @@
         "type" : "object",
         "properties" : {
           "end" : {
-            "type" : "integer"
+            "type" : "integer",
+            "format" : "int64"
           },
           "start" : {
-            "type" : "integer"
+            "type" : "integer",
+            "format" : "int64"
           }
         },
         "required" : [ "end", "start" ]
