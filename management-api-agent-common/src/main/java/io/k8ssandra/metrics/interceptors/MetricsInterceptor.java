@@ -74,7 +74,7 @@ public class MetricsInterceptor {
       DefaultExports.initialize();
 
       // Add task metrics
-      if(!config.isExtendedDisabled()) {
+      if (!config.isExtendedDisabled()) {
         new CassandraTasksExports(CassandraMetricsRegistry.Metrics, config).register();
       }
 
