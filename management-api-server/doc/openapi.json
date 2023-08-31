@@ -1740,6 +1740,75 @@
         },
         "summary" : "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version). This operation is asynchronous and returns immediately."
       }
+    },
+    "/api/v2/repairs" : {
+      "delete" : {
+        "operationId" : "deleteRepairsV2",
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "example" : "Accepted",
+                "schema" : {
+                  "$ref" : "#/components/schemas/RepairRequestResponse"
+                }
+              }
+            },
+            "description" : "Cancel repairs Successfully requested"
+          }
+        },
+        "summary" : "Cancel all repairs"
+      },
+      "put" : {
+        "operationId" : "putRepairV2",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RepairRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "example" : "Accepted",
+                "schema" : {
+                  "$ref" : "#/components/schemas/RepairRequestResponse"
+                }
+              }
+            },
+            "description" : "Repair Successfully requested"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspace must be specified",
+                "schema" : {
+                  "type" : "string",
+                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
+                }
+              }
+            },
+            "description" : "Repair request missing Keyspace name"
+          },
+          "500" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "internal error, we did not receive the expected repair ID from Cassandra.",
+                "schema" : {
+                  "type" : "string",
+                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
+                }
+              }
+            },
+            "description" : "internal error, we did not receive the expected repair ID from Cassandra."
+          }
+        },
+        "summary" : "Initiate a new repair"
+      }
     }
   },
   "components" : {
@@ -2014,11 +2083,34 @@
       "RepairRequest" : {
         "type" : "object",
         "properties" : {
-          "full" : {
+          "associated_tokens" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RingRange"
+            }
+          },
+          "datacenters" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "full_repair" : {
             "type" : "boolean"
           },
-          "keyspace_name" : {
+          "keyspace" : {
             "type" : "string"
+          },
+          "notifications" : {
+            "type" : "boolean"
+          },
+          "repair_parallelism" : {
+            "type" : "string",
+            "enum" : [ "sequential", "parallel", "dc_parallel" ]
+          },
+          "repair_thread_count" : {
+            "type" : "integer",
+            "format" : "int32"
           },
           "tables" : {
             "type" : "array",
@@ -2027,7 +2119,16 @@
             }
           }
         },
-        "required" : [ "keyspace_name" ]
+        "required" : [ "keyspace" ]
+      },
+      "RepairRequestResponse" : {
+        "type" : "object",
+        "properties" : {
+          "repair_id" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "repair_id" ]
       },
       "ReplicationSetting" : {
         "type" : "object",
@@ -2041,6 +2142,18 @@
           }
         },
         "required" : [ "dc_name", "replication_factor" ]
+      },
+      "RingRange" : {
+        "type" : "object",
+        "properties" : {
+          "end" : {
+            "type" : "integer"
+          },
+          "start" : {
+            "type" : "integer"
+          }
+        },
+        "required" : [ "end", "start" ]
       },
       "ScrubRequest" : {
         "type" : "object",
