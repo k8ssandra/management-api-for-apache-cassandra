@@ -46,15 +46,21 @@ import java.io.File;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchEvent;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -74,7 +80,6 @@ import org.slf4j.LoggerFactory;
     name = "cassandra-management-api",
     description = "REST service for managing an Apache Cassandra or DSE node")
 public class Cli implements Runnable {
-  public static final String PROTOCOL_TLS_V1_2 = "TLSv1.2";
 
   static {
     InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
@@ -136,6 +141,8 @@ public class Cli implements Runnable {
       description = "Path to trust certs signed only by this CA")
   private String tls_ca_cert_file;
 
+  private File tlsCaCert;
+
   @Path(writable = false)
   @Option(
       name = {"--tlscert"},
@@ -143,12 +150,16 @@ public class Cli implements Runnable {
       description = "Path to TLS certificate file")
   private String tls_cert_file;
 
+  private File tlsCert;
+
   @Path(writable = false)
   @Option(
       name = {"--tlskey"},
       arity = 1,
       description = "Path to TLS key file")
   private String tls_key_file;
+
+  private File tlsKey;
 
   private boolean useTls = false;
   private File dbUnixSocketFile = null;
@@ -158,6 +169,8 @@ public class Cli implements Runnable {
   private ManagementApplication application = null;
   private final CountDownLatch shutdownLatch = new CountDownLatch(1);
   private List<NettyJaxrsServer> servers = new ArrayList<>();
+
+  private SslContext sslContext;
 
   public Cli() {}
 
@@ -387,6 +400,7 @@ public class Cli implements Runnable {
         logger.error("Specified CA Cert file does not exist: {}", tls_ca_cert_file);
         System.exit(10);
       }
+      tlsCaCert = new File(tls_ca_cert_file);
     }
 
     // CERT File Checks
@@ -406,6 +420,7 @@ public class Cli implements Runnable {
         logger.error("Specified Cert file does not exist: {}", tls_cert_file);
         System.exit(13);
       }
+      tlsCert = new File(tls_cert_file);
     }
 
     // KEY File Checks
@@ -424,6 +439,7 @@ public class Cli implements Runnable {
         logger.error("Specified Key file does not exist: {}", tls_key_file);
         System.exit(16);
       }
+      tlsKey = new File(tls_key_file);
     }
 
     useTls = hasAny;
@@ -436,18 +452,83 @@ public class Cli implements Runnable {
     checkUnixSocket();
   }
 
-  private NettyJaxrsServer startHTTPService(String hostname, int port) throws SSLException {
+  private void createSSLContext() throws SSLException {
+    this.sslContext =
+        SslContextBuilder.forServer(tlsCert, tlsKey)
+            .trustManager(tlsCaCert)
+            .clientAuth(ClientAuth.REQUIRE)
+            .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
+            .build();
+  }
+
+  private void createSSLWatcher() throws IOException {
+    // Watch for tls_cert_file, tls_key_file and tls_ca_cert_file, add all their directories to
+    // Filesystem Watcher
+    WatchService watchService = FileSystems.getDefault().newWatchService();
+    java.nio.file.Path tlsCertParent = tlsCert.toPath().getParent();
+    java.nio.file.Path tlsKeyParent = tlsKey.toPath().getParent();
+    java.nio.file.Path tlsCaCertParent = tlsCaCert.toPath().getParent();
+
+    tlsCertParent.register(
+        watchService,
+        StandardWatchEventKinds.ENTRY_CREATE,
+        StandardWatchEventKinds.ENTRY_DELETE,
+        StandardWatchEventKinds.ENTRY_MODIFY);
+    tlsKeyParent.register(
+        watchService,
+        StandardWatchEventKinds.ENTRY_CREATE,
+        StandardWatchEventKinds.ENTRY_DELETE,
+        StandardWatchEventKinds.ENTRY_MODIFY);
+    tlsCaCertParent.register(
+        watchService,
+        StandardWatchEventKinds.ENTRY_CREATE,
+        StandardWatchEventKinds.ENTRY_DELETE,
+        StandardWatchEventKinds.ENTRY_MODIFY);
+
+    ExecutorService executorService = Executors.newSingleThreadExecutor();
+    executorService.execute(
+        () -> {
+          while (true) {
+            try {
+              WatchKey key = watchService.take();
+              List<WatchEvent<?>> events = key.pollEvents();
+              boolean reloadNeeded = false;
+              for (WatchEvent<?> event : events) {
+                WatchEvent.Kind<?> kind = event.kind();
+
+                WatchEvent<java.nio.file.Path> ev = (WatchEvent<java.nio.file.Path>) event;
+                java.nio.file.Path eventFilename = ev.context();
+
+                if (tlsCertParent.resolve(eventFilename).equals(tlsCert.toPath())
+                    || tlsKeyParent.resolve(eventFilename).equals(tlsKey.toPath())
+                    || tlsCaCertParent.resolve(eventFilename).equals(tlsCaCert)) {
+                  // Something in the TLS has been modified.. recreate SslContext
+                  reloadNeeded = true;
+                }
+              }
+              if (!key.reset()) {
+                // The watched directories have disappeared..
+                break;
+              }
+              if (reloadNeeded) {
+                createSSLContext();
+              }
+            } catch (InterruptedException e) {
+              // Do something.. just log?
+              logger.error("Filesystem watcher received InterruptedException", e);
+            } catch (IOException e) {
+              logger.error("Filesystem watcher received IOException", e);
+            }
+          }
+        });
+  }
+
+  private NettyJaxrsServer startHTTPService(String hostname, int port) throws IOException {
     NettyJaxrsServer server;
 
     if (useTls) {
-      SslContext sslContext =
-          SslContextBuilder.forServer(new File(tls_cert_file), new File(tls_key_file))
-              .trustManager(new File(tls_ca_cert_file))
-              .clientAuth(ClientAuth.REQUIRE)
-              .protocols(PROTOCOL_TLS_V1_2)
-              .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
-              .build();
-
+      createSSLContext();
+      createSSLWatcher();
       server = new NettyJaxrsTLSServer(sslContext);
     } else {
       server = new NettyJaxrsServer();
