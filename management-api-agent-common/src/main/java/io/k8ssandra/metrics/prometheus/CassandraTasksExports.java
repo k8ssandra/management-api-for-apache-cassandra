@@ -69,35 +69,59 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
     // These should be EA targets, 8 metrics to create
     CassandraMetricDefinition filesToReceive =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_files_to_receive", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_files_to_receive",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition filesReceived =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_files_received", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_files_received",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition sizeToReceive =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_size_to_receive", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_size_to_receive",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition sizeReceived =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_size_received", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_size_received",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition filesToSend =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_files_to_send", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_files_to_send",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition filesSent =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_files_sent", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_files_sent",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition sizeToSend =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_size_to_send", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_size_to_send",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     CassandraMetricDefinition sizeSent =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "streaming_total_size_sent", "", additionalLabels, null);
+            METRICS_PREFIX + "streaming_total_size_sent",
+            "",
+            additionalLabels,
+            Lists.newArrayList());
 
     // This is a lot simpler code without all the casting back and forth if description was in the
     // same place for
@@ -275,11 +299,11 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
     // These should be EA targets..
     CassandraMetricDefinition protoCompleted =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "compaction_stats_completed", "", additionalLabels, null);
+            METRICS_PREFIX + "compaction_stats_completed", "", additionalLabels, new ArrayList<>());
 
     CassandraMetricDefinition protoTotal =
         parser.parseDropwizardMetric(
-            METRICS_PREFIX + "compaction_stats_total", "", additionalLabels, null);
+            METRICS_PREFIX + "compaction_stats_total", "", additionalLabels, new ArrayList<>());
 
     List<MetricFamilySamples.Sample> completedSamples = new ArrayList<>(compactions.size() * 2);
     List<MetricFamilySamples.Sample> totalSamples = new ArrayList<>(compactions.size() * 2);
