@@ -437,8 +437,8 @@ public class NettyTlsClientAuthTest {
             keyCopy.toFile().getAbsolutePath());
     cli.preflightChecks();
     Cli spy = Mockito.spy(cli);
-    cli.createSSLContext();
-    cli.createSSLWatcher();
+    spy.createSSLContext();
+    spy.createSSLWatcher();
 
     verify(spy, times(1)).createSSLContext();
     verify(spy, times(1)).createSSLWatcher();
