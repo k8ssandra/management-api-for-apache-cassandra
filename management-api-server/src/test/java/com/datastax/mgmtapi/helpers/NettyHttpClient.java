@@ -7,7 +7,6 @@ package com.datastax.mgmtapi.helpers;
 
 import static org.junit.Assert.fail;
 
-import com.datastax.mgmtapi.Cli;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -59,7 +58,6 @@ public class NettyHttpClient {
               .trustManager(clientCaFile)
               .keyManager(clientCertFile, clientKeyFile, null)
               .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
-              .protocols(Cli.PROTOCOL_TLS_V1_2)
               .sessionCacheSize(0)
               .sessionTimeout(0)
               .build();

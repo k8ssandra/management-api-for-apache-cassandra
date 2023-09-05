@@ -452,7 +452,8 @@ public class Cli implements Runnable {
     checkUnixSocket();
   }
 
-  private void createSSLContext() throws SSLException {
+  @VisibleForTesting
+  void createSSLContext() throws SSLException {
     this.sslContext =
         SslContextBuilder.forServer(tlsCert, tlsKey)
             .trustManager(tlsCaCert)
@@ -461,7 +462,8 @@ public class Cli implements Runnable {
             .build();
   }
 
-  private void createSSLWatcher() throws IOException {
+  @VisibleForTesting
+  void createSSLWatcher() throws IOException {
     // Watch for tls_cert_file, tls_key_file and tls_ca_cert_file, add all their directories to
     // Filesystem Watcher
     WatchService watchService = FileSystems.getDefault().newWatchService();

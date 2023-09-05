@@ -7,7 +7,6 @@ package com.datastax.mgmtapi.helpers;
 
 import static org.junit.Assert.fail;
 
-import com.datastax.mgmtapi.Cli;
 import com.datastax.mgmtapi.ipc.IPCController;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.channel.Channel;
@@ -63,7 +62,6 @@ public class NettyHttpIPCClient {
           SslContextBuilder.forClient()
               .trustManager(clientCaFile)
               .keyManager(clientCertFile, clientKeyFile, null)
-              .protocols(Cli.PROTOCOL_TLS_V1_2)
               .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
               .sessionCacheSize(0)
               .sessionTimeout(0)
