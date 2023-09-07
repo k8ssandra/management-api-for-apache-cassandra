@@ -32,6 +32,7 @@ import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.Table;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
+import com.datastax.mgmtapi.resources.v2.models.TokenRangeToEndpointResponse;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -52,13 +53,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.core.MediaType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.assertj.core.util.Lists;
-import org.jboss.resteasy.core.messagebody.ReaderUtility;
-import org.jboss.resteasy.core.messagebody.WriterUtility;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -74,6 +72,8 @@ import org.slf4j.LoggerFactory;
 @RunWith(Parameterized.class)
 public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
+
+  private final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   public NonDestructiveOpsIT(String version) throws IOException {
     super(version);
@@ -366,8 +366,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     KeyspaceRequest keyspaceRequest =
         new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
-    String keyspaceRequestAsJSON =
-        WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/cleanup").build();
 
     // Get job_id here..
@@ -441,7 +440,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     ScrubRequest scrubRequest =
         new ScrubRequest(
             true, true, true, true, 2, "system_traces", Collections.singletonList("events"));
-    String requestAsJSON = WriterUtility.asString(scrubRequest, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(scrubRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/scrub").build();
     boolean requestSuccessful =
         client
@@ -461,7 +460,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     CompactRequest compactRequest =
         new CompactRequest(
             false, false, null, null, "system_traces", null, Collections.singletonList("events"));
-    String requestAsJSON = WriterUtility.asString(compactRequest, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(compactRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/compact").build();
     boolean requestSuccessful =
         client
@@ -480,8 +479,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     KeyspaceRequest keyspaceRequest =
         new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
-    String keyspaceRequestAsJSON =
-        WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/garbagecollect").build();
     boolean requestSuccessful =
         client
@@ -499,8 +497,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, null, null);
-    String keyspaceRequestAsJSON =
-        WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/flush").build();
     boolean requestSuccessful =
         client
@@ -518,8 +515,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     KeyspaceRequest keyspaceRequest = new KeyspaceRequest(1, "", null);
-    String keyspaceRequestAsJSON =
-        WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/sstables/upgrade").build();
     boolean requestSuccessful =
         client
@@ -574,7 +570,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     CreateOrAlterKeyspaceRequest request =
         new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
-    String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(request);
 
     boolean requestSuccessful =
         client
@@ -624,7 +620,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
-    URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/schema/versions");
+    URIBuilder uriBuilder = new URIBuilder(BASE_PATH_V1 + "/ops/node/schema/versions");
     URI uri = uriBuilder.build();
 
     Pair<Integer, String> response =
@@ -670,7 +666,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             null,
             null,
             null);
-    String requestAsJSON = WriterUtility.asString(takeSnapshotRequest, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(takeSnapshotRequest);
 
     boolean takeSnapshotSuccessful =
         client
@@ -684,8 +680,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String getSnapshotResponse =
         client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
     assertNotNull(getSnapshotResponse);
-    Object responseObject =
-        ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
+    Object responseObject = JSON_MAPPER.readValue(getSnapshotResponse, Object.class);
     assertTrue(responseObject instanceof Map);
     Map<Object, Object> responseObj = (Map) responseObject;
     assertTrue(responseObj.containsKey("entity"));
@@ -714,8 +709,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     getSnapshotResponse =
         client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
     assertNotNull(getSnapshotResponse);
-    responseObject =
-        ReaderUtility.read(Object.class, MediaType.APPLICATION_JSON, getSnapshotResponse);
+    responseObject = JSON_MAPPER.readValue(getSnapshotResponse, Object.class);
     assertTrue(responseObject instanceof Map);
     responseObj = (Map) responseObject;
     assertTrue(responseObj.containsKey("entity"));
@@ -746,7 +740,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     // execute repair
     RepairRequest repairRequest = new RepairRequest(ks, null, Boolean.TRUE);
-    String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(repairRequest);
 
     boolean repairSuccessful =
         client
@@ -772,12 +766,12 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String ks = "someTestKeyspace";
     createKeyspace(client, localDc, ks, 2);
 
-    URIBuilder uriBuilder = new URIBuilder("http://localhost:8080/api/v1/ops/node/repair");
+    URIBuilder uriBuilder = new URIBuilder(BASE_PATH_V1 + "/ops/node/repair");
     URI repairUri = uriBuilder.build();
 
     // execute repair
     RepairRequest repairRequest = new RepairRequest("someTestKeyspace", null, Boolean.TRUE);
-    String requestAsJSON = WriterUtility.asString(repairRequest, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(repairRequest);
 
     Pair<Integer, String> repairResponse =
         client.post(repairUri.toURL(), requestAsJSON).thenApply(this::responseAsCodeAndBody).join();
@@ -1045,12 +1039,35 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             });
   }
 
+  @Test
+  public void testGetTokenRangeToEndpointMap() throws Exception {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+    final URIBuilder uriBuilder = new URIBuilder(BASE_PATH_V2 + "/tokens/rangetoendpoint");
+    // test keyspace not found
+    URI uri = uriBuilder.setParameter("keyspaceName", "notfoundkeyspace").build();
+    Pair<Integer, String> response =
+        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_NOT_FOUND);
+    // test keyspace exists
+    uri = uriBuilder.setParameter("keyspaceName", "system_schema").build();
+    response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
+    String mappingString = response.getRight();
+    assertThat(mappingString).isNotNull().isNotEmpty();
+    TokenRangeToEndpointResponse mapping =
+        JSON_MAPPER.readValue(mappingString, TokenRangeToEndpointResponse.class);
+    assertThat(mapping.tokenRangeToEndpoints).isNotNull().isNotEmpty().hasSize(getNumTokenRanges());
+  }
+
   private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName, int rf)
       throws IOException, URISyntaxException {
     CreateOrAlterKeyspaceRequest request =
         new CreateOrAlterKeyspaceRequest(
             keyspaceName, Arrays.asList(new ReplicationSetting(localDc, rf)));
-    String requestAsJSON = WriterUtility.asString(request, MediaType.APPLICATION_JSON);
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(request);
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create").build();
     boolean requestSuccessful =
@@ -1079,5 +1096,15 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     }
 
     return Pair.of(copy.status().code(), null);
+  }
+
+  private int getNumTokenRanges() {
+    if (this.version.startsWith("3")) {
+      return 256;
+    }
+    if (this.version.startsWith("dse-68")) {
+      return 1;
+    }
+    return 16;
   }
 }

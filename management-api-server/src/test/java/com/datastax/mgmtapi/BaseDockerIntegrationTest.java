@@ -26,13 +26,11 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BaseDockerIntegrationTest {
-  protected static final Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
   protected static final String BASE_PATH = "http://localhost:8080/api/v0";
   protected static final String BASE_PATH_V1 = "http://localhost:8080/api/v1";
+  protected static final String BASE_PATH_V2 = "http://localhost:8080/api/v2";
   protected static final URL BASE_URL;
 
   static {

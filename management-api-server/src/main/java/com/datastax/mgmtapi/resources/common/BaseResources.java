@@ -8,6 +8,8 @@ package com.datastax.mgmtapi.resources.common;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.NoNodeAvailableException;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import java.util.concurrent.Callable;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -70,5 +72,22 @@ public abstract class BaseResources {
           .entity(t.getLocalizedMessage())
           .build();
     }
+  }
+
+  protected boolean keyspaceExists(String keyspaceName) {
+    if (keyspaceName != null) {
+      try {
+        ResultSet result =
+            app.cqlService.executePreparedStatement(
+                app.dbUnixSocketFile, "CALL NodeOps.getKeyspaces()");
+        Row row = result.one();
+        if (row != null) {
+          return row.getList(0, String.class).contains(keyspaceName);
+        }
+      } catch (Exception e) {
+        // cxonnection issue or some other problem. Eat it and return false.
+      }
+    }
+    return false;
   }
 }
