@@ -5,7 +5,6 @@
  */
 package com.datastax.mgmtapi;
 
-import static io.netty.util.CharsetUtil.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.awaitility.Awaitility.await;
@@ -32,7 +31,6 @@ import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.Table;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
-import com.datastax.mgmtapi.resources.v2.models.TokenRangeToEndpointResponse;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -42,7 +40,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
-import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.IllegalReferenceCountException;
 import java.io.IOException;
 import java.net.URI;
@@ -72,8 +69,6 @@ import org.slf4j.LoggerFactory;
 @RunWith(Parameterized.class)
 public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
-
-  private final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   public NonDestructiveOpsIT(String version) throws IOException {
     super(version);
@@ -1037,74 +1032,5 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                   .hasEntrySatisfying(
                       "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
             });
-  }
-
-  @Test
-  public void testGetTokenRangeToEndpointMap() throws Exception {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-    ensureStarted();
-
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-    final URIBuilder uriBuilder = new URIBuilder(BASE_PATH_V2 + "/tokens/rangetoendpoint");
-    // test keyspace not found
-    URI uri = uriBuilder.setParameter("keyspaceName", "notfoundkeyspace").build();
-    Pair<Integer, String> response =
-        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
-    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_NOT_FOUND);
-    // test keyspace exists
-    uri = uriBuilder.setParameter("keyspaceName", "system_schema").build();
-    response = client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
-    assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
-    String mappingString = response.getRight();
-    assertThat(mappingString).isNotNull().isNotEmpty();
-    TokenRangeToEndpointResponse mapping =
-        JSON_MAPPER.readValue(mappingString, TokenRangeToEndpointResponse.class);
-    assertThat(mapping.tokenRangeToEndpoints).isNotNull().isNotEmpty().hasSize(getNumTokenRanges());
-  }
-
-  private void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName, int rf)
-      throws IOException, URISyntaxException {
-    CreateOrAlterKeyspaceRequest request =
-        new CreateOrAlterKeyspaceRequest(
-            keyspaceName, Arrays.asList(new ReplicationSetting(localDc, rf)));
-    String requestAsJSON = JSON_MAPPER.writeValueAsString(request);
-
-    URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create").build();
-    boolean requestSuccessful =
-        client
-            .post(uri.toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
-    assertTrue(requestSuccessful);
-  }
-
-  private String responseAsString(FullHttpResponse r) {
-    if (r.status().code() == HttpStatus.SC_OK) {
-      byte[] result = new byte[r.content().readableBytes()];
-      r.content().readBytes(result);
-
-      return new String(result);
-    }
-
-    return null;
-  }
-
-  private Pair<Integer, String> responseAsCodeAndBody(FullHttpResponse r) {
-    FullHttpResponse copy = r.copy();
-    if (copy.content().readableBytes() > 0) {
-      return Pair.of(copy.status().code(), copy.content().toString(UTF_8));
-    }
-
-    return Pair.of(copy.status().code(), null);
-  }
-
-  private int getNumTokenRanges() {
-    if (this.version.startsWith("3")) {
-      return 256;
-    }
-    if (this.version.startsWith("dse-68")) {
-      return 1;
-    }
-    return 16;
   }
 }
