@@ -23,9 +23,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
-public class NonDestructiveOpsV2IT extends BaseDockerIntegrationTest {
+public class NonDestructiveOpsResourcesV2IT extends BaseDockerIntegrationTest {
 
-  public NonDestructiveOpsV2IT(String version) throws IOException {
+  public NonDestructiveOpsResourcesV2IT(String version) throws IOException {
     super(version);
   }
 
