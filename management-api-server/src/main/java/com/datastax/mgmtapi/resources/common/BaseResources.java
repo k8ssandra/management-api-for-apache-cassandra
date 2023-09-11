@@ -8,6 +8,8 @@ package com.datastax.mgmtapi.resources.common;
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.NoNodeAvailableException;
+import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import java.util.concurrent.Callable;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -70,5 +72,26 @@ public abstract class BaseResources {
           .entity(t.getLocalizedMessage())
           .build();
     }
+  }
+
+  /**
+   * Returns true if the specified keyspaceName is not null and a keyspace with the name exists.
+   * Returns false if the keyspaceName is null or if no keyspace with the name exists. Throws a
+   * ConnectionClosedException if there is an issue executing the RPC call to the Cassandra agent.
+   *
+   * @param keyspaceName The name of a keyspace you are looking for.
+   * @return True if the keyspace is found, false otherwise.
+   */
+  protected boolean keyspaceExists(String keyspaceName) throws ConnectionClosedException {
+    if (keyspaceName != null) {
+      ResultSet result =
+          app.cqlService.executePreparedStatement(
+              app.dbUnixSocketFile, "CALL NodeOps.getKeyspaces()");
+      Row row = result.one();
+      if (row != null) {
+        return row.getList(0, String.class).contains(keyspaceName);
+      }
+    }
+    return false;
   }
 }
