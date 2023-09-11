@@ -1809,6 +1809,42 @@
         },
         "summary" : "Initiate a new repair"
       }
+    },
+    "/api/v2/tokens/rangetoendpoint" : {
+      "get" : {
+        "operationId" : "getRangeToEndpointMapV2",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "keyspaceName",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TokenRangeToEndpointResponse"
+                }
+              }
+            },
+            "description" : "Token range retrieval was successful"
+          },
+          "404" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspace not found",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Keyspace not found"
+          }
+        },
+        "summary" : "Retrieve a mapping of Token ranges to endpoints"
+      }
     }
   },
   "components" : {
@@ -2315,6 +2351,37 @@
             "type" : "string"
           }
         }
+      },
+      "TokenRangeToEndpointResponse" : {
+        "type" : "object",
+        "properties" : {
+          "token_range_to_endpoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TokenRangeToEndpoints"
+            }
+          }
+        },
+        "required" : [ "token_range_to_endpoints" ]
+      },
+      "TokenRangeToEndpoints" : {
+        "type" : "object",
+        "properties" : {
+          "endpoints" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "tokens" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer",
+              "format" : "int64"
+            }
+          }
+        },
+        "required" : [ "endpoints", "tokens" ]
       },
       "Variant" : {
         "type" : "object",

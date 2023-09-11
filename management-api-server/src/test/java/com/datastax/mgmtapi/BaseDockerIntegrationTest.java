@@ -5,17 +5,30 @@
  */
 package com.datastax.mgmtapi;
 
+import static io.netty.util.CharsetUtil.UTF_8;
+import static org.junit.Assert.assertTrue;
+
 import com.datastax.mgmtapi.helpers.DockerHelper;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
+import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
+import com.datastax.mgmtapi.resources.models.ReplicationSetting;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import io.netty.handler.codec.http.FullHttpResponse;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.net.ssl.SSLException;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
@@ -26,14 +39,13 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class BaseDockerIntegrationTest {
-  protected static final Logger logger = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
   protected static final String BASE_PATH = "http://localhost:8080/api/v0";
   protected static final String BASE_PATH_V1 = "http://localhost:8080/api/v1";
+  protected static final String BASE_PATH_V2 = "http://localhost:8080/api/v2";
   protected static final URL BASE_URL;
+  protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
   static {
     try {
@@ -162,5 +174,55 @@ public abstract class BaseDockerIntegrationTest {
 
   protected NettyHttpClient getClient() throws SSLException {
     return new NettyHttpClient(BASE_URL);
+  }
+
+  protected void createKeyspace(NettyHttpClient client, String localDc, String keyspaceName, int rf)
+      throws IOException, URISyntaxException {
+    CreateOrAlterKeyspaceRequest request =
+        new CreateOrAlterKeyspaceRequest(
+            keyspaceName, Arrays.asList(new ReplicationSetting(localDc, rf)));
+    String requestAsJSON = JSON_MAPPER.writeValueAsString(request);
+
+    URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/create").build();
+    boolean requestSuccessful =
+        client
+            .post(uri.toURL(), requestAsJSON)
+            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+            .join();
+    assertTrue(requestSuccessful);
+  }
+
+  protected String responseAsString(FullHttpResponse r) {
+    if (r.status().code() == HttpStatus.SC_OK) {
+      byte[] result = new byte[r.content().readableBytes()];
+      r.content().readBytes(result);
+
+      return new String(result);
+    }
+
+    return null;
+  }
+
+  protected Pair<Integer, String> responseAsCodeAndBody(FullHttpResponse r) {
+    FullHttpResponse copy = r.copy();
+    if (copy.content().readableBytes() > 0) {
+      return Pair.of(copy.status().code(), copy.content().toString(UTF_8));
+    }
+
+    return Pair.of(copy.status().code(), null);
+  }
+
+  protected int getNumTokenRanges() {
+    if (this.version.startsWith("3")) {
+      return 256;
+    }
+    if (this.version.startsWith("dse-68")) {
+      return 1;
+    }
+    if (this.version.startsWith("4")) {
+      return 16;
+    }
+    // unsupported Cassandra/DSE version
+    throw new UnsupportedOperationException("Cassandra version " + this.version + " not supported");
   }
 }

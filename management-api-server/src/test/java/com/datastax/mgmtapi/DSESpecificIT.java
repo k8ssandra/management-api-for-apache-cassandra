@@ -9,7 +9,6 @@ import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH;
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_URL;
 import static com.datastax.mgmtapi.NonDestructiveOpsIT.ensureStarted;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.LOAD_BALANCING_LOCAL_DATACENTER;
-import static io.netty.util.CharsetUtil.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -29,7 +28,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.netty.handler.codec.http.FullHttpResponse;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -159,20 +157,5 @@ public class DSESpecificIT extends BaseDockerIntegrationTest {
             .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
             .join();
     assertTrue(requestSuccessful);
-  }
-
-  private String responseAsString(FullHttpResponse r) {
-    if (r.status().code() == HttpStatus.SC_OK) {
-      byte[] result = new byte[r.content().readableBytes()];
-      r.content().readBytes(result);
-
-      return new String(result);
-    }
-
-    return null;
-  }
-
-  private Pair<Integer, String> responseAsCodeAndBody(FullHttpResponse r) {
-    return Pair.of(r.status().code(), r.content().toString(UTF_8));
   }
 }
