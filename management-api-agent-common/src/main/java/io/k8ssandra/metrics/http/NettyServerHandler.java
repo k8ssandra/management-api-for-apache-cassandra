@@ -25,6 +25,7 @@ import io.prometheus.client.exporter.common.TextFormat;
 import java.io.StringWriter;
 import java.net.URI;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.List;
 
 public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> {
@@ -57,9 +58,18 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
       QueryStringDecoder queryString = new QueryStringDecoder(req.getUri());
       if (queryString.parameters().containsKey("name")) {
         List<String> nameFilter = queryString.parameters().get("name");
+        HashSet<String> filters = Sets.newHashSet(nameFilter);
         Enumeration<Collector.MetricFamilySamples> filteredSamples =
             CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(
-                Sets.newHashSet(nameFilter));
+                s -> {
+                  for (String filter : filters) {
+                    if (s.startsWith(filter)) {
+                      return true;
+                    }
+                  }
+
+                  return false;
+                });
 
         TextFormat.writeFormat(contentType, writer, filteredSamples);
       } else {
