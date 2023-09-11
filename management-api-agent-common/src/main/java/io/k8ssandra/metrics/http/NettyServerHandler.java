@@ -21,7 +21,6 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.util.CharsetUtil;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.Predicate;
 import io.prometheus.client.exporter.common.TextFormat;
 import java.io.StringWriter;
 import java.net.URI;
@@ -61,7 +60,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
         List<String> nameFilter = queryString.parameters().get("name");
         HashSet<String> filters = Sets.newHashSet(nameFilter);
         Enumeration<Collector.MetricFamilySamples> filteredSamples =
-            CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(s -> {
+            CollectorRegistry.defaultRegistry.filteredMetricFamilySamples(
+                s -> {
                   for (String filter : filters) {
                     if (s.startsWith(filter)) {
                       return true;
@@ -69,8 +69,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<HttpObject> 
                   }
 
                   return false;
-                }
-            );
+                });
 
         TextFormat.writeFormat(contentType, writer, filteredSamples);
       } else {
