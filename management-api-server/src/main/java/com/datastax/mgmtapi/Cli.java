@@ -513,6 +513,7 @@ public class Cli implements Runnable {
                 break;
               }
               if (reloadNeeded) {
+                logger.info("Detected change in the SSL/TLS certificates, reloading.");
                 createSSLContext();
               }
             } catch (InterruptedException e) {
