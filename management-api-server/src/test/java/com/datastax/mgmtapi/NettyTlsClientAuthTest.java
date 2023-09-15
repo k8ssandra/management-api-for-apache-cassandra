@@ -9,6 +9,8 @@ import static org.jboss.resteasy.test.TestPortProvider.generateURL;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -41,6 +43,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -56,6 +60,7 @@ import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 public class NettyTlsClientAuthTest {
   static String BASE_URI = generateURL("");
@@ -390,5 +395,57 @@ public class NettyTlsClientAuthTest {
       FileUtils.deleteQuietly(new File(cassSock));
       FileUtils.deleteQuietly(new File(mgmtSock));
     }
+  }
+
+  @Test
+  public void testHotReload() throws Exception {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+
+    String mgmtSock = SocketUtils.makeValidUnixSocketFile(null, "management-netty-tls-mgmt");
+    new File(mgmtSock).deleteOnExit();
+    String cassSock = SocketUtils.makeValidUnixSocketFile(null, "management-netty-tls-cass");
+    new File(cassSock).deleteOnExit();
+
+    Path tempDirectory = Files.createTempDirectory("reload-test");
+
+    List<String> extraArgs =
+        IntegrationTestUtils.getExtraArgs(
+            NettyTlsClientAuthTest.class, "", temporaryFolder.getRoot());
+
+    File trustCertFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
+    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+
+    // Copy TLS files to temp directory
+    Path trustCertCopy =
+        Files.copy(trustCertFile.toPath(), tempDirectory.resolve(trustCertFile.toPath()));
+    Path keyCopy =
+        Files.copy(serverKeyFile.toPath(), tempDirectory.resolve(serverKeyFile.toPath()));
+    Path crtCopy =
+        Files.copy(serverCrtFile.toPath(), tempDirectory.resolve(serverCrtFile.toPath()));
+
+    Cli cli =
+        new Cli(
+            Lists.newArrayList("file://" + mgmtSock, BASE_URI),
+            IntegrationTestUtils.getCassandraHome(),
+            cassSock,
+            false,
+            extraArgs,
+            trustCertCopy.toFile().getAbsolutePath(),
+            crtCopy.toFile().getAbsolutePath(),
+            keyCopy.toFile().getAbsolutePath());
+    cli.preflightChecks();
+    Cli spy = Mockito.spy(cli);
+    spy.createSSLContext();
+    spy.createSSLWatcher();
+
+    verify(spy, times(1)).createSSLContext();
+    verify(spy, times(1)).createSSLWatcher();
+
+    // Modify files..
+    Files.copy(trustCertFile.toPath(), tempDirectory.resolve(trustCertFile.toPath()));
+
+    verify(spy, Mockito.timeout(1000)).createSSLContext();
   }
 }
