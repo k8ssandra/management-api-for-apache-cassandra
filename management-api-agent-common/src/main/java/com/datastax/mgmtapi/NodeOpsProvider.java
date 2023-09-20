@@ -20,10 +20,12 @@ import com.datastax.oss.driver.api.querybuilder.schema.CreateTable;
 import com.datastax.oss.driver.api.querybuilder.schema.CreateTableWithOptions;
 import com.datastax.oss.driver.api.querybuilder.schema.OngoingPartitionKey;
 import com.datastax.oss.driver.internal.core.metadata.schema.parsing.DataTypeCqlNameParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -80,8 +82,8 @@ public class NodeOpsProvider {
   }
 
   @Rpc(name = "jobStatus")
-  public Map<String, Object> getJobStatus(@RpcParam(name = "job_id") String jobId) {
-    Map<String, Object> resultMap = new HashMap<>();
+  public Map<String, String> getJobStatus(@RpcParam(name = "job_id") String jobId) {
+    Map<String, String> resultMap = new HashMap<>();
     Job jobWithId = service.getJobWithId(jobId);
     if (jobWithId == null) {
       return resultMap;
@@ -94,15 +96,23 @@ public class NodeOpsProvider {
     if (jobWithId.getStatus() == Job.JobStatus.ERROR) {
       resultMap.put("error", jobWithId.getError().getLocalizedMessage());
     }
-    List<List<String>> statusChanges = new ArrayList<>();
+
+    List<Map<String, String>> statusChanges = new ArrayList<>();
     for (Job.StatusChange statusChange : jobWithId.getStatusChanges()) {
-      statusChanges.add(
-          Lists.newArrayList(
-              statusChange.getStatus().name(),
-              Long.valueOf(statusChange.getChangeTime()).toString(),
-              statusChange.getMessage()));
+      Map<String, String> change = Maps.newHashMap();
+      change.put("status", statusChange.getStatus().name());
+      change.put("change_time", Long.valueOf(statusChange.getChangeTime()).toString());
+      change.put("message", statusChange.getMessage());
+      statusChanges.add(change);
     }
-    resultMap.put("status_changes", statusChanges);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      String s = objectMapper.writeValueAsString(statusChanges);
+      resultMap.put("status_changes", s);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
 
     return resultMap;
   }

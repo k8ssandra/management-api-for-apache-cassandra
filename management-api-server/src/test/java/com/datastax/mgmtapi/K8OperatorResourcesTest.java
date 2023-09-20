@@ -40,12 +40,14 @@ import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -592,9 +594,20 @@ public class K8OperatorResourcesTest {
     jobDetailsRow.put("submit_time", String.valueOf(System.currentTimeMillis()));
     jobDetailsRow.put("end_time", String.valueOf(System.currentTimeMillis()));
 
-    List<List<String>> statusChanges = new ArrayList<>();
-    statusChanges.add(Lists.newArrayList("SUCCESS", "1695183696663", "No message"));
-    jobDetailsRow.put("status_changes", statusChanges);
+    List<Map<String, String>> statusChanges = new ArrayList<>();
+    Map<String, String> change = Maps.newHashMap();
+    change.put("status", "SUCCESS");
+    change.put("change_time", "1695183696663");
+    change.put("message", "No message");
+    statusChanges.add(change);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      String s = objectMapper.writeValueAsString(statusChanges);
+      jobDetailsRow.put("status_changes", s);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
 
     when(mockRow.getObject(0)).thenReturn(jobDetailsRow);
 
