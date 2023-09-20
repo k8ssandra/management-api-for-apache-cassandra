@@ -585,12 +585,16 @@ public class K8OperatorResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
 
-    Map<String, String> jobDetailsRow = new HashMap<>();
+    Map<String, Object> jobDetailsRow = new HashMap<>();
     jobDetailsRow.put("id", "0fe65b47-98c2-47d8-9c3c-5810c9988e10");
     jobDetailsRow.put("type", "CLEANUP");
     jobDetailsRow.put("status", "COMPLETED");
     jobDetailsRow.put("submit_time", String.valueOf(System.currentTimeMillis()));
     jobDetailsRow.put("end_time", String.valueOf(System.currentTimeMillis()));
+
+    List<List<String>> statusChanges = new ArrayList<>();
+    statusChanges.add(Lists.newArrayList("SUCCESS", "1695183696663", "No message"));
+    jobDetailsRow.put("status_changes", statusChanges);
 
     when(mockRow.getObject(0)).thenReturn(jobDetailsRow);
 
@@ -609,6 +613,8 @@ public class K8OperatorResourcesTest {
     assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", jobDetails.getJobId());
     assertEquals("COMPLETED", jobDetails.getStatus().toString());
     assertEquals("CLEANUP", jobDetails.getJobType());
+    assertEquals(1, jobDetails.getStatusChanges().size());
+    assertEquals("SUCCESS", jobDetails.getStatusChanges().get(0).getStatus());
   }
 
   @Test

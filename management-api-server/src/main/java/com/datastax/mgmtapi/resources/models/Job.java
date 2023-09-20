@@ -6,7 +6,9 @@
 package com.datastax.mgmtapi.resources.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.io.Serializable;
 import java.util.List;
 
@@ -35,7 +37,9 @@ public class Job implements Serializable {
   @JsonProperty(value = "error")
   private String error;
 
-  public class StatusChange {
+  @JsonFormat(shape = JsonFormat.Shape.ARRAY)
+  @JsonPropertyOrder({"status", "change_time", "message"})
+  public static class StatusChange {
     @JsonProperty(value = "status")
     String status;
 
@@ -45,8 +49,12 @@ public class Job implements Serializable {
     @JsonProperty(value = "message")
     String message;
 
-    public StatusChange(String type, String message) {
-      changeTime = System.currentTimeMillis();
+    @JsonCreator
+    public StatusChange(
+        @JsonProperty(value = "status") String type,
+        @JsonProperty(value = "change_time") String time,
+        @JsonProperty(value = "message") String message) {
+      changeTime = Long.parseLong(time);
       status = type;
       this.message = message;
     }
