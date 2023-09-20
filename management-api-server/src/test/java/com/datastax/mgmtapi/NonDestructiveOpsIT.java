@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.awaitility.Awaitility.await;
@@ -17,6 +18,8 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 
+import com.datastax.mgmtapi.client.api.DefaultApi;
+import com.datastax.mgmtapi.client.invoker.ApiClient;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CompactRequest;
@@ -49,7 +52,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
@@ -112,7 +114,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
       if (ready) break;
 
-      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
+      Uninterruptibles.sleepUninterruptibly(10, SECONDS);
     }
 
     logger.info("CASSANDRA ALIVE: {}", ready);
@@ -1032,5 +1034,40 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                   .hasEntrySatisfying(
                       "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
             });
+  }
+
+  public void ensureStatusChanges() throws Exception {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+    DefaultApi apiClient = new DefaultApi(new ApiClient().setBasePath(BASE_HOST));
+    com.datastax.mgmtapi.client.model.RepairRequest req =
+        new com.datastax.mgmtapi.client.model.RepairRequest()
+            .keyspace("system_distributed")
+            .fullRepair(true)
+            .notifications(true)
+            .repairParallelism(
+                com.datastax.mgmtapi.client.model.RepairRequest.RepairParallelismEnum.SEQUENTIAL)
+            .associatedTokens(
+                Collections.singletonList(
+                    new com.datastax.mgmtapi.client.model.RingRange()
+                        .start(Long.valueOf(-1))
+                        .end(Long.valueOf(100))));
+    logger.info("Sending repair request: {}", req);
+    String jobID = apiClient.putRepairV2(req).getRepairId();
+    Integer repairID = Integer.parseInt(jobID.substring(7)); // Trimming off "repair-" prefix.
+    logger.info("Repair ID: {}", repairID);
+    assertThat(repairID).isNotNull();
+    assertThat(repairID).isGreaterThan(0);
+
+    com.datastax.mgmtapi.client.model.Job status = apiClient.getJobStatus(jobID);
+    logger.info("Repair job status: {}", status);
+    assertThat(status.getStatus()).isNotNull();
+    assertThat(status.getStatusChanges()).isNotNull();
+    await().atMost(5, SECONDS).until(() -> status.getStatusChanges().size() > 0);
+    await()
+        .atMost(5, SECONDS)
+        .until(
+            () -> status.getStatus() == com.datastax.mgmtapi.client.model.Job.StatusEnum.COMPLETED);
   }
 }
