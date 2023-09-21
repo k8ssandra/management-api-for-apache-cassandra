@@ -157,6 +157,36 @@ public class NettyHttpClient {
     return result;
   }
 
+  public CompletableFuture<FullHttpResponse> put(
+      URL url, final CharSequence body, String contentType) throws UnsupportedEncodingException {
+    CompletableFuture<FullHttpResponse> result = new CompletableFuture<>();
+
+    if (!activeRequestFuture.compareAndSet(null, result))
+      throw new RuntimeException("outstanding request");
+
+    DefaultFullHttpRequest request =
+        new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.PUT, url.getFile());
+    request.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+    request.headers().set(HttpHeaderNames.HOST, url.getHost());
+
+    if (body != null) {
+      request.content().writeBytes(body.toString().getBytes(CharsetUtil.UTF_8.name()));
+      request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, request.content().readableBytes());
+    } else {
+      request.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
+    }
+
+    // Send the HTTP request.
+    client.writeAndFlush(request);
+
+    return result;
+  }
+
+  public CompletableFuture<FullHttpResponse> put(URL url, final CharSequence body)
+      throws UnsupportedEncodingException {
+    return post(url, body, "application/json");
+  }
+
   public CompletableFuture<FullHttpResponse> delete(URL url) {
     return buildAndSendRequest(HttpMethod.DELETE, url);
   }
