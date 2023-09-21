@@ -1055,12 +1055,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             null);
 
     logger.info("Sending repair request: {}", req);
-    URI repairUri = new URIBuilder(BASE_PATH_V2 + "repairs").build();
+    URI repairUri = new URIBuilder(BASE_PATH_V2 + "/repairs").build();
     Pair<Integer, String> repairResp =
         client
             .put(repairUri.toURL(), new ObjectMapper().writeValueAsString(req))
             .thenApply(this::responseAsCodeAndBody)
             .join();
+    System.out.println("repairResp was " + repairResp);
     String jobID =
         new ObjectMapper().readValue(repairResp.getRight(), RepairRequestResponse.class).repairID;
     Integer repairID =
