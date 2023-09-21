@@ -10,16 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.cassandra.utils.progress.ProgressEventType;
 
-public class Job {
-  public enum JobStatus {
-    ERROR,
-    COMPLETED,
-    WAITING;
-  }
+public class JobDto {
 
   public String jobId;
   public String jobType;
-  public JobStatus status;
+  public String status;
   public long submitTime;
   public long startTime;
   public long finishedTime;
@@ -52,11 +47,11 @@ public class Job {
 
   public List<StatusChange> statusChanges;
 
-  public Job(String jobType, String jobId) {
+  public JobDto(String jobType, String jobId) {
     this.jobType = jobType;
     this.jobId = jobId;
     submitTime = System.currentTimeMillis();
-    status = JobStatus.WAITING;
+    status = "WAITING";
     statusChanges = new ArrayList<>();
   }
 
@@ -74,11 +69,11 @@ public class Job {
     return jobType;
   }
 
-  public JobStatus getStatus() {
+  public String getStatus() {
     return status;
   }
 
-  public void setStatus(JobStatus status) {
+  public void setStatus(String status) {
     this.status = status;
   }
 

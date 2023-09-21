@@ -9,6 +9,7 @@ import com.datastax.mgmtapi.rpc.Rpc;
 import com.datastax.mgmtapi.rpc.RpcParam;
 import com.datastax.mgmtapi.rpc.RpcRegistry;
 import com.datastax.mgmtapi.util.Job;
+import com.datastax.mgmtapi.util.JobDto;
 import com.datastax.mgmtapi.util.JobExecutor;
 import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
@@ -79,22 +80,29 @@ public class NodeOpsProvider {
   }
 
   @Rpc(name = "jobStatus")
-  public Map<String, String> getJobStatus(@RpcParam(name = "job_id") String jobId) {
-    Map<String, String> resultMap = new HashMap<>();
+  public JobDto getJobStatus(@RpcParam(name = "job_id") String jobId) {
     Job jobWithId = service.getJobWithId(jobId);
     if (jobWithId == null) {
-      return resultMap;
+      return new JobDto(null, null);
     }
-    resultMap.put("id", jobWithId.getJobId());
-    resultMap.put("type", jobWithId.getJobType());
-    resultMap.put("status", jobWithId.getStatus().name());
-    resultMap.put("submit_time", String.valueOf(jobWithId.getSubmitTime()));
-    resultMap.put("end_time", String.valueOf(jobWithId.getFinishedTime()));
+    JobDto jobStatus = new JobDto(jobWithId.getJobType(), jobWithId.getJobId());
+    jobStatus.setStatus(jobWithId.getStatus().name());
+    jobWithId.statusChanges.stream()
+        .forEach(
+            statusChange -> {
+              JobDto.StatusChange changeToAdd =
+                  jobStatus.new StatusChange(statusChange.getStatus(), statusChange.message);
+              changeToAdd.changeTime = statusChange.getChangeTime();
+              jobStatus.statusChanges.add(changeToAdd);
+            });
+    jobStatus.submitTime = jobWithId.getSubmitTime();
+    jobStatus.finishedTime = jobWithId.getFinishedTime();
+    jobStatus.startTime = jobWithId.startTime;
     if (jobWithId.getStatus() == Job.JobStatus.ERROR) {
-      resultMap.put("error", jobWithId.getError().getLocalizedMessage());
+      jobStatus.setError(jobWithId.getError());
     }
 
-    return resultMap;
+    return jobStatus;
   }
 
   @Rpc(name = "setFullQuerylog")
