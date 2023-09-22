@@ -40,12 +40,14 @@ import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -585,12 +587,27 @@ public class K8OperatorResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
 
-    Map<String, String> jobDetailsRow = new HashMap<>();
+    Map<String, Object> jobDetailsRow = new HashMap<>();
     jobDetailsRow.put("id", "0fe65b47-98c2-47d8-9c3c-5810c9988e10");
     jobDetailsRow.put("type", "CLEANUP");
     jobDetailsRow.put("status", "COMPLETED");
     jobDetailsRow.put("submit_time", String.valueOf(System.currentTimeMillis()));
     jobDetailsRow.put("end_time", String.valueOf(System.currentTimeMillis()));
+
+    List<Map<String, String>> statusChanges = new ArrayList<>();
+    Map<String, String> change = Maps.newHashMap();
+    change.put("status", "SUCCESS");
+    change.put("change_time", "1695183696663");
+    change.put("message", "No message");
+    statusChanges.add(change);
+
+    ObjectMapper objectMapper = new ObjectMapper();
+    try {
+      String s = objectMapper.writeValueAsString(statusChanges);
+      jobDetailsRow.put("status_changes", s);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
 
     when(mockRow.getObject(0)).thenReturn(jobDetailsRow);
 
@@ -609,6 +626,8 @@ public class K8OperatorResourcesTest {
     assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", jobDetails.getJobId());
     assertEquals("COMPLETED", jobDetails.getStatus().toString());
     assertEquals("CLEANUP", jobDetails.getJobType());
+    assertEquals(1, jobDetails.getStatusChanges().size());
+    assertEquals("SUCCESS", jobDetails.getStatusChanges().get(0).getStatus());
   }
 
   @Test
