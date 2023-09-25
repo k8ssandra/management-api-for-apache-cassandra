@@ -19,6 +19,7 @@ import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.v2.models.RepairParallelism;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequest;
 import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
+import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import java.io.File;
@@ -50,7 +51,7 @@ public class RepairResourcesV2Test {
             Collections.singletonList("table1"),
             false,
             true,
-            Collections.EMPTY_LIST,
+            Collections.singletonList(new RingRange("-100", "100")),
             RepairParallelism.DATACENTER_AWARE,
             Collections.EMPTY_LIST,
             1);
@@ -67,7 +68,7 @@ public class RepairResourcesV2Test {
             eq(true),
             eq(RepairParallelism.DATACENTER_AWARE.getName()),
             eq(Collections.EMPTY_LIST),
-            eq(null),
+            eq("-100:100"),
             eq(Integer.valueOf(1)));
   }
 

@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
@@ -124,12 +125,7 @@ public class RepairResourcesV2 extends BaseResources {
 
   private String getRingRangeString(List<RingRange> associatedTokens) {
     if (associatedTokens != null && !associatedTokens.isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      for (RingRange ringRange : associatedTokens) {
-        sb.append(toRangeString(ringRange)).append(",");
-      }
-      // remove trailing comma
-      return sb.substring(0, sb.length() - 2);
+      return associatedTokens.stream().map(this::toRangeString).collect(Collectors.joining(","));
     }
     return null;
   }
