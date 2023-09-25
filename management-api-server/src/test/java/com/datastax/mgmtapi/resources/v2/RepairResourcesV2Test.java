@@ -113,4 +113,55 @@ public class RepairResourcesV2Test {
     assertEquals(202, resp.getStatus());
     verify(mockCqlService).executePreparedStatement(any(), eq("CALL NodeOps.stopAllRepairs()"));
   }
+
+  @Test
+  public void testGetRingRangeString() throws Exception {
+    CqlService mockCqlService = mock(CqlService.class);
+    ManagementApplication app =
+        new ManagementApplication(
+            null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
+    RepairResourcesV2 unit = new RepairResourcesV2(app);
+    List<RingRange> associatedTokens = new ArrayList<>();
+    // add some random token ranges
+    associatedTokens.add(new RingRange(-1506836194468667463l, -633835238802072494l));
+    associatedTokens.add(new RingRange(-2976249057732638160l, -1506836194468667463l));
+    associatedTokens.add(new RingRange(-6235755542119343496l, -2976249057732638160l));
+    associatedTokens.add(new RingRange(-633835238802072494l, 660806372122351317l));
+    associatedTokens.add(new RingRange(-7075332291273605506l, -6235755542119343496l));
+    associatedTokens.add(new RingRange(2303998418447223636l, 7727458699102386551l));
+    associatedTokens.add(new RingRange(660806372122351317l, 2303998418447223636l));
+    associatedTokens.add(new RingRange(7727458699102386551l, -7075332291273605506l));
+    assertEquals(
+        "-1506836194468667463:-633835238802072494,"
+            + "-2976249057732638160:-1506836194468667463,"
+            + "-6235755542119343496:-2976249057732638160,"
+            + "-633835238802072494:660806372122351317,"
+            + "-7075332291273605506:-6235755542119343496,"
+            + "2303998418447223636:7727458699102386551,"
+            + "660806372122351317:2303998418447223636,"
+            + "7727458699102386551:-7075332291273605506",
+        unit.getRingRangeString(associatedTokens));
+  }
+
+  @Test
+  public void testGetRingRangeStringNull() throws Exception {
+    CqlService mockCqlService = mock(CqlService.class);
+    ManagementApplication app =
+        new ManagementApplication(
+            null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
+    RepairResourcesV2 unit = new RepairResourcesV2(app);
+    // test a null ring range
+    assertEquals(null, unit.getRingRangeString(null));
+  }
+
+  @Test
+  public void testGetRingRangeStringEmpty() throws Exception {
+    CqlService mockCqlService = mock(CqlService.class);
+    ManagementApplication app =
+        new ManagementApplication(
+            null, null, new File("/tmp/cassandra.sock"), mockCqlService, null);
+    RepairResourcesV2 unit = new RepairResourcesV2(app);
+    // test a empty ring range
+    assertEquals(null, unit.getRingRangeString(Collections.EMPTY_LIST));
+  }
 }

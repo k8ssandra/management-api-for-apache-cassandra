@@ -13,6 +13,7 @@ import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
 import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.google.common.annotations.VisibleForTesting;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -123,11 +124,12 @@ public class RepairResourcesV2 extends BaseResources {
     return parallelism != null ? parallelism.getName() : null;
   }
 
-  private String getRingRangeString(List<RingRange> associatedTokens) {
-    if (associatedTokens != null && !associatedTokens.isEmpty()) {
-      return associatedTokens.stream().map(this::toRangeString).collect(Collectors.joining(","));
+  @VisibleForTesting
+  String getRingRangeString(List<RingRange> associatedTokens) {
+    if (associatedTokens == null || associatedTokens.isEmpty()) {
+      return null;
     }
-    return null;
+    return associatedTokens.stream().map(i -> toRangeString(i)).collect(Collectors.joining(","));
   }
 
   private String toRangeString(RingRange ringRange) {
