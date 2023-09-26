@@ -617,7 +617,7 @@ public class K8OperatorResourcesTest {
 
     Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
     verify(context.cqlService)
-        .executePreparedStatement(any(), eq("CALL NodeOps.jobStatus(?)"), anyString());
+        .executePreparedStatement(any(), eq("CALL NodeOps.getJobStatus(?)"), anyString());
 
     String json = response.getContentAsString();
 
@@ -648,7 +648,7 @@ public class K8OperatorResourcesTest {
 
     Assert.assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatus());
     verify(context.cqlService)
-        .executePreparedStatement(any(), eq("CALL NodeOps.jobStatus(?)"), anyString());
+        .executePreparedStatement(any(), eq("CALL NodeOps.getJobStatus(?)"), anyString());
 
     String json = response.getContentAsString();
     assertEquals("{}", json);

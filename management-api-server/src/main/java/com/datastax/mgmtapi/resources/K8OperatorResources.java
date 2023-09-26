@@ -191,7 +191,7 @@ public class K8OperatorResources extends BaseResources {
           Map<String, String> jobResponse =
               (Map<String, String>)
                   ResponseTools.getSingleRowResponse(
-                      app.dbUnixSocketFile, app.cqlService, "CALL NodeOps.jobStatus(?)", jobId);
+                      app.dbUnixSocketFile, app.cqlService, "CALL NodeOps.getJobStatus(?)", jobId);
           if (jobResponse.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).entity(jobResponse).build();
           }

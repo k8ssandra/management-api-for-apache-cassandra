@@ -81,7 +81,7 @@ public class NodeOpsProvider {
     RpcRegistry.unregister(RPC_CLASS_NAME);
   }
 
-  @Rpc(name = "jobStatus")
+  @Rpc(name = "getJobStatus")
   public Map<String, String> getJobStatus(@RpcParam(name = "job_id") String jobId) {
     Map<String, String> resultMap = new HashMap<>();
     Job jobWithId = service.getJobWithId(jobId);
