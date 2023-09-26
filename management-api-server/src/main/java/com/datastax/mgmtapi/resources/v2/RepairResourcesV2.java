@@ -13,12 +13,14 @@ import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
 import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.google.common.annotations.VisibleForTesting;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
@@ -122,16 +124,12 @@ public class RepairResourcesV2 extends BaseResources {
     return parallelism != null ? parallelism.getName() : null;
   }
 
-  private String getRingRangeString(List<RingRange> associatedTokens) {
-    if (associatedTokens != null && !associatedTokens.isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      for (RingRange ringRange : associatedTokens) {
-        sb.append(toRangeString(ringRange)).append(",");
-      }
-      // remove trailing comma
-      return sb.substring(0, sb.length() - 2);
+  @VisibleForTesting
+  String getRingRangeString(List<RingRange> associatedTokens) {
+    if (associatedTokens == null || associatedTokens.isEmpty()) {
+      return null;
     }
-    return null;
+    return associatedTokens.stream().map(i -> toRangeString(i)).collect(Collectors.joining(","));
   }
 
   private String toRangeString(RingRange ringRange) {
