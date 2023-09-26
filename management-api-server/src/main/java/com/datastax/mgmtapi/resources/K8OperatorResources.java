@@ -11,6 +11,7 @@ import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.Job;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -195,7 +196,23 @@ public class K8OperatorResources extends BaseResources {
           if (jobResponse.isEmpty()) {
             return Response.status(Response.Status.NOT_FOUND).entity(jobResponse).build();
           }
-          return Response.ok(jobResponse, MediaType.APPLICATION_JSON).build();
+
+          TypeReference listOfJobStatus = new TypeReference<List<Job.StatusChange>>() {};
+          try {
+            Job outJob =
+                new Job(
+                    jobResponse.get("id"),
+                    jobResponse.get("type"),
+                    jobResponse.get("status"),
+                    Long.parseLong(jobResponse.get("submit_time")),
+                    Long.parseLong(jobResponse.get("end_time")),
+                    jobResponse.get("error"),
+                    (List<Job.StatusChange>)
+                        jsonMapper.readValue(jobResponse.get("status_changes"), listOfJobStatus));
+            return Response.ok(outJob, MediaType.APPLICATION_JSON).build();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
         });
   }
 }

@@ -587,7 +587,7 @@ public class K8OperatorResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
 
-    Map<String, Object> jobDetailsRow = new HashMap<>();
+    Map<String, String> jobDetailsRow = new HashMap<>();
     jobDetailsRow.put("id", "0fe65b47-98c2-47d8-9c3c-5810c9988e10");
     jobDetailsRow.put("type", "CLEANUP");
     jobDetailsRow.put("status", "COMPLETED");
