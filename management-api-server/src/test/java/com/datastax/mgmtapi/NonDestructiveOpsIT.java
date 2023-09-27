@@ -794,16 +794,12 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                 return;
               }
               assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
-              Map<String, String> jobDetails =
+              Job jobDetails =
                   new JsonMapper()
-                      .readValue(
-                          getJobDetailsResponse.getRight(),
-                          new TypeReference<Map<String, String>>() {});
-              assertThat(jobDetails)
-                  .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
-                  .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("repair"))
-                  .hasEntrySatisfying(
-                      "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
+                      .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
+              assertThat(jobDetails.getJobId()).isEqualTo(jobId);
+              assertThat(jobDetails.getJobType()).isEqualTo("repair");
+              assertThat(jobDetails.getStatus()).isIn("COMPLETED", "ERROR");
             });
   }
 
@@ -1019,18 +1015,12 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                       .thenApply(this::responseAsCodeAndBody)
                       .join();
               assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
-              Map<String, String> jobDetails =
+              Job jobDetails =
                   new JsonMapper()
-                      .readValue(
-                          getJobDetailsResponse.getRight(),
-                          new TypeReference<Map<String, String>>() {});
-              assertThat(jobDetails)
-                  .hasEntrySatisfying("id", value -> assertThat(value).isEqualTo(jobId))
-                  .hasEntrySatisfying("type", value -> assertThat(value).isEqualTo("move"))
-                  // if the server has only one token, the job will be completed, otherwise it will
-                  // end up in error
-                  .hasEntrySatisfying(
-                      "status", value -> assertThat(value).isIn("COMPLETED", "ERROR"));
+                      .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
+              assertThat(jobDetails.getJobId()).isEqualTo(jobId);
+              assertThat(jobDetails.getJobType()).isEqualTo("move");
+              assertThat(jobDetails.getStatus()).isIn("COMPLETED", "ERROR");
             });
   }
 }
