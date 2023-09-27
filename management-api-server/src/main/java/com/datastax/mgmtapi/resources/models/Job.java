@@ -7,12 +7,7 @@ package com.datastax.mgmtapi.resources.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Job implements Serializable {
@@ -84,32 +79,14 @@ public class Job implements Serializable {
       @JsonProperty(value = "submit_time") long submitTime,
       @JsonProperty(value = "end_time") long finishedTime,
       @JsonProperty(value = "error") String error,
-      @JsonProperty(value = "status_changes") String changes) {
+      @JsonProperty(value = "status_changes") List<StatusChange> statusChanges) {
     this.jobId = jobId;
     this.jobType = jobType;
     this.status = JobStatus.valueOf(status);
     this.submitTime = submitTime;
     this.finishedTime = finishedTime;
     this.error = error;
-    this.statusChanges = changes(changes);
-  }
-
-  public List<StatusChange> changes(String s) {
-    ObjectMapper objectMapper = new ObjectMapper();
-    if (s.length() < 2) {
-      return new ArrayList<>();
-    }
-    try {
-      JsonNode parent = objectMapper.readTree(s);
-
-      List<StatusChange> changes =
-          objectMapper.readValue(parent.traverse(), new TypeReference<List<StatusChange>>() {});
-
-      return changes;
-
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    this.statusChanges = statusChanges;
   }
 
   public String getJobId() {
