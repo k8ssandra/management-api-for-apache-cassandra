@@ -10,9 +10,13 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.67 (2023-09-29)
 * [CHANGE]  [#323](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/323) Rename Maven artifact groupId from com.datastax to io.k8ssandra
 * [FEATURE] [#323](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/323) Add OpenAPI Java client generation
 * [FEATURE] [#337](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/337) Publish Maven artifacts to Cloudsmith.io
+* [FEATURE] [#375](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/375) Add SSL/TLS hot reloading and allow TLS v1.3
+* [FEATURE] [#349](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/349) Metrics endpoint should allow querying a subset
 * [FEATURE] [#395](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/395) Add Cassandra version 3.11.16
 * [FEATURE] [#380](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/380) Add DSE 6.8.38
 * [BUGFIX]  [#339](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/339) OpenAPI client publish does not also publish other artifacts
