@@ -290,7 +290,7 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
                     return operationType != OperationType.COUNTER_CACHE_SAVE
                         && operationType != OperationType.KEY_CACHE_SAVE
                         && operationType != OperationType.ROW_CACHE_SAVE;
-                  } catch(IllegalArgumentException e) {
+                  } catch (IllegalArgumentException e) {
                     return false;
                   }
                 })
