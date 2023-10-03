@@ -285,10 +285,14 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
             .filter(
                 c -> {
                   String taskType = c.get("taskType");
-                  OperationType operationType = OperationType.valueOf(taskType);
-                  return operationType != OperationType.COUNTER_CACHE_SAVE
-                      && operationType != OperationType.KEY_CACHE_SAVE
-                      && operationType != OperationType.ROW_CACHE_SAVE;
+                  try {
+                    OperationType operationType = OperationType.valueOf(taskType.toUpperCase());
+                    return operationType != OperationType.COUNTER_CACHE_SAVE
+                        && operationType != OperationType.KEY_CACHE_SAVE
+                        && operationType != OperationType.ROW_CACHE_SAVE;
+                  } catch(IllegalArgumentException e) {
+                    return false;
+                  }
                 })
             .collect(Collectors.toList());
 
