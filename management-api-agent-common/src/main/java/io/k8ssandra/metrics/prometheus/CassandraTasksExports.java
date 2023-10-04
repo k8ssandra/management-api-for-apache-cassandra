@@ -7,6 +7,7 @@ package io.k8ssandra.metrics.prometheus;
 
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.mgmtapi.ShimLoader;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
 import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
@@ -60,6 +61,12 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
   @Override
   public List<MetricFamilySamples> describe() {
     return new ArrayList<>();
+  }
+
+  // Exported here to allow easier testing
+  @VisibleForTesting
+  List<Map<String, List<Map<String, String>>>> getStreamInfos() {
+    return ShimLoader.instance.get().getStreamInfo();
   }
 
   List<MetricFamilySamples> getStreamInfoStats() {
@@ -128,8 +135,7 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
     // 3.11 and 4.x. Simplify this once 3.11 support is dropped to use
     // StreamManager.instance.getCurrentStreams() ..
 
-    List<Map<String, List<Map<String, String>>>> streamInfos =
-        ShimLoader.instance.get().getStreamInfo();
+    List<Map<String, List<Map<String, String>>>> streamInfos = getStreamInfos();
 
     List<MetricFamilySamples.Sample> totalFilesToReceiveSamples = new ArrayList<>();
     List<MetricFamilySamples.Sample> totalFilesReceivedSamples = new ArrayList<>();
@@ -144,12 +150,13 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
       for (Map.Entry<String, List<Map<String, String>>> sessionResults : streamInfo.entrySet()) {
         String planId = sessionResults.getKey();
         for (Map<String, String> session : sessionResults.getValue()) {
-          ArrayList<String> labelValues =
-              Lists.newArrayList(
-                  planId,
-                  session.get("STREAM_OPERATION"),
-                  session.get("PEER"),
-                  session.get("USING_CONNECTION"));
+          List<String> labelValues =
+              Lists.newArrayListWithCapacity(filesToReceive.getLabelValues().size() + 4);
+          labelValues.addAll(filesToReceive.getLabelValues());
+          labelValues.add(planId);
+          labelValues.add(session.get("STREAM_OPERATION"));
+          labelValues.add(session.get("PEER"));
+          labelValues.add(session.get("USING_CONNECTION"));
 
           long totalFilesToReceive = Long.parseLong(session.get("TOTAL_FILES_TO_RECEIVE"));
           long totalFilesReceived = Long.parseLong(session.get("TOTAL_FILES_RECEIVED"));
@@ -276,17 +283,23 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
         sizeSentFamily);
   }
 
+  List<Map<String, String>> getCompactions() {
+    return ShimLoader.instance.get().getCompactionManager().getCompactions();
+  }
+
   List<MetricFamilySamples> getCompactionStats() {
 
     // Cassandra's internal CompactionMetrics are close to what we want, but not exactly.
     // And we can't access CompactionManager.getMetrics() to get them in 3.11
     List<Map<String, String>> compactions =
-        ShimLoader.instance.get().getCompactionManager().getCompactions().stream()
+        getCompactions().stream()
             .filter(
                 c -> {
                   String taskType = c.get("taskType");
                   try {
                     OperationType operationType = OperationType.valueOf(taskType.toUpperCase());
+                    // Ignore taskTypes: COUNTER_CACHE_SAVE, KEY_CACHE_SAVE, ROW_CACHE_SAVE (from
+                    // Cassandra 4.1)
                     return operationType != OperationType.COUNTER_CACHE_SAVE
                         && operationType != OperationType.KEY_CACHE_SAVE
                         && operationType != OperationType.ROW_CACHE_SAVE;
@@ -296,7 +309,6 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
                 })
             .collect(Collectors.toList());
 
-    // Ignore taskTypes: COUNTER_CACHE_SAVE, KEY_CACHE_SAVE, ROW_CACHE_SAVE (from Cassandra 4.1)
     ArrayList<String> additionalLabels =
         Lists.newArrayList("keyspace", "table", "compaction_id", "unit", "type");
 
@@ -312,13 +324,14 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
     List<MetricFamilySamples.Sample> completedSamples = new ArrayList<>(compactions.size() * 2);
     List<MetricFamilySamples.Sample> totalSamples = new ArrayList<>(compactions.size() * 2);
     for (Map<String, String> c : compactions) {
-      ArrayList<String> labelValues =
-          Lists.newArrayList(
-              c.get("keyspace"),
-              c.get("columnfamily"),
-              c.get("compactionId"),
-              c.get("unit"),
-              c.get("taskType"));
+      List<String> labelValues =
+          Lists.newArrayListWithCapacity(protoCompleted.getLabelValues().size() + 5);
+      labelValues.addAll(protoCompleted.getLabelValues());
+      labelValues.add(c.get("keyspace"));
+      labelValues.add(c.get("columnfamily"));
+      labelValues.add(c.get("compactionId"));
+      labelValues.add(c.get("unit"));
+      labelValues.add(c.get("taskType"));
 
       Collector.MetricFamilySamples.Sample completeSample =
           new Collector.MetricFamilySamples.Sample(
