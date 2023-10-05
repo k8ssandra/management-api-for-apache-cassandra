@@ -342,8 +342,8 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
 
       Collector.MetricFamilySamples.Sample totalSample =
           new Collector.MetricFamilySamples.Sample(
-              protoCompleted.getMetricName(),
-              protoCompleted.getLabelNames(),
+              protoTotal.getMetricName(),
+              protoTotal.getLabelNames(),
               labelValues,
               Double.parseDouble(c.get("total")));
 
