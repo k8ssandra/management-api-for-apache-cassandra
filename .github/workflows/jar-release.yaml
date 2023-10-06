@@ -48,6 +48,7 @@ jobs:
           management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-4.1.x/target/datastax-mgmtapi-agent-*.jar \
+          management-api-agent-5.0.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-dse-6.8/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-dse7/target/datastax-mgmtapi-agent-*.jar \
           management-api-server/target/datastax-mgmtapi-server-*.jar \

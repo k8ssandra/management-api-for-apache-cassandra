@@ -31,6 +31,9 @@ jobs:
           - cassandra-version: '4.1-ubi8'
             docker-file: Dockerfile-4_1.ubi8
             build-target: oss41
+          - cassandra-version: '5.0-ubi8'
+            docker-file: Dockerfile-5_0.ubi8
+            build-target: oss50
     steps:
       - name: Check out source code
         uses: actions/checkout@v3

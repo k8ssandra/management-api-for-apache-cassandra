@@ -85,6 +85,7 @@ COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xm
 COPY management-api-agent-3.x/pom.xml /tmp/management-api-agent-3.x/pom.xml
 COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
+COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
 COPY management-api-agent-dse-6.8/pom.xml tmp/management-api-agent-dse-6.8/pom.xml
 COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
@@ -97,6 +98,7 @@ COPY management-api-agent-common /tmp/management-api-agent-common
 COPY management-api-agent-3.x /tmp/management-api-agent-3.x
 COPY management-api-agent-4.x /tmp/management-api-agent-4.x
 COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
+COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server

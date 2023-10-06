@@ -15,6 +15,7 @@ COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
 COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
 COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml ./management-api-agent-4.1.x/pom.xml
+COPY management-api-agent-5.0.x/pom.xml ./management-api-agent-5.0.x/pom.xml
 COPY management-api-common/pom.xml ./management-api-common/pom.xml
 COPY management-api-server/pom.xml ./management-api-server/pom.xml
 # this duplicates work done in the next steps, but this should provide
@@ -25,6 +26,7 @@ COPY management-api-agent-common ./management-api-agent-common
 COPY management-api-agent-3.x ./management-api-agent-3.x
 COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
+COPY management-api-agent-5.0.x ./management-api-agent-5.0.x
 COPY management-api-common ./management-api-common
 COPY management-api-server ./management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} && \
