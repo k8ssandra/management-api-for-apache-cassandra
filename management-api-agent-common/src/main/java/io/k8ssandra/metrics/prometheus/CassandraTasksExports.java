@@ -296,6 +296,15 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
             .filter(
                 c -> {
                   String taskType = c.get("taskType");
+                  if (taskType == null) {
+                    // DSE 6.8 renamed the column
+                    taskType = c.get("operationType");
+                  }
+
+                  if (taskType == null) {
+                    return false;
+                  }
+
                   try {
                     OperationType operationType = OperationType.valueOf(taskType.toUpperCase());
                     // Ignore taskTypes: COUNTER_CACHE_SAVE, KEY_CACHE_SAVE, ROW_CACHE_SAVE (from
@@ -327,11 +336,24 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
       List<String> labelValues =
           Lists.newArrayListWithCapacity(protoCompleted.getLabelValues().size() + 5);
       labelValues.addAll(protoCompleted.getLabelValues());
+
+      String compactionId = c.get("compactionId");
+      if (compactionId == null) {
+        // DSE 6.8 renamed this one also
+        compactionId = c.get("operationId");
+      }
+
+      String taskType = c.get("taskType");
+      if (taskType == null) {
+        // DSE 6.8
+        taskType = c.get("operationType");
+      }
+
       labelValues.add(c.get("keyspace"));
       labelValues.add(c.get("columnfamily"));
-      labelValues.add(c.get("compactionId"));
+      labelValues.add(compactionId);
       labelValues.add(c.get("unit"));
-      labelValues.add(c.get("taskType"));
+      labelValues.add(taskType);
 
       Collector.MetricFamilySamples.Sample completeSample =
           new Collector.MetricFamilySamples.Sample(
