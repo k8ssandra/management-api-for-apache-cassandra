@@ -77,11 +77,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   public CassandraMetricRegistryListener(
       ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, Configuration config)
       throws NoSuchMethodException {
-    parser =
-        new CassandraMetricNameParser(
-            CassandraMetricsTools.DEFAULT_LABEL_NAMES,
-            CassandraMetricsTools.DEFAULT_LABEL_VALUES,
-            config);
+    parser = CassandraMetricNameParser.getDefaultParser(config);
     cache = new ConcurrentHashMap<>();
 
     this.familyCache = familyCache;

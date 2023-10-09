@@ -13,3 +13,4 @@ relabels:
     separator: ","
     regex: "^(a|b|c),.*"
     action: "drop"
+extended_metrics_disabled: true

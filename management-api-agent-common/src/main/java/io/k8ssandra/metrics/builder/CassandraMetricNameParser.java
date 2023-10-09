@@ -42,6 +42,13 @@ public class CassandraMetricNameParser {
     }
   }
 
+  public static CassandraMetricNameParser getDefaultParser(Configuration config) {
+    return new CassandraMetricNameParser(
+        CassandraMetricsTools.DEFAULT_LABEL_NAMES,
+        CassandraMetricsTools.DEFAULT_LABEL_VALUES,
+        config);
+  }
+
   private void parseEnvVariablesAsLabels(Map<String, String> envSettings) {
     for (Map.Entry<String, String> entry : envSettings.entrySet()) {
       String envValue = System.getenv(entry.getValue());

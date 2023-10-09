@@ -163,3 +163,4 @@ labels:
   env:
     pod_name: "POD_NAME"
     node_name: "NODE_NAME"
+extended_metrics_disabled: false
