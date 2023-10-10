@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE]  [#400](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/400) Ensure curl and wget are installed in images
 * [FEATURE] [#326](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/326) Provide topology endpoints in OpenAPI client
 * [FEATURE] [#345](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/345) Implement host related methods
 * [FEATURE] [#361](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/361) Add new listTables operation with more detailed response
