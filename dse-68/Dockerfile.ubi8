@@ -66,7 +66,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en && microdnf clean all
+    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget && microdnf clean all
 
 WORKDIR $HOME
 
