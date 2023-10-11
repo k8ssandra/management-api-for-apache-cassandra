@@ -1060,7 +1060,7 @@ public class K8OperatorResourcesTest {
     ResultSet mockResultSet = mock(ResultSet.class);
     Row mockRow = mock(Row.class);
 
-    when(context.cqlService.executePreparedStatement(any(), anyString(), any(), any(), any()))
+    when(context.cqlService.executePreparedStatement(any(), anyString()))
         .thenReturn(mockResultSet);
 
     when(mockResultSet.one()).thenReturn(mockRow);
