@@ -321,18 +321,18 @@ public class TableOpsResources extends BaseResources {
       responseCode = "202",
       description = "Job ID for table garbage collection process",
       content =
-      @Content(
-          mediaType = MediaType.TEXT_PLAIN,
-          schema = @Schema(implementation = String.class),
-          examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
   @ApiResponse(
       responseCode = "400",
       description = "Invalid table garbage collection request",
       content =
-      @Content(
-          mediaType = MediaType.TEXT_PLAIN,
-          schema = @Schema(implementation = String.class),
-          examples = @ExampleObject(value = "tombstoneOption must be either ROW or CELL")))
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "tombstoneOption must be either ROW or CELL")))
   @Operation(
       summary = "Remove deleted data from one or more tables",
       operationId = "garbageCollect")
@@ -384,10 +384,10 @@ public class TableOpsResources extends BaseResources {
       responseCode = "202",
       description = "Job ID for table flush process",
       content =
-      @Content(
-          mediaType = MediaType.TEXT_PLAIN,
-          schema = @Schema(implementation = String.class),
-          examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
   @Operation(summary = "Flush one or more tables", operationId = "flush")
   public Response flush(KeyspaceRequest keyspaceRequest) {
     return handle(
