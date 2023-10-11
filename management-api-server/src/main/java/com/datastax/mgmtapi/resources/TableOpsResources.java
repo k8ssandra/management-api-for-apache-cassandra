@@ -276,11 +276,12 @@ public class TableOpsResources extends BaseResources {
 
           app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
-              "CALL NodeOps.garbageCollect(?, ?, ?, ?)",
+              "CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)",
               tombstoneOption,
               keyspaceRequest.jobs,
               keyspaceName,
-              tables);
+              tables,
+              false);
 
           return Response.ok("OK").build();
         });
@@ -313,7 +314,11 @@ public class TableOpsResources extends BaseResources {
           }
 
           app.cqlService.executePreparedStatement(
-              app.dbUnixSocketFile, "CALL NodeOps.forceKeyspaceFlush(?, ?)", keyspaceName, tables);
+              app.dbUnixSocketFile,
+              "CALL NodeOps.forceKeyspaceFlush(?, ?, ?)",
+              keyspaceName,
+              tables,
+              false);
 
           return Response.ok("OK").build();
         });

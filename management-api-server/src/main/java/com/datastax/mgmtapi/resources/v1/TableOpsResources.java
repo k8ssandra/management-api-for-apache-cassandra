@@ -312,4 +312,105 @@ public class TableOpsResources extends BaseResources {
           return Response.ok(tables, MediaType.APPLICATION_JSON).build();
         });
   }
+
+  @POST
+  @Path("/garbagecollect")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "202",
+      description = "Job ID for table garbage collection process",
+      content =
+      @Content(
+          mediaType = MediaType.TEXT_PLAIN,
+          schema = @Schema(implementation = String.class),
+          examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Invalid table garbage collection request",
+      content =
+      @Content(
+          mediaType = MediaType.TEXT_PLAIN,
+          schema = @Schema(implementation = String.class),
+          examples = @ExampleObject(value = "tombstoneOption must be either ROW or CELL")))
+  @Operation(
+      summary = "Remove deleted data from one or more tables",
+      operationId = "garbageCollect")
+  public Response garbageCollect(
+      @QueryParam(value = "tombstoneOption") String tombstoneOptionStr,
+      KeyspaceRequest keyspaceRequest) {
+    return handle(
+        () -> {
+          List<String> tables = keyspaceRequest.tables;
+          if (CollectionUtils.isEmpty(tables)) {
+            tables = new ArrayList<>();
+          }
+
+          String keyspaceName = keyspaceRequest.keyspaceName;
+          if (StringUtils.isBlank(keyspaceName)) {
+            keyspaceName = "ALL";
+          }
+          String tombstoneOption = tombstoneOptionStr;
+          if (StringUtils.isBlank(tombstoneOption)) {
+            tombstoneOption = "ROW";
+          }
+
+          if (!StringUtils.equalsIgnoreCase("ROW", tombstoneOption)
+              && !StringUtils.equalsIgnoreCase("CELL", tombstoneOption)) {
+            return Response.status(HttpStatus.SC_BAD_REQUEST)
+                .entity("tombstoneOption must be either ROW or CELL")
+                .build();
+          }
+
+          return Response.accepted(
+                  ResponseTools.getSingleRowStringResponse(
+                      app.dbUnixSocketFile,
+                      app.cqlService,
+                      "CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)",
+                      tombstoneOption,
+                      keyspaceRequest.jobs,
+                      keyspaceName,
+                      tables,
+                      true))
+              .build();
+        });
+  }
+
+  @POST
+  @Path("/flush")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "202",
+      description = "Job ID for table flush process",
+      content =
+      @Content(
+          mediaType = MediaType.TEXT_PLAIN,
+          schema = @Schema(implementation = String.class),
+          examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
+  @Operation(summary = "Flush one or more tables", operationId = "flush")
+  public Response flush(KeyspaceRequest keyspaceRequest) {
+    return handle(
+        () -> {
+          List<String> tables = keyspaceRequest.tables;
+          if (CollectionUtils.isEmpty(tables)) {
+            tables = new ArrayList<>();
+          }
+
+          String keyspaceName = keyspaceRequest.keyspaceName;
+          if (StringUtils.isBlank(keyspaceName)) {
+            keyspaceName = "ALL";
+          }
+
+          return Response.accepted(
+                  ResponseTools.getSingleRowStringResponse(
+                      app.dbUnixSocketFile,
+                      app.cqlService,
+                      "CALL NodeOps.forceKeyspaceFlush(?, ?, ?)",
+                      keyspaceName,
+                      tables,
+                      true))
+              .build();
+        });
+  }
 }

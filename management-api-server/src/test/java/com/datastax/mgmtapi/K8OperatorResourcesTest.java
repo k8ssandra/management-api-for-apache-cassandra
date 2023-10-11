@@ -1040,11 +1040,51 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"),
+            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)"),
             eq(tombstoneOption),
             eq(1),
             eq(keyspaceRequest.keyspaceName),
-            any());
+            any(),
+            eq(false));
+  }
+
+  @Test
+  public void testGarbageCollectAsync() throws Exception {
+    KeyspaceRequest keyspaceRequest =
+        new KeyspaceRequest(1, "keyspace", Arrays.asList("table1", "table2"));
+
+    String tombstoneOption = "ROW";
+
+    Context context = setup();
+
+    ResultSet mockResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(any(), anyString(), any(), any(), any()))
+        .thenReturn(mockResultSet);
+
+    when(mockResultSet.one()).thenReturn(mockRow);
+    when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+    String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    MockHttpResponse response =
+        postWithBodyFullPath(
+            "/api/v1/ops/tables/garbagecollect?tombstoneOption=" + tombstoneOption,
+            requestAsJSON,
+            context);
+
+    Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+    assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+    verify(context.cqlService, timeout(500))
+        .executePreparedStatement(
+            any(),
+            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)"),
+            eq(tombstoneOption),
+            eq(1),
+            eq(keyspaceRequest.keyspaceName),
+            any(),
+            eq(true));
   }
 
   @Test
@@ -1064,11 +1104,12 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"),
+            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)"),
             any(),
             eq(1),
             eq(keyspaceRequest.keyspaceName),
-            any());
+            any(),
+            eq(false));
   }
 
   @Test
@@ -1088,7 +1129,13 @@ public class K8OperatorResourcesTest {
 
     verify(context.cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.garbageCollect(?, ?, ?, ?)"), any(), eq(1), eq("ALL"), any());
+            any(),
+            eq("CALL NodeOps.garbageCollect(?, ?, ?, ?, ?)"),
+            any(),
+            eq(1),
+            eq("ALL"),
+            any(),
+            eq(false));
   }
 
   @Test
@@ -1118,7 +1165,7 @@ public class K8OperatorResourcesTest {
 
     Context context = setup();
 
-    when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+    when(context.cqlService.executePreparedStatement(any(), anyString(), any())).thenReturn(null);
 
     String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
     MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
@@ -1129,9 +1176,42 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"),
+            eq("CALL NodeOps.forceKeyspaceFlush(?, ?, ?)"),
             eq(keyspaceRequest.keyspaceName),
-            any());
+            any(),
+            eq(false));
+  }
+
+  @Test
+  public void testFlushAsync() throws Exception {
+    KeyspaceRequest keyspaceRequest =
+        new KeyspaceRequest(1, "keyspace", Arrays.asList("table1", "table2"));
+
+    Context context = setup();
+
+    ResultSet mockResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(any(), anyString(), any()))
+        .thenReturn(mockResultSet);
+
+    when(mockResultSet.one()).thenReturn(mockRow);
+    when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+    String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    MockHttpResponse response =
+        postWithBodyFullPath("/api/v1/ops/tables/flush", requestAsJSON, context);
+
+    Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+    assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+    verify(context.cqlService, timeout(500))
+        .executePreparedStatement(
+            any(),
+            eq("CALL NodeOps.forceKeyspaceFlush(?, ?, ?)"),
+            eq(keyspaceRequest.keyspaceName),
+            any(),
+            eq(true));
   }
 
   @Test
@@ -1140,7 +1220,7 @@ public class K8OperatorResourcesTest {
 
     Context context = setup();
 
-    when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+    when(context.cqlService.executePreparedStatement(any(), anyString(), any())).thenReturn(null);
 
     String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
     MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
@@ -1151,9 +1231,10 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService)
         .executePreparedStatement(
             any(),
-            eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"),
+            eq("CALL NodeOps.forceKeyspaceFlush(?, ?, ?)"),
             eq(keyspaceRequest.keyspaceName),
-            any());
+            any(),
+            eq(false));
   }
 
   @Test
@@ -1163,7 +1244,7 @@ public class K8OperatorResourcesTest {
 
     Context context = setup();
 
-    when(context.cqlService.executePreparedStatement(any(), anyString())).thenReturn(null);
+    when(context.cqlService.executePreparedStatement(any(), anyString(), any())).thenReturn(null);
 
     String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
     MockHttpResponse response = postWithBody("/ops/tables/flush", requestAsJSON, context);
@@ -1173,7 +1254,7 @@ public class K8OperatorResourcesTest {
 
     verify(context.cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.forceKeyspaceFlush(?, ?)"), eq("ALL"), any());
+            any(), eq("CALL NodeOps.forceKeyspaceFlush(?, ?, ?)"), eq("ALL"), any(), eq(false));
   }
 
   @Test
