@@ -408,11 +408,12 @@ public class NodeOpsProvider {
   }
 
   @Rpc(name = "garbageCollect")
-  public void garbageCollect(
+  public String garbageCollect(
       @RpcParam(name = "tombstoneOption") String tombstoneOption,
       @RpcParam(name = "jobs") int jobs,
       @RpcParam(name = "keyspaceName") String keyspaceName,
-      @RpcParam(name = "tableNames") List<String> tableNames)
+      @RpcParam(name = "tableNames") List<String> tableNames,
+      @RpcParam(name = "async") boolean async)
       throws InterruptedException, ExecutionException, IOException {
     logger.debug("Garbage collecting on keyspace {}", keyspaceName);
     List<String> keyspaces = Collections.singletonList(keyspaceName);
@@ -420,12 +421,24 @@ public class NodeOpsProvider {
       keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
     }
 
-    for (String keyspace : keyspaces) {
-      ShimLoader.instance
-          .get()
-          .getStorageService()
-          .garbageCollect(tombstoneOption, jobs, keyspace, tableNames.toArray(new String[] {}));
-    }
+    final List<String> keyspaceList = keyspaces;
+
+    Runnable garbageCollectOperation =
+        () -> {
+          for (String keyspace : keyspaceList) {
+            try {
+              ShimLoader.instance
+                  .get()
+                  .getStorageService()
+                  .garbageCollect(
+                      tombstoneOption, jobs, keyspace, tableNames.toArray(new String[] {}));
+            } catch (IOException | ExecutionException | InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        };
+
+    return submitJob(OperationType.GARBAGE_COLLECT.name(), garbageCollectOperation, async);
   }
 
   @Rpc(name = "loadNewSSTables")
@@ -437,9 +450,10 @@ public class NodeOpsProvider {
   }
 
   @Rpc(name = "forceKeyspaceFlush")
-  public void forceKeyspaceFlush(
+  public String forceKeyspaceFlush(
       @RpcParam(name = "keyspaceName") String keyspaceName,
-      @RpcParam(name = "tableNames") List<String> tableNames)
+      @RpcParam(name = "tableNames") List<String> tableNames,
+      @RpcParam(name = "async") boolean async)
       throws IOException {
     logger.debug("Forcing keyspace flush on keyspace {}", keyspaceName);
     List<String> keyspaces = Collections.singletonList(keyspaceName);
@@ -447,12 +461,23 @@ public class NodeOpsProvider {
       keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
     }
 
-    for (String keyspace : keyspaces) {
-      ShimLoader.instance
-          .get()
-          .getStorageService()
-          .forceKeyspaceFlush(keyspace, tableNames.toArray(new String[] {}));
-    }
+    final List<String> keyspaceList = keyspaces;
+
+    Runnable flushOperation =
+        () -> {
+          for (String keyspace : keyspaceList) {
+            try {
+              ShimLoader.instance
+                  .get()
+                  .getStorageService()
+                  .forceKeyspaceFlush(keyspace, tableNames.toArray(new String[] {}));
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        };
+
+    return submitJob(OperationType.FLUSH.name(), flushOperation, async);
   }
 
   @Rpc(name = "scrub")

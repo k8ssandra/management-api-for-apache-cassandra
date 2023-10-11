@@ -21,7 +21,9 @@ public class FeatureSet implements Serializable {
     ASYNC_UPGRADE_SSTABLE_TASK("async_upgrade_sstable_task"),
     ASYNC_COMPACTION_TASKS("async_compaction_task"),
     ASYNC_SCRUB_TASK("async_scrub_task"),
-    ASYNC_MOVE_TASK("async_move_task");
+    ASYNC_MOVE_TASK("async_move_task"),
+    ASYNC_GC_TASK("async_gc_task"),
+    ASYNC_FLUSH_TASK("async_flush_task");
 
     @JsonValue private String featureName;
 
