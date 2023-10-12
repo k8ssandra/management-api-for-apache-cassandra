@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.awaitility.Awaitility.await;
@@ -31,6 +32,8 @@ import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.datastax.mgmtapi.resources.models.ScrubRequest;
 import com.datastax.mgmtapi.resources.models.Table;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
+import com.datastax.mgmtapi.resources.v2.models.RepairParallelism;
+import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -49,7 +52,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
@@ -112,7 +114,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
       if (ready) break;
 
-      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
+      Uninterruptibles.sleepUninterruptibly(10, SECONDS);
     }
 
     logger.info("CASSANDRA ALIVE: {}", ready);
@@ -1021,6 +1023,65 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
               assertThat(jobDetails.getJobId()).isEqualTo(jobId);
               assertThat(jobDetails.getJobType()).isEqualTo("move");
               assertThat(jobDetails.getStatus()).isIn("COMPLETED", "ERROR");
+            });
+  }
+
+  @Test
+  public void testEnsureStatusChanges() throws Exception {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+    com.datastax.mgmtapi.resources.v2.models.RepairRequest req =
+        new com.datastax.mgmtapi.resources.v2.models.RepairRequest(
+            "system_distributed",
+            null,
+            true,
+            true,
+            Collections.singletonList(
+                new com.datastax.mgmtapi.resources.v2.models.RingRange(-1L, 100L)),
+            RepairParallelism.SEQUENTIAL,
+            null,
+            null);
+
+    logger.info("Sending repair request: {}", req);
+    URI repairUri = new URIBuilder(BASE_PATH_V2 + "/repairs").build();
+    Pair<Integer, String> repairResp =
+        client
+            .put(repairUri.toURL(), new ObjectMapper().writeValueAsString(req))
+            .thenApply(this::responseAsCodeAndBody)
+            .join();
+    System.out.println("repairResp was " + repairResp);
+    String jobID =
+        new ObjectMapper().readValue(repairResp.getRight(), RepairRequestResponse.class).repairID;
+    Integer repairID =
+        Integer.parseInt(
+            jobID.substring(7) // Trimming off "repair-" prefix.
+            );
+    logger.info("Repair ID: {}", repairID);
+    assertThat(repairID).isNotNull();
+    assertThat(repairID).isGreaterThan(0);
+
+    URI statusUri =
+        new URIBuilder(BASE_PATH_V2 + "/ops/executor/job").addParameter("job_id", jobID).build();
+    Pair<Integer, String> statusResp =
+        client.get(statusUri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+    logger.info("Repair job status: {}", statusResp);
+    Job jobStatus = new ObjectMapper().readValue(statusResp.getRight(), Job.class);
+
+    assertThat(jobStatus.getStatus()).isNotNull();
+    assertThat(jobStatus.getStatusChanges()).isNotNull();
+    await()
+        .atMost(5, SECONDS)
+        .until(
+            () -> {
+              Pair<Integer, String> statusResp2 =
+                  client.get(statusUri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+              logger.info("Repair job status: {}", statusResp);
+              Job jobStatus2 = new ObjectMapper().readValue(statusResp.getRight(), Job.class);
+              return jobStatus2.getStatusChanges().size() > 0
+                  && jobStatus2.getStatus()
+                      == com.datastax.mgmtapi.resources.models.Job.JobStatus.COMPLETED;
             });
   }
 }

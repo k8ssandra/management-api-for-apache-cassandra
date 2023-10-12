@@ -44,6 +44,7 @@ public abstract class BaseDockerIntegrationTest {
   protected static final String BASE_PATH = "http://localhost:8080/api/v0";
   protected static final String BASE_PATH_V1 = "http://localhost:8080/api/v1";
   protected static final String BASE_PATH_V2 = "http://localhost:8080/api/v2";
+  protected static final String BASE_HOST = "http://localhost:8080";
   protected static final URL BASE_URL;
   protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
