@@ -19,6 +19,13 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#349](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/349) Metrics endpoint should allow querying a subset
 * [FEATURE] [#395](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/395) Add Cassandra version 3.11.16
 * [FEATURE] [#380](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/380) Add DSE 6.8.38
+* [FEATURE] [#326](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/326) Provide topology endpoints in OpenAPI client
+* [FEATURE] [#345](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/345) Implement host related methods
+* [FEATURE] [#361](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/361) Add new listTables operation with more detailed response
+* [FEATURE] [#342](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/342) New mechanism to allow status tracking of repairs via repair ID. Both v1 and v2 endpoints now return a repair ID for this purpose.
+* [FEATURE] [#405](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/405) New v2 Repairs endpoint which takes more parameters, new endpoint to force terminate all repairs.
+* [FEATURE] [#374](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/374) New endpoint to provide a token range to endpoint mapping.
+* [FEATURE] [#372](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/372) Add IS_LOCAL field to /metadata/endpoints response.
 * [BUGFIX]  [#339](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/339) OpenAPI client publish does not also publish other artifacts
 
 
