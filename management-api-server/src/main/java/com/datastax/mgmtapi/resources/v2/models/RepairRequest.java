@@ -23,9 +23,6 @@ public class RepairRequest {
   @JsonProperty(value = "full_repair", defaultValue = "true")
   public final Boolean fullRepair;
 
-  @JsonProperty(value = "notifications", defaultValue = "true")
-  public final Boolean notifications;
-
   @Nullable
   @JsonProperty(value = "associated_tokens")
   public final List<RingRange> associatedTokens;
@@ -47,7 +44,6 @@ public class RepairRequest {
       @JsonProperty(value = "keyspace", required = true) String keyspace,
       @JsonProperty(value = "tables") List<String> tables,
       @JsonProperty(value = "full_repair", defaultValue = "true") Boolean fullRepair,
-      @JsonProperty(value = "notifications", defaultValue = "true") boolean notifications,
       @JsonProperty(value = "associated_tokens") List<RingRange> associatedTokens,
       @JsonProperty(value = "repair_parallelism") RepairParallelism repairParallelism,
       @JsonProperty(value = "datacenters") List<String> datacenters,
@@ -55,7 +51,6 @@ public class RepairRequest {
     this.keyspace = keyspace;
     this.tables = tables;
     this.fullRepair = fullRepair;
-    this.notifications = notifications;
     this.associatedTokens = associatedTokens;
     this.datacenters = datacenters;
     this.repairParallelism = repairParallelism;

@@ -2137,9 +2137,6 @@
           "keyspace" : {
             "type" : "string"
           },
-          "notifications" : {
-            "type" : "boolean"
-          },
           "repair_parallelism" : {
             "type" : "string",
             "enum" : [ "sequential", "parallel", "dc_parallel" ]
