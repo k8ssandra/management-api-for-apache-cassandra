@@ -799,7 +799,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                       .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
               assertThat(jobDetails.getJobId()).isEqualTo(jobId);
               assertThat(jobDetails.getJobType()).isEqualTo("repair");
-              assertThat(jobDetails.getStatus()).isIn("COMPLETED", "ERROR");
+              assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
             });
   }
 
@@ -1020,7 +1020,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                       .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
               assertThat(jobDetails.getJobId()).isEqualTo(jobId);
               assertThat(jobDetails.getJobType()).isEqualTo("move");
-              assertThat(jobDetails.getStatus()).isIn("COMPLETED", "ERROR");
+              assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
             });
   }
 }
