@@ -83,7 +83,7 @@ public class RepairResourcesV2 extends BaseResources {
                   request.keyspace,
                   request.tables,
                   request.fullRepair,
-                  request.notifications,
+                  true,
                   getParallelismName(request.repairParallelism),
                   request.datacenters,
                   getRingRangeString(request.associatedTokens),
