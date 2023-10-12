@@ -9,6 +9,7 @@ import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.http.NettyMetricsHttpServer;
 import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
+import io.k8ssandra.metrics.prometheus.CassandraTasksExports;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.prometheus.client.hotspot.DefaultExports;
@@ -72,6 +73,11 @@ public class MetricsInterceptor {
       // Add JVM metrics
       DefaultExports.initialize();
 
+      // Add task metrics
+      if (!config.isExtendedDisabled()) {
+        new CassandraTasksExports(CassandraMetricsRegistry.Metrics, config).register();
+      }
+
       // Create /metrics handler. Note, this doesn't support larger than nThreads=1
       final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
 
@@ -81,12 +87,7 @@ public class MetricsInterceptor {
 
       logger.info("Metrics collector started");
 
-      Runtime.getRuntime()
-          .addShutdownHook(
-              new Thread(
-                  () -> {
-                    httpGroup.shutdownGracefully();
-                  }));
+      Runtime.getRuntime().addShutdownHook(new Thread(httpGroup::shutdownGracefully));
     } catch (Throwable t) {
       logger.error("Unable to start metrics endpoint", t);
     }

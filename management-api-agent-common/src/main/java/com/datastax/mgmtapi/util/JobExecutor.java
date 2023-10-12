@@ -11,11 +11,12 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.cassandra.utils.Pair;
 
 public class JobExecutor {
   ExecutorService executorService = Executors.newFixedThreadPool(1);
-  Cache<String, Job> jobCache = CacheBuilder.newBuilder().maximumSize(1000).build();
+  Cache<String, Job> jobCache = CacheBuilder.newBuilder().recordStats().maximumSize(1000).build();
 
   public Pair<String, CompletableFuture<Void>> submit(String jobType, Runnable runnable) {
     // Where do I create the job details? Here? Add it to the Cache first?
@@ -56,5 +57,13 @@ public class JobExecutor {
 
   public Job getJobWithId(String jobId) {
     return jobCache.getIfPresent(jobId);
+  }
+
+  public int runningTasks() {
+    return ((ThreadPoolExecutor) executorService).getActiveCount();
+  }
+
+  public int queuedTasks() {
+    return ((ThreadPoolExecutor) executorService).getQueue().size();
   }
 }

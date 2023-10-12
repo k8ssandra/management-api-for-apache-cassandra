@@ -21,6 +21,9 @@ public class Configuration {
   @JsonProperty("labels")
   private LabelConfiguration labels;
 
+  @JsonProperty("extended_metrics_disabled")
+  private boolean extendedDisabled;
+
   public Configuration() {
     relabels = new ArrayList<>();
   }
@@ -43,5 +46,13 @@ public class Configuration {
 
   public void setLabels(LabelConfiguration labels) {
     this.labels = labels;
+  }
+
+  public boolean isExtendedDisabled() {
+    return extendedDisabled;
+  }
+
+  public void setExtendedDisabled(boolean extendedDisabled) {
+    this.extendedDisabled = extendedDisabled;
   }
 }

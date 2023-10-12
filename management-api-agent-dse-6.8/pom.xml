@@ -30,7 +30,7 @@
     </repository>
   </repositories>
   <properties>
-    <dse.version>6.8.37</dse.version>
+    <dse.version>6.8.38</dse.version>
   </properties>
   <dependencies>
     <dependency>
