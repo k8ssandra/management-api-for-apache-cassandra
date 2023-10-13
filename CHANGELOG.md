@@ -17,6 +17,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#405](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/405) New v2 Repairs endpoint which takes more parameters, new endpoint to force terminate all repairs.
 * [FEATURE] [#374](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/374) New endpoint to provide a token range to endpoint mapping.
 * [FEATURE] [#372](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/372) Add IS_LOCAL field to /metadata/endpoints response.
+* [FEATURE] [#403](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/403) Add async versions of /flush and /garbagecollect endpoints under /api/v1
 
 ## v0.1.68 (2023-10-09)
 * [FEATURE] [#293](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/293) Expose running tasks as metrics
