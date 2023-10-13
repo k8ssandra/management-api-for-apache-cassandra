@@ -349,7 +349,12 @@ public class TableOpsResources extends BaseResources {
           String keyspaceName = keyspaceRequest.keyspaceName;
           if (StringUtils.isBlank(keyspaceName)) {
             keyspaceName = "ALL";
+          } else if (!keyspaceExists(keyspaceName)) {
+              return Response.status(HttpStatus.SC_BAD_REQUEST)
+                  .entity("keyspace " + keyspaceName + " does not exists")
+                  .build();
           }
+
           String tombstoneOption = tombstoneOptionStr;
           if (StringUtils.isBlank(tombstoneOption)) {
             tombstoneOption = "ROW";
@@ -388,6 +393,14 @@ public class TableOpsResources extends BaseResources {
               mediaType = MediaType.TEXT_PLAIN,
               schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "d69d1d95-9348-4460-95d2-ae342870fade")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Invalid flush request",
+      content =
+      @Content(
+          mediaType = MediaType.TEXT_PLAIN,
+          schema = @Schema(implementation = String.class),
+          examples = @ExampleObject(value = "keyspace sys-tem does not exists")))
   @Operation(summary = "Flush one or more tables", operationId = "flush")
   public Response flush(KeyspaceRequest keyspaceRequest) {
     return handle(
@@ -400,6 +413,10 @@ public class TableOpsResources extends BaseResources {
           String keyspaceName = keyspaceRequest.keyspaceName;
           if (StringUtils.isBlank(keyspaceName)) {
             keyspaceName = "ALL";
+          } else if (!keyspaceExists(keyspaceName)) {
+              return Response.status(HttpStatus.SC_BAD_REQUEST)
+                  .entity("keyspace " + keyspaceName + " does not exists")
+                  .build();
           }
 
           return Response.accepted(
