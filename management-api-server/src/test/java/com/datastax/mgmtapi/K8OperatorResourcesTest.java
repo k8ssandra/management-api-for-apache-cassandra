@@ -1067,6 +1067,8 @@ public class K8OperatorResourcesTest {
     when(mockResultSet.one()).thenReturn(mockRow);
     when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
 
+    setpMockGetKeyspaces(context, "keyspace");
+
     String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
     MockHttpResponse response =
         postWithBodyFullPath(
@@ -1198,6 +1200,8 @@ public class K8OperatorResourcesTest {
 
     when(mockResultSet.one()).thenReturn(mockRow);
     when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+    setpMockGetKeyspaces(context, "keyspace");
 
     String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
     MockHttpResponse response =
@@ -2221,5 +2225,16 @@ public class K8OperatorResourcesTest {
 
     verify(context.cqlService, never())
         .executePreparedStatement(any(), eq("CALL NodeOps.move(?, ?)"), eq("1234"), eq(true));
+  }
+
+  private void setpMockGetKeyspaces(Context context, String keyspaceName) throws Exception {
+    ResultSet mockKeyspacesResultSet = mock(ResultSet.class);
+    Row mockKeyspacesRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(any(), eq("CALL NodeOps.getKeyspaces()")))
+        .thenReturn(mockKeyspacesResultSet);
+
+    when(mockKeyspacesResultSet.one()).thenReturn(mockKeyspacesRow);
+    when(mockKeyspacesRow.getList(0, String.class)).thenReturn(Arrays.asList(keyspaceName));
   }
 }

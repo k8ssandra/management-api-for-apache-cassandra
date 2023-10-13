@@ -1678,6 +1678,91 @@
         "summary" : "Returns active compactions"
       }
     },
+    "/api/v1/ops/tables/flush" : {
+      "post" : {
+        "operationId" : "flush_1",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for table flush process"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "keyspace sys-tem does not exists",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Invalid flush request"
+          }
+        },
+        "summary" : "Flush one or more tables"
+      }
+    },
+    "/api/v1/ops/tables/garbagecollect" : {
+      "post" : {
+        "operationId" : "garbageCollect_1",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "tombstoneOption",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/KeyspaceRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "d69d1d95-9348-4460-95d2-ae342870fade",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Job ID for table garbage collection process"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "tombstoneOption must be either ROW or CELL",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Invalid table garbage collection request"
+          }
+        },
+        "summary" : "Remove deleted data from one or more tables"
+      }
+    },
     "/api/v1/ops/tables/scrub" : {
       "post" : {
         "operationId" : "scrub_1",
@@ -2034,7 +2119,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK", "ASYNC_MOVE_TASK" ]
+              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK", "ASYNC_MOVE_TASK", "ASYNC_GC_TASK", "ASYNC_FLUSH_TASK" ]
             }
           },
           "mgmt_version" : {
