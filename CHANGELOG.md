@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.69 (2023-10-13)
 * [CHANGE]  [#400](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/400) Ensure curl and wget are installed in images
 * [FEATURE] [#326](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/326) Provide topology endpoints in OpenAPI client
 * [FEATURE] [#345](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/345) Implement host related methods
@@ -19,6 +21,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#374](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/374) New endpoint to provide a token range to endpoint mapping.
 * [FEATURE] [#372](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/372) Add IS_LOCAL field to /metadata/endpoints response.
 * [FEATURE] [#403](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/403) Add async versions of /flush and /garbagecollect endpoints under /api/v1
+* [FEATURE] [#401](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/401) Add DSE 6.8.39
 
 ## v0.1.68 (2023-10-09)
 * [FEATURE] [#293](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/293) Expose running tasks as metrics
