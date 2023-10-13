@@ -853,6 +853,7 @@ public class NodeOpsProvider {
                   case ERROR:
                   case ABORT:
                     job.setError(new RuntimeException(notification.getMessage()));
+                    job.setStatusChange(progress, notification.getMessage());
                     job.setStatus(Job.JobStatus.ERROR);
                     job.setFinishedTime(System.currentTimeMillis());
                     break;
