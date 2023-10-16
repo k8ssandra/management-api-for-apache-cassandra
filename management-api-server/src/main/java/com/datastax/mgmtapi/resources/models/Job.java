@@ -7,6 +7,8 @@ package com.datastax.mgmtapi.resources.models;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.io.Serializable;
 import java.util.List;
 
@@ -27,9 +29,11 @@ public class Job implements Serializable {
   private JobStatus status;
 
   @JsonProperty(value = "submit_time")
+  @JsonSerialize(using = ToStringSerializer.class)
   private long submitTime;
 
   @JsonProperty(value = "end_time")
+  @JsonSerialize(using = ToStringSerializer.class)
   private long finishedTime;
 
   @JsonProperty(value = "error")
@@ -40,6 +44,7 @@ public class Job implements Serializable {
     String status;
 
     @JsonProperty(value = "change_time")
+    @JsonSerialize(using = ToStringSerializer.class)
     long changeTime;
 
     @JsonProperty(value = "message")
