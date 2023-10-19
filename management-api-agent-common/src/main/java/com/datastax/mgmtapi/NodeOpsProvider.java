@@ -866,7 +866,7 @@ public class NodeOpsProvider {
               if (notification.getType().equals("progress")) {
                 Map<String, Integer> data = (Map<String, Integer>) notification.getUserData();
                 ProgressEventType progress = ProgressEventType.values()[data.get("type")];
-
+                logger.warn("Handling async repair job progress: {}", progress);
                 switch (progress) {
                   case START:
                     job.setStatusChange(progress, notification.getMessage());

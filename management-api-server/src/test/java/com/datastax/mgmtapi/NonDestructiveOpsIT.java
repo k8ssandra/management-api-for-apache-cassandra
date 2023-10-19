@@ -799,6 +799,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
                       .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
               assertThat(jobDetails.getJobId()).isEqualTo(jobId);
               assertThat(jobDetails.getJobType()).isEqualTo("repair");
+              docker.tailSystemLog(1000);
               assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
             });
   }
