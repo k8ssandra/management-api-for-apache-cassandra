@@ -127,10 +127,11 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     fi
 
     MGMT_API_ARGS=""
-
+    # set the listen port to 8080 if not already set
+    : ${MGMT_API_LISTEN_TCP_PORT='8080'}
     # Hardcoding these for now
     DSE_MGMT_DSE_SOCKET="--db-socket /tmp/dse.sock"
-    DSE_MGMT_LISTEN_TCP="--host tcp://0.0.0.0:8080"
+    DSE_MGMT_LISTEN_TCP="--host tcp://0.0.0.0:${MGMT_API_LISTEN_TCP_PORT}"
     DSE_MGMT_LISTEN_SOCKET="--host file:///tmp/dse-mgmt.sock"
 
     MGMT_API_ARGS="$MGMT_API_ARGS $DSE_MGMT_DSE_SOCKET $DSE_MGMT_LISTEN_TCP $DSE_MGMT_LISTEN_SOCKET"

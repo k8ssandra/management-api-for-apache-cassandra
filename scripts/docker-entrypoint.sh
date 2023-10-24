@@ -176,10 +176,11 @@ if [ "$1" = 'mgmtapi' ]; then
     fi
 
     MGMT_API_ARGS=""
-
+    # set the listen port to 8080 if not already set
+    : ${MGMT_API_LISTEN_TCP_PORT='8080'}
     # Hardcoding these for now
     MGMT_API_CASSANDRA_SOCKET="--cassandra-socket /tmp/cassandra.sock"
-    MGMT_API_LISTEN_TCP="--host tcp://0.0.0.0:8080"
+    MGMT_API_LISTEN_TCP="--host tcp://0.0.0.0:${MGMT_API_LISTEN_TCP_PORT}"
     MGMT_API_LISTEN_SOCKET="--host file:///tmp/oss-mgmt.sock"
 
     MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_CASSANDRA_SOCKET $MGMT_API_LISTEN_TCP $MGMT_API_LISTEN_SOCKET"
