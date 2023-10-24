@@ -108,7 +108,9 @@ public class DockerHelper {
 
     this.container = startDocker(config);
 
-    waitForPort("localhost", 8080, Duration.ofMillis(50000), logger, false);
+    // see if the default listen port has been overridden
+    int listenPort = getListenPortFromEnv(envVars);
+    waitForPort("localhost", listenPort, Duration.ofMillis(50000), logger, false);
   }
 
   public String runCommand(String... commandAndArgs) {
@@ -176,14 +178,16 @@ public class DockerHelper {
       String hostname, int port, Duration timeout, Logger logger, boolean quiet) {
     long deadlineNanos = System.nanoTime() + timeout.toNanos();
 
+    final String basePath = String.format("http://%s:%d", hostname, port);
+
     while (System.nanoTime() < deadlineNanos) {
       try {
-        NettyHttpClient client = new NettyHttpClient(new URL("http://" + hostname + ":" + port));
+        NettyHttpClient client = new NettyHttpClient(new URL(basePath));
 
         // Verify liveness
         boolean live =
             client
-                .get(URI.create("http://localhost/api/v0/probes/liveness").toURL())
+                .get(URI.create(basePath + "/api/v0/probes/liveness").toURL())
                 .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
                 .join();
 
@@ -395,7 +399,7 @@ public class DockerHelper {
     final File baseDir = new File(System.getProperty("dockerFileRoot", "."));
     File dockerFile;
     String target;
-    final List<Integer> exposedPorts = Arrays.asList(9042, 8080);
+    List<Integer> exposedPorts;
     List<String> envList;
 
     static DockerBuildConfig getConfig(String version, List<String> envVars) {
@@ -471,8 +475,23 @@ public class DockerHelper {
       }
       if (envVars != null) {
         config.envList.addAll(envVars);
+        // add exposed ports
+        config.exposedPorts = Arrays.asList(9042, getListenPortFromEnv(envVars));
       }
       return config;
     }
+  }
+
+  static int getListenPortFromEnv(List<String> envVars) {
+    for (String envVar : envVars) {
+      if (envVar.startsWith("MGMT_API_LISTEN_TCP_PORT")) {
+        // we have a specified port
+        int listenPort =
+            Integer.parseInt(envVar.substring("MGMT_API_LISTEN_TCP_PORT".length() + 1));
+        return listenPort;
+      }
+    }
+    // use default
+    return 8080;
   }
 }
