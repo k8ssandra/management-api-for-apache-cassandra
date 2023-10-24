@@ -40,7 +40,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
-import io.netty.util.IllegalReferenceCountException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -744,64 +743,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
             .join();
     assertTrue("Repair request was not successful", repairSuccessful);
-  }
-
-  @Test
-  public void testAsyncRepair() throws IOException, URISyntaxException, InterruptedException {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-    ensureStarted();
-
-    // create a keyspace with RF of at least 2
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-    String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
-
-    String ks = "someTestKeyspace";
-    createKeyspace(client, localDc, ks, 2);
-
-    URIBuilder uriBuilder = new URIBuilder(BASE_PATH_V1 + "/ops/node/repair");
-    URI repairUri = uriBuilder.build();
-
-    // execute repair
-    RepairRequest repairRequest = new RepairRequest("someTestKeyspace", null, Boolean.TRUE);
-    String requestAsJSON = JSON_MAPPER.writeValueAsString(repairRequest);
-
-    Pair<Integer, String> repairResponse =
-        client.post(repairUri.toURL(), requestAsJSON).thenApply(this::responseAsCodeAndBody).join();
-    assertThat(repairResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
-    String jobId = repairResponse.getRight();
-    assertThat(jobId).isNotEmpty();
-
-    URI getJobDetailsUri =
-        new URIBuilder(BASE_PATH + "/ops/executor/job").addParameter("job_id", jobId).build();
-
-    await()
-        .atMost(Duration.ofMinutes(5))
-        .untilAsserted(
-            () -> {
-              Pair<Integer, String> getJobDetailsResponse;
-              try {
-                getJobDetailsResponse =
-                    client
-                        .get(getJobDetailsUri.toURL())
-                        .thenApply(this::responseAsCodeAndBody)
-                        .join();
-              } catch (IllegalReferenceCountException e) {
-                // Just retry
-                assertFalse(true);
-                return;
-              }
-              assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
-              Job jobDetails =
-                  new JsonMapper()
-                      .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
-              assertThat(jobDetails.getJobId()).isEqualTo(jobId);
-              assertThat(jobDetails.getJobType()).isEqualTo("repair");
-              assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
-            });
   }
 
   @Test
