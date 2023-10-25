@@ -92,6 +92,7 @@ RUN mkdir -m 775 ${MAAC_PATH} \
 ############################################################
 
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as oss311
+ARG TARGETARCH
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
 
@@ -152,6 +153,10 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd
   ln -sf /proc/mounts /etc/mtab
 
+ENV TINI_VERSION v0.19.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
+RUN chmod +x /tini
+
 # Set user to run as
 USER cassandra
 
@@ -164,5 +169,5 @@ EXPOSE 8080 9103 9000
 # CASSANDRA PORTS (INTRA-NODE, TLS INTRA-NODE, JMX, CQL, THRIFT, DSEFS INTRA-NODE, INTRA-NODE MESSAGING SERVICE)
 EXPOSE 7000 7001 7199 8609 9042 9160
 
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/tini", "-g", "--", "/docker-entrypoint.sh"]
 CMD ["mgmtapi"]
