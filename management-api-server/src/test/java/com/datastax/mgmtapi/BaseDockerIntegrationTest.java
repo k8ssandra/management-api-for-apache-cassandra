@@ -109,6 +109,7 @@ public abstract class BaseDockerIntegrationTest {
     if (Boolean.getBoolean("run40testsUBI")) versions.add("4_0_ubi");
     if (Boolean.getBoolean("run41tests")) versions.add("4_1");
     if (Boolean.getBoolean("run41testsUBI")) versions.add("4_1_ubi");
+    if (Boolean.getBoolean("run50testsUBI")) versions.add("5_0_ubi");
     if (Boolean.getBoolean("runTrunktests")) versions.add("trunk");
     if (Boolean.getBoolean("runDSEtests")) versions.add("dse-68");
     if (Boolean.getBoolean("runDSEtestsUBI")) versions.add("dse-68_ubi");
@@ -220,6 +221,9 @@ public abstract class BaseDockerIntegrationTest {
       return 1;
     }
     if (this.version.startsWith("4")) {
+      return 16;
+    }
+    if (this.version.startsWith("5")) {
       return 16;
     }
     // unsupported Cassandra/DSE version

@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: ['3.11', '4.0', '4.1', '3.11_ubi', '4.0_ubi', '4.1_ubi']
+        cassandra-version: ['3.11', '4.0', '4.1', '3.11_ubi', '4.0_ubi', '4.1_ubi', '5.0_ubi']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT']
         include:
           - cassandra-version: '3.11'
@@ -20,6 +20,7 @@ jobs:
             run40testsUBI: false
             run41tests: false
             run41testsUBI: false
+            run50testsUBI: false
           - cassandra-version: '4.0'
             run311tests: false
             run311testsUBI: false
@@ -27,6 +28,7 @@ jobs:
             run40testsUBI: false
             run41tests: false
             run41testsUBI: false
+            run50testsUBI: false
           - cassandra-version: '4.1'
             run311tests: false
             run311testsUBI: false
@@ -34,6 +36,7 @@ jobs:
             run40testsUBI: false
             run41tests: true
             run41testsUBI: false
+            run50testsUBI: false
           - cassandra-version: '3.11_ubi'
             run311tests: false
             run311testsUBI: true
@@ -41,6 +44,7 @@ jobs:
             run40testsUBI: false
             run41tests: false
             run41testsUBI: false
+            run50testsUBI: false
           - cassandra-version: '4.0_ubi'
             run311tests: false
             run311testsUBI: false
@@ -48,6 +52,7 @@ jobs:
             run40testsUBI: true
             run41tests: false
             run41testsUBI: false
+            run50testsUBI: false
           - cassandra-version: '4.1_ubi'
             run311tests: false
             run311testsUBI: false
@@ -55,6 +60,15 @@ jobs:
             run40testsUBI: false
             run41tests: false
             run41testsUBI: true
+            run50testsUBI: false
+          - cassandra-version: '5.0_ubi'
+            run311tests: false
+            run311testsUBI: false
+            run40tests: false
+            run40testsUBI: false
+            run41tests: false
+            run41testsUBI: false
+            run50testsUBI: true
 
     runs-on: ubuntu-latest
 
@@ -87,6 +101,7 @@ jobs:
           -Drun311testsUBI=${{ matrix.run311testsUBI }} \
           -Drun40testsUBI=${{ matrix.run40testsUBI }} \
           -Drun41testsUBI=${{ matrix.run41testsUBI }} \
+          -Drun50testsUBI=${{ matrix.run50testsUBI }} \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
   build-dse:
     if: github.repository_owner == 'k8ssandra'
@@ -220,6 +235,9 @@ jobs:
           - cassandra-version: '4.1-ubi8'
             docker-file: Dockerfile-4_1.ubi8
             build-target: oss41
+          - cassandra-version: '5.0-ubi8'
+            docker-file: Dockerfile-5_0.ubi8
+            build-target: oss50
     steps:
       - name: Check out source code
         uses: actions/checkout@v3

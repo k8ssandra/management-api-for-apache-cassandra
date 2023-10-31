@@ -10,6 +10,11 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX]  [#413](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/413) UBI8 images do not terminate correctly
+* [BUGFIX]  [#360](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/360) Support Cassandra 5.0-alpha1
+
+## v0.1.70 (2023-10-17)
+* [BUGFIX]  [#411](https://github.com/k8ssandra/management-api-for-apache-cassandra/pull/411) Serialize long types as Strings to avoid float64 conversion
 
 ## v0.1.69 (2023-10-13)
 * [CHANGE]  [#400](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/400) Ensure curl and wget are installed in images
