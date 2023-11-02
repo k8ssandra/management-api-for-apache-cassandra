@@ -80,16 +80,15 @@ COPY --from=dse-server-base /etc/gshadow /etc/gshadow
 
 # Copy trimmed installation
 COPY --chown=dse:root --from=dse-server-base ${DSE_HOME} ${DSE_HOME}
-COPY --chown=dse:root --from=dse-server-base /entrypoint.sh /entrypoint.sh
-COPY --chown=dse:root --from=dse-server-base /overwritable-conf-files /overwritable-conf-files
 COPY --chown=dse:root --from=dse-server-base /base-checks.sh /base-checks.sh
 
 # Copy license in to appropriate directory
 COPY --from=dse-server-base /LICENSE /licenses/
 
 # Replace bin/cassandra with modified that doesn't hang in k8s
-COPY dse-68/files/cassandra ${DSE_HOME}/resources/cassandra/bin/cassandra
-
+COPY --chown=dse:root dse-68/files/cassandra ${DSE_HOME}/resources/cassandra/bin/cassandra
+COPY --chown=dse:root dse-68/files/entrypoint.sh /entrypoint.sh
+copy --chown=dse:root dse-68/files/overwritable-conf-files /overwritable-conf-files
 # Update permissions and build directories
 RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh && \
     (for dir in /var/lib/cassandra \
