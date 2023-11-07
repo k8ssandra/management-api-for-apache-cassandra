@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-5.0.x</artifactId>
   <properties>
-    <cassandra5.version>5.0-alpha1</cassandra5.version>
+    <cassandra5.version>5.0-alpha2</cassandra5.version>
   </properties>
   <dependencies>
     <dependency>
