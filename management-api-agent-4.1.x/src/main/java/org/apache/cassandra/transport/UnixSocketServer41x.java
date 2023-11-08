@@ -17,6 +17,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.transport.messages.StartupMessage;
 import org.apache.cassandra.transport.messages.SupportedMessage;
 import org.apache.cassandra.utils.JVMStabilityInspector;
+import org.apache.cassandra.utils.MonotonicClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -285,8 +287,52 @@ public class UnixSocketServer41x {
 
             promise = new VoidChannelPromise(ctx.channel(), false);
 
-            Message.Response response =
-                Dispatcher.processRequest(ctx.channel(), startup, Overload.NONE);
+            // In Cassandra 4.1.3, Dispatcher.processRequest method signatures changed in order to
+            // add CASSANDRA-15241 (https://issues.apache.org/jira/browse/CASSANDRA-15241). To
+            // avoid splitting the 4.1 agent based on which version of Cassandra it runs with,
+            // we'll use reflection here to determine the correct method to invoke.
+            Method processRequestMethod = null;
+            boolean requiresStartTime = false;
+            try {
+              processRequestMethod =
+                  Dispatcher.class.getDeclaredMethod(
+                      "processRequest",
+                      Channel.class,
+                      Message.Request.class,
+                      Overload.class,
+                      long.class);
+              requiresStartTime = true;
+            } catch (NoSuchMethodException ex) {
+              // 4.1.3+ method doesn't existy, try 4.1.2- method
+              logger.debug(
+                  "Cassandra Dispatcher.processRequest() for 4.1.3 not found, trying 4.1.2 method");
+              try {
+                processRequestMethod =
+                    Dispatcher.class.getDeclaredMethod(
+                        "processRequest", Channel.class, Message.Request.class, Overload.class);
+              } catch (NoSuchMethodException ex2) {
+                // something is broken
+                logger.error(
+                    "Cassandra Dispatcher.processRequest() for 4.1.2 not found. Check the method signature.",
+                    ex2);
+                throw ex2;
+              }
+            }
+            Message.Response response;
+            if (requiresStartTime) {
+              response =
+                  (Message.Response)
+                      processRequestMethod.invoke(
+                          null,
+                          ctx.channel(),
+                          startup,
+                          Overload.NONE,
+                          MonotonicClock.Global.approxTime.now());
+            } else {
+              response =
+                  (Message.Response)
+                      processRequestMethod.invoke(null, ctx.channel(), startup, Overload.NONE);
+            }
 
             if (response.type.equals(Message.Type.AUTHENTICATE))
               // bypass authentication
