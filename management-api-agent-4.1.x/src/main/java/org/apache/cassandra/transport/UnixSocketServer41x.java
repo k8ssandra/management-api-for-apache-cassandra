@@ -294,6 +294,7 @@ public class UnixSocketServer41x {
             Method processRequestMethod = null;
             boolean requiresStartTime = false;
             try {
+              // try to get the Cassandra 4.1.3+ method
               processRequestMethod =
                   Dispatcher.class.getDeclaredMethod(
                       "processRequest",
@@ -301,6 +302,7 @@ public class UnixSocketServer41x {
                       Message.Request.class,
                       Overload.class,
                       long.class);
+              // 4.1.3 method found so we'll need to invoke it with a start time
               requiresStartTime = true;
             } catch (NoSuchMethodException ex) {
               // 4.1.3+ method doesn't existy, try 4.1.2- method
@@ -311,9 +313,9 @@ public class UnixSocketServer41x {
                     Dispatcher.class.getDeclaredMethod(
                         "processRequest", Channel.class, Message.Request.class, Overload.class);
               } catch (NoSuchMethodException ex2) {
-                // something is broken
+                // something is broken, need to figure out what method/signature should be used
                 logger.error(
-                    "Cassandra Dispatcher.processRequest() for 4.1.2 not found. Check the method signature.",
+                    "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
                     ex2);
                 throw ex2;
               }

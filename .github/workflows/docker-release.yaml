@@ -384,7 +384,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [5.0-alpha2]
+        cassandra-version: [5.0-alpha1, 5.0-alpha2]
         include:
           - cassandra-version: 5.0-alpha2
             latest: true
