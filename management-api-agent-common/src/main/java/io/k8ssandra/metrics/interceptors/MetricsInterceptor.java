@@ -71,7 +71,7 @@ public class MetricsInterceptor {
       new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, config).register();
 
       // Add JVM metrics
-      new JvmExports().register();
+      new JvmExports(config).register();
 
       // Add task metrics
       if (!config.isExtendedDisabled()) {

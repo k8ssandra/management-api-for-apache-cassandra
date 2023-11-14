@@ -6,7 +6,9 @@
 package io.k8ssandra.metrics.prometheus;
 
 import com.google.common.collect.Lists;
-import io.k8ssandra.metrics.builder.CassandraMetricsTools;
+import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
+import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
+import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
 import io.prometheus.client.hotspot.BufferPoolsExports;
 import io.prometheus.client.hotspot.ClassLoadingExports;
@@ -21,9 +23,12 @@ import java.util.List;
 
 public class JvmExports extends Collector implements Collector.Describable {
 
+  private final CassandraMetricNameParser parser;
+
   private List<Collector> subCollectors;
 
-  public JvmExports() {
+  public JvmExports(Configuration config) {
+    parser = CassandraMetricNameParser.getDefaultParser(config);
     subCollectors = new ArrayList<>(8);
     subCollectors.add(new StandardExports());
     subCollectors.add(new MemoryPoolsExports());
@@ -50,15 +55,15 @@ public class JvmExports extends Collector implements Collector.Describable {
 
         for (MetricFamilySamples.Sample sample : familySample.samples) {
           // Recreate all the samples to get the correct label names and label values
-
-          List<String> labelNames = new ArrayList<>(CassandraMetricsTools.DEFAULT_LABEL_NAMES);
-          List<String> labelValues = new ArrayList<>(CassandraMetricsTools.DEFAULT_LABEL_VALUES);
-          labelNames.addAll(sample.labelNames);
-          labelValues.addAll(sample.labelValues);
+          CassandraMetricDefinition proto =
+              parser.parseDropwizardMetric(sample.name, "", sample.labelNames, sample.labelValues);
 
           Collector.MetricFamilySamples.Sample replacementSample =
               new Collector.MetricFamilySamples.Sample(
-                  sample.name, labelNames, labelValues, sample.value);
+                  proto.getMetricName(),
+                  proto.getLabelNames(),
+                  proto.getLabelValues(),
+                  sample.value);
           replacementSamples.add(replacementSample);
         }
         resultSamples.add(replacementFamily);
