@@ -10,9 +10,9 @@ import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.http.NettyMetricsHttpServer;
 import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.k8ssandra.metrics.prometheus.CassandraTasksExports;
+import io.k8ssandra.metrics.prometheus.JvmExports;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.prometheus.client.hotspot.DefaultExports;
 import java.util.concurrent.Callable;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.description.type.TypeDescription;
@@ -71,7 +71,7 @@ public class MetricsInterceptor {
       new CassandraDropwizardExports(CassandraMetricsRegistry.Metrics, config).register();
 
       // Add JVM metrics
-      DefaultExports.initialize();
+      new JvmExports(config).register();
 
       // Add task metrics
       if (!config.isExtendedDisabled()) {
