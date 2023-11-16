@@ -5,7 +5,7 @@
  */
 package io.k8ssandra.metrics.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.shaded.annotation.JsonProperty;
 
 public class TLSConfiguration {
   @JsonProperty("ca.crt")
