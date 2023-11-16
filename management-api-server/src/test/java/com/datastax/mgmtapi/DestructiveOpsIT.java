@@ -10,11 +10,9 @@ import static org.junit.Assume.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
-import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Test;
@@ -29,51 +27,6 @@ public class DestructiveOpsIT extends BaseDockerIsolatedIntegrationTest {
 
   public DestructiveOpsIT(String version) throws IOException {
     super(version);
-  }
-
-  public static void ensureStarted() throws IOException {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-
-    // Verify liveness
-    boolean live =
-        client
-            .get(URI.create(BASE_PATH + "/probes/liveness").toURL())
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
-
-    assertTrue(live);
-
-    boolean ready = false;
-
-    // Startup
-    boolean started =
-        client
-            .post(URI.create(BASE_PATH + "/lifecycle/start").toURL(), null)
-            .thenApply(
-                r ->
-                    r.status().code() == HttpStatus.SC_CREATED
-                        || r.status().code() == HttpStatus.SC_ACCEPTED)
-            .join();
-
-    assertTrue(started);
-
-    int tries = 0;
-    while (tries++ < 10) {
-      ready =
-          client
-              .get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
-
-      if (ready) break;
-
-      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-    }
-
-    logger.info("CASSANDRA ALIVE: {}", ready);
-    assertTrue(ready);
   }
 
   /**

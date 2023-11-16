@@ -39,7 +39,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,7 +47,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
@@ -71,51 +69,6 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
   public NonDestructiveOpsIT(String version) throws IOException {
     super(version);
-  }
-
-  public static void ensureStarted() throws IOException {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-
-    // Verify liveness
-    boolean live =
-        client
-            .get(URI.create(BASE_PATH + "/probes/liveness").toURL())
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
-
-    assertTrue(live);
-
-    boolean ready = false;
-
-    // Startup
-    boolean started =
-        client
-            .post(URI.create(BASE_PATH + "/lifecycle/start").toURL(), null)
-            .thenApply(
-                r ->
-                    r.status().code() == HttpStatus.SC_CREATED
-                        || r.status().code() == HttpStatus.SC_ACCEPTED)
-            .join();
-
-    assertTrue(started);
-
-    int tries = 0;
-    while (tries++ < 10) {
-      ready =
-          client
-              .get(URI.create(BASE_PATH + "/probes/readiness").toURL())
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
-
-      if (ready) break;
-
-      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
-    }
-
-    logger.info("CASSANDRA ALIVE: {}", ready);
-    assertTrue(ready);
   }
 
   @Test

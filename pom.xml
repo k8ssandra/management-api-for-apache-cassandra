@@ -31,7 +31,7 @@
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
     <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version>
-    <jackson-dataformat.version>2.13.2</jackson-dataformat.version>
+    <jackson-dataformat.version>2.15.3</jackson-dataformat.version>
     <coveo.format.version>2.9</coveo.format.version>
     <xml.format.version>3.2.2</xml.format.version>
     <mycila.license.version>4.1</mycila.license.version>
@@ -51,6 +51,7 @@
         <dseIncluded>false</dseIncluded>
       </properties>
       <modules>
+        <module>management-api-shaded-dataformat-yaml</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -69,6 +70,7 @@
         <dseIncluded>true</dseIncluded>
       </properties>
       <modules>
+        <module>management-api-shaded-dataformat-yaml</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -88,6 +90,7 @@
         <dseIncluded>false</dseIncluded>
       </properties>
       <modules>
+        <module>management-api-shaded-dataformat-yaml</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -106,6 +109,7 @@
         <dseIncluded>true</dseIncluded>
       </properties>
       <modules>
+        <module>management-api-shaded-dataformat-yaml</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>

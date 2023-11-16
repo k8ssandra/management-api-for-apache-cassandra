@@ -476,7 +476,7 @@ public class DockerHelper {
       if (envVars != null) {
         config.envList.addAll(envVars);
         // add exposed ports
-        config.exposedPorts = Arrays.asList(9042, getListenPortFromEnv(envVars));
+        config.exposedPorts = Arrays.asList(9042, 9000, getListenPortFromEnv(envVars));
       }
       return config;
     }

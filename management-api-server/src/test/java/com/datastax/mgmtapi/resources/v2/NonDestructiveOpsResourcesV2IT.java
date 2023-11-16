@@ -5,7 +5,6 @@
  */
 package com.datastax.mgmtapi.resources.v2;
 
-import static com.datastax.mgmtapi.NonDestructiveOpsIT.ensureStarted;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 

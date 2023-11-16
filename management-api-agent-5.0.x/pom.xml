@@ -17,6 +17,7 @@
   <artifactId>datastax-mgmtapi-agent-5.0.x</artifactId>
   <properties>
     <cassandra5.version>5.0-alpha2</cassandra5.version>
+    <netty.http.codec.version>4.1.96.Final</netty.http.codec.version>
   </properties>
   <dependencies>
     <dependency>
@@ -38,6 +39,11 @@
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy-agent</artifactId>
       <version>${bytebuddy.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-http</artifactId>
+      <version>${netty.http.codec.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

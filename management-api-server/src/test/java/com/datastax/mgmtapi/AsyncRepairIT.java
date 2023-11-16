@@ -9,7 +9,6 @@ import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH;
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH_V1;
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_URL;
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.JSON_MAPPER;
-import static com.datastax.mgmtapi.NonDestructiveOpsIT.ensureStarted;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertFalse;
