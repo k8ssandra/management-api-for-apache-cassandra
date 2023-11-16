@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         cassandra-version: ['3.11', '4.0', '4.1', '3.11_ubi', '4.0_ubi', '4.1_ubi', '5.0_ubi']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
           - cassandra-version: '3.11'
             run311tests: true
@@ -109,7 +109,7 @@ jobs:
       fail-fast: false
       matrix:
         platform-version: ['jdk8', 'ubi']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
           - platform-version: 'jdk8'
             runDSEtests: true

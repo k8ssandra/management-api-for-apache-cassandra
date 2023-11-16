@@ -10,6 +10,7 @@ WORKDIR /build
 ENV MAAC_PATH /opt/management-api
 
 COPY pom.xml ./
+COPY management-api-shaded-dataformat-yaml/pom.xml ./management-api-shaded-dataformat-yaml/pom.xml
 COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
 COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
 COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
@@ -21,6 +22,7 @@ COPY management-api-server/pom.xml ./management-api-server/pom.xml
 # a solid cache layer that only gets reset on pom.xml changes
 RUN mvn -q -ff -T 1C install -DskipOpenApi && rm -rf target
 
+COPY management-api-shaded-dataformat-yaml ./management-api-shaded-dataformat-yaml
 COPY management-api-agent-common ./management-api-agent-common
 COPY management-api-agent-3.x ./management-api-agent-3.x
 COPY management-api-agent-4.x ./management-api-agent-4.x
@@ -32,6 +34,9 @@ RUN mkdir -m 775 ${MAAC_PATH} && \
     mvn -q -ff package -DskipTests -DskipOpenApi && \
     find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
     rm $MAAC_PATH/datastax-mgmtapi-agent-3* && \
+    rm $MAAC_PATH/datastax-mgmtapi-agent-4.1.x* && \
+    rm $MAAC_PATH/datastax-mgmtapi-agent-5* && \
+    rm $MAAC_PATH/datastax-mgmtapi-*shaded* && \
     rm $MAAC_PATH/datastax-mgmtapi-*common* && \
     cd ${MAAC_PATH} && \
     ln -s datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar && \

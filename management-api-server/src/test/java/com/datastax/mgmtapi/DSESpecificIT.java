@@ -7,7 +7,6 @@ package com.datastax.mgmtapi;
 
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH;
 import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_URL;
-import static com.datastax.mgmtapi.NonDestructiveOpsIT.ensureStarted;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.LOAD_BALANCING_LOCAL_DATACENTER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;

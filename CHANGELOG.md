@@ -12,6 +12,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 * [BUGFIX]  [#413](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/413) UBI8 images do not terminate correctly
 * [BUGFIX]  [#360](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/360) Support Cassandra 5.0-alpha1
+* [BUGFIX]  [#415](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/415) Some jvm_* metrics aren't labelled correctly
+* [BUGFIX]  [#422](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/422) Metrics endpoint fails to start for some DSE images
 * [FEATURE] [#398](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/398) Make Management API port configurable
 * [FEATURE] [#419](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/419) Add DSE 6.8.40 to the build matrix
 * [FEATURE] [#397](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/397) Add Cassandra 4.0.11, 4.1.3 5.0-alpha2

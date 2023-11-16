@@ -44,6 +44,7 @@ jobs:
       - name: zip-up
         run: |
           zip jars.zip \
+          management-api-shaded-dataformat-yaml/target/datastax-mgmtapi-shaded-dataformat-yaml*.jar \
           management-api-agent-common/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar \

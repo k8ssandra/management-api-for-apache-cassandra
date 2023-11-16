@@ -7,13 +7,16 @@ package com.datastax.mgmtapi;
 
 import static io.netty.util.CharsetUtil.UTF_8;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.DockerHelper;
+import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.handler.codec.http.FullHttpResponse;
 import java.io.File;
 import java.io.IOError;
@@ -25,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
@@ -228,5 +232,49 @@ public abstract class BaseDockerIntegrationTest {
     }
     // unsupported Cassandra/DSE version
     throw new UnsupportedOperationException("Cassandra version " + this.version + " not supported");
+  }
+
+  protected void ensureStarted() throws IOException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+    // Verify liveness
+    boolean live =
+        client
+            .get(URI.create(BASE_PATH + "/probes/liveness").toURL())
+            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+            .join();
+
+    assertTrue(live);
+
+    boolean ready = false;
+
+    // Startup
+    boolean started =
+        client
+            .post(URI.create(BASE_PATH + "/lifecycle/start").toURL(), null)
+            .thenApply(
+                r ->
+                    r.status().code() == HttpStatus.SC_CREATED
+                        || r.status().code() == HttpStatus.SC_ACCEPTED)
+            .join();
+
+    assertTrue(started);
+
+    int tries = 0;
+    while (tries++ < 10) {
+      ready =
+          client
+              .get(URI.create(BASE_PATH + "/probes/readiness").toURL())
+              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+              .join();
+
+      if (ready) break;
+
+      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
+    }
+
+    assertTrue(ready);
   }
 }
