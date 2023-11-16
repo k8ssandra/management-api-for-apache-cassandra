@@ -5,9 +5,9 @@
  */
 package io.k8ssandra.metrics.builder.relabel;
 
-import com.fasterxml.jackson.shaded.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import io.k8ssandra.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.regex.Pattern;
 

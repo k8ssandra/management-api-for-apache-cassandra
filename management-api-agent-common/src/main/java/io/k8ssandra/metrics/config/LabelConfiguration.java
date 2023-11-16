@@ -5,7 +5,7 @@
  */
 package io.k8ssandra.metrics.config;
 
-import com.fasterxml.jackson.shaded.annotation.JsonProperty;
+import io.k8ssandra.shaded.com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
 public class LabelConfiguration {

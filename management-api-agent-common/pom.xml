@@ -111,7 +111,7 @@
         </dependency>
         <dependency>
           <groupId>io.k8ssandra</groupId>
-          <artifactId>datastax-mgmtapi-shaded-dataformat-yaml</artifactId>
+          <artifactId>datastax-mgmtapi-agent-shaded-libs</artifactId>
           <version>${project.version}</version>
           <exclusions>
             <exclusion>
