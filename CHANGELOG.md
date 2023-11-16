@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE]  [#425](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/425) Shade Jackson libraries in agents
 * [BUGFIX]  [#413](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/413) UBI8 images do not terminate correctly
 * [BUGFIX]  [#360](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/360) Support Cassandra 5.0-alpha1
 * [BUGFIX]  [#415](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/415) Some jvm_* metrics aren't labelled correctly
