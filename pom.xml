@@ -51,7 +51,7 @@
         <dseIncluded>false</dseIncluded>
       </properties>
       <modules>
-        <module>management-api-shaded-dataformat-yaml</module>
+        <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -70,7 +70,7 @@
         <dseIncluded>true</dseIncluded>
       </properties>
       <modules>
-        <module>management-api-shaded-dataformat-yaml</module>
+        <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -90,7 +90,7 @@
         <dseIncluded>false</dseIncluded>
       </properties>
       <modules>
-        <module>management-api-shaded-dataformat-yaml</module>
+        <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>
@@ -109,7 +109,7 @@
         <dseIncluded>true</dseIncluded>
       </properties>
       <modules>
-        <module>management-api-shaded-dataformat-yaml</module>
+        <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
         <module>management-api-agent-3.x</module>

@@ -5,9 +5,9 @@
  */
 package io.k8ssandra.metrics.config;
 
-import com.fasterxml.jackson.shaded.databind.ObjectMapper;
-import com.fasterxml.jackson.shaded.dataformat.yaml.YAMLFactory;
 import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
+import io.k8ssandra.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+import io.k8ssandra.shaded.com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

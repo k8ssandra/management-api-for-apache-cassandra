@@ -61,7 +61,7 @@ ENV MAAC_PATH /opt/management-api
 ENV DSE_HOME /opt/dse
 
 COPY pom.xml /tmp/pom.xml
-COPY management-api-shaded-dataformat-yaml/pom.xml /tmp/management-api-shaded-dataformat-yaml/pom.xml
+COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
 COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xml
 COPY management-api-agent-3.x/pom.xml /tmp/management-api-agent-3.x/pom.xml
 COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
@@ -73,7 +73,7 @@ COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 # a solid cache layer that only gets reset on pom.xml changes
 RUN cd /tmp && mvn -q -ff -T 1C install -DskipOpenApi && rm -rf target
 
-COPY management-api-shaded-dataformat-yaml /tmp/management-api-shaded-dataformat-yaml
+COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
 COPY management-api-agent-common /tmp/management-api-agent-common
 COPY management-api-agent-3.x /tmp/management-api-agent-3.x
 COPY management-api-agent-4.x /tmp/management-api-agent-4.x

@@ -14,7 +14,7 @@
     <version>${revision}</version>
   </parent>
   <version>${revision}</version>
-  <artifactId>datastax-mgmtapi-shaded-dataformat-yaml</artifactId>
+  <artifactId>datastax-mgmtapi-agent-shaded-libs</artifactId>
   <profiles>
     <profile>
       <id>default</id>
@@ -63,23 +63,23 @@
               <relocations>
                 <relocation>
                   <pattern>org.yaml.snakeyaml</pattern>
-                  <shadedPattern>org.yaml.shaded.snakeyaml</shadedPattern>
+                  <shadedPattern>io.k8ssandra.shaded.org.yaml.snakeyaml</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.fasterxml.jackson.annotation</pattern>
-                  <shadedPattern>com.fasterxml.jackson.shaded.annotation</shadedPattern>
+                  <shadedPattern>io.k8ssandra.shaded.com.fasterxml.jackson.annotation</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.fasterxml.jackson.core</pattern>
-                  <shadedPattern>com.fasterxml.jackson.shaded.core</shadedPattern>
+                  <shadedPattern>io.k8ssandra.shaded.com.fasterxml.jackson.core</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.fasterxml.jackson.databind</pattern>
-                  <shadedPattern>com.fasterxml.jackson.shaded.databind</shadedPattern>
+                  <shadedPattern>io.k8ssandra.shaded.com.fasterxml.jackson.databind</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.fasterxml.jackson.dataformat.yaml</pattern>
-                  <shadedPattern>com.fasterxml.jackson.shaded.dataformat.yaml</shadedPattern>
+                  <shadedPattern>io.k8ssandra.shaded.com.fasterxml.jackson.dataformat.yaml</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
