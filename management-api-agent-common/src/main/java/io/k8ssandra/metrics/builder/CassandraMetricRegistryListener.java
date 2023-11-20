@@ -22,6 +22,7 @@ import com.codahale.metrics.Snapshot;
 import com.codahale.metrics.Timer;
 import io.k8ssandra.metrics.config.Configuration;
 import io.prometheus.client.Collector;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -73,6 +74,8 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   private final ConcurrentHashMap<String, String> cache;
 
   private Method decayingHistogramOffsetMethod = null;
+
+  private Field bucketOffsetField = null;
 
   public CassandraMetricRegistryListener(
       ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache, Configuration config)
@@ -128,11 +131,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     proto.setFiller(
         (samples) -> {
           if (gauge.getValue() == null) {
+            logger.trace(String.format("getValue() returned null for %s\n", proto.getMetricName()));
             return;
           }
           long[] inputValues = (long[]) gauge.getValue();
           if (inputValues.length == 0) {
             // Empty
+            logger.trace(String.format("Empty inputValues array for %s\n", proto.getMetricName()));
             return;
           }
 
@@ -359,7 +364,18 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
           if (snapshotClass.contains("EstimatedHistogramReservoirSnapshot")) {
             // OSS versions
-            buckets = CassandraMetricsTools.DECAYING_BUCKETS;
+            try {
+              if (bucketOffsetField == null) {
+                bucketOffsetField =
+                    snapshot.getClass().getSuperclass().getDeclaredField("bucketOffsets");
+                bucketOffsetField.setAccessible(true);
+              }
+              buckets = (long[]) bucketOffsetField.get(snapshot);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+              logger.debug("Unable to get bucketOffsets", e);
+              buckets = CassandraMetricsTools.DECAYING_BUCKETS;
+            }
+
           } else if (snapshotClass.contains("DecayingEstimatedHistogram")) {
             // DSE
             try {
@@ -373,20 +389,24 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                   String.format("Unable to getOffsets for DSE, snapshotClass: %s", snapshotClass),
                   e);
             }
+          } else {
+            logger.debug(
+                String.format(
+                    "Unknown type for %s, wants: %s\n", proto.getMetricName(), snapshotClass));
           }
 
           // This can happen if histogram isn't EstimatedDecay or EstimatedHistogram
-          if (values.length != buckets.length) {
-            logger.debug(
+          if (values.length > buckets.length + 1 || values.length < buckets.length) {
+            logger.error(
                 String.format(
-                    "Values and bucket lengths do not match: %d != %d. SnapshotClass: %s",
-                    values.length, buckets.length, snapshotClass));
+                    "Values and bucket lengths do not match: %d != %d. SnapshotClass: %s, metric: %s",
+                    values.length, buckets.length, snapshotClass, proto.getMetricName()));
             return;
           }
 
           int outputIndex = 0; // output index
           long cumulativeCount = 0;
-          for (int i = 0; i < values.length; i++) {
+          for (int i = 0; i < buckets.length; i++) {
             if (outputIndex < LATENCY_OFFSETS.length
                 && buckets[i] > (LATENCY_OFFSETS[outputIndex] * 1000)) {
               List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
@@ -435,6 +455,12 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
            * way
            */
           double sumValue = snapshot.getMean() * cumulativeCount;
+
+          if (values.length > buckets.length && values[buckets.length] > 0) {
+            // If last bucket has data, it means the histogram has overflowed
+            sumValue = Long.MAX_VALUE;
+          }
+
           Collector.MetricFamilySamples.Sample sumSample =
               new Collector.MetricFamilySamples.Sample(
                   sum.getMetricName(), sum.getLabelNames(), sum.getLabelValues(), sumValue);
