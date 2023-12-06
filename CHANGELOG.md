@@ -11,6 +11,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [BUGFIX] [#434](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/434) Temporarily disable arm64 support for DSE images
+
 ## v0.1.71 (2023-11-16)
 * [CHANGE]  [#425](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/425) Shade Jackson libraries in agents
 * [BUGFIX]  [#413](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/413) UBI8 images do not terminate correctly

@@ -104,7 +104,7 @@ jobs:
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           target: dse68
       # Build UBI image in the same job after the Ubuntu image, only for JDK8
       # This currently does not work since you can't build multi-arch images AND
@@ -124,5 +124,5 @@ jobs:
 #          context: .
 #          push: false
 #          tags: ${{ steps.meta.outputs.tags }}
-#          platforms: linux/amd64,linux/arm64
+#          platforms: linux/amd64
 #          target: dse68
