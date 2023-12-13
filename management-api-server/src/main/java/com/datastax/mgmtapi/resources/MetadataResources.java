@@ -23,7 +23,6 @@ import javax.ws.rs.core.Response;
 
 @Path("/api/v0/metadata")
 public class MetadataResources extends BaseResources {
-  private static final String CASSANDRA_VERSION_CQL_STRING = "CALL NodeOps.getReleaseVersion()";
 
   public MetadataResources(ManagementApplication application) {
     super(application);

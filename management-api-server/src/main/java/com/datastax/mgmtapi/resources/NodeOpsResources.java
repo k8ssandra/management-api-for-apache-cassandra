@@ -14,7 +14,6 @@ import com.datastax.mgmtapi.resources.models.RepairRequest;
 import com.datastax.mgmtapi.resources.models.SnapshotDetails;
 import com.datastax.mgmtapi.resources.models.StreamingInfo;
 import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
-import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import com.google.common.collect.ImmutableList;
@@ -620,7 +619,7 @@ public class NodeOpsResources extends BaseResources {
   }
 
   @POST
-  @Path("/ops/search/rebuildIndex")
+  @Path("/search/rebuildIndex")
   @Operation(summary = "Rebuild a DSE Search index", operationId = "searchIndexRebuild")
   @Produces(MediaType.APPLICATION_JSON)
   @ApiResponse(responseCode = "200", description = "DSE Search index rebuild has started")
@@ -640,13 +639,14 @@ public class NodeOpsResources extends BaseResources {
     return handle(
         () -> {
           // check if we're dealing with DSE
-          ResultSet resultSet =
-              app.cqlService.executeCql(app.dbUnixSocketFile, "SELECT * FROM system.local;");
-          Row result = resultSet.one();
-          if (result == null) {
+          final String releaseVersion =
+              ResponseTools.getSingleRowStringResponse(
+                  app.dbUnixSocketFile, app.cqlService, CASSANDRA_VERSION_CQL_STRING);
+          if (releaseVersion == null) {
+            // couldn't get release version, something is wrong
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
           }
-          if (!result.getColumnDefinitions().contains("dse_version")) {
+          if (!releaseVersion.startsWith("4.0.0.68")) {
             // rebuilding search index is only possible on DSE
             return Response.status(Response.Status.BAD_REQUEST).build();
           }

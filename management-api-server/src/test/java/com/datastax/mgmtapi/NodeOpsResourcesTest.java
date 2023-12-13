@@ -6,7 +6,6 @@
 package com.datastax.mgmtapi;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -16,10 +15,11 @@ import com.datastax.mgmtapi.resources.KeyspaceOpsResources;
 import com.datastax.mgmtapi.resources.MetadataResources;
 import com.datastax.mgmtapi.resources.NodeOpsResources;
 import com.datastax.mgmtapi.resources.TableOpsResources;
-import com.datastax.oss.driver.api.core.cql.ColumnDefinitions;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
+import java.net.URISyntaxException;
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.mock.MockDispatcherFactory;
 import org.jboss.resteasy.mock.MockHttpRequest;
@@ -83,28 +83,15 @@ public class NodeOpsResourcesTest {
 
     NodeOpsResourcesTest.Context context = setup();
 
-    Row mockSystemLocalRow = mock(Row.class);
-    ResultSet mockSystemLocalResultSet = mock(ResultSet.class);
-    ColumnDefinitions mockColumnDefinitions = mock(ColumnDefinitions.class);
+    mockGetReleaseVersion(context, "4.0.0.6839");
 
     ResultSet mockRebuildResultSet = mock(ResultSet.class);
-
-    // mock the interaction with system.local
-    when(mockSystemLocalResultSet.one()).thenReturn(mockSystemLocalRow);
-    when(mockSystemLocalRow.getColumnDefinitions()).thenReturn(mockColumnDefinitions);
-    when(mockColumnDefinitions.contains(anyString())).thenReturn(Boolean.TRUE);
-    when(context.cqlService.executeCql(any(), startsWith("SELECT * FROM system.local;")))
-        .thenReturn(mockSystemLocalResultSet);
 
     // mock the actual rebuild call
     when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
         .thenReturn(mockRebuildResultSet);
 
-    MockHttpRequest request =
-        MockHttpRequest.post(ROOT_PATH + "/ops/search/rebuildIndex?keyspace=ks&table=t");
-    MockHttpResponse response = context.invoke(request);
-
-    Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+    makeRequestWithExpectedResponse(context, HttpStatus.SC_OK);
   }
 
   @Test
@@ -112,29 +99,15 @@ public class NodeOpsResourcesTest {
 
     NodeOpsResourcesTest.Context context = setup();
 
-    Row mockSystemLocalRow = mock(Row.class);
-    ResultSet mockSystemLocalResultSet = mock(ResultSet.class);
-    ColumnDefinitions mockColumnDefinitions = mock(ColumnDefinitions.class);
+    mockGetReleaseVersion(context, "4.0.0");
 
     ResultSet mockRebuildResultSet = mock(ResultSet.class);
-
-    // mock the interaction with system.local
-    when(mockSystemLocalResultSet.one()).thenReturn(mockSystemLocalRow);
-    when(mockSystemLocalRow.getColumnDefinitions()).thenReturn(mockColumnDefinitions);
-    // here we indicate we're not dealing with DSE
-    when(mockColumnDefinitions.contains(anyString())).thenReturn(Boolean.FALSE);
-    when(context.cqlService.executeCql(any(), startsWith("SELECT * FROM system.local;")))
-        .thenReturn(mockSystemLocalResultSet);
 
     // mock the actual rebuild call
     when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
         .thenReturn(mockRebuildResultSet);
 
-    MockHttpRequest request =
-        MockHttpRequest.post(ROOT_PATH + "/ops/search/rebuildIndex?keyspace=ks&table=t");
-    MockHttpResponse response = context.invoke(request);
-
-    Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
+    makeRequestWithExpectedResponse(context, HttpStatus.SC_BAD_REQUEST);
   }
 
   @Test
@@ -142,27 +115,14 @@ public class NodeOpsResourcesTest {
 
     NodeOpsResourcesTest.Context context = setup();
 
-    Row mockSystemLocalRow = mock(Row.class);
-    ResultSet mockSystemLocalResultSet = mock(ResultSet.class);
-    ColumnDefinitions mockColumnDefinitions = mock(ColumnDefinitions.class);
-
-    // mock the interaction with system.local
-    when(mockSystemLocalResultSet.one()).thenReturn(mockSystemLocalRow);
-    when(mockSystemLocalRow.getColumnDefinitions()).thenReturn(mockColumnDefinitions);
-    when(mockColumnDefinitions.contains(anyString())).thenReturn(Boolean.TRUE);
-    when(context.cqlService.executeCql(any(), startsWith("SELECT * FROM system.local;")))
-        .thenReturn(mockSystemLocalResultSet);
+    mockGetReleaseVersion(context, "4.0.0.6839");
 
     // mock the actual rebuild call
     // the driver throws an invalid query exception if we do this on a table w/o an index
     when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
         .thenThrow(InvalidQueryException.class);
 
-    MockHttpRequest request =
-        MockHttpRequest.post(ROOT_PATH + "/ops/search/rebuildIndex?keyspace=ks&table=t");
-    MockHttpResponse response = context.invoke(request);
-
-    Assert.assertEquals(HttpStatus.SC_NOT_FOUND, response.getStatus());
+    makeRequestWithExpectedResponse(context, HttpStatus.SC_NOT_FOUND);
   }
 
   @Test
@@ -170,21 +130,32 @@ public class NodeOpsResourcesTest {
 
     NodeOpsResourcesTest.Context context = setup();
 
-    ResultSet mockSystemLocalResultSet = mock(ResultSet.class);
-
-    // mock the interaction with system.local
-    when(mockSystemLocalResultSet.one()).thenReturn(null);
-    when(context.cqlService.executeCql(any(), startsWith("SELECT * FROM system.local;")))
-        .thenReturn(mockSystemLocalResultSet);
+    mockGetReleaseVersion(context, null);
 
     // mock the actual rebuild call
     when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
         .thenThrow(InvalidQueryException.class);
 
+    makeRequestWithExpectedResponse(context, HttpStatus.SC_INTERNAL_SERVER_ERROR);
+  }
+
+  private void mockGetReleaseVersion(NodeOpsResourcesTest.Context context, String version)
+      throws ConnectionClosedException {
+    ResultSet mockVersionResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(mockRow.getString(0)).thenReturn(version);
+    when(mockVersionResultSet.one()).thenReturn(mockRow);
+    when(context.cqlService.executeCql(any(), startsWith("CALL NodeOps.getReleaseVersion()")))
+        .thenReturn(mockVersionResultSet);
+  }
+
+  private void makeRequestWithExpectedResponse(
+      NodeOpsResourcesTest.Context context, int expectedStatus) throws URISyntaxException {
     MockHttpRequest request =
-        MockHttpRequest.post(ROOT_PATH + "/ops/search/rebuildIndex?keyspace=ks&table=t");
+        MockHttpRequest.post(ROOT_PATH + "/search/rebuildIndex?keyspace=ks&table=t");
     MockHttpResponse response = context.invoke(request);
 
-    Assert.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
+    Assert.assertEquals(expectedStatus, response.getStatus());
   }
 }

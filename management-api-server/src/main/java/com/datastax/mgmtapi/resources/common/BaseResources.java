@@ -17,6 +17,7 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 
 public abstract class BaseResources {
+  protected static final String CASSANDRA_VERSION_CQL_STRING = "CALL NodeOps.getReleaseVersion()";
 
   protected final ManagementApplication app;
 
