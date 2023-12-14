@@ -949,6 +949,39 @@
         "summary" : "Reset node's local schema and resync"
       }
     },
+    "/api/v0/ops/node/search/rebuildIndex" : {
+      "post" : {
+        "operationId" : "searchIndexRebuild",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "keyspace",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "table",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "DSE Search index rebuild has started"
+          },
+          "400" : {
+            "description" : "An attempt is made to rebuild the index on a server type (Cassandra) that does not support it"
+          },
+          "404" : {
+            "description" : "An attempt is made to rebuild a non-existing index"
+          },
+          "500" : {
+            "description" : "Internal error occurs that disallow us to determine if this operation is possible"
+          }
+        },
+        "summary" : "Rebuild a DSE Search index"
+      }
+    },
     "/api/v0/ops/node/snapshots" : {
       "delete" : {
         "operationId" : "clearSnapshots",
