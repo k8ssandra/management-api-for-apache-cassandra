@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: 'Cassandra trunk commit SHA to build'
+        description: 'Cassandra commit SHA to build'
         required: false
         default: 'HEAD'
+        type: string
+      branch:
+        description: 'Cassandra branch to build'
+        required: false
+        default: 'trunk'
         type: string
 
 jobs:
@@ -30,11 +35,13 @@ jobs:
         id: get_sha_scheduled
         run: |
           echo "COMMITSHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "CASSANDRA_BRANCH=trunk" >> $GITHUB_ENV
       - name: Get on-demand Cassandra COMMIT SHA
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: get_sha_on_demand
         run: |
           echo "COMMITSHA=$(git rev-parse --short ${{ inputs.sha }})" >> $GITHUB_ENV
+          echo "CASSANDRA_BRANCH=${{ inputs.branch }}" >> $GITHUB_ENV
       - name: Setup Docker scheduled meta
         if: ${{ github.event_name == 'schedule' }}
         id: meta_schedule
@@ -56,7 +63,7 @@ jobs:
           flavor: |
             prefix=${{ matrix.cassandra-version }}-
           tags: |
-            type=raw,value=${{ env.COMMITSHA }}
+            type=raw,value=${{ env.CASSANDRA_BRANCH }}-${{ env.COMMITSHA }}
       - name: Checkout Management API
         uses: actions/checkout@v4
       - name: Set up QEMU
@@ -78,21 +85,21 @@ jobs:
         id: docker_build_schedule
         uses: docker/build-push-action@v4
         with:
-          file: cassandra-trunk/Dockerfile.ubi8
+          file: cassandra-trunk/Dockerfile-trunk.ubi8
           context: .
           push: true
           tags: ${{ steps.meta_schedule.outputs.tags }}
-          platforms: linux/amd64
-          target: cass-trunk
+          platforms: linux/amd64,linux/arm64
+          target: cassandra
       - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: docker_build_on_demand
         uses: docker/build-push-action@v4
         with:
-          file: cassandra-trunk/Dockerfile.ubi8
+          file: cassandra-trunk/Dockerfile-trunk.ubi8
           context: .
           push: true
           tags: ${{ steps.meta_on_demand.outputs.tags }}
-          platforms: linux/amd64
-          target: cass-trunk
-          build-args: COMMITSHA=${{ env.COMMITSHA }}
+          platforms: linux/amd64,linux/arm64
+          target: cassandra
+          build-args: COMMITSHA=${{ env.COMMITSHA }}, CASSANDRA_BRANCH=${{ env.CASSANDRA_BRANCH }}
