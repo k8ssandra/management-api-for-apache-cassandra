@@ -77,10 +77,12 @@ jobs:
       fail-fast: false
       max-parallel: 8
       matrix:
-        cassandra-version: ['4.0', '4.1', '5.0']
+        cassandra-version: ['4.0', '4.1', '5.0', 'trunk']
         base-platform: ['ubuntu', 'ubi8']
         exclude:
           - cassandra-version: '5.0'
+            base-platform: 'ubuntu'
+          - cassandra-version: 'trunk'
             base-platform: 'ubuntu'
     steps:
       - name: Restore build workspace
@@ -114,7 +116,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform == 'ubuntu' }}
+        if: ${{ matrix.base-platform == 'ubuntu' && matrix.cassandra-version != 'trunk' }}
         id: docker_build_ubuntu
         uses: docker/build-push-action@v5
         with:
@@ -126,11 +128,23 @@ jobs:
           target: cassandra
           outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
       - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform != 'ubuntu' }}
+        if: ${{ matrix.base-platform != 'ubuntu' && matrix.cassandra-version != 'trunk' }}
         id: docker_build_ubi8
         uses: docker/build-push-action@v5
         with:
           file: cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: cassandra
+          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+        if: ${{ matrix.cassandra-version == 'trunk' }}
+        id: docker_build_trunk
+        uses: docker/build-push-action@v5
+        with:
+          file: cassandra-trunk/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
@@ -303,11 +317,13 @@ jobs:
       fail-fast: false
       max-parallel: 16
       matrix:
-        cassandra-version: ['4.0', '4.1', '5.0']
+        cassandra-version: ['4.0', '4.1', '5.0', 'trunk']
         base-platform: ['ubuntu', 'ubi8']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT', 'NodetoolIT']
         exclude:
           - cassandra-version: '5.0'
+            base-platform: 'ubuntu'
+          - cassandra-version: 'trunk'
             base-platform: 'ubuntu'
     steps:
       - uses: actions/checkout@v4
