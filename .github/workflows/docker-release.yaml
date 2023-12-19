@@ -10,10 +10,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40]
+        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41]
         image-base: [jdk8, jdk11]
         include:
-          - dse-version: 6.8.40
+          - dse-version: 6.8.41
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -106,10 +106,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40]
+        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41]
         image-base: [ubi8]
         include:
-          - dse-version: 6.8.40
+          - dse-version: 6.8.41
             latest: true
     runs-on: ubuntu-latest
     steps:
