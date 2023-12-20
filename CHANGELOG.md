@@ -13,6 +13,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#453](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/453) Use a longer driver timeout for drain
 * [FEATURE] [#455](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/455) Add DSE 6.8.43 to the build matrix
 * [FEATURE] [#458](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/458) Update MCAC to v0.3.5
+* [ENHANCEMENT] [#441](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/441) Replace ShellUtils arbitrary command execution
 
 ## v0.1.73 (2024-02-20)
 

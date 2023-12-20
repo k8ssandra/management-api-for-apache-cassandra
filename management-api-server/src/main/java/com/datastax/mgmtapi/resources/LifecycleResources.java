@@ -30,7 +30,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +48,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,18 +141,15 @@ public class LifecycleResources extends BaseResources {
       if (extra != null) envArgsBuilder.put("JVM_EXTRA_OPTS", extra);
 
       Map<String, String> environment = envArgsBuilder.build();
-      StringBuilder extraArgs = new StringBuilder();
+      List<String> cmdArgs = new ArrayList<>(app.dbExtraJvmArgs);
 
       if (profile != null) {
         app.setActiveProfile(profile);
 
-        extraArgs
-            .append("-Dcassandra.config=file:///tmp/")
-            .append(profile)
-            .append("/cassandra.yaml")
-            .append(" -Dcassandra-rackdc.properties=file:///tmp/")
-            .append(profile)
-            .append("/node-topology.properties");
+        cmdArgs.add(String.format("-Dcassandra.config=file:///tmp/%s/cassandra.yaml", profile));
+        cmdArgs.add(
+            String.format(
+                "-Dcassandra-rackdc.properties=file:///tmp/%s/node-topology.properties", profile));
       }
 
       if (replaceIp != null) {
@@ -157,12 +158,7 @@ public class LifecycleResources extends BaseResources {
               .entity(Entity.text("Invalid replace IP passed: " + replaceIp))
               .build();
 
-        extraArgs.append("-Dcassandra.replace_address_first_boot=").append(replaceIp);
-      }
-
-      String cassandraOrDseCommand = app.dbExe.getAbsolutePath();
-      if (cassandraOrDseCommand.endsWith("dse")) {
-        cassandraOrDseCommand += " cassandra";
+        cmdArgs.add(String.format("-Dcassandra.replace_address_first_boot=%s", replaceIp));
       }
 
       // Delete stale file if it exists
@@ -184,22 +180,40 @@ public class LifecycleResources extends BaseResources {
                 "Process cannot write to %s. Please ensure that permissions are set correctly and that the MGMT_API_LOG_DIR environment variable is set to the desired log directory.",
                 mgmtApiStartupLogDir));
       } else {
+        // build the start command. Add stdout/stderr redirects first
+        ProcessBuilder dbCmdPb =
+            new ProcessBuilder("nohup")
+                .redirectError(Paths.get(mgmtApiStartupLogDir, "stderr.log").toFile())
+                .redirectOutput(Paths.get(mgmtApiStartupLogDir, "stdout.log").toFile());
+        // setup profile if specified
+        if (profile != null) {
+          dbCmdPb.command().add(String.format("/tmp/%s/env.sh", profile));
+        }
+        dbCmdPb.command().add(app.dbExe.getAbsolutePath());
+        if (app.dbExe.getAbsolutePath().endsWith("dse")) {
+          // DSE needs the extra "cassandra" startup argument
+          dbCmdPb.command().add("cassandra");
+        }
+        dbCmdPb.command().add("-R");
+        dbCmdPb.command().add("-Dcassandra.server_process");
+        dbCmdPb.command().add("-Dcassandra.skip_default_role_setup=true");
+        dbCmdPb
+            .command()
+            .add(String.format("-Ddb.unix_socket_file=%s", app.dbUnixSocketFile.getAbsolutePath()));
+        // add extra commands with some sanitizing so that we do not end up with empty args or
+        // surrounded by whitespace chars
+        cmdArgs.stream()
+            .map(this::sanitizeDbCmdArg)
+            .filter(StringUtils::isNotBlank)
+            .forEach(x -> dbCmdPb.command().add(x));
+
         started =
-            ShellUtils.executeShellWithHandlers(
-                String.format(
-                    "nohup %s %s -R -Dcassandra.server_process -Dcassandra.skip_default_role_setup=true -Ddb.unix_socket_file=%s %s %s > %s/stdout.log 2> %s/stderr.log",
-                    profile != null ? "/tmp/" + profile + "/env.sh" : "",
-                    cassandraOrDseCommand,
-                    app.dbUnixSocketFile.getAbsolutePath(),
-                    extraArgs.toString(),
-                    String.join(" ", app.dbExtraJvmArgs),
-                    mgmtApiStartupLogDir,
-                    mgmtApiStartupLogDir),
-                (input, err) -> true,
+            ShellUtils.executeWithHandlers(
+                dbCmdPb,
+                (input, out) -> true,
                 (exitCode, err) -> {
-                  logger.error(
-                      "Error starting Cassandra: {}",
-                      err.lines().collect(Collectors.joining("\n")));
+                  String lines = err.collect(Collectors.joining("\n"));
+                  logger.error("Error starting Cassandra: {}", lines);
                   return false;
                 },
                 environment);
@@ -255,11 +269,7 @@ public class LifecycleResources extends BaseResources {
           return Response.ok("OK\n").build();
         }
 
-        Boolean stopped =
-            ShellUtils.executeShellWithHandlers(
-                String.format("kill %d", maybePid.get()),
-                (input, err) -> true,
-                (exitCode, err) -> false);
+        Boolean stopped = UnixCmds.terminateProcess(maybePid.get());
 
         if (!stopped) logger.warn("Killing Cassandra failed");
 
@@ -268,11 +278,7 @@ public class LifecycleResources extends BaseResources {
 
       Optional<Integer> maybePid = findPid();
       if (maybePid.isPresent()) {
-        Boolean stopped =
-            ShellUtils.executeShellWithHandlers(
-                String.format("kill -9 %d", maybePid.get()),
-                (input, err) -> true,
-                (exitCode, err) -> false);
+        Boolean stopped = UnixCmds.killProcess(maybePid.get());
 
         if (!stopped) {
           logger.info("Cassandra not stopped trying with kill -9");
@@ -525,5 +531,9 @@ public class LifecycleResources extends BaseResources {
     } else {
       return logPath.mkdirs();
     }
+  }
+
+  private String sanitizeDbCmdArg(String arg) {
+    return StringUtils.strip(StringUtils.trim(arg));
   }
 }
