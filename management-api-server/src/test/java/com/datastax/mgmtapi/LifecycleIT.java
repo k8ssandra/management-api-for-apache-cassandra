@@ -259,7 +259,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
   }
 
   @Test
-  public void testDcReplicationFatorOverrides() throws IOException {
+  public void testDcReplicationFactorOverrides() throws IOException {
     assumeTrue(IntegrationTestUtils.shouldRun());
 
     boolean ready = false;
