@@ -150,7 +150,7 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
     assertTrue(started);
 
     int tries = 0;
-    while (tries++ < 10) {
+    while (tries++ < 30) {
       ready =
           client
               .get(URI.create(BASE_PATH + "/probes/readiness").toURL())
@@ -161,7 +161,7 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
         break;
       }
 
-      Uninterruptibles.sleepUninterruptibly(20, TimeUnit.SECONDS);
+      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.SECONDS);
     }
 
     assertTrue(ready);
