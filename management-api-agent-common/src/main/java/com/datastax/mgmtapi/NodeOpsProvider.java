@@ -504,16 +504,16 @@ public class NodeOpsProvider {
           for (String keyspace : keyspaceList) {
             try {
               ShimLoader.instance
-                      .get()
-                      .getStorageService()
-                      .scrub(
-                              disableSnapshot,
-                              skipCorrupted,
-                              checkData,
-                              reinsertOverflowedTTL,
-                              jobs,
-                              keyspace,
-                              tables.toArray(new String[]{}));
+                  .get()
+                  .getStorageService()
+                  .scrub(
+                      disableSnapshot,
+                      skipCorrupted,
+                      checkData,
+                      reinsertOverflowedTTL,
+                      jobs,
+                      keyspace,
+                      tables.toArray(new String[] {}));
             } catch (IOException | ExecutionException | InterruptedException e) {
               logger.error("Failed to execute scrub: ", e);
               throw new RuntimeException(e);
