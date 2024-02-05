@@ -492,23 +492,32 @@ public class NodeOpsProvider {
       @RpcParam(name = "async") boolean async)
       throws InterruptedException, ExecutionException, IOException {
     logger.debug("Scrubbing tables on keyspace {}", keyspaceName);
+    List<String> keyspaces = Collections.singletonList(keyspaceName);
+    if (keyspaceName != null && keyspaceName.toUpperCase().equals("ALL")) {
+      keyspaces = ShimLoader.instance.get().getStorageService().getKeyspaces();
+    }
+
+    final List<String> keyspaceList = keyspaces;
+
     Runnable scrubOperation =
         () -> {
-          try {
-            ShimLoader.instance
-                .get()
-                .getStorageService()
-                .scrub(
-                    disableSnapshot,
-                    skipCorrupted,
-                    checkData,
-                    reinsertOverflowedTTL,
-                    jobs,
-                    keyspaceName,
-                    tables.toArray(new String[] {}));
-          } catch (IOException | ExecutionException | InterruptedException e) {
-            logger.error("Failed to execute scrub: ", e);
-            throw new RuntimeException(e);
+          for (String keyspace : keyspaceList) {
+            try {
+              ShimLoader.instance
+                      .get()
+                      .getStorageService()
+                      .scrub(
+                              disableSnapshot,
+                              skipCorrupted,
+                              checkData,
+                              reinsertOverflowedTTL,
+                              jobs,
+                              keyspace,
+                              tables.toArray(new String[]{}));
+            } catch (IOException | ExecutionException | InterruptedException e) {
+              logger.error("Failed to execute scrub: ", e);
+              throw new RuntimeException(e);
+            }
           }
         };
     return submitJob(OperationType.SCRUB.name(), scrubOperation, async);
