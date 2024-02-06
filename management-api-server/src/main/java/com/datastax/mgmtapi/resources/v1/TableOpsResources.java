@@ -237,7 +237,7 @@ public class TableOpsResources extends BaseResources {
                       "CALL NodeOps.forceKeyspaceCompaction(?, ?, ?, ?)",
                       compactRequest.splitOutput,
                       keyspaceName,
-                      compactRequest.tables,
+                      tables,
                       true))
               .build();
         });
