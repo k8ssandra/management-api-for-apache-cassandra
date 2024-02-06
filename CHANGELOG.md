@@ -11,6 +11,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [BUGFIX] [#448](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/448) Scrub did not work when targetting all the keyspaces
+* [BUGFIX] [#437](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/437) Compaction threw NPE if used without target TokenRange
+
 ## v0.1.72 (2023-12-19)
 
 * [BUGFIX]  [#434](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/434) Temporarily disable arm64 support for DSE images

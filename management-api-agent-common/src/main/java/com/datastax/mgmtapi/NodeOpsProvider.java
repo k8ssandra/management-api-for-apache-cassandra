@@ -94,6 +94,7 @@ public class NodeOpsProvider {
     resultMap.put("submit_time", String.valueOf(jobWithId.getSubmitTime()));
     resultMap.put("end_time", String.valueOf(jobWithId.getFinishedTime()));
     if (jobWithId.getStatus() == Job.JobStatus.ERROR) {
+      logger.error("Task " + jobId + " execution failed", jobWithId.getError());
       resultMap.put("error", jobWithId.getError().getLocalizedMessage());
     }
 
