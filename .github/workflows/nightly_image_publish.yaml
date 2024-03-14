@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Checkout Cassandra
         id: checkout_cassandra
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'apache/cassandra'
       - name: Get scheduled Cassandra COMMIT SHA
@@ -38,7 +38,7 @@ jobs:
       - name: Setup Docker scheduled meta
         if: ${{ github.event_name == 'schedule' }}
         id: meta_schedule
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: k8ssandra/cass-management-api
           flavor: |
@@ -50,7 +50,7 @@ jobs:
       - name: Setup Docker on demand meta
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: meta_on_demand
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: k8ssandra/cass-management-api
           flavor: |
@@ -58,23 +58,23 @@ jobs:
           tags: |
             type=raw,value=${{ env.COMMITSHA }}
       - name: Checkout Management API
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Setup Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           version: latest
       - name: Login to DockerHub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'schedule' }}
         id: docker_build_schedule
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: cassandra-trunk/Dockerfile.ubi8
           context: .
@@ -85,7 +85,7 @@ jobs:
       - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' }}
         id: docker_build_on_demand
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         with:
           file: cassandra-trunk/Dockerfile.ubi8
           context: .
