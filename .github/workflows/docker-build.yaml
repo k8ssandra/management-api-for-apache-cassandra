@@ -36,20 +36,20 @@ jobs:
             build-target: oss50
     steps:
       - name: Check out source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: k8ssandra/cass-management-api
           tags: type=sha,prefix=${{ matrix.cassandra-version }}-
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Build Cassandra ${{ matrix.cassandra-version }}
         id: docker_oss_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           file: ${{ matrix.docker-file }}
           context: .
@@ -65,7 +65,7 @@ jobs:
         jdk-version: [jdk8, jdk11]
     steps:
       - name: Check out source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Maven settings file
         run: |
           mkdir -p ~/.m2
@@ -88,17 +88,17 @@ jobs:
           cp ~/.m2/settings.xml settings.xml
       - name: Setup Docker meta
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
       - name: Build DSE 6.8-${{ matrix.jdk-version }}
         id: docker_dse_build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           file: dse-68/Dockerfile.${{ matrix.jdk-version }}
           context: .
