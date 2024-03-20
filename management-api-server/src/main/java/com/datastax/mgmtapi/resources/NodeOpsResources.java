@@ -240,7 +240,7 @@ public class NodeOpsResources extends BaseResources {
     return handle(
         () -> {
           try {
-            app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.drain()");
+            app.cqlService.executeSlowCql(app.dbUnixSocketFile, "CALL NodeOps.drain()");
 
             return Response.ok("OK").build();
           } catch (com.datastax.oss.driver.api.core.connection.ClosedConnectionException cce) {

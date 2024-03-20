@@ -355,14 +355,14 @@ public class K8OperatorResourcesTest {
   public void testDrain() throws Exception {
     Context context = setup();
     MockHttpRequest request = MockHttpRequest.post(ROOT_PATH + "/ops/node/drain");
-    when(context.cqlService.executeCql(any(), anyString())).thenReturn(null);
+    when(context.cqlService.executeSlowCql(any(), anyString())).thenReturn(null);
 
     MockHttpResponse response = context.invoke(request);
 
     Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
     Assert.assertTrue(response.getContentAsString().contains("OK"));
 
-    verify(context.cqlService).executeCql(any(), eq("CALL NodeOps.drain()"));
+    verify(context.cqlService).executeSlowCql(any(), eq("CALL NodeOps.drain()"));
   }
 
   @Test
