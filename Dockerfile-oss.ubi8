@@ -4,7 +4,7 @@ ARG CASSANDRA_VERSION=3.11.16
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
-ARG METRICS_COLLECTOR_VERSION=0.3.4
+ARG METRICS_COLLECTOR_VERSION=0.3.5
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
