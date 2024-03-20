@@ -10,12 +10,14 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
-* [FEATURE] [$453](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/453) Use a longer driver timeout for drain
+* [FEATURE] [#453](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/453) Use a longer driver timeout for drain
+* [FEATURE] [#455](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/455) Add DSE 6.8.43 to the build matrix
+* [FEATURE] [#458](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/458) Update MCAC to v0.3.5
 
 ## v0.1.73 (2024-02-20)
 
-* [FEATURE] [$449](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/449) Add DSE 6.8.42 to the build matrix
-* [FEATURE] [$451](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/451) Add Cassandra 4.1.4 to the build matrix
+* [FEATURE] [#449](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/449) Add DSE 6.8.42 to the build matrix
+* [FEATURE] [#451](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/451) Add Cassandra 4.1.4 to the build matrix
 * [BUGFIX] [#448](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/448) Scrub did not work when targetting all the keyspaces
 * [BUGFIX] [#437](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/437) Compaction threw NPE if used without target TokenRange
 
