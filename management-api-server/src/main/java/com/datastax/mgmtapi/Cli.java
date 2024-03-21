@@ -302,7 +302,7 @@ public class Cli implements Runnable {
     String dbCmd = "cassandra";
     try {
       boolean isDse = isDse();
-      dbCmd = isDse ? "dse" : "cassandra";
+
       String dbHomeEnv = isDse ? "DSE_HOME" : "CASSANDRA_HOME";
       if (db_home != null) {
         dbHomeDir = new File(db_home);
@@ -310,7 +310,7 @@ public class Cli implements Runnable {
         dbHomeDir = new File(System.getenv(dbHomeEnv));
       }
 
-      Optional<File> exe = UnixCmds.which(dbCmd);
+      Optional<File> exe = isDse ? UnixCmds.whichDse() : UnixCmds.whichCassandra();
       exe.ifPresent(file -> dbCmdFile = file);
 
       if (dbHomeDir != null && (!dbHomeDir.exists() || !dbHomeDir.isDirectory())) dbHomeDir = null;
@@ -328,13 +328,13 @@ public class Cli implements Runnable {
       // Verify Cassandra/DSE cmd works
       List<String> errorOutput = new ArrayList<>();
       String version =
-          ShellUtils.executeShellWithHandlers(
-              dbCmdFile.getAbsolutePath() + " -v",
-              (input, err) -> input.readLine(),
+          ShellUtils.executeWithHandlers(
+              new ProcessBuilder(dbCmdFile.getAbsolutePath(), "-v"),
+              (input, err) -> input.findFirst().orElse(null),
               (exitCode, err) -> {
                 String s;
                 errorOutput.add("'" + dbCmdFile.getAbsolutePath() + " -v' exit code: " + exitCode);
-                while ((s = err.readLine()) != null) errorOutput.add(s);
+                while ((s = err.findFirst().orElse(null)) != null) errorOutput.add(s);
                 return null;
               });
 
@@ -360,7 +360,7 @@ public class Cli implements Runnable {
   private boolean isDse() {
     try {
       // first check if dse cmd is already on the path
-      if (UnixCmds.which("dse").isPresent()) {
+      if (UnixCmds.whichDse().isPresent()) {
         return true;
       }
     } catch (IOException e) {
