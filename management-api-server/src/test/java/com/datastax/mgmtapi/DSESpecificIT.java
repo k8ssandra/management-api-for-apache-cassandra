@@ -60,7 +60,7 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
 
   @Test
   public void testSai() throws IOException, URISyntaxException {
-    assumeTrue(IntegrationTestUtils.shouldRun() && "dse-68".equals(this.version));
+    assumeTrue(IntegrationTestUtils.shouldRun() && this.version.startsWith("dse"));
     ensureStarted();
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
@@ -114,7 +114,7 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
 
   @Test
   public void testRebuildIndex() throws IOException, URISyntaxException {
-    assumeTrue(IntegrationTestUtils.shouldRun() && "dse-68".equals(this.version));
+    assumeTrue(IntegrationTestUtils.shouldRun() && this.version.startsWith("dse"));
 
     final String profile = "dsesearch";
     boolean ready = false;
