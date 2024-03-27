@@ -54,6 +54,11 @@ if [ "$1" = 'mgmtapi' ]; then
         cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
     fi
 
+    # remove cassandra-topology.properties file
+    if [ -e "${CASSANDRA_CONF}/cassandra-topology.properties" ]; then
+        rm "${CASSANDRA_CONF}/cassandra-topology.properties"
+    fi
+
     # Make sure the management api agent jar is set
     # We do this here for the following reasons:
     # 1. configbuilder will overwrite the cassandra-env-sh, so we don't want to set this after

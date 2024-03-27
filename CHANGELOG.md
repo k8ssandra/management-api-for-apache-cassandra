@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUG] {#463](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/463) Remove cassandra-topology.properties from the configuration folder
 
 ## v0.1.74 (2024-03-21)
 * [FEATURE] [#453](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/453) Use a longer driver timeout for drain
