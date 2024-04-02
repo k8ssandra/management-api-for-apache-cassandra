@@ -65,6 +65,21 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
     }
   }
 
+  @Test
+  public void testTarExist() {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    final String tarFile = "/usr/bin/tar";
+    try {
+      String execId = docker.runCommand("test", "-e", tarFile);
+      docker.waitTillFinished(execId);
+    } catch (Throwable t) {
+      fail(
+          "\"tar\" does not exist. Please check entrypoint script"
+              + "\n"
+              + t.getLocalizedMessage());
+    }
+  }
+
   private void testCommandExists(String cmd) {
     String execId = docker.runCommand("which", cmd);
     docker.waitTillFinished(execId);
