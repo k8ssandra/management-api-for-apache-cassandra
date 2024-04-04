@@ -26,7 +26,7 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
     // see if curl is installed
     try {
-      testCommandExists("curl");
+      docker.runCommand("which", "curl");
     } catch (Throwable t) {
       // this is expected, ensure the message indicates a process error code
       fail(
@@ -39,7 +39,7 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
     // ensure wget is installed
     try {
-      testCommandExists("wget");
+      docker.runCommand("which", "wget");
     } catch (Throwable t) {
       fail(
           "\"wget\" was not found in the image. Please ensure it has been added to the Dockerfile");
@@ -55,8 +55,7 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
                 : "/opt/cassandra/conf")
             + "/cassandra-topology.properties";
     try {
-      String execId = docker.runCommand("test", "!", "-e", topologyFile);
-      docker.waitTillFinished(execId);
+      docker.runCommand("test", "!", "-e", topologyFile);
     } catch (Throwable t) {
       fail(
           "\"cassandra-topology.properties\" file exists but should not. Please check entrypoint script"
@@ -68,20 +67,13 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
   @Test
   public void testTarExist() {
     assumeTrue(IntegrationTestUtils.shouldRun());
-    final String tarFile = "/usr/bin/tar";
     try {
-      String execId = docker.runCommand("test", "-e", tarFile);
-      docker.waitTillFinished(execId);
+      docker.runCommand("tar", "--version");
     } catch (Throwable t) {
       fail(
           "\"tar\" does not exist. Please check entrypoint script"
               + "\n"
               + t.getLocalizedMessage());
     }
-  }
-
-  private void testCommandExists(String cmd) {
-    String execId = docker.runCommand("which", cmd);
-    docker.waitTillFinished(execId);
   }
 }

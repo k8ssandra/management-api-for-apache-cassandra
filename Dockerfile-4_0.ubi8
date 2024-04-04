@@ -125,7 +125,7 @@ ENV CASSANDRA_DATA_DIR /var/lib/cassandra
 # Update base layer
 RUN microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute shadow-utils procps util-linux glibc-langpack-en wget \
+    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all \
 # Add Cassandra user
     && groupadd -r cassandra --gid=999 \

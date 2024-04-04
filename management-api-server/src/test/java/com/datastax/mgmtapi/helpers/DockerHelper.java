@@ -8,8 +8,6 @@ package com.datastax.mgmtapi.helpers;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback.Adapter;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectExecCmd;
-import com.github.dockerjava.api.command.InspectExecResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListImagesCmd;
 import com.github.dockerjava.api.model.Container;
@@ -25,8 +23,11 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Paths;
@@ -113,20 +114,31 @@ public class DockerHelper {
     waitForPort("localhost", listenPort, Duration.ofMillis(50000), logger, false);
   }
 
-  public String runCommand(String... commandAndArgs) {
+  public void runCommand(String... commandAndArgs) throws IOException, InterruptedException {
     if (container == null) throw new IllegalStateException("Container not started");
-
-    String execId =
-        DOCKER_CLIENT
-            .execCreateCmd(container)
-            .withCmd(commandAndArgs)
-            .withAttachStderr(true)
-            .withAttachStdout(true)
-            .exec()
-            .getId();
-    DOCKER_CLIENT.execStartCmd(execId).exec(new Adapter<>());
-
-    return execId;
+    // prefix the command arguments with "docker exec mgmtapi"
+    final ProcessBuilder pb = new ProcessBuilder("docker", "exec", CONTAINER_NAME);
+    for (String arg : commandAndArgs) {
+      pb.command().add(arg);
+    }
+    final Process process = pb.start();
+    final int exitCode = process.waitFor();
+    if (exitCode != 0) {
+      logger.error("Command had a non-zero exit code: " + exitCode);
+      new BufferedReader(new InputStreamReader(process.getInputStream()))
+          .lines()
+          .forEach(
+              line -> {
+                logger.error("Command output stream: " + line);
+              });
+      new BufferedReader(new InputStreamReader(process.getErrorStream()))
+          .lines()
+          .forEach(
+              line -> {
+                logger.error("Command error stream: " + line);
+              });
+      throw new IOException("Command was not successful: " + Arrays.toString(commandAndArgs));
+    }
   }
 
   public void tailSystemLog(int numberOfLines) {
@@ -157,21 +169,6 @@ public class DockerHelper {
       Thread.currentThread().interrupt();
       logger.warn("tail system.log interrupted");
     }
-  }
-
-  public void waitTillFinished(String execId) {
-    InspectExecCmd cmd = DOCKER_CLIENT.inspectExecCmd(execId);
-    InspectExecResponse r = cmd.exec();
-    while (r.isRunning()) {
-      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.SECONDS);
-      logger.info("SLEEPING");
-      r = cmd.exec();
-    }
-
-    if (r.getExitCodeLong() != null && r.getExitCodeLong() != 0l)
-      throw new RuntimeException("Process error code " + r.getExitCodeLong());
-
-    logger.info("PROCESS finished!");
   }
 
   public static boolean waitForPort(
