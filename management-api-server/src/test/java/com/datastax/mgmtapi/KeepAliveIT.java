@@ -35,7 +35,7 @@ public class KeepAliveIT extends BaseDockerIntegrationTest {
   }
 
   @Test
-  public void testKeepAlive() throws IOException {
+  public void testKeepAlive() throws IOException, InterruptedException {
     assumeTrue(IntegrationTestUtils.shouldRun());
 
     NettyHttpClient client = getClient();
@@ -79,7 +79,7 @@ public class KeepAliveIT extends BaseDockerIntegrationTest {
     assertNotNull(pid);
 
     // Will throw if fails
-    docker.waitTillFinished(docker.runCommand("kill", "-9", String.valueOf(pid)));
+    docker.runCommand("kill", "-9", String.valueOf(pid));
 
     Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
 
