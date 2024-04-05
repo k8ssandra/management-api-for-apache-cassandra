@@ -160,7 +160,11 @@ public abstract class BaseDockerIntegrationTest {
   }
 
   protected ArrayList<String> getEnvironmentVars() {
-    return Lists.newArrayList("MGMT_API_NO_KEEP_ALIVE=true", "MGMT_API_EXPLICIT_START=true");
+    return Lists.newArrayList(
+        "MGMT_API_NO_KEEP_ALIVE=true",
+        "MGMT_API_EXPLICIT_START=true",
+        "DSE_MGMT_NO_KEEP_ALIVE=true",
+        "DSE_MGMT_EXPLICIT_START=true");
   }
 
   protected static File getTempDir() {
