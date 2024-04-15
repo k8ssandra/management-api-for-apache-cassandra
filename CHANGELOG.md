@@ -10,6 +10,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.75 (2024-04-15)
+* [FEATURE] [#467](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/467) Add DSE 6.8.44 to the build matrix
 * [ENHANCEMENT] [#465](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/465) Add tar to the DSE images
 * [BUGFIX] [#463](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/463) Remove cassandra-topology.properties from the configuration folder
 
