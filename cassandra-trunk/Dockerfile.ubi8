@@ -144,13 +144,13 @@ ENV CASSANDRA_DATA_DIR /var/lib/cassandra
 ENV CASSANDRA_FILES_PATH /opt/cassandra_files
 
 # Update base layer
-RUN microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar \
-    && microdnf clean all \
-# Add Cassandra user
+RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf clean all
 
 # Copy trimmed installation
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}

@@ -8,11 +8,15 @@ ARG METRICS_COLLECTOR_VERSION=0.3.5
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+ENV CASSANDRA_HOME /opt/cassandra
 
 # Update base layer
-RUN microdnf update && rm -rf /var/cache/yum \
+RUN microdnf install --nodocs shadow-utils \
+    && groupadd -r cassandra --gid=999 \
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install shadow-utils tar gzip unzip && microdnf clean all
+    && microdnf install tar gzip unzip && microdnf clean all
 
 # COPY in files if they are available locally
 COPY * /
@@ -41,11 +45,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 ###
 # Download Cassandra archive
 ###
-ENV CASSANDRA_HOME /opt/cassandra
-# Add Cassandra user
-RUN groupadd -r cassandra --gid=999 && \
-    useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra && \
-    if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L -O "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"; fi && \
+RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L -O "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"; fi && \
     tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
@@ -123,13 +123,13 @@ ENV CASSANDRA_LOG_DIR /var/log/cassandra
 ENV CASSANDRA_DATA_DIR /var/lib/cassandra
 
 # Update base layer
-RUN microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install --nodocs java-1.8.0-openjdk-headless python3 zlib findutils which hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar \
-    && microdnf clean all \
-# Add Cassandra user
+RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf clean all
 
 # Copy trimmed installation
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
