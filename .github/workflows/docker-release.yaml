@@ -174,7 +174,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [3.11.7, 3.11.8, 3.11.11, 3.11.12, 3.11.13, 3.11.14, 3.11.15, 3.11.16]
+        cassandra-version: [3.11.7, 3.11.8, 3.11.11, 3.11.12, 3.11.13, 3.11.14, 3.11.15, 3.11.16, 3.11.17]
         include:
           - cassandra-version: 3.11.16
             latest: true
