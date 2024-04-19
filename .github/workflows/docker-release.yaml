@@ -244,7 +244,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [4.0.0, 4.0.1, 4.0.3, 4.0.4, 4.0.5, 4.0.6, 4.0.7, 4.0.8, 4.0.9, 4.0.10, 4.0.11]
+        cassandra-version: [4.0.0, 4.0.1, 4.0.3, 4.0.4, 4.0.5, 4.0.6, 4.0.7, 4.0.8, 4.0.9, 4.0.10, 4.0.11, 4.0.12]
         include:
           - cassandra-version: 4.0.11
             latest: true
@@ -384,9 +384,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: [5.0-alpha1, 5.0-alpha2]
+        cassandra-version: [5.0-alpha1, 5.0-alpha2, 5.0-beta1]
         include:
-          - cassandra-version: 5.0-alpha2
+          - cassandra-version: 5.0-beta1
             latest: true
     runs-on: ubuntu-latest
     steps:
