@@ -67,7 +67,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 | 3.11.17          | 4.0.9           |                 | 6.8.34    |
 |                  | 4.0.10          |                 | 6.8.35    |
 |                  | 4.0.11          |                 | 6.8.36    |
-|                  |                 |                 | 6.8.37    |
+|                  | 4.0.12          |                 | 6.8.37    |
 |                  |                 |                 | 6.8.38    |
 |                  |                 |                 | 6.8.39    |
 |                  |                 |                 | 6.8.40    |
