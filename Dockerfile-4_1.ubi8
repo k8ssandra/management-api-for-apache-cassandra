@@ -7,6 +7,7 @@ ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG METRICS_COLLECTOR_VERSION=0.3.5
 ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CASSANDRA_VERSION
+ARG PYROSCOPE_VERSION=0.13.1
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 ENV CASSANDRA_HOME /opt/cassandra
@@ -31,6 +32,15 @@ RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
     chmod -R g+w ${MCAC_PATH}
+
+###
+# Download and extract the Pyroscope agent
+###
+ENV PYROSCOPE_PATH /opt/pyroscope
+RUN mkdir -m 775 ${PYROSCOPE_PATH} && \
+    if test ! -e pyroscope.jar; then curl -L -O "https://github.com/grafana/pyroscope-java/releases/download/v0.13.1/pyroscope.jar"; fi && \
+    cp pyroscope.jar ${PYROSCOPE_PATH} && \
+    chmod -R g+w ${PYROSCOPE_PATH}
 
 ###
 # Download CDC Agent jarfile
@@ -115,6 +125,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 ENV CASSANDRA_PATH /opt/cassandra
 ENV MAAC_PATH /opt/management-api
 ENV MCAC_PATH /opt/metrics-collector
+ENV PYROSCOPE_PATH /opt/pyroscope
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 
 ENV PATH ${CASSANDRA_PATH}/bin:${PATH}
@@ -136,6 +147,7 @@ RUN microdnf install --nodocs shadow-utils \
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=builder --chown=cassandra:root ${PYROSCOPE_PATH} ${PYROSCOPE_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
@@ -151,7 +163,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     mv ${CASSANDRA_CONF} /etc/cassandra && \
     ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
-    chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
+    chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${PYROSCOPE_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
 # backwards compat with upstream ENTRYPOINT
 COPY scripts/docker-entrypoint.sh /usr/local/bin/

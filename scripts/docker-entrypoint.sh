@@ -45,6 +45,10 @@ _metrics_collector_supported() {
     [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ]
 }
 
+_pyroscope_supported() {
+    [ -n "$PYROSCOPE_PATH" ]
+}
+
 _needs_nodetool_fix() {
     # JDK (8 and 11) updates that include the fix for JDK-8278972 cause nodetool
     # to break due to the more strict URI parsing. This is fixed in Cassandra as
@@ -110,6 +114,13 @@ if [ "$1" = 'mgmtapi' ]; then
                 echo "    scope: global" >> ${MCAC_PATH}/config/metric-collector.yaml
             done
         fi
+    fi
+
+    # Make sure the pyroscope agent jar is set
+    if _pyroscope_supported && ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${PYROSCOPE_PATH}/pyroscope.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+        # ensure newline at end of file
+        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${PYROSCOPE_PATH}/pyroscope.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
     MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
