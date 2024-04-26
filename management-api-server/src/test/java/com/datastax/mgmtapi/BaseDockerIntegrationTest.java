@@ -168,7 +168,7 @@ public abstract class BaseDockerIntegrationTest {
   }
 
   protected String getUser() {
-    // The default shoudl be either "cassandra:root" or "dse:root"
+    // The default should be either "cassandra:root" or "dse:root"
     // Subclasses can override this to test alternate user behavior
     if (this.version.startsWith("dse")) {
       return "dse:root";
