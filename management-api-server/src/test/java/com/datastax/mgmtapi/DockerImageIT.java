@@ -47,24 +47,6 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
   }
 
   @Test
-  public void testTopologyFileDoesNotExist() {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-    final String topologyFile =
-        (this.version.startsWith("dse")
-                ? "/opt/dse/resources/cassandra/conf"
-                : "/opt/cassandra/conf")
-            + "/cassandra-topology.properties";
-    try {
-      docker.runCommand("test", "!", "-e", topologyFile);
-    } catch (Throwable t) {
-      fail(
-          "\"cassandra-topology.properties\" file exists but should not. Please check entrypoint script"
-              + "\n"
-              + t.getLocalizedMessage());
-    }
-  }
-
-  @Test
   public void testTarExist() {
     assumeTrue(IntegrationTestUtils.shouldRun());
     try {

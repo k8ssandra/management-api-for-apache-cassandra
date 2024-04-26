@@ -75,11 +75,6 @@ if [ "$1" = 'mgmtapi' ]; then
         cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
     fi
 
-    # remove cassandra-topology.properties file
-    if [ -e "${CASSANDRA_CONF}/cassandra-topology.properties" ]; then
-        rm "${CASSANDRA_CONF}/cassandra-topology.properties"
-    fi
-
     # Add the nodetool fix if needed
     if _needs_nodetool_fix ; then
         _nodetool_fix
