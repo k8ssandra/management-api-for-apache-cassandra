@@ -172,7 +172,9 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     mv ${CASSANDRA_CONF} /etc/cassandra && \
     ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
-    chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
+    chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra && \
+    # remove cassandra-topology.properties file
+    rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini

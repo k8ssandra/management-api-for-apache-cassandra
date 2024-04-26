@@ -21,6 +21,12 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
     super(version);
   }
 
+  @Override
+  public String getUser() {
+    // simulate k8s deployments with security contexts specified for the image
+    return "12345:0";
+  }
+
   @Test
   public void testCurlExists() {
     assumeTrue(IntegrationTestUtils.shouldRun());

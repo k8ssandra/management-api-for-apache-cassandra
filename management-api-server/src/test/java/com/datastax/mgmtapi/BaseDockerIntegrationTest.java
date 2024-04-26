@@ -128,7 +128,7 @@ public abstract class BaseDockerIntegrationTest {
     if (docker != null) {
       temporaryFolder.delete();
       temporaryFolder.create();
-      docker.startManagementAPI(version, getEnvironmentVars());
+      docker.startManagementAPI(version, getEnvironmentVars(), getUser());
     }
   }
 
@@ -155,7 +155,7 @@ public abstract class BaseDockerIntegrationTest {
   @Before
   public void before() {
     if (!docker.started()) {
-      docker.startManagementAPI(version, getEnvironmentVars());
+      docker.startManagementAPI(version, getEnvironmentVars(), getUser());
     }
   }
 
@@ -165,6 +165,15 @@ public abstract class BaseDockerIntegrationTest {
         "MGMT_API_EXPLICIT_START=true",
         "DSE_MGMT_NO_KEEP_ALIVE=true",
         "DSE_MGMT_EXPLICIT_START=true");
+  }
+
+  protected String getUser() {
+    // The default shoudl be either "cassandra:root" or "dse:root"
+    // Subclasses can override this to test alternate user behavior
+    if (this.version.startsWith("dse")) {
+      return "dse:root";
+    }
+    return "cassandra:root";
   }
 
   protected static File getTempDir() {

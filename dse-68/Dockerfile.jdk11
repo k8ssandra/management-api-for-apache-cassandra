@@ -174,7 +174,9 @@ RUN (for dir in /var/lib/cassandra \
     done )
 
 # Use OSS Management API
-RUN rm -rf $DSE_HOME/resources/management-api
+RUN rm -rf $DSE_HOME/resources/management-api; \
+  # remove cassandra-topology.properties file
+  rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 
 # Add CDC Agent
