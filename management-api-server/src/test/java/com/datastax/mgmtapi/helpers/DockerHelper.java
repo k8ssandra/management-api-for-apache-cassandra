@@ -102,8 +102,8 @@ public class DockerHelper {
     return DOCKER_CLIENT.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
   }
 
-  public void startManagementAPI(String version, List<String> envVars) {
-    DockerBuildConfig config = DockerBuildConfig.getConfig(version, envVars);
+  public void startManagementAPI(String version, List<String> envVars, String user) {
+    DockerBuildConfig config = DockerBuildConfig.getConfig(version, envVars, user);
     if (!config.dockerFile.exists())
       throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
 
@@ -307,6 +307,7 @@ public class DockerHelper {
                 // .withBinds(volumeBindList)
                 )
             .withName(CONTAINER_NAME)
+            .withUser(config.user)
             .exec();
 
     DOCKER_CLIENT.startContainerCmd(containerResponse.getId()).exec();
@@ -398,8 +399,9 @@ public class DockerHelper {
     String target;
     List<Integer> exposedPorts;
     List<String> envList;
+    String user;
 
-    static DockerBuildConfig getConfig(String version, List<String> envVars) {
+    static DockerBuildConfig getConfig(String version, List<String> envVars, String user) {
       DockerBuildConfig config = new DockerBuildConfig();
       switch (version) {
         case "3_11":
@@ -475,6 +477,7 @@ public class DockerHelper {
         // add exposed ports
         config.exposedPorts = Arrays.asList(9042, 9000, getListenPortFromEnv(envVars));
       }
+      config.user = user;
       return config;
     }
   }

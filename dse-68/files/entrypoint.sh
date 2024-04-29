@@ -122,11 +122,6 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
         fi
     fi
 
-    # remove cassandra-topology.properties file
-    if [ -e "${CASSANDRA_CONF}/cassandra-topology.properties" ]; then
-        rm "${CASSANDRA_CONF}/cassandra-topology.properties"
-    fi
-
     if [ ! -z "$MGMT_API_DISABLE_MCAC" ]; then
       echo "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi

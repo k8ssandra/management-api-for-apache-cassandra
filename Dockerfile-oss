@@ -120,7 +120,9 @@ COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd
-  ln -sf /proc/mounts /etc/mtab
+  ln -sf /proc/mounts /etc/mtab; \
+  # remove cassandra-topology.properties file
+  rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 
 EXPOSE 9103 9000
 EXPOSE 8080
