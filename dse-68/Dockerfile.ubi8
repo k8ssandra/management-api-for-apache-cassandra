@@ -117,9 +117,7 @@ COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH
 # Adjust directories for ldconfig usage
 RUN chmod g+w /etc /etc/ld.so.cache  && \
     # still need to change the mode of the COPY directories, though this does not duplicate layers
-    chmod g+w ${MAAC_PATH} ${DSE_HOME} ${CDC_AGENT_PATH} && \
-    # remove cassandra-topology.properties file
-    rm "${CASSANDRA_CONF}/cassandra-topology.properties"
+    chmod g+w ${MAAC_PATH} ${DSE_HOME} ${CDC_AGENT_PATH}
 
 # Set user to run as
 USER dse:root
