@@ -10,9 +10,10 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#480](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/480) python 2 missing on ubi cass-management-api images 3.11
 
 ## v0.1.76 (2024-05-03)
-* [BUG] [#477](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/477) Fix cassandra-topology.properties removal
+* [BUGFIX] [#477](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/477) Fix cassandra-topology.properties removal
 * [FEATURE] [#475](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/475) Add DSE 6.8.47 to the build matrix
 
 ## v0.1.75 (2024-04-25)
