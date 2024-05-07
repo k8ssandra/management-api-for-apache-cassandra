@@ -11,6 +11,7 @@ jobs:
     name: Build ${{ matrix.cassandra-version }} Cassandra Docker image
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 4
       matrix:
         include:
           - cassandra-version: '3.11'
