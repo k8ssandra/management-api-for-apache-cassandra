@@ -82,4 +82,14 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
               + t.getLocalizedMessage());
     }
   }
+
+  @Test
+  public void testCqlsh() {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    try {
+      docker.runCommand("cqlsh", "--version");
+    } catch (Throwable t) {
+      fail("\"cqlsh\" not installed or does not run correctly\n" + t.getLocalizedMessage());
+    }
+  }
 }
