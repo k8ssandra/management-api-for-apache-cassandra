@@ -24,7 +24,7 @@ jobs:
       - name: Update release versions
         run: |
           mvn versions:set -DnewVersion="0.1.0-${{ env.COMMITSHA }}"
-          mvn versions:update-child-modules -Pdse,dse7
+          mvn versions:update-child-modules -Pdse,hcd
       - name: Setup Maven settings.xml
         run: |
           cat <<EOF > ~/.m2/settings.xml
@@ -54,7 +54,7 @@ jobs:
 #        run: |
 #          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
 #          mvn -B deploy \
-#          -P dse,dse7 \
+#          -P dse,hcd \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
@@ -62,7 +62,7 @@ jobs:
         run: |
           REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B deploy \
-          -P dse,dse7 \
+          -P dse,hcd \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
