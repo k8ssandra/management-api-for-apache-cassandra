@@ -101,7 +101,7 @@
       </modules>
     </profile>
     <profile>
-      <id>dse7</id>
+      <id>hcd</id>
       <activation>
         <activeByDefault>false</activeByDefault>
       </activation>
@@ -116,7 +116,7 @@
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
-        <module>management-api-agent-dse7</module>
+        <module>management-api-agent-hcd</module>
         <module>management-api-server</module>
       </modules>
     </profile>

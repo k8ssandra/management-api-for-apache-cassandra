@@ -65,13 +65,13 @@ jobs:
       - name: Update pom with release version
         run: |
           mvn versions:set -DnewVersion=${{ env.RELEASE_VERSION }}
-          mvn versions:update-child-modules -Pdse,dse7
+          mvn versions:update-child-modules -Pdse,hcd
 
 #      - name: Deploy Artifacts to GitHub Packages
 #        run: |
 #          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
 #          mvn -B clean deploy \
-#          -P dse,dse7 \
+#          -P dse,hcd \
 #          -Drevision="${{ env.RELEASE_VERSION }}" \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
@@ -81,7 +81,7 @@ jobs:
 #        run: |
 #          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
 #          mvn -B clean deploy \
-#          -P dse,dse7 \
+#          -P dse,hcd \
 #          -Drevision="${{ env.RELEASE_VERSION }}" \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
@@ -91,7 +91,7 @@ jobs:
         run: |
           REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B deploy \
-          -P dse,dse7 \
+          -P dse,hcd \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
