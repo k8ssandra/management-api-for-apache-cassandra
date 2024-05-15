@@ -1,4 +1,4 @@
-# Management API with HCD (Converged Core)
+# Management API with HCD (Hyper-Converged Database)
 
 It is important to note that all HCD dependencies should only be specified in the HCD agent module. No HCD dependencies
 can be added to any other projects/modules, as users without access to HCD artifacts won't be able to build the OSS Management API.
@@ -29,11 +29,11 @@ which is an ongoing effort.
 
 ## Docker image builds
 
-OUT OF SCOPE: At the moment, no HCD imnages are being built as part of this project. They are built from the BDP repo currently.
+OUT OF SCOPE: At the moment, no HCD images are being built as part of this project. They are built from the BDP repo currently.
 
 ### Building HCD images locally
 
-OUT OF SCOPE: At the moment, no HCD imnages are being built as part of this project. They are built from the BDP repo currently.
+OUT OF SCOPE: At the moment, no HCD images are being built as part of this project. They are built from the BDP repo currently.
 
 If you have access to the BDP repository, you can build an image from the `7.0-dev` branch. Use the following from the BDP repository root:
 
