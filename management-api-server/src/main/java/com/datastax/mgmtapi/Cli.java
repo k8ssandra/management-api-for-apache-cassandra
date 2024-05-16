@@ -55,6 +55,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +87,12 @@ public class Cli implements Runnable {
   }
 
   private static final Logger logger = LoggerFactory.getLogger(Cli.class);
+  private static final String DEFAULT_CASSANDRA_HOME_VAR = "CASSANDRA_HOME";
+  private static final String DEFAULT_DSE_HOME_VAR = "DSE_HOME";
+  private static final String DEFAULT_HCD_HOME_VAR = "HCD_HOME";
+  private static final String HCD_COMMAND = "hcd";
+  private static final String DSE_COMMAND = "dse";
+  private static final String CASSANDRA_COMMAND = "cassandra";
   private ScheduledExecutorService scheduledTasks = null;
   private ScheduledFuture keepAliveTask = null;
 
@@ -96,7 +103,7 @@ public class Cli implements Runnable {
   @Option(
       name = {"-S", "--cassandra-socket", "--db-socket"},
       arity = 1,
-      description = "Path to Cassandra/DSE unix socket file (required)")
+      description = "Path to Cassandra/DSE/HCD unix socket file (required)")
   private String db_unix_socket_file = "/var/run/db.sock";
 
   @Required
@@ -117,21 +124,21 @@ public class Cli implements Runnable {
       name = {"-C", "--cassandra-home", "--db-home"},
       arity = 1,
       description =
-          "Path to the Cassandra or DSE root directory, if missing will use $CASSANDRA_HOME/$DSE_HOME respectively")
+          "Path to the Cassandra/DSE/HCD root directory, if missing will use $CASSANDRA_HOME/$DSE_HOME/$HCD_HOME respectively")
   private String db_home;
 
   @Option(
       name = {"-K", "--no-keep-alive"},
       arity = 1,
       description =
-          "Setting this flag will stop the management api from starting or keeping Cassandra/DSE up automatically")
+          "Setting this flag will stop the management api from starting or keeping Cassandra/DSE/HCD up automatically")
   private boolean no_keep_alive = false;
 
   @Option(
       name = {"--explicit-start"},
       arity = 1,
       description =
-          "When using keep-alive, setting this flag will make the management api wait to start Cassandra/DSE until /start is called via REST")
+          "When using keep-alive, setting this flag will make the management api wait to start Cassandra/DSE/HCD until /start is called via REST")
   private boolean explicit_start = false;
 
   @Path(writable = false)
@@ -299,31 +306,51 @@ public class Cli implements Runnable {
   }
 
   private void checkDbCmd() {
-    String dbCmd = "cassandra";
     try {
-      boolean isDse = isDse();
-
-      String dbHomeEnv = isDse ? "DSE_HOME" : "CASSANDRA_HOME";
+      // see if --db-home was specified. If so, set dbHomeDir
       if (db_home != null) {
-        dbHomeDir = new File(db_home);
-      } else if (System.getenv(dbHomeEnv) != null) {
-        dbHomeDir = new File(System.getenv(dbHomeEnv));
+        File maybeDbHomeDir = new File(db_home);
+        // ensure HOME dir is valid
+        if (maybeDbHomeDir.isDirectory()) {
+          dbHomeDir = maybeDbHomeDir;
+        }
       }
-
-      Optional<File> exe = isDse ? UnixCmds.whichDse() : UnixCmds.whichCassandra();
-      exe.ifPresent(file -> dbCmdFile = file);
-
-      if (dbHomeDir != null && (!dbHomeDir.exists() || !dbHomeDir.isDirectory())) dbHomeDir = null;
-
-      if (dbHomeDir != null) {
-        File maybeCassandra = Paths.get(dbHomeDir.getAbsolutePath(), "bin", dbCmd).toFile();
-        if (maybeCassandra.exists() && maybeCassandra.canExecute()) dbCmdFile = maybeCassandra;
+      // Now try to see if we can figure out the HCD/DSE/Cassandra binary from the environment PATH
+      // try an HCD environment first
+      tryToSetHcdEnv();
+      if (dbCmdFile == null) {
+        // try a DSE environment
+        tryToSetDseEnv();
+        if (dbCmdFile == null) {
+          // try a Cassandra environment
+          tryToSetCassandraEnv();
+        }
       }
-
-      if (dbCmdFile == null)
+      // If we found an executable, but still don't have a DB HOME directory set, try to infer it
+      if (dbCmdFile != null && dbHomeDir == null) {
+        // command should sit in a "bin" directory under the DB HOME
+        dbHomeDir = dbCmdFile.getParentFile().getParentFile();
+      }
+      // If we have a DB HOME directory, but no executable yet, try to infer it
+      if (dbHomeDir != null && dbCmdFile == null) {
+        tryToSetHcdCmdFromHomeDir();
+        if (dbCmdFile == null) {
+          tryToSetDseCmdFromHomeDir();
+          if (dbCmdFile == null) {
+            tryToSetCassandraCmdFromHomeDir();
+          }
+        }
+      }
+      // At this point, if dbCmdFile and dbHomeDir aren't set, we have a problem
+      if (dbHomeDir == null || dbCmdFile == null) {
         throw new IllegalArgumentException(
             String.format(
-                "Unable to locate %s executable, set $%s or use --db-home", dbCmd, dbHomeEnv));
+                "Unable to locate database executable, set one of %s or use --db-home",
+                Arrays.toString(
+                    new String[] {
+                      DEFAULT_CASSANDRA_HOME_VAR, DEFAULT_DSE_HOME_VAR, DEFAULT_HCD_HOME_VAR
+                    })));
+      }
 
       // Verify Cassandra/DSE cmd works
       List<String> errorOutput = new ArrayList<>();
@@ -343,16 +370,10 @@ public class Cli implements Runnable {
             "Version check failed. stderr: " + String.join("\n", errorOutput));
 
       logger.info(
-          String.format("%s Version %s", dbCmd.equals("dse") ? "DSE" : "Cassandra", version));
-    } catch (IllegalArgumentException e) {
-      logger.error("Error encountered:", e);
-      logger.error(
           String.format(
-              "Unable to start: unable to find or execute bin/%s",
-              dbCmd, (db_home == null ? "use --db-home" : db_home)));
-      System.exit(3);
-    } catch (IOException io) {
-      logger.error("Unknown error", io);
+              "%s Version %s", ManagementApplication.getServerCommonName(dbCmdFile), version));
+    } catch (Exception ex) {
+      logger.error("Unable to start database", ex);
       System.exit(4);
     }
   }
@@ -651,5 +672,85 @@ public class Cli implements Runnable {
     }
 
     return ImmutableList.of(new AccessLogInbound(), new AccessLogOutbound());
+  }
+
+  private void tryToSetHcdEnv() throws IOException {
+    Optional<File> binaryCmd = Optional.empty();
+    binaryCmd = UnixCmds.whichHcd();
+    if (binaryCmd.isPresent()) {
+      dbCmdFile = binaryCmd.get();
+      logger.info("Found HCD binary on PATH: {}", dbCmdFile.getAbsolutePath());
+      if (dbHomeDir == null) {
+        if (System.getenv(DEFAULT_HCD_HOME_VAR) != null) {
+          File maybeDbHomeDir = new File(System.getenv(DEFAULT_HCD_HOME_VAR));
+          if (maybeDbHomeDir.isDirectory()) {
+            logger.info("Using {} as DB HOME", maybeDbHomeDir.getAbsolutePath());
+            dbHomeDir = maybeDbHomeDir;
+          }
+        }
+      }
+    }
+  }
+
+  private void tryToSetDseEnv() throws IOException {
+    Optional<File> binaryCmd = Optional.empty();
+    binaryCmd = UnixCmds.whichDse();
+    if (binaryCmd.isPresent()) {
+      dbCmdFile = binaryCmd.get();
+      logger.info("Found DSE binary on PATH: {}", dbCmdFile.getAbsolutePath());
+      if (dbHomeDir == null) {
+        if (System.getenv(DEFAULT_DSE_HOME_VAR) != null) {
+          File maybeDbHomeDir = new File(System.getenv(DEFAULT_DSE_HOME_VAR));
+          if (maybeDbHomeDir.isDirectory()) {
+            logger.info("Using {} as DB HOME", maybeDbHomeDir.getAbsolutePath());
+            dbHomeDir = maybeDbHomeDir;
+          }
+        }
+      }
+    }
+  }
+
+  private void tryToSetCassandraEnv() throws IOException {
+    Optional<File> binaryCmd = Optional.empty();
+    binaryCmd = UnixCmds.whichCassandra();
+    if (binaryCmd.isPresent()) {
+      dbCmdFile = binaryCmd.get();
+      logger.info("Found Cassandra binary on PATH: {}", dbCmdFile.getAbsolutePath());
+      if (dbHomeDir == null) {
+        if (System.getenv(DEFAULT_CASSANDRA_HOME_VAR) != null) {
+          File maybeDbHomeDir = new File(System.getenv(DEFAULT_CASSANDRA_HOME_VAR));
+          if (maybeDbHomeDir.isDirectory()) {
+            logger.info("Using {} as DB HOME", maybeDbHomeDir.getAbsolutePath());
+            dbHomeDir = maybeDbHomeDir;
+          }
+        }
+      }
+    }
+  }
+
+  private Optional<File> getBinaryFromHomeDir(final String cmd) {
+    File maybeCmd = Paths.get(dbHomeDir.getAbsolutePath(), "bin", cmd).toFile();
+    return Optional.ofNullable(maybeCmd.canExecute() ? maybeCmd : null);
+  }
+
+  private void tryToSetHcdCmdFromHomeDir() {
+    Optional<File> maybeBinaryCmd = getBinaryFromHomeDir(HCD_COMMAND);
+    if (maybeBinaryCmd.isPresent()) {
+      dbCmdFile = maybeBinaryCmd.get();
+    }
+  }
+
+  private void tryToSetDseCmdFromHomeDir() {
+    Optional<File> maybeBinaryCmd = getBinaryFromHomeDir(DSE_COMMAND);
+    if (maybeBinaryCmd.isPresent()) {
+      dbCmdFile = maybeBinaryCmd.get();
+    }
+  }
+
+  private void tryToSetCassandraCmdFromHomeDir() {
+    Optional<File> maybeBinaryCmd = getBinaryFromHomeDir(CASSANDRA_COMMAND);
+    if (maybeBinaryCmd.isPresent()) {
+      dbCmdFile = maybeBinaryCmd.get();
+    }
   }
 }

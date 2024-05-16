@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE] [#486](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/486) Support HCD
 
 ## v0.1.77 (2024-05-15)
 * [BUGFIX] [#480](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/480) python 2 missing on ubi cass-management-api images 3.11

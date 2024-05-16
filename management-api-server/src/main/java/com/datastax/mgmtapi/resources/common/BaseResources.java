@@ -20,9 +20,11 @@ public abstract class BaseResources {
   protected static final String CASSANDRA_VERSION_CQL_STRING = "CALL NodeOps.getReleaseVersion()";
 
   protected final ManagementApplication app;
+  private final String serverTypeName;
 
   protected BaseResources(ManagementApplication application) {
     this.app = application;
+    this.serverTypeName = ManagementApplication.getServerCommonName(app.dbExe);
   }
 
   /**
@@ -94,5 +96,9 @@ public abstract class BaseResources {
       }
     }
     return false;
+  }
+
+  protected String getServerTypeName() {
+    return serverTypeName;
   }
 }

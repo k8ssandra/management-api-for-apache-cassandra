@@ -30,6 +30,10 @@ public class UnixCmds {
     return which("dse");
   }
 
+  public static Optional<File> whichHcd() throws IOException {
+    return which("hcd");
+  }
+
   private static Optional<File> which(String exeStr) throws IOException {
     return ShellUtils.executeWithHandlers(
         new ProcessBuilder(WHICH_CMD, exeStr),
