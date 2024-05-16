@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.78 (2024-05-16)
 * [CHANGE] [#486](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/486) Support HCD
 
 ## v0.1.77 (2024-05-15)
