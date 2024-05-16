@@ -110,6 +110,22 @@ public class ManagementApplication extends Application {
     activeProfile.set(profile);
   }
 
+  public static String getServerCommonName(File dbCmdFile) {
+    if (dbCmdFile != null) {
+      final String dbExeString = dbCmdFile.getAbsolutePath();
+      if (dbExeString.endsWith("hcd")) {
+        return "HCD";
+      }
+      if (dbExeString.endsWith("dse")) {
+        return "DSE";
+      }
+      if (dbExeString.endsWith("cassandra")) {
+        return "Cassandra";
+      }
+    }
+    return "UNDEFINED";
+  }
+
   public enum STATE {
     UNKNOWN,
     STARTED,

@@ -190,8 +190,9 @@ public class LifecycleResources extends BaseResources {
           dbCmdPb.command().add(String.format("/tmp/%s/env.sh", profile));
         }
         dbCmdPb.command().add(app.dbExe.getAbsolutePath());
-        if (app.dbExe.getAbsolutePath().endsWith("dse")) {
-          // DSE needs the extra "cassandra" startup argument
+        if (app.dbExe.getAbsolutePath().endsWith("dse")
+            || app.dbExe.getAbsolutePath().endsWith("hcd")) {
+          // DSE and HCD need the extra "cassandra" startup argument
           dbCmdPb.command().add("cassandra");
         }
         dbCmdPb.command().add("-R");
@@ -213,17 +214,17 @@ public class LifecycleResources extends BaseResources {
                 (input, out) -> true,
                 (exitCode, err) -> {
                   String lines = err.collect(Collectors.joining("\n"));
-                  logger.error("Error starting Cassandra: {}", lines);
+                  logger.error("Error starting {}: {}", getServerTypeName(), lines);
                   return false;
                 },
                 environment);
       }
 
-      if (started) logger.info("Started Cassandra");
-      else logger.warn("Error starting Cassandra");
+      if (started) logger.info("Started {}", getServerTypeName());
+      else logger.warn("Error starting {}", getServerTypeName());
 
       return Response.status(started ? HttpStatus.SC_CREATED : HttpStatus.SC_METHOD_FAILURE)
-          .entity(started ? "OK\n" : "Error starting Cassandra")
+          .entity(started ? "OK\n" : String.format("Error starting %s", getServerTypeName()))
           .build();
     } catch (Throwable t) {
       return Response.serverError().entity(Entity.text(t.getLocalizedMessage())).build();
@@ -265,13 +266,13 @@ public class LifecycleResources extends BaseResources {
         Optional<Integer> maybePid = findPid();
 
         if (!maybePid.isPresent()) {
-          logger.info("Cassandra already stopped");
+          logger.info("{} already stopped", getServerTypeName());
           return Response.ok("OK\n").build();
         }
 
         Boolean stopped = UnixCmds.terminateProcess(maybePid.get());
 
-        if (!stopped) logger.warn("Killing Cassandra failed");
+        if (!stopped) logger.warn("Killing {} failed", getServerTypeName());
 
         Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
       } while (tries-- > 0);
@@ -281,8 +282,10 @@ public class LifecycleResources extends BaseResources {
         Boolean stopped = UnixCmds.killProcess(maybePid.get());
 
         if (!stopped) {
-          logger.info("Cassandra not stopped trying with kill -9");
-          return Response.serverError().entity(Entity.text("Killing Cassandra Failed")).build();
+          logger.info("{} not stopped trying with kill -9", getServerTypeName());
+          return Response.serverError()
+              .entity(Entity.text(String.format("Killing %s Failed", getServerTypeName())))
+              .build();
         }
 
         Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
@@ -290,7 +293,9 @@ public class LifecycleResources extends BaseResources {
         maybePid = findPid();
         if (maybePid.isPresent()) {
           logger.info("Cassandra is not able to die");
-          return Response.serverError().entity(Entity.text("Killing Cassandra Failed")).build();
+          return Response.serverError()
+              .entity(Entity.text(String.format("Killing %s Failed", getServerTypeName())))
+              .build();
         }
       }
 
@@ -358,7 +363,9 @@ public class LifecycleResources extends BaseResources {
   public synchronized Response configureNode(@QueryParam("profile") String profile, String yaml) {
     if (app.getRequestedState() == STARTED) {
       return Response.status(Response.Status.NOT_ACCEPTABLE)
-          .entity("Cassandra is running, try /api/v0/lifecycle/stop first\n")
+          .entity(
+              String.format(
+                  "{} is running, try /api/v0/lifecycle/stop first\n", getServerTypeName()))
           .build();
     }
 
