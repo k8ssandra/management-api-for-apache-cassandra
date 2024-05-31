@@ -19,8 +19,6 @@ ARG DSE_AGENT_VERSION=6.8.33
 ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
 ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
 
-COPY dse-68/* /
-
 RUN set -x \
 # Download DSE tarball if needed
     && if test ! -e /${TARBALL}; then wget -nv --show-progress --progress=bar:force:noscroll -O /${TARBALL} ${DOWNLOAD_URL} ; fi \
@@ -88,6 +86,7 @@ COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
 COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
 COPY management-api-agent-dse-6.8/pom.xml tmp/management-api-agent-dse-6.8/pom.xml
+COPY management-api-agent-dse-6.9/pom.xml tmp/management-api-agent-dse-6.9/pom.xml
 COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 COPY settings.xml settings.xml /root/.m2/
@@ -102,6 +101,7 @@ COPY management-api-agent-4.x /tmp/management-api-agent-4.x
 COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
+COPY management-api-agent-dse-6.9 /tmp/management-api-agent-dse-6.9
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 $MAAC_PATH \
@@ -111,6 +111,7 @@ RUN mkdir -m 775 $MAAC_PATH \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-5* \
+    && rm $MAAC_PATH/datastax-mgmtapi-agent-dse-6.9* \
     && rm $MAAC_PATH/datastax-mgmtapi-*shaded* \
     && rm $MAAC_PATH/datastax-mgmtapi-*common* \
     && cd ${MAAC_PATH} \
@@ -132,7 +133,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
-FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse68
+FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
@@ -157,7 +158,7 @@ RUN set -x \
     && groupadd -r dse --gid=999 \
     && useradd -m -d "$DSE_HOME" -r -g dse -G root --uid=999 dse
 
-COPY dse-68/files /
+COPY --chown=dse:root dse/files /
 
 COPY --chown=dse:root --from=dse-server-prep $DSE_HOME $DSE_HOME
 COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME

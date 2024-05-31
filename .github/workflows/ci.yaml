@@ -104,7 +104,7 @@ jobs:
           -Drun41testsUBI=${{ matrix.run41testsUBI }} \
           -Drun50testsUBI=${{ matrix.run50testsUBI }} \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
-  build-dse:
+  build-dse-68:
     if: github.repository_owner == 'k8ssandra'
     strategy:
       fail-fast: false
@@ -114,11 +114,11 @@ jobs:
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
           - platform-version: 'jdk8'
-            runDSEtests: true
-            runDSEtestsUBI: false
+            runDSE68tests: true
+            runDSE68testsUBI: false
           - platform-version: 'ubi'
-            runDSEtests: false
-            runDSEtestsUBI: true
+            runDSE68tests: false
+            runDSE68testsUBI: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -160,8 +160,66 @@ jobs:
           EOF
           cp ~/.m2/settings.xml settings.xml
           mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
-          -DrunDSEtests=${{ matrix.runDSEtests }} \
-          -DrunDSEtestsUBI=${{ matrix.runDSEtestsUBI }}
+          -DrunDSE68tests=${{ matrix.runDSE68tests }} \
+          -DrunDSE68testsUBI=${{ matrix.runDSE68testsUBI }}
+  build-dse-69:
+    if: github.repository_owner == 'k8ssandra'
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        platform-version: ['jdk11', 'ubi']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        include:
+          - platform-version: 'jdk11'
+            runDSE69tests: true
+            runDSE69testsUBI: false
+          - platform-version: 'ubi'
+            runDSE69tests: false
+            runDSE69testsUBI: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Build with Maven and run tests
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          -DrunDSE69tests=${{ matrix.runDSE69tests }} \
+          -DrunDSE69testsUBI=${{ matrix.runDSE69testsUBI }}
   build-hcd:
     if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest

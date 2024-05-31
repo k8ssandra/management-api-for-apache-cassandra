@@ -449,8 +449,8 @@ public class DockerHelper {
           break;
         case "dse-68":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.jdk8").toFile();
-          config.target = "dse68";
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.jdk8").toFile();
+          config.target = "dse";
           config.envList =
               Lists.newArrayList(
                   "MAX_HEAP_SIZE=500M",
@@ -460,14 +460,38 @@ public class DockerHelper {
           break;
         case "dse-68_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse-68", "Dockerfile.ubi8").toFile();
-          config.target = "dse68";
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.ubi8").toFile();
+          config.target = "dse";
           config.envList =
               Lists.newArrayList(
                   "MAX_HEAP_SIZE=500M",
                   "HEAP_NEWSIZE=100M",
                   "DS_LICENSE=accept",
                   "USE_MGMT_API=true");
+          break;
+        case "dse-69":
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.jdk11").toFile();
+          config.target = "dse";
+          config.envList =
+              Lists.newArrayList(
+                  "MAX_HEAP_SIZE=500M",
+                  "HEAP_NEWSIZE=100M",
+                  "DS_LICENSE=accept",
+                  "USE_MGMT_API=true",
+                  "MGMT_API_DISABLE_MCAC=true");
+          break;
+        case "dse-69_ubi":
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.ubi9").toFile();
+          config.target = "dse";
+          config.envList =
+              Lists.newArrayList(
+                  "MAX_HEAP_SIZE=500M",
+                  "HEAP_NEWSIZE=100M",
+                  "DS_LICENSE=accept",
+                  "USE_MGMT_API=true",
+                  "MGMT_API_DISABLE_MCAC=true");
           break;
         default:
           throw new RuntimeException("Unsupported Cassandra version: " + version);

@@ -19,6 +19,7 @@ COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
 COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
 COPY management-api-agent-dse-6.8/pom.xml tmp/management-api-agent-dse-6.8/pom.xml
+COPY management-api-agent-dse-6.9/pom.xml tmp/management-api-agent-dse-6.9/pom.xml
 COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 COPY settings.xml settings.xml /root/.m2/
@@ -33,6 +34,7 @@ COPY management-api-agent-4.x /tmp/management-api-agent-4.x
 COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
+COPY management-api-agent-dse-6.9 /tmp/management-api-agent-dse-6.9
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 $MAAC_PATH \
@@ -42,6 +44,7 @@ RUN mkdir -m 775 $MAAC_PATH \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-3* \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
     && rm $MAAC_PATH/datastax-mgmtapi-agent-5* \
+    && rm $MAAC_PATH/datastax-mgmtapi-agent-dse-6.9* \
     && rm $MAAC_PATH/datastax-mgmtapi-*shaded* \
     && rm $MAAC_PATH/datastax-mgmtapi-*common* \
     && cd ${MAAC_PATH} \
@@ -53,7 +56,7 @@ RUN mkdir -m 775 $MAAC_PATH \
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as dse68
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as dse
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
@@ -90,9 +93,9 @@ COPY --chown=dse:root --from=dse-server-base /base-checks.sh /base-checks.sh
 COPY --from=dse-server-base /LICENSE /licenses/
 
 # Replace bin/cassandra with modified that doesn't hang in k8s
-COPY --chown=dse:root dse-68/files/cassandra ${DSE_HOME}/resources/cassandra/bin/cassandra
-COPY --chown=dse:root dse-68/files/entrypoint.sh /entrypoint.sh
-copy --chown=dse:root dse-68/files/overwritable-conf-files /overwritable-conf-files
+COPY --chown=dse:root dse/files/cassandra ${DSE_HOME}/resources/cassandra/bin/cassandra
+COPY --chown=dse:root dse/files/entrypoint.sh /entrypoint.sh
+copy --chown=dse:root dse/files/overwritable-conf-files /overwritable-conf-files
 # Update permissions and build directories
 RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh && \
     (for dir in /var/lib/cassandra \
