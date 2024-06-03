@@ -42,7 +42,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 #############################################################
 
 # Build and extract Cassandra
-FROM --platform=$BUILDPLATFORM azul/zulu-openjdk-debian:11 as cass-builder
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim as cass-builder
 ARG CASSANDRA_VERSION
 ARG COMMITSHA="HEAD"
 ENV CASSANDRA_PATH /opt/cassandra
