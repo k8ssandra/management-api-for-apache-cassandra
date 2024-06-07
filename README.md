@@ -54,30 +54,30 @@
 
 The following versions of Cassandra and DSE are published to Docker and supported:
 
-| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x |
-| ---------------- | --------------- | --------------- | --------- |
-| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    |
-| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    |
-| 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    |
-| 3.11.12          | 4.0.4           | 4.1.3           | 6.8.29    |
-| 3.11.13          | 4.0.5           | 4.1.4           | 6.8.30    |
-| 3.11.14          | 4.0.6           | 4.1.5           | 6.8.31    |
-| 3.11.15          | 4.0.7           |                 | 6.8.32    |
-| 3.11.16          | 4.0.8           |                 | 6.8.33    |
-| 3.11.17          | 4.0.9           |                 | 6.8.34    |
-|                  | 4.0.10          |                 | 6.8.35    |
-|                  | 4.0.11          |                 | 6.8.36    |
-|                  | 4.0.12          |                 | 6.8.37    |
-|                  | 4.0.13          |                 | 6.8.38    |
-|                  |                 |                 | 6.8.39    |
-|                  |                 |                 | 6.8.40    |
-|                  |                 |                 | 6.8.41    |
-|                  |                 |                 | 6.8.42    |
-|                  |                 |                 | 6.8.43    |
-|                  |                 |                 | 6.8.44    |
-|                  |                 |                 | 6.8.46    |
-|                  |                 |                 | 6.8.47    |
-|                  |                 |                 | 6.8.48    |
+| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x | DSE 6.9.x     |
+| ---------------- | --------------- | --------------- | --------- | ------------- |
+| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    | 6.9.0-preview |
+| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    |               |
+| 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    |               |
+| 3.11.12          | 4.0.4           | 4.1.3           | 6.8.29    |               |
+| 3.11.13          | 4.0.5           | 4.1.4           | 6.8.30    |               |
+| 3.11.14          | 4.0.6           | 4.1.5           | 6.8.31    |               |
+| 3.11.15          | 4.0.7           |                 | 6.8.32    |               |
+| 3.11.16          | 4.0.8           |                 | 6.8.33    |               |
+| 3.11.17          | 4.0.9           |                 | 6.8.34    |               |
+|                  | 4.0.10          |                 | 6.8.35    |               |
+|                  | 4.0.11          |                 | 6.8.36    |               |
+|                  | 4.0.12          |                 | 6.8.37    |               |
+|                  | 4.0.13          |                 | 6.8.38    |               |
+|                  |                 |                 | 6.8.39    |               |
+|                  |                 |                 | 6.8.40    |               |
+|                  |                 |                 | 6.8.41    |               |
+|                  |                 |                 | 6.8.42    |               |
+|                  |                 |                 | 6.8.43    |               |
+|                  |                 |                 | 6.8.44    |               |
+|                  |                 |                 | 6.8.46    |               |
+|                  |                 |                 | 6.8.47    |               |
+|                  |                 |                 | 6.8.48    |               |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra trunk) are available as an Ubuntu based image or a RedHat UBI 8 based image.
@@ -86,6 +86,8 @@ Cassandra trunk images are only RedHat UBI8 based.
 - All Cassandra 4.0.x and 4.1.x images come with JDK 11
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
+- All DSE 6.9.x Ubuntu based images come with only JDK 11
+- All DSE 6.9.x RedHat UBI 9 based images come with only JDK 11
 
 ### Docker coordinates for Cassandra OSS images
 
@@ -111,7 +113,7 @@ Example for Cassandra 4.0.10
 
 ### Docker coordinates for DSE 6.8.x images
 
-#### Ubuntu based images (DSE)
+#### Ubuntu based images (DSE 6.8)
 
 For all JDK 8 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
 
@@ -129,7 +131,7 @@ Example for DSE 6.8.31
 
       datastax/dse-mgmtapi-6_8:6.8.31-jdk11
 
-#### RedHat UBI 8 based images (DSE)
+#### RedHat UBI 8 based images (DSE 6.8)
 
 For all RedHat UBI 8 based DSE 6.8.x images, the Docker coordinates are as follows:
 
@@ -138,6 +140,28 @@ For all RedHat UBI 8 based DSE 6.8.x images, the Docker coordinates are as follo
 Example for DSE 6.8.31
 
       datastax/dse-mgmtapi-6_8:6.8.31-ubi8
+
+### Docker coordinates for DSE 6.9.x images
+
+#### Ubuntu based images (DSE 6.9)
+
+For all JDK 11 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_9:<version>-jdk11
+
+Example for DSE 6.9.0
+
+      datastax/dse-mgmtapi-6_9:6.9.0-jdk11
+
+#### RedHat UBI 8 based images (DSE 6.9)
+
+For all RedHat UBI 9 based DSE 6.9.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_9:<version>-ubi9
+
+Example for DSE 6.9.0
+
+      datastax/dse-mgmtapi-6_9:6.9.0-ubi9
 
 ### Docker coordinates for Cassandra Trunk images
 
@@ -197,7 +221,9 @@ For building an image based on the latest from Cassandra trunk, see this [README
 
 ### DSE 6.8.x
 
-For building an image based on DSE 6.8, see the [DSE README](management-api-agent-dse-6.8/README.md).
+For building an image based on DSE 6.8, see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md).
+
+For building an image based on DSE 6.9, see the [DSE 6.9 README](management-api-agent-dse-6.9/README.md).
 
 ## REST API
    [The current Swagger/OpenAPI documentation](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/k8ssandra/management-api-for-apache-cassandra/master/management-api-server/doc/openapi.json&nocors)
@@ -225,7 +251,8 @@ For building an image based on DSE 6.8, see the [DSE README](management-api-agen
   - [Management API for Apache Cassandra 3.11.10](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-3_11_10)
   - [Management API for Apache Cassandra 4.0-beta4](https://hub.docker.com/repository/docker/datastax/cassandra-mgmtapi-4_0_0).
 
-  For DSE Docker images, see the [DSE README](management-api-agent-dse-6.8/README.md).
+  For DSE Docker images, see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md) or
+  the [DSE 6.9 README](management-api-agent-dse-6.9/README.md).
 
   For running standalone the jars can be downloaded from the github release:
      [Management API Releases Zip](https://github.com/k8ssandra/management-api-for-apache-cassandra/releases)
@@ -255,7 +282,8 @@ The above would run a Cassandra 3.11.15 image with Management API listening on p
 
 ## Usage with DSE
 
-Please see the [DSE README](management-api-agent-dse-6.8/README.md) for details.
+Please see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md) or the
+[DSE 6.9 README](management-api-agent-dse-6.9/README.md) for details.
 
 ## Using the Service with a locally installed C* or DSE instance
 
