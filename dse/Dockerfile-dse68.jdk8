@@ -1,8 +1,8 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
-ARG DS_BASE_DEBIAN=ds-base-debian-openjdk-8
-ARG BASETAG=8u322-jdk-slim-buster-20220411
+ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-8
+ARG BASETAG=8u392-jdk-ubuntu-20240123
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
 
 # Set up configuration variables
