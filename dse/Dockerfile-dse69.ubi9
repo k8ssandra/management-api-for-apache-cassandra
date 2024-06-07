@@ -2,7 +2,7 @@ ARG DSE_VERSION=6.9.0
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 
-FROM datastax/dse-mgmtapi-6_9:${DSE_VERSION} AS dse-server-base
+FROM datastax/dse-mgmtapi-6_9:${DSE_VERSION}-jdk11 AS dse-server-base
 
 FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as mgmtapi-setup
 
@@ -75,7 +75,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
+    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-11-openjdk-devel python zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
 
 WORKDIR $HOME
 
