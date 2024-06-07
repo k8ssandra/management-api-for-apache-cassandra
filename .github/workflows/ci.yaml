@@ -162,6 +162,7 @@ jobs:
           mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE68tests=${{ matrix.runDSE68tests }} \
           -DrunDSE68testsUBI=${{ matrix.runDSE68testsUBI }}
+
   build-dse-69:
     if: github.repository_owner == 'k8ssandra'
     strategy:
@@ -220,6 +221,7 @@ jobs:
           mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE69tests=${{ matrix.runDSE69tests }} \
           -DrunDSE69testsUBI=${{ matrix.runDSE69testsUBI }}
+
   build-hcd:
     if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest
@@ -330,10 +332,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.build-target }}
 
-  publish-dse-ubuntu:
+  publish-dse-68-ubuntu:
     name: Publish DSE 6.8 Ubuntu image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: build-dse
+    needs: build-dse-68
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -382,14 +384,73 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          file: dse-68/Dockerfile.${{ matrix.jdk-version }}
+          file: dse/Dockerfile-dse68.${{ matrix.jdk-version }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
-          target: dse68
+          target: dse
 
-  publish-dse-ubi:
+  publish-dse-69-ubuntu:
+    name: Publish DSE 6.9 Ubuntu image
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: build-dse-69
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk-version: [jdk11]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_9
+          tags: type=sha,prefix=dse69-${{ matrix.jdk-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Build and push DSE 6.9-${{ matrix.jdk-version }}
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse69.${{ matrix.jdk-version }}
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
+
+  publish-dse-68-ubi:
     name: Publish DSE 6.8 UBI 8 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: publish-dse-ubuntu
@@ -441,10 +502,70 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          file: dse-68/Dockerfile.ubi8
-          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
+          file: dse/Dockerfile-dse68.ubi8
+          build-args: VERSION=dse68-ubi8-${{ steps.vars.outputs.sha_short }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
-          target: dse68
+          target: dse
+
+  publish-dse-69-ubi:
+    name: Publish DSE 6.9 UBI 9 image
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: publish-dse-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_9
+          tags: type=sha,prefix=dse69-ubi9-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build and push DSE 6.9-ubi9
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse69.ubi9
+          build-args: VERSION=dse69-ubi9-${{ steps.vars.outputs.sha_short }}
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
