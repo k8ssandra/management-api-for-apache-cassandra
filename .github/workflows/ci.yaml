@@ -453,7 +453,7 @@ jobs:
   publish-dse-68-ubi:
     name: Publish DSE 6.8 UBI 8 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: publish-dse-ubuntu
+    needs: publish-dse-68-ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
@@ -513,7 +513,7 @@ jobs:
   publish-dse-69-ubi:
     name: Publish DSE 6.9 UBI 9 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: publish-dse-ubuntu
+    needs: publish-dse-69-ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
