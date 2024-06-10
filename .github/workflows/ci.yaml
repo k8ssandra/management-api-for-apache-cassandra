@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -131,7 +131,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-68-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -190,7 +190,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-69-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -236,7 +236,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-hcd-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -428,7 +428,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: datastax/dse-mgmtapi-6_9
+          images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse69-${{ matrix.jdk-version }}-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -544,7 +544,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: datastax/dse-mgmtapi-6_9
+          images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse69-ubi9-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

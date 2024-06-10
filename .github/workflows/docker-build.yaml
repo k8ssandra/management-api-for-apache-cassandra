@@ -58,6 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.build-target }}
+          no-cache: true
   docker-build-dse-68-ubuntu:
     name: Build DSE 6.8 (${{ matrix.jdk-version }}) Ubuntu Docker image
     runs-on: ubuntu-latest
@@ -107,6 +108,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
+          no-cache: true
 
   docker-build-dse-69-ubuntu:
     name: Build DSE 6.9 (${{ matrix.jdk-version }}) Ubuntu Docker image
@@ -141,7 +143,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: datastax/dse-mgmtapi-6_9
+          images: datastax/dse-mgmtapi-6_8
           tags: type=sha,prefix=dse69-${{ matrix.jdk-version }}-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -157,3 +159,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
+          no-cache: true
