@@ -2,7 +2,7 @@ ARG DSE_VERSION=6.9.0
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 
-FROM datastax/dse-mgmtapi-6_9:${DSE_VERSION}-jdk11 AS dse-server-base
+FROM datastax/dse-mgmtapi-6_8:${DSE_VERSION}-jdk11 AS dse-server-base
 
 FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as mgmtapi-setup
 
