@@ -163,7 +163,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:dse69-${{ matrix.jdk-version }}
+          tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }}
           platforms: linux/amd64
           target: dse
           cache-from: type=local,src=/tmp/.buildx-cache
@@ -176,7 +176,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: datastax/dse-mgmtapi-6_8:dse69-ubi8
+          tags: datastax/dse-mgmtapi-6_8:6.9.0-ubi8
           platforms: linux/amd64
           target: dse
           cache-from: type=local,src=/tmp/.buildx-cache
