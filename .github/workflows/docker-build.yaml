@@ -173,7 +173,7 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Export Docker image to tar
         run: |
-          docker buildx imagetools inspect ${{ steps.meta.outputs.tags }} -o type=oci,dest=image.tar
+          docker buildx imagetools inspect ${{ steps.meta.outputs.tags }} --output type=oci,dest=image.tar
       - name: Upload image tar
         uses: actions/upload-artifact@v3
         with:
