@@ -7,107 +7,107 @@ on:
     types: [opened, reopened]
 
 jobs:
-#  docker-build-oss:
-#    name: Build ${{ matrix.cassandra-version }} Cassandra Docker image
-#    runs-on: ubuntu-latest
-#    strategy:
-#      max-parallel: 4
-#      matrix:
-#        include:
-#          - cassandra-version: '3.11'
-#            docker-file: Dockerfile-oss
-#            build-target: oss311
-#          - cassandra-version: '4.0'
-#            docker-file: Dockerfile-4_0
-#            build-target: oss40
-#          - cassandra-version: '4.1'
-#            docker-file: Dockerfile-4_1
-#            build-target: oss41
-#          - cassandra-version: '3.11-ubi8'
-#            docker-file: Dockerfile-oss.ubi8
-#            build-target: oss311
-#          - cassandra-version: '4.0-ubi8'
-#            docker-file: Dockerfile-4_0.ubi8
-#            build-target: oss40
-#          - cassandra-version: '4.1-ubi8'
-#            docker-file: Dockerfile-4_1.ubi8
-#            build-target: oss41
-#          - cassandra-version: '5.0-ubi8'
-#            docker-file: Dockerfile-5_0.ubi8
-#            build-target: oss50
-#    steps:
-#      - name: Check out source code
-#        uses: actions/checkout@v4
-#      - name: Setup Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v5
-#        with:
-#          images: k8ssandra/cass-management-api
-#          tags: type=sha,prefix=${{ matrix.cassandra-version }}-
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#      - name: Build Cassandra ${{ matrix.cassandra-version }}
-#        id: docker_oss_build
-#        uses: docker/build-push-action@v5
-#        with:
-#          file: ${{ matrix.docker-file }}
-#          context: .
-#          push: false
-#          tags: ${{ steps.meta.outputs.tags }}
-#          platforms: linux/amd64,linux/arm64
-#          target: ${{ matrix.build-target }}
-#          no-cache: true
-#  docker-build-dse-68-ubuntu:
-#    name: Build DSE 6.8 (${{ matrix.jdk-version }}) Ubuntu Docker image
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        jdk-version: [jdk8, jdk11]
-#    steps:
-#      - name: Check out source code
-#        uses: actions/checkout@v4
-#      - name: Setup Maven settings file
-#        run: |
-#          mkdir -p ~/.m2
-#          cat <<EOF > ~/.m2/settings.xml
-#          <settings>
-#            <servers>
-#              <server>
-#                <id>artifactory-snapshots</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#              <server>
-#                <id>artifactory-releases</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#            </servers>
-#          </settings>
-#          EOF
-#          cp ~/.m2/settings.xml settings.xml
-#      - name: Setup Docker meta
-#        id: meta
-#        uses: docker/metadata-action@v5
-#        with:
-#          images: datastax/dse-mgmtapi-6_8
-#          tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
-#      - name: Build DSE 6.8-${{ matrix.jdk-version }}
-#        id: docker_dse_build
-#        uses: docker/build-push-action@v5
-#        with:
-#          file: dse/Dockerfile-dse68.${{ matrix.jdk-version }}
-#          context: .
-#          push: false
-#          tags: ${{ steps.meta.outputs.tags }}
-#          platforms: linux/amd64
-#          target: dse
+  docker-build-oss:
+    name: Build ${{ matrix.cassandra-version }} Cassandra Docker image
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        include:
+          - cassandra-version: '3.11'
+            docker-file: Dockerfile-oss
+            build-target: oss311
+          - cassandra-version: '4.0'
+            docker-file: Dockerfile-4_0
+            build-target: oss40
+          - cassandra-version: '4.1'
+            docker-file: Dockerfile-4_1
+            build-target: oss41
+          - cassandra-version: '3.11-ubi8'
+            docker-file: Dockerfile-oss.ubi8
+            build-target: oss311
+          - cassandra-version: '4.0-ubi8'
+            docker-file: Dockerfile-4_0.ubi8
+            build-target: oss40
+          - cassandra-version: '4.1-ubi8'
+            docker-file: Dockerfile-4_1.ubi8
+            build-target: oss41
+          - cassandra-version: '5.0-ubi8'
+            docker-file: Dockerfile-5_0.ubi8
+            build-target: oss50
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: k8ssandra/cass-management-api
+          tags: type=sha,prefix=${{ matrix.cassandra-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Cassandra ${{ matrix.cassandra-version }}
+        id: docker_oss_build
+        uses: docker/build-push-action@v5
+        with:
+          file: ${{ matrix.docker-file }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: ${{ matrix.build-target }}
+          no-cache: true
+  docker-build-dse-68-ubuntu:
+    name: Build DSE 6.8 (${{ matrix.jdk-version }}) Ubuntu Docker image
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk-version: [jdk8, jdk11]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build DSE 6.8-${{ matrix.jdk-version }}
+        id: docker_dse_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse68.${{ matrix.jdk-version }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
 
   docker-build-dse-69:
     name: Build DSE 6.9 (${{ matrix.jdk-version }}) Docker images (Ubuntu and UBI8)
@@ -166,35 +166,8 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }}
+          tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          outputs: type=docker,dest=/tmp/image.tar
-      - name: Import Docker image from tar
-        run: |
-          docker buildx imagetools import --name docker.io/datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }} /tmp/image.tar
-      - name: Build DSE 6.9-ubi8
-        id: docker_dse_build_ubi8
-        uses: docker/build-push-action@v5
-        with:
-          file: dse/Dockerfile-dse69.ubi8
-          context: .
-          push: false
-          tags: datastax/dse-mgmtapi-6_8:6.9.0-ubi8
-          platforms: linux/amd64
-          target: dse
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-#      - name: Push DSE 6.9 temp images to DockerHub
-#        run: |
-#          docker tag datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }} datastax/dse-mgmtapi-6_8-testing:6.9.0-${{ matrix.jdk-version }}-${{ env.sha_short }}
-#          docker push datastax/dse-mgmtapi-6_8-testing:6.9.0-${{ matrix.jdk-version }}-${{ env.sha_short }}
-#          docker tag datastax/dse-mgmtapi-6_8:6.9.0-ubi8-${{ env.sha_short }} datastax/dse-mgmtapi-6_8-testing:6.9.0-ubi8-${{ env.sha_short }}
-#          docker push datastax/dse-mgmtapi-6_8-testing:6.9.0-ubi8-${{ env.sha_short }}
