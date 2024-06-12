@@ -169,15 +169,19 @@ jobs:
       fail-fast: false
       max-parallel: 8
       matrix:
-        platform-version: ['jdk11', 'ubi']
+        #platform-version: ['jdk11', 'ubi']
+        platform-version: ['all']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
-          - platform-version: 'jdk11'
+          - platform-version: 'all'
             runDSE69tests: true
-            runDSE69testsUBI: false
-          - platform-version: 'ubi'
-            runDSE69tests: false
             runDSE69testsUBI: true
+          #- platform-version: 'jdk11'
+          #  runDSE69tests: true
+          #  runDSE69testsUBI: false
+          #- platform-version: 'ubi'
+          #  runDSE69tests: false
+          #  runDSE69testsUBI: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
