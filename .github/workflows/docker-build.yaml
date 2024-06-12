@@ -166,27 +166,15 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }}
           platforms: linux/amd64
           target: dse
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-      - name: Export Docker image to tar
-        run: |
-          docker buildx imagetools inspect ${{ steps.meta.outputs.tags }} --output type=oci,dest=image.tar
-      - name: Upload image tar
-        uses: actions/upload-artifact@v3
-        with:
-          name: image-tar
-          path: image.tar
-      - name: Download image tar
-        uses: actions/download-artifact@v3
-        with:
-          name: image-tar
-          path: .
+          outputs: type=docker,dest=/tmp/image.tar
       - name: Import Docker image from tar
         run: |
-          docker buildx imagetools import --name datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }} image.tar
+          docker buildx imagetools import --name docker.io/datastax/dse-mgmtapi-6_8:6.9.0-${{ matrix.jdk-version }} /tmp/image.tar
       - name: Build DSE 6.9-ubi8
         id: docker_dse_build_ubi8
         uses: docker/build-push-action@v5
