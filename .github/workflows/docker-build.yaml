@@ -110,7 +110,7 @@ jobs:
           target: dse
           no-cache: true
 
-  docker-build-dse-69-ubuntu:
+  docker-build-dse-69:
     name: Build DSE 6.9 (${{ matrix.jdk-version }}) Ubuntu Docker image
     runs-on: ubuntu-latest
     strategy:
@@ -154,6 +154,17 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: dse/Dockerfile-dse69.${{ matrix.jdk-version }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
+          no-cache: true
+      - name: Build DSE 6.9-ubi8
+        id: docker_dse_build_ubi8
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse69.ubi8
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}

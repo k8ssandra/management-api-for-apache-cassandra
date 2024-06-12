@@ -147,21 +147,21 @@ Example for DSE 6.8.31
 
 For all JDK 11 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_9:<version>-jdk11
+      datastax/dse-mgmtapi-6_8:<version>-jdk11
 
 Example for DSE 6.9.0
 
-      datastax/dse-mgmtapi-6_9:6.9.0-jdk11
+      datastax/dse-mgmtapi-6_8:6.9.0-jdk11
 
 #### RedHat UBI 8 based images (DSE 6.9)
 
-For all RedHat UBI 9 based DSE 6.9.x images, the Docker coordinates are as follows:
+For all RedHat UBI 8 based DSE 6.9.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_9:<version>-ubi9
+      datastax/dse-mgmtapi-6_8:<version>-ubi8
 
 Example for DSE 6.9.0
 
-      datastax/dse-mgmtapi-6_9:6.9.0-ubi9
+      datastax/dse-mgmtapi-6_8:6.9.0-ubi8
 
 ### Docker coordinates for Cassandra Trunk images
 

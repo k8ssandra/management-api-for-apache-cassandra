@@ -483,7 +483,7 @@ public class DockerHelper {
           break;
         case "dse-69_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.ubi9").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.ubi8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(

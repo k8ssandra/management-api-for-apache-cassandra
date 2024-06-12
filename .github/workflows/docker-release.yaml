@@ -503,14 +503,14 @@ jobs:
             --target dse \
             --platform linux/amd64 .
 
-  build-dse-69-ubi9:
+  build-dse-69-ubi8:
     needs: build-dse-69-ubuntu
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         dse-version: [6.9.0]
-        image-base: [ubi9]
+        image-base: [ubi8]
         include:
           - dse-version: 6.9.0
             latest: true

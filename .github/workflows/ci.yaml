@@ -545,7 +545,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: datastax/dse-mgmtapi-6_8
-          tags: type=sha,prefix=dse69-ubi9-
+          tags: type=sha,prefix=dse69-ubi8-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -558,12 +558,12 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Build and push DSE 6.9-ubi9
+      - name: Build and push DSE 6.9-8
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          file: dse/Dockerfile-dse69.ubi9
-          build-args: VERSION=dse69-ubi9-${{ steps.vars.outputs.sha_short }}
+          file: dse/Dockerfile-dse69.ubi8
+          build-args: VERSION=dse69-ubi8-${{ steps.vars.outputs.sha_short }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}

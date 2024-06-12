@@ -46,13 +46,13 @@ to DockerHub at:
 Images built from this repo are for testing changes to Management API prior to releasing new versions and integrating them into
 official DSE images. Images built from this repo will be published to DockerHub at:
 
-    datastax/dse-mgmtapi-6_9
+    datastax/dse-mgmtapi-6_8
 
 ### Building DSE images locally
 
 Building DSE images locally requires the [buildx](https://docs.docker.com/build/buildx/install/) Docker plugin.
 
-DSE 6.9 images can be built based on Ubuntu or RedHat's UBI9 base images. To build an Ubuntu based image, run the following from the root of the parent project:
+DSE 6.9 images can be built based on Ubuntu or RedHat's UBI8 base images. To build an Ubuntu based image, run the following from the root of the parent project:
 
 ```sh
 docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse69.jdk11 --target dse --platform linux/amd64 .
@@ -60,10 +60,10 @@ docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-d
 
 where `my-dse` is whatever tag you want to use for your image.
 
-Likewise, to build a UBI9 based image, run:
+Likewise, to build a UBI8 based image, run:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse69.ubi9 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse69.ubi8 --target dse --platform linux/amd64 .
 ```
 
 ### Building a specific version of DSE
