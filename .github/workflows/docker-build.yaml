@@ -65,6 +65,7 @@ jobs:
     strategy:
       matrix:
         jdk-version: [jdk8, jdk11]
+      max-parallel: 1
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -108,11 +109,11 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
-          no-cache: true
 
   docker-build-dse-69:
     name: Build DSE 6.9 (${{ matrix.jdk-version }}) Ubuntu Docker image
     runs-on: ubuntu-latest
+    needs: docker-build-dse-68-ubuntu
     strategy:
       matrix:
         jdk-version: [jdk11]
@@ -156,10 +157,10 @@ jobs:
           file: dse/Dockerfile-dse69.${{ matrix.jdk-version }}
           context: .
           push: false
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
-          no-cache: true
       - name: Build DSE 6.9-ubi8
         id: docker_dse_build_ubi8
         uses: docker/build-push-action@v5
@@ -170,4 +171,3 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
-          no-cache: true
