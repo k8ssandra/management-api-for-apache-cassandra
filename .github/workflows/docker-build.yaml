@@ -138,6 +138,13 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
       - name: Setup Docker meta
         id: meta
         uses: docker/metadata-action@v5
@@ -159,6 +166,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:dse69-${{ matrix.jdk-version }}
           platforms: linux/amd64
           target: dse
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
       - name: Build DSE 6.9-ubi8
         id: docker_dse_build_ubi8
         uses: docker/build-push-action@v5
@@ -166,6 +175,9 @@ jobs:
           file: dse/Dockerfile-dse69.ubi8
           context: .
           push: false
-          tags: ${{ steps.meta.outputs.tags }}
+          load: true
+          tags: datastax/dse-mgmtapi-6_8:dse69-ubi8
           platforms: linux/amd64
           target: dse
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
