@@ -18,6 +18,7 @@ import com.datastax.mgmtapi.resources.TableOpsResources;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
@@ -95,6 +96,22 @@ public class NodeOpsResourcesTest {
   }
 
   @Test
+  public void testRebuildSearchIndexDse69() throws Exception {
+
+    NodeOpsResourcesTest.Context context = setup();
+
+    mockGetReleaseVersion(context, "4.0.0.690-early-preview");
+
+    ResultSet mockRebuildResultSet = mock(ResultSet.class);
+
+    // mock the actual rebuild call
+    when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
+        .thenReturn(mockRebuildResultSet);
+
+    makeRequestWithExpectedResponse(context, HttpStatus.SC_OK);
+  }
+
+  @Test
   public void testRebuildSearchIndexNonDse() throws Exception {
 
     NodeOpsResourcesTest.Context context = setup();
@@ -107,7 +124,8 @@ public class NodeOpsResourcesTest {
     when(context.cqlService.executeCql(any(), startsWith("REBUILD SEARCH INDEX")))
         .thenReturn(mockRebuildResultSet);
 
-    makeRequestWithExpectedResponse(context, HttpStatus.SC_BAD_REQUEST);
+    makeRequestWithExpectedResponseAndBody(
+        context, HttpStatus.SC_BAD_REQUEST, "Rebuilding Search Index is only supported on DSE");
   }
 
   @Test
@@ -157,5 +175,16 @@ public class NodeOpsResourcesTest {
     MockHttpResponse response = context.invoke(request);
 
     Assert.assertEquals(expectedStatus, response.getStatus());
+  }
+
+  private void makeRequestWithExpectedResponseAndBody(
+      NodeOpsResourcesTest.Context context, int expectedStatus, String body)
+      throws URISyntaxException, UnsupportedEncodingException {
+    MockHttpRequest request =
+        MockHttpRequest.post(ROOT_PATH + "/search/rebuildIndex?keyspace=ks&table=t");
+    MockHttpResponse response = context.invoke(request);
+
+    Assert.assertEquals(expectedStatus, response.getStatus());
+    Assert.assertEquals("Response body did not match", body, response.getContentAsString());
   }
 }
