@@ -156,7 +156,7 @@ jobs:
           context: .
           push: false
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }},datastax/dse-mgmtapi-6_8:dse69-${{ matrix.jdk-version }}
           platforms: linux/amd64
           target: dse
       - name: Build DSE 6.9-ubi8

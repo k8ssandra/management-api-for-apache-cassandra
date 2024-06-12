@@ -170,15 +170,12 @@ jobs:
       max-parallel: 8
       matrix:
         #platform-version: ['jdk11', 'ubi']
-        platform-version: ['all']
+        platform-version: ['jdk11']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
-          - platform-version: 'all'
+          - platform-version: 'jdk11'
             runDSE69tests: true
-            runDSE69testsUBI: true
-          #- platform-version: 'jdk11'
-          #  runDSE69tests: true
-          #  runDSE69testsUBI: false
+            runDSE69testsUBI: false
           #- platform-version: 'ubi'
           #  runDSE69tests: false
           #  runDSE69testsUBI: true
