@@ -646,9 +646,11 @@ public class NodeOpsResources extends BaseResources {
             // couldn't get release version, something is wrong
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
           }
-          if (!releaseVersion.startsWith("4.0.0.68")) {
+          if (!releaseVersion.startsWith("4.0.0.68") && !releaseVersion.startsWith("4.0.0.69")) {
             // rebuilding search index is only possible on DSE
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Rebuilding Search Index is only supported on DSE")
+                .build();
           }
           try {
             String rebuild_query = String.format("REBUILD SEARCH INDEX ON %s.%s;", keyspace, table);

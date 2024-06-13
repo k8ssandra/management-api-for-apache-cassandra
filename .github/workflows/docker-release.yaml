@@ -62,8 +62,8 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
       - if: ${{ matrix.latest && matrix.image-base != 'jdk8' }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
@@ -74,8 +74,8 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest && matrix.image-base == 'jdk8' }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
@@ -87,8 +87,8 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest && matrix.image-base != 'jdk8' }}
         name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
@@ -98,8 +98,8 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
 
   build-dse-68-ubi8:
@@ -157,8 +157,8 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
@@ -168,8 +168,8 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse-68/Dockerfile.${{ matrix.image-base }} \
-            --target dse68 \
+            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --target dse \
             --platform linux/amd64 .
 
   build-oss-3-11x:
@@ -432,3 +432,144 @@ jobs:
             --file Dockerfile-5_0.ubi8 \
             --target oss50 \
             --platform linux/amd64,linux/arm64 .
+
+  build-dse-69-ubuntu:
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        dse-version: [6.9.0]
+        image-base: [jdk11]
+        include:
+          - dse-version: 6.9.0
+            latest: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Maven Settings File
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - if: ${{ matrix.latest }}
+        name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
+        run: |
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          docker buildx build --push \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
+            --tag datastax/dse-mgmtapi-6_8:6.9 \
+            --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --target dse \
+            --platform linux/amd64 .
+      - if: ${{ !matrix.latest }}
+        name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
+        run: |
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          docker buildx build --push \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --target dse \
+            --platform linux/amd64 .
+
+  build-dse-69-ubi8:
+    needs: build-dse-69-ubuntu
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        dse-version: [6.9.0]
+        image-base: [ubi8]
+        include:
+          - dse-version: 6.9.0
+            latest: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Maven Settings File
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+             </server>
+           </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - if: ${{ matrix.latest }}
+        name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
+        run: |
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          docker buildx build --push \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
+            --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --target dse \
+            --platform linux/amd64 .
+      - if: ${{ !matrix.latest }}
+        name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
+        run: |
+          RELEASE_VERSION="${GITHUB_REF##*/}"
+          docker buildx build --push \
+            --build-arg DSE_VERSION=${{ matrix.dse-version }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --target dse \
+            --platform linux/amd64 .
+

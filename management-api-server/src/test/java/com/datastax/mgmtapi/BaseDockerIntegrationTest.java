@@ -115,8 +115,10 @@ public abstract class BaseDockerIntegrationTest {
     if (Boolean.getBoolean("run41testsUBI")) versions.add("4_1_ubi");
     if (Boolean.getBoolean("run50testsUBI")) versions.add("5_0_ubi");
     if (Boolean.getBoolean("runTrunktests")) versions.add("trunk");
-    if (Boolean.getBoolean("runDSEtests")) versions.add("dse-68");
-    if (Boolean.getBoolean("runDSEtestsUBI")) versions.add("dse-68_ubi");
+    if (Boolean.getBoolean("runDSE68tests")) versions.add("dse-68");
+    if (Boolean.getBoolean("runDSE68testsUBI")) versions.add("dse-68_ubi");
+    if (Boolean.getBoolean("runDSE69tests")) versions.add("dse-69");
+    if (Boolean.getBoolean("runDSE69testsUBI")) versions.add("dse-69_ubi");
 
     return versions;
   }
@@ -234,7 +236,7 @@ public abstract class BaseDockerIntegrationTest {
     if (this.version.startsWith("3")) {
       return 256;
     }
-    if (this.version.startsWith("dse-68")) {
+    if (this.version.startsWith("dse")) {
       return 1;
     }
     if (this.version.startsWith("4")) {

@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -104,7 +104,7 @@ jobs:
           -Drun41testsUBI=${{ matrix.run41testsUBI }} \
           -Drun50testsUBI=${{ matrix.run50testsUBI }} \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
-  build-dse:
+  build-dse-68:
     if: github.repository_owner == 'k8ssandra'
     strategy:
       fail-fast: false
@@ -114,11 +114,11 @@ jobs:
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         include:
           - platform-version: 'jdk8'
-            runDSEtests: true
-            runDSEtestsUBI: false
+            runDSE68tests: true
+            runDSE68testsUBI: false
           - platform-version: 'ubi'
-            runDSEtests: false
-            runDSEtestsUBI: true
+            runDSE68tests: false
+            runDSE68testsUBI: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-68-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -160,8 +160,69 @@ jobs:
           EOF
           cp ~/.m2/settings.xml settings.xml
           mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
-          -DrunDSEtests=${{ matrix.runDSEtests }} \
-          -DrunDSEtestsUBI=${{ matrix.runDSEtestsUBI }}
+          -DrunDSE68tests=${{ matrix.runDSE68tests }} \
+          -DrunDSE68testsUBI=${{ matrix.runDSE68testsUBI }}
+
+  build-dse-69:
+    if: github.repository_owner == 'k8ssandra'
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        #platform-version: ['jdk11', 'ubi']
+        platform-version: ['jdk11']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        include:
+          - platform-version: 'jdk11'
+            runDSE69tests: true
+            runDSE69testsUBI: false
+          #- platform-version: 'ubi'
+          #  runDSE69tests: false
+          #  runDSE69testsUBI: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-69-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Build with Maven and run tests
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          -DrunDSE69tests=${{ matrix.runDSE69tests }} \
+          -DrunDSE69testsUBI=${{ matrix.runDSE69testsUBI }}
+
   build-hcd:
     if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest
@@ -176,7 +237,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-hcd-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -272,10 +333,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.build-target }}
 
-  publish-dse-ubuntu:
+  publish-dse-68-ubuntu:
     name: Publish DSE 6.8 Ubuntu image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: build-dse
+    needs: build-dse-68
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -324,17 +385,76 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          file: dse-68/Dockerfile.${{ matrix.jdk-version }}
+          file: dse/Dockerfile-dse68.${{ matrix.jdk-version }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
-          target: dse68
+          target: dse
 
-  publish-dse-ubi:
+  publish-dse-69-ubuntu:
+    name: Publish DSE 6.9 Ubuntu image
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: build-dse-69
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk-version: [jdk11]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,prefix=dse69-${{ matrix.jdk-version }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Build and push DSE 6.9-${{ matrix.jdk-version }}
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse69.${{ matrix.jdk-version }}
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
+
+  publish-dse-68-ubi:
     name: Publish DSE 6.8 UBI 8 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: publish-dse-ubuntu
+    needs: publish-dse-68-ubuntu
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
@@ -383,10 +503,70 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v5
         with:
-          file: dse-68/Dockerfile.ubi8
-          build-args: VERSION=dse68-jdk8-${{ steps.vars.outputs.sha_short }}
+          file: dse/Dockerfile-dse68.ubi8
+          build-args: VERSION=dse68-ubi8-${{ steps.vars.outputs.sha_short }}
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
-          target: dse68
+          target: dse
+
+  publish-dse-69-ubi:
+    name: Publish DSE 6.9 UBI 9 image
+    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
+    needs: publish-dse-69-ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,prefix=dse69-ubi8-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Set outputs
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Build and push DSE 6.9-8
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse69.ubi8
+          build-args: VERSION=dse69-ubi8-${{ steps.vars.outputs.sha_short }}
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
