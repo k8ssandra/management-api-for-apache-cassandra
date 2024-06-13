@@ -66,6 +66,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.net.ssl.SSLException;
 import org.jboss.resteasy.core.ResteasyDeploymentImpl;
@@ -359,9 +360,12 @@ public class Cli implements Runnable {
               new ProcessBuilder(dbCmdFile.getAbsolutePath(), "-v"),
               (input, err) -> input.findFirst().orElse(null),
               (exitCode, err) -> {
-                String s;
+                // collect all the errors before the stream closes
+                List<String> errLines = err.collect(Collectors.toList());
+                // dump the command that failed
                 errorOutput.add("'" + dbCmdFile.getAbsolutePath() + " -v' exit code: " + exitCode);
-                while ((s = err.findFirst().orElse(null)) != null) errorOutput.add(s);
+                // append the errors to the output
+                errorOutput.addAll(errLines);
                 return null;
               });
 

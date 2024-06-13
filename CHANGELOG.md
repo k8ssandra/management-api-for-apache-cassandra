@@ -10,6 +10,11 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.81 (2024-06-13)
+* [BUGFIX] [#502](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/502) Fix DSE 6.9 UBI image builds
+
+## v0.1.80 (2024-06-13)
 * [FEATURE] [#496](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/496) Add DSE 6.9 image builds
 
 ## v0.1.79 (2024-05-31)
