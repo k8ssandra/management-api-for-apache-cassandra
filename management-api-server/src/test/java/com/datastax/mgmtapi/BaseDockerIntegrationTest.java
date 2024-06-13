@@ -130,7 +130,7 @@ public abstract class BaseDockerIntegrationTest {
     if (docker != null) {
       temporaryFolder.delete();
       temporaryFolder.create();
-      docker.startManagementAPI(version, getEnvironmentVars(), getUser());
+      docker.startManagementAPI(version, getEnvironmentVars(), getUser(), getImageBuildArgs());
     }
   }
 
@@ -157,7 +157,7 @@ public abstract class BaseDockerIntegrationTest {
   @Before
   public void before() {
     if (!docker.started()) {
-      docker.startManagementAPI(version, getEnvironmentVars(), getUser());
+      docker.startManagementAPI(version, getEnvironmentVars(), getUser(), getImageBuildArgs());
     }
   }
 
@@ -167,6 +167,17 @@ public abstract class BaseDockerIntegrationTest {
         "MGMT_API_EXPLICIT_START=true",
         "DSE_MGMT_NO_KEEP_ALIVE=true",
         "DSE_MGMT_EXPLICIT_START=true");
+  }
+
+  /**
+   * Returns a list of image build variables to provide when building the Docker image to test. An
+   * example of this in in NodetoolIT where we specify the Cassandra version to test against a
+   * specific version for a known bug. Most tests should not need to override this.
+   *
+   * @return A list of Docker build environment variables.
+   */
+  protected ArrayList<String> getImageBuildArgs() {
+    return Lists.newArrayList();
   }
 
   protected String getUser() {

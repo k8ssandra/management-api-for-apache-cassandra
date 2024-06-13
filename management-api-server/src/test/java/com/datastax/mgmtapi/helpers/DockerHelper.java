@@ -102,8 +102,9 @@ public class DockerHelper {
     return DOCKER_CLIENT.inspectContainerCmd(container).exec().getNetworkSettings().getIpAddress();
   }
 
-  public void startManagementAPI(String version, List<String> envVars, String user) {
-    DockerBuildConfig config = DockerBuildConfig.getConfig(version, envVars, user);
+  public void startManagementAPI(
+      String version, List<String> envVars, String user, List<String> buildVars) {
+    DockerBuildConfig config = DockerBuildConfig.getConfig(version, envVars, user, buildVars);
     if (!config.dockerFile.exists())
       throw new RuntimeException("Missing " + config.dockerFile.getAbsolutePath());
 
@@ -209,22 +210,23 @@ public class DockerHelper {
 
   private void buildImageWithBuildx(DockerBuildConfig config, String name) throws Exception {
     ProcessBuilder pb =
-        new ProcessBuilder(
-            "docker",
-            "buildx",
-            "build",
-            "--load",
-            "--progress",
-            "plain",
-            "--tag",
-            name,
-            "--file",
-            config.dockerFile.getPath(),
-            "--target",
-            config.target,
-            "--platform",
-            "linux/amd64",
-            config.baseDir.getPath());
+        new ProcessBuilder("docker", "buildx", "build", "--load", "--progress", "plain");
+    // add extras build-args, if we have any
+    if (!config.buildVars.isEmpty()) {
+      for (String buildArg : config.buildVars) {
+        pb.command().add("--build-arg");
+        pb.command().add(buildArg);
+      }
+    }
+    pb.command().add("--tag");
+    pb.command().add(name);
+    pb.command().add("--file");
+    pb.command().add(config.dockerFile.getPath());
+    pb.command().add("--target");
+    pb.command().add(config.target);
+    pb.command().add("--platform");
+    pb.command().add("linux/amd64");
+    pb.command().add(config.baseDir.getPath());
 
     Process p = pb.inheritIO().start();
     int exitCode = p.waitFor();
@@ -400,8 +402,10 @@ public class DockerHelper {
     List<Integer> exposedPorts;
     List<String> envList;
     String user;
+    List<String> buildVars = Lists.newArrayList();
 
-    static DockerBuildConfig getConfig(String version, List<String> envVars, String user) {
+    static DockerBuildConfig getConfig(
+        String version, List<String> envVars, String user, List<String> buildVars) {
       DockerBuildConfig config = new DockerBuildConfig();
       switch (version) {
         case "3_11":
@@ -502,6 +506,7 @@ public class DockerHelper {
         config.exposedPorts = Arrays.asList(9042, 9000, getListenPortFromEnv(envVars));
       }
       config.user = user;
+      config.buildVars.addAll(buildVars);
       return config;
     }
   }
