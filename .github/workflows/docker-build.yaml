@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [jdk11, ubi8]
+        version: [jdk11]
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
