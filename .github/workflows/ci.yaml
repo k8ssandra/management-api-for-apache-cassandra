@@ -105,7 +105,8 @@ jobs:
         run: |
           docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
           docker image ls -a
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-${{ github.sha }} erikiswin:latest
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} erikiswin:latest
+          docker image ls -a
 #      - name: Build with Maven and run tests
 #        run: |
 #          mvn -B -q install --file pom.xml \
