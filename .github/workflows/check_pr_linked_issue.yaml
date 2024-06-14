@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  check_pull_requests:
-    runs-on: ubuntu-latest
-    name: Check linked issues
-    steps:
-      - uses: nearform-actions/github-action-check-linked-issues@v1
-        id: check-linked-issues
-        with:
-          exclude-branches: "dependabot/**"
-          comment: true
+#  check_pull_requests:
+#    runs-on: ubuntu-latest
+#    name: Check linked issues
+#    steps:
+#      - uses: nearform-actions/github-action-check-linked-issues@v1
+#        id: check-linked-issues
+#        with:
+#          exclude-branches: "dependabot/**"
+#          comment: true

@@ -1,11 +1,10 @@
 ARG UBI_MAJOR=8
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=4.1.5
+ARG CASSANDRA_VERSION=4.0.13
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG METRICS_COLLECTOR_VERSION=0.3.5
-ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
@@ -28,8 +27,8 @@ WORKDIR /
 ###
 ENV MCAC_PATH /opt/metrics-collector
 RUN mkdir -m 775 ${MCAC_PATH} && \
-    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
-    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
+    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz"; fi && \
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz && \
     chmod -R g+w ${MCAC_PATH}
 
 ###
@@ -84,21 +83,21 @@ COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
     && mvn -q -ff package -DskipTests -DskipOpenApi \
-    && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
+    && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-3.x* \
-    && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
+    && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-5* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-*shaded* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-*common* \
     && cd ${MAAC_PATH} \
-    && ln -s datastax-mgmtapi-agent-4.1.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
+    && ln -s datastax-mgmtapi-agent-4.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
     && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
     && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
     chmod -R g+w ${MAAC_PATH}
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS oss41
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as cassandra
 ARG TARGETARCH
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
@@ -158,7 +157,9 @@ COPY scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd
-  ln -sf /proc/mounts /etc/mtab
+  ln -sf /proc/mounts /etc/mtab && \
+  # remove cassandra-topology.properties file
+  rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 
 ENV TINI_VERSION v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini

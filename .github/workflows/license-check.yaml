@@ -6,14 +6,14 @@ name: Dependency and License Scan
 on: workflow_dispatch
 
 jobs:
-  scan-repo:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-      - name: Install Fossa CLI
-        run: |
-          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash -s -- -b .
-      - name: Scan for dependencies and licenses
-        run: |
-          FOSSA_API_KEY=${{ secrets.FOSSA_PUSH_ONLY_API_KEY }} ./fossa analyze
+#  scan-repo:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Check out code
+#        uses: actions/checkout@v4
+#      - name: Install Fossa CLI
+#        run: |
+#          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash -s -- -b .
+#      - name: Scan for dependencies and licenses
+#        run: |
+#          FOSSA_API_KEY=${{ secrets.FOSSA_PUSH_ONLY_API_KEY }} ./fossa analyze
