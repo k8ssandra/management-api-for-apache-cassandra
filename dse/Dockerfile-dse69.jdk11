@@ -10,9 +10,9 @@ ENV DSE_HOME /opt/dse
 ENV DSE_AGENT_HOME /opt/agent
 
 # Get commandline parameters
-ARG DSE_VERSION=6.9.0
+ARG DSE_VERSION=6.9.0-rc.1
 ARG URL_PREFIX=https://downloads.datastax.com/enterprise
-ARG TARBALL=dse-${DSE_VERSION}-early-preview-bin.tar.gz
+ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
 ARG DSE_AGENT_VERSION=6.8.37
