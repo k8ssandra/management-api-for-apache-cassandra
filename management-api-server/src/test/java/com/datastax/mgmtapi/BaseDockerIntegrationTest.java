@@ -107,13 +107,13 @@ public abstract class BaseDockerIntegrationTest {
   public static List<String> testVersions() {
     List<String> versions = new ArrayList<>(4);
 
-    if (Boolean.getBoolean("run311tests")) versions.add("3_11");
-    if (Boolean.getBoolean("run311testsUBI")) versions.add("3_11_ubi");
-    if (Boolean.getBoolean("run40tests")) versions.add("4_0");
-    if (Boolean.getBoolean("run40testsUBI")) versions.add("4_0_ubi");
-    if (Boolean.getBoolean("run41tests")) versions.add("4_1");
-    if (Boolean.getBoolean("run41testsUBI")) versions.add("4_1_ubi");
-    if (Boolean.getBoolean("run50testsUBI")) versions.add("5_0_ubi");
+    if (Boolean.getBoolean("run3.11tests")) versions.add("3_11");
+    if (Boolean.getBoolean("run3.11testsUBI")) versions.add("3_11_ubi");
+    if (Boolean.getBoolean("run4.0tests")) versions.add("4_0");
+    if (Boolean.getBoolean("run4.0testsUBI")) versions.add("4_0_ubi");
+    if (Boolean.getBoolean("run4.1tests")) versions.add("4_1");
+    if (Boolean.getBoolean("run4.1testsUBI")) versions.add("4_1_ubi");
+    if (Boolean.getBoolean("run5.0testsUBI")) versions.add("5_0_ubi");
     if (Boolean.getBoolean("runTrunktests")) versions.add("trunk");
     if (Boolean.getBoolean("runDSE68tests")) versions.add("dse-68");
     if (Boolean.getBoolean("runDSE68testsUBI")) versions.add("dse-68_ubi");

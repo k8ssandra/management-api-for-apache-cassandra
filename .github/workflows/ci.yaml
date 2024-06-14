@@ -44,7 +44,7 @@ jobs:
           target: cassandra
           outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
       - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform == 'ubi8' }}
+        if: ${{ matrix.base-platform != 'ubuntu' }}
         id: docker_build_ubi8
         uses: docker/build-push-action@v5
         with:
@@ -101,23 +101,30 @@ jobs:
         with:
           name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
           path: /tmp
-      - name: Load Docker image
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+        if: ${{ matrix.base-platform == 'ubuntu' }}
         run: |
           docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest
           docker image ls -a
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} erikiswin:latest
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+        if: ${{ matrix.base-platform != 'ubuntu' }}
+        run: |
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest
           docker image ls -a
-#      - name: Build with Maven and run tests
-#        run: |
-#          mvn -B -q install --file pom.xml \
-#          -Drun311tests=${{ matrix.run311tests }} \
-#          -Drun40tests=${{ matrix.run40tests }} \
-#          -Drun41tests=${{ matrix.run41tests }} \
-#          -Drun311testsUBI=${{ matrix.run311testsUBI }} \
-#          -Drun40testsUBI=${{ matrix.run40testsUBI }} \
-#          -Drun41testsUBI=${{ matrix.run41testsUBI }} \
-#          -Drun50testsUBI=${{ matrix.run50testsUBI }} \
-#          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform == 'ubuntu' }}
+        run: |
+          mvn -B -q install --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}tests \
+          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform != 'ubuntu' }}
+        run: |
+          mvn -B -q install --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}testsUBI \
+          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
 #  build-dse-68:
 #    if: github.repository_owner == 'k8ssandra'
