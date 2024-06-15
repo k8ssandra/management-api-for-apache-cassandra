@@ -647,7 +647,7 @@ jobs:
           target: dse
 
   publish-dse-69-ubi:
-    name: Publish DSE 6.9 UBI 9 image
+    name: Publish DSE 6.9 UBI 8 image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: publish-dse-69-ubuntu
     runs-on: ubuntu-latest
