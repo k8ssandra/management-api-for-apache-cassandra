@@ -189,18 +189,22 @@ jobs:
       - name: Inspect Docker Image datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
         run: |
           docker image inspect datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+#      - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
+#        id: docker_build
+#        uses: docker/build-push-action@v5
+#        with:
+#          file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
+#          context: .
+#          push: false
+#          tags: ${{ steps.meta.outputs.tags }}
+#          platforms: linux/amd64
+#          target: dse
+#          build-args: DSE_VERSION=${{ matrix.dse-version }}.${{ matrix.latest-patch }}
+#          outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
       - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
-          context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: dse
-          build-args: DSE_VERSION=${{ matrix.dse-version }}.${{ matrix.latest-patch }}
-          outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+        run: |
+          docker buildx build --tag ${{ steps.meta.outputs.tags }} --build-arg DSE_VERSION=${{ matrix.dse-version }}.${{ matrix.latest-patch }} --file dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }} --target dse --output type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar .
       - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         uses: actions/upload-artifact@v4
         with:
