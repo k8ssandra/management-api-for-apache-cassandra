@@ -137,7 +137,7 @@ jobs:
             latest-patch: '49'
           - dse-version: '6.9'
             jdk: 'jdk11'
-            latest-patch: '0-rc.1'
+            latest-patch: '0-erik'
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -193,6 +193,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
+          build-args: DSE_VERSION=${{ matrix.dse-version }}.${{ matrix.latest-patch }}
           outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
       - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         uses: actions/upload-artifact@v4
