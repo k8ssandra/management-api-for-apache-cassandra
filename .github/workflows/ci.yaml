@@ -25,7 +25,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-unit-tests-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-hcd-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Maven settings file
         run: |
