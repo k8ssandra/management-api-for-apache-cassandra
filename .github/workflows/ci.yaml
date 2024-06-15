@@ -9,7 +9,7 @@ jobs:
   build-oss-docker-images:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 4
+      max-parallel: 8
       matrix:
         cassandra-version: ['3.11', '4.0', '4.1', '5.0']
         base-platform: ['ubuntu', 'ubi8']
@@ -60,6 +60,151 @@ jobs:
         with:
           name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
           path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+
+  build-dse-ubuntu-docker-images:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 8
+      matrix:
+        dse-version: ['6.8', '6.9']
+        base-platform: ['jdk8', 'jdk11']
+        exclude:
+          - dse-version: '6.9'
+            base-platform: 'jdk8'
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,format=long,prefix=${{ matrix.dse-version }}-${{ matrix.base-platform }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
+          outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+      - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+
+  build-dse-ubi-docker-images:
+    needs: build-dse-ubuntu-docker-images
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 8
+      matrix:
+        dse-version: ['6.8', '6.9']
+        base-platform: ['ubi8']
+        include:
+          - dse-version: '6.8'
+            jdk: 'jdk8'
+            latest-patch: '49'
+          - dse-version: '6.9'
+            jdk: 'jdk11'
+            latest-patch: '0-rc.1'
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+      - name: Setup Maven settings file
+        run: |
+          mkdir -p ~/.m2
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      # Setup metadata based on the commit/tag that will be used for tagging the image
+      # Only build and publish a commit based tag
+      - name: Setup Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: datastax/dse-mgmtapi-6_8
+          tags: type=sha,format=long,prefix=${{ matrix.dse-version }}-${{ matrix.base-platform }}-
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Download DSE 6.8 Docker image
+        if: ${{ matrix.dse-version == '6.8' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: dse.${{ matrix.dse-version }}.jdk8
+          path: /tmp
+      - name: Download DSE ${{ matrix.dse-version }} Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: dse.${{ matrix.dse-version }}.${{ matrix.jdk }}
+          path: /tmp
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.jdk }} image
+        run: |
+          docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.jdk }}.tar
+          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+          docker image ls -a
+      - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64
+          target: dse
+          outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+      - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
 
   test-oss:
     needs: build-oss-docker-images
@@ -124,7 +269,7 @@ jobs:
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
-#  build-dse-68:
+#  test-dse:
 #    if: github.repository_owner == 'k8ssandra'
 #    strategy:
 #      fail-fast: false
