@@ -66,13 +66,11 @@ jobs:
     strategy:
       max-parallel: 8
       matrix:
-        # dse-version: ['6.8', '6.9']
-        dse-version: ['6.9']
-        # base-platform: ['jdk8', 'jdk11']
-        base-platform: ['jdk11']
-#        exclude:
-#          - dse-version: '6.9'
-#            base-platform: 'jdk8'
+        dse-version: ['6.8', '6.9']
+        base-platform: ['jdk8', 'jdk11']
+        exclude:
+          - dse-version: '6.9'
+            base-platform: 'jdk8'
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -131,13 +129,12 @@ jobs:
     strategy:
       max-parallel: 8
       matrix:
-        # dse-version: ['6.8', '6.9']
-        dse-version: ['6.9']
+        dse-version: ['6.8', '6.9']
         base-platform: ['ubi8']
         include:
-#          - dse-version: '6.8'
-#            jdk: 'jdk8'
-#            latest-patch: '49'
+          - dse-version: '6.8'
+            jdk: 'jdk8'
+            latest-patch: '49'
           - dse-version: '6.9'
             jdk: 'jdk11'
             latest-patch: '0-rc.1'
