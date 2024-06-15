@@ -26,8 +26,9 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-unit-tests-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Setup Maven settings.xml
+      - name: Setup Maven settings file
         run: |
+          mkdir -p ~/.m2
           cat <<EOF > ~/.m2/settings.xml
           <settings>
             <servers>
@@ -45,8 +46,12 @@ jobs:
           </settings>
           EOF
           cp ~/.m2/settings.xml settings.xml
-      - name: Build with Maven and run unit tests
+      - name: Build with Maven and run unit tests (k8ssandra repo)
+        # if: github.repository_owner == 'k8ssandra'
         run: mvn -B -q package --file pom.xml -P dse,hcd
+      - name: Build with Maven and run unit tests (3rd party repo)
+        if: github.repository_owner != 'k8ssandra'
+        run: mvn -B -q package --file pom.xml
 
   build-oss-docker-images:
     runs-on: ubuntu-latest
