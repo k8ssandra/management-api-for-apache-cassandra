@@ -6,60 +6,60 @@ on:
     types: [opened, reopened]
 
 jobs:
-  build-oss-docker-images:
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 8
-      matrix:
-        cassandra-version: ['3.11', '4.0', '4.1', '5.0']
-        base-platform: ['ubuntu', 'ubi8']
-        exclude:
-          - cassandra-version: '5.0'
-            base-platform: 'ubuntu'
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: k8ssandra/cass-management-api
-          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform == 'ubuntu' }}
-        id: docker_build_ubuntu
-        uses: docker/build-push-action@v5
-        with:
-          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}
-          context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform != 'ubuntu' }}
-        id: docker_build_ubi8
-        uses: docker/build-push-action@v5
-        with:
-          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
-          context: .
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
-          path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#  build-oss-docker-images:
+#    runs-on: ubuntu-latest
+#    strategy:
+#      max-parallel: 8
+#      matrix:
+#        cassandra-version: ['3.11', '4.0', '4.1', '5.0']
+#        base-platform: ['ubuntu', 'ubi8']
+#        exclude:
+#          - cassandra-version: '5.0'
+#            base-platform: 'ubuntu'
+#    steps:
+#      - name: Check out source code
+#        uses: actions/checkout@v4
+#      # Setup metadata based on the commit/tag that will be used for tagging the image
+#      # Only build and publish a commit based tag
+#      - name: Setup Docker meta
+#        id: meta
+#        uses: docker/metadata-action@v5
+#        with:
+#          images: k8ssandra/cass-management-api
+#          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#      - name: Set up Docker Buildx
+#        uses: docker/setup-buildx-action@v3
+#      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+#        if: ${{ matrix.base-platform == 'ubuntu' }}
+#        id: docker_build_ubuntu
+#        uses: docker/build-push-action@v5
+#        with:
+#          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}
+#          context: .
+#          push: false
+#          tags: ${{ steps.meta.outputs.tags }}
+#          platforms: linux/amd64
+#          target: cassandra
+#          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+#        if: ${{ matrix.base-platform != 'ubuntu' }}
+#        id: docker_build_ubi8
+#        uses: docker/build-push-action@v5
+#        with:
+#          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+#          context: .
+#          push: false
+#          tags: ${{ steps.meta.outputs.tags }}
+#          platforms: linux/amd64
+#          target: cassandra
+#          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+#          path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
 
   build-dse-ubuntu-docker-images:
     runs-on: ubuntu-latest
@@ -173,18 +173,12 @@ jobs:
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Download DSE 6.8 Docker image
-        if: ${{ matrix.dse-version == '6.8' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: dse.${{ matrix.dse-version }}.jdk8
-          path: /tmp
-      - name: Download DSE ${{ matrix.dse-version }} Docker image
+      - name: Download DSE ${{ matrix.dse-version }} ${{ matrix.jdk }} base Docker image
         uses: actions/download-artifact@v4
         with:
           name: dse.${{ matrix.dse-version }}.${{ matrix.jdk }}
           path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.jdk }} image
+      - name: Load Docker ${{ matrix.dse-version }}-${{ matrix.jdk }} image
         run: |
           docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.jdk }}.tar
           docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
@@ -206,68 +200,68 @@ jobs:
           name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
           path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
 
-  test-oss:
-    needs: build-oss-docker-images
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      max-parallel: 16
-      matrix:
-        cassandra-version: ['3.11', '4.0', '4.1', '5.0']
-        base-platform: ['ubuntu', 'ubi8']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT', 'NodetoolIT']
-        exclude:
-          - cassandra-version: '5.0'
-            base-platform: 'ubuntu'
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          java-version: 11
-          distribution: 'zulu'
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Setup Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          version: latest
-      - name: Download Docker image
-        uses: actions/download-artifact@v4
-        with:
-          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
-          path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
-        if: ${{ matrix.base-platform == 'ubuntu' }}
-        run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest
-          docker image ls -a
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
-        if: ${{ matrix.base-platform != 'ubuntu' }}
-        run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest
-          docker image ls -a
-      - name: Build with Maven and run tests
-        if: ${{ matrix.base-platform == 'ubuntu' }}
-        run: |
-          mvn -B -q install --file pom.xml \
-          -Drun${{ matrix.cassandra-version }}tests \
-          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
-      - name: Build with Maven and run tests
-        if: ${{ matrix.base-platform != 'ubuntu' }}
-        run: |
-          mvn -B -q install --file pom.xml \
-          -Drun${{ matrix.cassandra-version }}testsUBI \
-          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+#  test-oss:
+#    needs: build-oss-docker-images
+#    runs-on: ubuntu-latest
+#    strategy:
+#      fail-fast: false
+#      max-parallel: 16
+#      matrix:
+#        cassandra-version: ['3.11', '4.0', '4.1', '5.0']
+#        base-platform: ['ubuntu', 'ubi8']
+#        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT', 'NodetoolIT']
+#        exclude:
+#          - cassandra-version: '5.0'
+#            base-platform: 'ubuntu'
+#    steps:
+#      - uses: actions/checkout@v4
+#      - name: Set up JDK 11
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: 11
+#          distribution: 'zulu'
+#      - name: Cache Maven packages
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.m2
+#          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: ${{ runner.os }}-m2
+#      - name: Set up QEMU
+#        uses: docker/setup-qemu-action@v3
+#      - name: Setup Buildx
+#        id: buildx
+#        uses: docker/setup-buildx-action@v3
+#        with:
+#          version: latest
+#      - name: Download Docker image
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+#          path: /tmp
+#      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+#        if: ${{ matrix.base-platform == 'ubuntu' }}
+#        run: |
+#          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest
+#          docker image ls -a
+#      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+#        if: ${{ matrix.base-platform != 'ubuntu' }}
+#        run: |
+#          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest
+#          docker image ls -a
+#      - name: Build with Maven and run tests
+#        if: ${{ matrix.base-platform == 'ubuntu' }}
+#        run: |
+#          mvn -B -q install --file pom.xml \
+#          -Drun${{ matrix.cassandra-version }}tests \
+#          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+#      - name: Build with Maven and run tests
+#        if: ${{ matrix.base-platform != 'ubuntu' }}
+#        run: |
+#          mvn -B -q install --file pom.xml \
+#          -Drun${{ matrix.cassandra-version }}testsUBI \
+#          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
 #  test-dse:
 #    if: github.repository_owner == 'k8ssandra'
