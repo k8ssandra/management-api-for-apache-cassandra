@@ -187,7 +187,7 @@ jobs:
           # we are explicitly leaving the datastax/ part off the tag so that
           # the docker build-push-action next doesn't try to fetch this image
           # from DockerHub, as we haven't pushed it there
-          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
           docker image ls -a
       - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         id: docker_build
@@ -200,7 +200,7 @@ jobs:
           platforms: linux/amd64
           target: dse
           # override the base pull image to be the local one we built and tagged above
-          build-args: DSE_BASE_IMAGE=dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+          build-args: DSE_BASE_IMAGE=dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
           outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
       - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         uses: actions/upload-artifact@v4
