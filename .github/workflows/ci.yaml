@@ -11,6 +11,7 @@ on:
 
 jobs:
   run-unit-tests:
+    name: Run Unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out source code
@@ -20,12 +21,12 @@ jobs:
         with:
           java-version: 11
           distribution: 'zulu'
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-unit-tests-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+#      - name: Cache Maven packages
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.m2
+#          key: ${{ runner.os }}-m2-unit-tests-${{ hashFiles('**/pom.xml') }}
+#          restore-keys: ${{ runner.os }}-m2
       - name: Setup Maven settings file
         run: |
           mkdir -p ~/.m2
@@ -54,6 +55,7 @@ jobs:
         run: mvn -B -q package --file pom.xml
 
   build-oss-docker-images:
+    name: Build Cassandra images
     runs-on: ubuntu-latest
     needs: run-unit-tests
     strategy:
@@ -112,6 +114,7 @@ jobs:
           retention-days: 7
 
   build-dse-ubuntu-docker-images:
+    name: Build DSE Ubuntu images
     runs-on: ubuntu-latest
     needs: run-unit-tests
     strategy:
@@ -177,6 +180,7 @@ jobs:
           retention-days: 7
 
   build-dse-ubi-docker-images:
+    name: Build DSE UBI images
     needs: build-dse-ubuntu-docker-images
     runs-on: ubuntu-latest
     # need a local docker registry to push images into
@@ -269,6 +273,7 @@ jobs:
           retention-days: 7
 
   test-oss:
+    name: Run Cassandra Integration tests
     needs: build-oss-docker-images
     runs-on: ubuntu-latest
     strategy:
@@ -332,6 +337,7 @@ jobs:
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
   test-dse:
+    name: Run DSE Integration tests
     # if: github.repository_owner == 'k8ssandra'
     runs-on: ubuntu-latest
     needs: build-dse-ubi-docker-images
