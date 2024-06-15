@@ -9,6 +9,7 @@ jobs:
 #  build-oss-docker-images:
 #    runs-on: ubuntu-latest
 #    strategy:
+#      fail-fast: false
 #      max-parallel: 8
 #      matrix:
 #        cassandra-version: ['3.11', '4.0', '4.1', '5.0']
@@ -64,6 +65,7 @@ jobs:
   build-dse-ubuntu-docker-images:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       max-parallel: 8
       matrix:
         dse-version: ['6.8', '6.9']
@@ -127,6 +129,7 @@ jobs:
     needs: build-dse-ubuntu-docker-images
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       max-parallel: 8
       matrix:
         dse-version: ['6.8', '6.9']
@@ -183,6 +186,9 @@ jobs:
           docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.jdk }}.tar
           docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
           docker image ls -a
+      - name: Inspect Docker Image datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+        run: |
+          docker image inspect datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
       - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         id: docker_build
         uses: docker/build-push-action@v5
