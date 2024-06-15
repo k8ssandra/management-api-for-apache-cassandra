@@ -347,8 +347,7 @@ jobs:
       matrix:
         dse-version: ['6.8', '6.9']
         base-platform: ['jdk8', 'jdk11', 'ubi8']
-        # itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
-        itTest : ['DockerImageIT']
+        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         exclude:
           - dse-version: '6.9'
             base-platform: 'jdk8'
