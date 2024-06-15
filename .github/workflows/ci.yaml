@@ -2,6 +2,8 @@ name: Java CI
 
 on:
   push:
+    tags-ignore:
+      - 'v*.*.*'
   pull_request:
     types: [opened, reopened]
 
@@ -61,6 +63,7 @@ jobs:
 #        with:
 #          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
 #          path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+#          retention-days: 7
 
   build-dse-ubuntu-docker-images:
     runs-on: ubuntu-latest
@@ -124,6 +127,7 @@ jobs:
         with:
           name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
           path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+          retention-days: 7
 
   build-dse-ubi-docker-images:
     needs: build-dse-ubuntu-docker-images
@@ -215,6 +219,7 @@ jobs:
         with:
           name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
           path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+          retention-days: 7
 
 #  test-oss:
 #    needs: build-oss-docker-images
@@ -294,6 +299,8 @@ jobs:
         exclude:
           - dse-version: '6.9'
             base-platform: 'jdk8'
+          - dse-version: '6.8'
+            base-platform: 'jdk11'
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 11
@@ -353,66 +360,6 @@ jobs:
         run: |
           mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}testsUBI
-
-#  build-dse-69:
-#    if: github.repository_owner == 'k8ssandra'
-#    strategy:
-#      fail-fast: false
-#      max-parallel: 8
-#      matrix:
-#        platform-version: ['jdk11', 'ubi']
-#        #platform-version: ['jdk11']
-#        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
-#        include:
-#          - platform-version: 'jdk11'
-#            runDSE69tests: true
-#            runDSE69testsUBI: false
-#          - platform-version: 'ubi'
-#            runDSE69tests: false
-#            runDSE69testsUBI: true
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Set up JDK 11
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: 11
-#          distribution: 'zulu'
-#      - name: Cache Maven packages
-#        uses: actions/cache@v4
-#        with:
-#          path: ~/.m2
-#          key: ${{ runner.os }}-m2-69-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: ${{ runner.os }}-m2
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      - name: Setup Buildx
-#        id: buildx
-#        uses: docker/setup-buildx-action@v3
-#        with:
-#          version: latest
-#      - name: Build with Maven and run tests
-#        run: |
-#          cat <<EOF > ~/.m2/settings.xml
-#          <settings>
-#            <servers>
-#              <server>
-#                <id>artifactory-snapshots</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#              <server>
-#                <id>artifactory-releases</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#            </servers>
-#          </settings>
-#          EOF
-#          cp ~/.m2/settings.xml settings.xml
-#          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
-#          -DrunDSE69tests=${{ matrix.runDSE69tests }} \
-#          -DrunDSE69testsUBI=${{ matrix.runDSE69testsUBI }}
 
 #  build-hcd:
 #    if: github.repository_owner == 'k8ssandra'
