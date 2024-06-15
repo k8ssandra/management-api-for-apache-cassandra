@@ -43,6 +43,11 @@ jobs:
                 <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
                 <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
               </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
             </servers>
           </settings>
           EOF
