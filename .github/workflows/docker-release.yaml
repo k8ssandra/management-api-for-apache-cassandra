@@ -62,7 +62,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ matrix.latest && matrix.image-base != 'jdk8' }}
@@ -74,7 +74,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest && matrix.image-base == 'jdk8' }}
@@ -87,7 +87,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest && matrix.image-base != 'jdk8' }}
@@ -98,7 +98,7 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
 
@@ -157,7 +157,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
@@ -168,7 +168,7 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse68.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
 
@@ -205,8 +205,8 @@ jobs:
             --tag k8ssandra/cass-management-api:3.11 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-oss \
-            --target oss311 \
+            --file cassandra/Dockerfile-3.11 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} to Registry
@@ -216,8 +216,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-oss \
-            --target oss311 \
+            --file cassandra/Dockerfile-3.11 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -228,8 +228,8 @@ jobs:
             --tag k8ssandra/cass-management-api:3.11-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-oss.ubi8 \
-            --target oss311 \
+            --file cassandra/Dockerfile-3.11.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -239,8 +239,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-oss.ubi8 \
-            --target oss311 \
+            --file cassandra/Dockerfile-3.11.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
   build-oss-4-0x:
@@ -276,8 +276,8 @@ jobs:
             --tag k8ssandra/cass-management-api:4.0 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-4_0 \
-            --target oss40 \
+            --file cassandra/Dockerfile-4.0 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} to Registry
@@ -287,8 +287,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-4_0 \
-            --target oss40 \
+            --file cassandra/Dockerfile-4.0 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -299,8 +299,8 @@ jobs:
             --tag k8ssandra/cass-management-api:4.0-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-4_0.ubi8 \
-            --target oss40 \
+            --file cassandra/Dockerfile-4.0.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -310,8 +310,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-4_0.ubi8 \
-            --target oss40 \
+            --file cassandra/Dockerfile-4.0.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
   build-oss-4-1x:
@@ -347,8 +347,8 @@ jobs:
             --tag k8ssandra/cass-management-api:4.1 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-4_1 \
-            --target oss41 \
+            --file cassandra/Dockerfile-4.1 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} to Registry
@@ -358,8 +358,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-$RELEASE_VERSION \
-            --file Dockerfile-4_1 \
-            --target oss41 \
+            --file cassandra/Dockerfile-4.1 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -370,8 +370,8 @@ jobs:
             --tag k8ssandra/cass-management-api:4.1-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-4_1.ubi8 \
-            --target oss41 \
+            --file cassandra/Dockerfile-4.1.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -381,8 +381,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-4_1.ubi8 \
-            --target oss41 \
+            --file cassandra/Dockerfile-4.1.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
   build-oss-5-0x:
@@ -418,8 +418,8 @@ jobs:
             --tag k8ssandra/cass-management-api:5.0-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-5_0.ubi8 \
-            --target oss50 \
+            --file cassandra/Dockerfile-5.0.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
@@ -429,8 +429,8 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
-            --file Dockerfile-5_0.ubi8 \
-            --target oss50 \
+            --file cassandra/Dockerfile-5.0.ubi8 \
+            --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
   build-dse-69-ubuntu:
@@ -488,7 +488,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
@@ -499,7 +499,7 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
 
@@ -558,7 +558,7 @@ jobs:
             --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
@@ -569,7 +569,7 @@ jobs:
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --file dse/Dockerfile-dse69.${{ matrix.image-base }} \
+            --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
 

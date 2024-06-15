@@ -2,6 +2,8 @@ name: Java CI
 
 on:
   push:
+    tags-ignore:
+      - 'v*.*.*'
   pull_request:
     types: [opened, reopened]
 
@@ -143,10 +145,8 @@ jobs:
         include:
           - dse-version: '6.8'
             jdk: 'jdk8'
-            latest-patch: '49-erik'
           - dse-version: '6.9'
             jdk: 'jdk11'
-            latest-patch: '0-erik'
     steps:
       - name: Check out source code
         uses: actions/checkout@v4
@@ -194,8 +194,8 @@ jobs:
         run: |
           docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.jdk }}.tar
           # tag with the local registry prefix
-          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
-          docker push localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }} localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }}
+          docker push localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }}
           docker image ls -a
       - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         id: docker_build
@@ -204,13 +204,13 @@ jobs:
           file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
           context: .
           build-contexts: |
-            builder=docker-image://localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+            builder=docker-image://localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }}
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
           # override the base pull image to be the local one we built and tagged above
-          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}.${{ matrix.latest-patch }}-${{ matrix.jdk }}
+          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.jdk }}-${{ github.sha }}
           outputs: type=docker,dest=/tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
       - name: Upload Docker Image for DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         uses: actions/upload-artifact@v4
@@ -281,64 +281,79 @@ jobs:
 #          -Drun${{ matrix.cassandra-version }}testsUBI \
 #          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
-#  test-dse:
-#    if: github.repository_owner == 'k8ssandra'
-#    strategy:
-#      fail-fast: false
-#      max-parallel: 8
-#      matrix:
-#        platform-version: ['jdk8', 'ubi']
-#        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
-#        include:
-#          - platform-version: 'jdk8'
-#            runDSE68tests: true
-#            runDSE68testsUBI: false
-#          - platform-version: 'ubi'
-#            runDSE68tests: false
-#            runDSE68testsUBI: true
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Set up JDK 11
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: 11
-#          distribution: 'zulu'
-#      - name: Cache Maven packages
-#        uses: actions/cache@v4
-#        with:
-#          path: ~/.m2
-#          key: ${{ runner.os }}-m2-68-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: ${{ runner.os }}-m2
-#      - name: Set up QEMU
-#        uses: docker/setup-qemu-action@v3
-#      - name: Setup Buildx
-#        id: buildx
-#        uses: docker/setup-buildx-action@v3
-#        with:
-#          version: latest
-#      - name: Build with Maven and run tests
-#        run: |
-#          cat <<EOF > ~/.m2/settings.xml
-#          <settings>
-#            <servers>
-#              <server>
-#                <id>artifactory-snapshots</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#              <server>
-#                <id>artifactory-releases</id>
-#                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-#                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-#              </server>
-#            </servers>
-#          </settings>
-#          EOF
-#          cp ~/.m2/settings.xml settings.xml
-#          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
-#          -DrunDSE68tests=${{ matrix.runDSE68tests }} \
-#          -DrunDSE68testsUBI=${{ matrix.runDSE68testsUBI }}
+  test-dse:
+    # if: github.repository_owner == 'k8ssandra'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        dse-version: ['6.8', '6.9']
+        base-platform: ['jdk8', 'jdk11', 'ubi8']
+        # itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        itTest : ['DockerImageIT']
+        exclude:
+          - dse-version: '6.9'
+            base-platform: 'jdk8'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-68-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          path: /tmp
+      - name: Load Docker ${{ matrix.dse-version }}-${{ matrix.base-platform }} image
+        run: |
+          docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+          docker tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}-test:latest
+          docker image ls -a
+      - name: Setup Maven settings.xml
+        run: |
+          cat <<EOF > ~/.m2/settings.xml
+          <settings>
+            <servers>
+              <server>
+                <id>artifactory-snapshots</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+              <server>
+                <id>artifactory-releases</id>
+                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
+                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          cp ~/.m2/settings.xml settings.xml
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform != 'ubi8' }}
+        run: |
+          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          -DrunDSE${{ matrix.dse-version }}tests
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform == 'ubi8' }}
+        run: |
+          mvn -B -q install --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          -DrunDSE${{ matrix.dse-version }}testsUBI
 
 #  build-dse-69:
 #    if: github.repository_owner == 'k8ssandra'

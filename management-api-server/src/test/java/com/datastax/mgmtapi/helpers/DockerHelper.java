@@ -460,7 +460,7 @@ public class DockerHelper {
           break;
         case "dse-68":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.jdk8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.jdk8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -471,7 +471,7 @@ public class DockerHelper {
           break;
         case "dse-68_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.ubi8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -482,7 +482,7 @@ public class DockerHelper {
           break;
         case "dse-69":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.jdk11").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.jdk11").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -494,7 +494,7 @@ public class DockerHelper {
           break;
         case "dse-69_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.ubi8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
