@@ -137,7 +137,7 @@ jobs:
         include:
           - dse-version: '6.8'
             jdk: 'jdk8'
-            latest-patch: '49'
+            latest-patch: '49-erik'
           - dse-version: '6.9'
             jdk: 'jdk11'
             latest-patch: '0-erik'
