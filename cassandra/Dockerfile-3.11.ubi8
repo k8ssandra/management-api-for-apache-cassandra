@@ -70,7 +70,7 @@ COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C install -DskipOpenApi && rm -rf target
+RUN cd /tmp && mvn -q -ff -T 1C install -Dskip.surefire.tests -DskipTests -DskipOpenApi && rm -rf target
 
 COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
 COPY management-api-agent-common /tmp/management-api-agent-common
@@ -82,7 +82,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -DskipTests -DskipOpenApi \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \
