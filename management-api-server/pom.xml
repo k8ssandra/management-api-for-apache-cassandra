@@ -218,6 +218,7 @@
           <forkCount>1</forkCount>
           <threadCount>1</threadCount>
           <reuseForks>true</reuseForks>
+          <skipTests>${skip.surefire.tests}</skipTests>
         </configuration>
       </plugin>
       <plugin>

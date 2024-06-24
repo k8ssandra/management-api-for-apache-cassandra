@@ -70,7 +70,7 @@ COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C install -DskipOpenApi && rm -rf target
+RUN cd /tmp && mvn -q -ff -T 1C install -Dskip.surefire.tests -DskipTests -DskipOpenApi && rm -rf target
 
 COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
 COPY management-api-agent-common /tmp/management-api-agent-common
@@ -82,7 +82,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -DskipTests -DskipOpenApi \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \
@@ -97,7 +97,7 @@ RUN mkdir -m 775 ${MAAC_PATH} \
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as oss311
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as cassandra
 ARG TARGETARCH
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
@@ -153,7 +153,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
 # backwards compat with upstream ENTRYPOINT
-COPY scripts/docker-entrypoint.sh /usr/local/bin/
+COPY cassandra/scripts/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd

@@ -409,38 +409,45 @@ public class DockerHelper {
       DockerBuildConfig config = new DockerBuildConfig();
       switch (version) {
         case "3_11":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss").toFile();
-          config.target = "oss311";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "3_11_ubi":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-oss.ubi8").toFile();
-          config.target = "oss311";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11.ubi8").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "4_0":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0").toFile();
-          config.target = "oss40";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.0").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "4_0_ubi":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_0.ubi8").toFile();
-          config.target = "oss40";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.0.ubi8").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "4_1":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1").toFile();
-          config.target = "oss41";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.1").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "4_1_ubi":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-4_1.ubi8").toFile();
-          config.target = "oss41";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.1.ubi8").toFile();
+          config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "5_0_ubi":
-          config.dockerFile = Paths.get(config.baseDir.getPath(), "Dockerfile-5_0.ubi8").toFile();
-          config.target = "oss50";
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-5.0.ubi8").toFile();
+          config.target = "cassandra";
           config.envList =
               Lists.newArrayList(
                   "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
@@ -453,7 +460,7 @@ public class DockerHelper {
           break;
         case "dse-68":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.jdk8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.jdk8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -464,7 +471,7 @@ public class DockerHelper {
           break;
         case "dse-68_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse68.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.ubi8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -475,7 +482,7 @@ public class DockerHelper {
           break;
         case "dse-69":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.jdk11").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.jdk11").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -487,7 +494,7 @@ public class DockerHelper {
           break;
         case "dse-69_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse69.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.ubi8").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(

@@ -194,11 +194,33 @@ First, you will need to have the [Docker buildx plugin](https://docs.docker.com/
 
 To build an image based on the desired Cassandra version see the examples below:
 
-    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.11` with the version you want below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.11 --tag mgmtapi-3_11 --file Dockerfile-oss --target oss311 --platform linux/amd64 .
+    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11 --file cassandra/Dockerfile-3.11 --target cassandra --platform linux/amd64 .
 
     #Create a docker image with management api and C* 4.0 (version 4.0.0 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.1 --tag mgmtapi-4_0 --file Dockerfile-4_0 --target oss40 --platform linux/amd64 .
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0 --file cassandra/Dockerfile-4.0 --target cassandra --platform linux/amd64 .
+
+    #Create a docker image with management api and C* 4.1 (version 4.1.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1 --file cassandra/Dockerfile-4.1 --target cassandra --platform linux/amd64 .
+
+To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi8` Dockerfile. Examples:
+
+    #Create a UBI8 based image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11_ubi8 --file cassandra/Dockerfile-3.11.ubi8 --target cassandra --platform linux/amd64 .
+
+    #Create a UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8 --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/amd64 .
+
+    #Create a UBI8 based image with management api and C* 4.1 (version 4.1.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1_ubi8 --file cassandra/Dockerfile-4.1.ubi8 --target cassandra --platform linux/amd64 .
+
+You can also build OSS Cassandra images for `linux/arm64` based platforms. Both Ubuntu and UBI8 based images support this. Simply change the `--platform` argument above to `--platform linux/arm64`. Examples:
+
+    #Create an ARM64 docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11 --file cassandra/Dockerfile-3.11 --target cassandra --platform linux/arm64 .
+
+    #Create an ARM64 UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8 --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/arm64 .
 
 To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.8/README.md).
 
@@ -206,21 +228,21 @@ To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.
 
     mvn -DskipTests package
     mvn test
-    mvn integration-test -Drun311tests=true -Drun40tests=true
+    mvn integration-test -Drun3.11tests=true -Drun4.0tests=true
 
 **NOTE 1:** Running ````integration-test````s will also run unit tests.
 
-**NOTE 2:** Running ````integration-test````s requires at least one of ````-Drun311tests````, ````-Drun40tests```` or ````-DrunDSEtests```` to be set to ````true```` (you can set any combination of them to ````true````).
+**NOTE 2:** Running ````integration-test````s requires at least one of ````-Drun3.11tests````, ````-Drun3.11testsUBI````, ````-Drun4.0tests````, ````-Drun4.0testsUBI````, ````-Drun4.1tests````, ````-Drun4.1testsUBI````, ````-Drun5.0testsUBI````, ````-DrunDSE6.8tests````, ````-DrunDSE6.8testsUBI````, ````-DrunDSE6.9tests````, or ````-DrunDSE6.9testsUBI```` to be set to ````true```` (you can set any combination of them to ````true````).
 
 **NOTE 3:** In order to run DSE integration tests, you must also enable the ````dse```` profile:
 
-    mvn integration-test -P dse -DrunDSEtests=true
+    mvn integration-test -P dse -DrunDSE6.8tests=true
 
 ### Cassandra trunk
 
 For building an image based on the latest from Cassandra trunk, see this [README](management-api-agent-5.0.x/README.md).
 
-### DSE 6.8.x
+### DSE 6.8.x/6.9.x
 
 For building an image based on DSE 6.8, see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md).
 
@@ -263,7 +285,7 @@ For building an image based on DSE 6.9, see the [DSE 6.9 README](management-api-
 
   The Management API is configured from the CLI. To start the service with a C* version built above, run:
 
-     > docker run -p 8080:8080 -it --rm mgmtapi-4_0
+     > docker run -e USE_MGMT_API=true -p 8080:8080 -it --rm mgmtapi-4_0
 
      > curl http://localhost:8080/api/v0/probes/liveness
      OK
@@ -277,7 +299,7 @@ For building an image based on DSE 6.9, see the [DSE 6.9 README](management-api-
 By default, all images will listen on port 8080 for Management API connections. This can be overridden by specifying
 the environment variable `MGMT_API_LISTEN_TCP_PORT` and setting it to your desired port. For example:
 
-    > docker run -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:3.11.15
+    > docker run -e USE_MGMT_API=true -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:3.11.15
 
 The above would run a Cassandra 3.11.15 image with Management API listening on port 9090 (instead of 8080).
 
