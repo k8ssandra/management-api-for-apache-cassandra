@@ -111,8 +111,10 @@ public class CassandraMetricDefinition
 
   @Override
   public int compareTo(CassandraMetricDefinition o) {
-    return metricName.compareTo(o.metricName)
-        + (labelNames.hashCode() - o.labelNames.hashCode())
-        + (labelValues.hashCode() - o.labelValues.hashCode());
+    int hashCode = 1;
+    hashCode = 31 * hashCode + (metricName == null ? 0 : metricName.hashCode());
+    hashCode = 31 * hashCode + (labelNames == null ? 0 : labelNames.hashCode());
+    hashCode = 31 * hashCode + (labelValues == null ? 0 : labelValues.hashCode());
+    return hashCode;
   }
 }
