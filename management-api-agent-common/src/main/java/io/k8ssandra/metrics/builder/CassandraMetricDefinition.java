@@ -7,14 +7,13 @@ package io.k8ssandra.metrics.builder;
 
 import io.prometheus.client.Collector;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import org.slf4j.LoggerFactory;
 
 public class CassandraMetricDefinition
-    implements Consumer<List<Collector.MetricFamilySamples.Sample>> {
-  private static final org.slf4j.Logger logger =
-      LoggerFactory.getLogger(CassandraMetricDefinition.class);
+    implements Consumer<List<Collector.MetricFamilySamples.Sample>>,
+        Comparable<CassandraMetricDefinition> {
 
   private final List<String> labelNames;
   private final List<String> labelValues;
@@ -73,5 +72,47 @@ public class CassandraMetricDefinition
 
   public void setMetricName(String metricName) {
     this.metricName = metricName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    CassandraMetricDefinition that = (CassandraMetricDefinition) o;
+    return keep == that.keep
+        && Objects.equals(labelNames, that.labelNames)
+        && Objects.equals(labelValues, that.labelValues)
+        && Objects.equals(metricName, that.metricName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(labelNames, labelValues, metricName, keep);
+  }
+
+  @Override
+  public String toString() {
+    return "CassandraMetricDefinition{"
+        + "labelNames="
+        + labelNames
+        + ", labelValues="
+        + labelValues
+        + ", metricName='"
+        + metricName
+        + '\''
+        + ", valueGetter="
+        + valueGetter
+        + ", keep="
+        + keep
+        + ", filler="
+        + filler
+        + '}';
+  }
+
+  @Override
+  public int compareTo(CassandraMetricDefinition o) {
+    return metricName.compareTo(o.metricName)
+        + (labelNames.hashCode() - o.labelNames.hashCode())
+        + (labelValues.hashCode() - o.labelValues.hashCode());
   }
 }
