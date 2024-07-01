@@ -87,7 +87,7 @@ public class CassandraMetricDefinition
 
   @Override
   public int hashCode() {
-    return Objects.hash(labelNames, labelValues, metricName, keep);
+    return Objects.hash(labelNames, labelValues, metricName);
   }
 
   @Override
@@ -111,10 +111,31 @@ public class CassandraMetricDefinition
 
   @Override
   public int compareTo(CassandraMetricDefinition o) {
-    int hashCode = 1;
-    hashCode = 31 * hashCode + (metricName == null ? 0 : metricName.hashCode());
-    hashCode = 31 * hashCode + (labelNames == null ? 0 : labelNames.hashCode());
-    hashCode = 31 * hashCode + (labelValues == null ? 0 : labelValues.hashCode());
-    return hashCode;
+    int compareValue = metricName.compareTo(o.metricName);
+    if (compareValue != 0) {
+      return compareValue;
+    }
+
+    if (labelNames.size() > o.labelNames.size()) {
+      return 1;
+    } else if (labelNames.size() < o.labelNames.size()) {
+      return -1;
+    }
+
+    for (int i = 0; i < labelNames.size(); i++) {
+      compareValue = labelNames.get(i).compareTo(o.labelNames.get(i));
+      if (compareValue != 0) {
+        return compareValue;
+      }
+    }
+
+    for (int i = 0; i < labelValues.size(); i++) {
+      compareValue = labelValues.get(i).compareTo(o.labelValues.get(i));
+      if (compareValue != 0) {
+        return compareValue;
+      }
+    }
+
+    return 0;
   }
 }
