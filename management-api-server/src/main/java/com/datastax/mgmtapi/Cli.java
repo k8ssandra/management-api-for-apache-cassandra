@@ -540,6 +540,11 @@ public class Cli implements Runnable {
               if (reloadNeeded) {
                 logger.info("Detected change in the SSL/TLS certificates, reloading.");
                 createSSLContext();
+                for (NettyJaxrsServer server : servers) {
+                  if (server instanceof NettyJaxrsTLSServer) {
+                    ((NettyJaxrsTLSServer) server).setSslContext(this.sslContext);
+                  }
+                }
               }
             } catch (InterruptedException e) {
               // Do something.. just log?
