@@ -7,15 +7,16 @@ package io.k8ssandra.metrics.builder;
 
 import io.prometheus.client.Collector;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class RefreshableMetricFamilySamples extends Collector.MetricFamilySamples {
-  private final List<CassandraMetricDefinition> definitions;
+  private final Set<CassandraMetricDefinition> definitions;
 
   public RefreshableMetricFamilySamples(
       String name, Collector.Type type, String help, List<Sample> samples) {
     super(name, type, help, samples);
-    definitions = new CopyOnWriteArrayList<>();
+    definitions = new ConcurrentSkipListSet<>();
   }
 
   public void refreshSamples() {
@@ -30,7 +31,7 @@ public class RefreshableMetricFamilySamples extends Collector.MetricFamilySample
     definitions.add(definition);
   }
 
-  public List<CassandraMetricDefinition> getDefinitions() {
+  public Set<CassandraMetricDefinition> getDefinitions() {
     return definitions;
   }
 }
