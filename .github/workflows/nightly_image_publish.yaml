@@ -1,9 +1,9 @@
 name: Nightly Image Publish
 
 on:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '4 20 * * *'
+#  schedule:
+#    # * is a special character in YAML so you have to quote this string
+#    - cron:  '4 20 * * *'
   workflow_dispatch:
     inputs:
       sha:
