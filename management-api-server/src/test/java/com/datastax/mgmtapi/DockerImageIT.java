@@ -92,4 +92,22 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
       fail("\"cqlsh\" not installed or does not run correctly\n" + t.getLocalizedMessage());
     }
   }
+
+  @Test
+  public void testCdcAgentJarfilelinking() {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    try {
+      // test that the CDC agent file is a symlink (does not dereference the file it links to)
+      docker.runCommand("test", "-L", "/opt/cdc_agent/cdc-agent.jar");
+    } catch (Throwable t) {
+      fail("CDC agent jarfile at /opt/cdc_agent/cdc-agent.jar is not a symlink");
+    }
+    try {
+      // test that the jarfile linked actually exists
+      docker.runCommand("test", "-e", "/opt/cdc_agent/cdc-agent.jar");
+    } catch (Throwable t) {
+      fail(
+          "CDC agent jarfile at /opt/cdc_agent/cdc-agent.jar links to a file that does not exist!");
+    }
+  }
 }
