@@ -130,7 +130,9 @@ ARG CDC_AGENT_EDITION=agent-dse4
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
-  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/cdc-agent.jar && \
+  mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/ && \
+  cd ${CDC_AGENT_PATH}/ && \
+  ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse
