@@ -117,6 +117,27 @@ relabels:
   # SSTable Index metrics
   # BufferPool metrics
   # Client metrics
+  # Internode metrics
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Connection\\.(\\w+)\\.(.+)$"
+    replacement: org_apache_cassandra_metrics_connection_$1
+    sourceLabels:
+      - __origname__
+    targetLabel: __name__
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.Connection\\.(\\w+)\\.(.+)$"
+    replacement: $2
+    sourceLabels:
+      - __origname__
+    targetLabel: peer_ip
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.InboundConnection\\.(\\w+)\\.(.+)$"
+    replacement: org_apache_cassandra_metrics_inbound_connection_$1
+    sourceLabels:
+      - __origname__
+    targetLabel: __name__
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.InboundConnection\\.(\\w+)\\.(.+)$"
+    replacement: $2
+    sourceLabels:
+      - __origname__
+    targetLabel: peer_ip
   # Batch metrics
   # JVM metrics
   - regex: "jvm\\.buffers\\.(\\w+)\\.(\\w+)"
