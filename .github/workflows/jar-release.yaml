@@ -40,7 +40,7 @@ jobs:
            </servers>
           </settings>
           EOF
-          mvn -q -ff package -DskipTests -P dse,hcd
+          mvn -q -ff package -Dskip.surefire.tests -DskipTests -P dse,hcd
       - name: zip-up
         run: |
           zip jars.zip \

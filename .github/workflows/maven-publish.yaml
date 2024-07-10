@@ -92,6 +92,7 @@ jobs:
           REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B deploy \
           -P dse,hcd \
+          -Dskip.surefire.tests \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
@@ -101,6 +102,7 @@ jobs:
 #          REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
 #          mvn -B deploy \
 #          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+#          -Dskip.surefire.tests \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
@@ -110,6 +112,7 @@ jobs:
 #          REPO="artifactory-releases::default::https://repo.datastax.com/artifactory/datastax-public-releases-local"
 #          mvn -B deploy \
 #          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+#          -Dskip.surefire.tests \
 #          -DskipTests \
 #          -DaltDeploymentRepository="${REPO}" \
 #          -DaltSnapshotDeploymentRepository="${REPO}"
@@ -119,6 +122,7 @@ jobs:
           REPO="cloudsmith::default::https://maven.cloudsmith.io/thelastpickle/reaper-mvn/"
           mvn -B deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+          -Dskip.surefire.tests \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
