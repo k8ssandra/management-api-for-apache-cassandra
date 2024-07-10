@@ -72,8 +72,8 @@ public class ConfigReaderTest {
 
     System.setProperty(ConfigReader.CONFIG_PATH_PROPERTY, resource.getFile());
     Configuration configuration = ConfigReader.readConfig();
-    assertEquals(30, configuration.getRelabels().size());
-    assertEquals("(.*);(b.*)", configuration.getRelabels().get(28).getRegexp().toString());
-    assertEquals("^(a|b|c),.*", configuration.getRelabels().get(29).getRegexp().toString());
+    assertEquals(34, configuration.getRelabels().size());
+    assertEquals("(.*);(b.*)", configuration.getRelabels().get(32).getRegexp().toString());
+    assertEquals("^(a|b|c),.*", configuration.getRelabels().get(33).getRegexp().toString());
   }
 }
