@@ -6,8 +6,8 @@ ARG BASETAG=11.0.22-jdk-ubuntu-20240427
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
 
 # Set up configuration variables
-ENV DSE_HOME /opt/dse
-ENV DSE_AGENT_HOME /opt/agent
+ENV DSE_HOME=/opt/dse
+ENV DSE_AGENT_HOME=/opt/agent
 
 # Get commandline parameters
 ARG DSE_VERSION=6.9.0
@@ -71,12 +71,12 @@ RUN set -x \
 #  && rm -rf /tmp/mgmtapi-jars \
 #  && echo DONE
 
-FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 AS mgmtapi-setup
 
 WORKDIR /
 
-ENV MAAC_PATH /opt/management-api
-ENV DSE_HOME /opt/dse
+ENV MAAC_PATH=/opt/management-api
+ENV DSE_HOME=/opt/dse
 
 COPY pom.xml /tmp/pom.xml
 COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
@@ -144,10 +144,10 @@ LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
 LABEL release="$DSE_VERSION"
 
-ENV DSE_HOME /opt/dse
-ENV DSE_AGENT_HOME /opt/agent
-ENV CASSANDRA_CONF ${DSE_HOME}/resources/cassandra/conf
-ENV MAAC_PATH /opt/management-api
+ENV DSE_HOME=/opt/dse
+ENV DSE_AGENT_HOME=/opt/agent
+ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
+ENV MAAC_PATH=/opt/management-api
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 
 RUN set -eux; \
@@ -188,8 +188,8 @@ COPY --chown=dse:root --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
-ENV PATH $DSE_HOME/bin:$PATH
-ENV HOME $DSE_HOME
+ENV PATH=$DSE_HOME/bin:$PATH
+ENV HOME=$DSE_HOME
 WORKDIR $HOME
 
 USER dse

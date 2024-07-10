@@ -5,12 +5,12 @@ ARG DSE_BASE_IMAGE=datastax/dse-mgmtapi-6_8:${DSE_VERSION}
 
 FROM ${DSE_BASE_IMAGE} AS dse-server-base
 
-FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 AS mgmtapi-setup
 
 WORKDIR /
 
-ENV MAAC_PATH /opt/management-api
-ENV DSE_HOME /opt/dse
+ENV MAAC_PATH=/opt/management-api
+ENV DSE_HOME=/opt/dse
 
 COPY pom.xml /tmp/pom.xml
 COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
@@ -57,7 +57,7 @@ RUN mkdir -m 775 $MAAC_PATH \
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as dse
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS dse
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
@@ -68,9 +68,9 @@ LABEL release="${DSE_VERSION}"
 LABEL summary="The best distribution of Apache Cassandra™ with integrated Search, Analytics, and Graph capabilities"
 LABEL description="Built on the best distribution of Apache Cassandra™, DataStax Enterprise is the always-on database designed to allow you to effortlessly build and scale your apps, integrating graph, search, analytics, administration, developer tooling, and monitoring into a single unified platform. We power your apps' real-time moments so you can create instant insights and powerful customer experiences."
 
-ENV DSE_HOME /opt/dse
-ENV PATH $DSE_HOME/bin:$PATH
-ENV HOME $DSE_HOME
+ENV DSE_HOME=/opt/dse
+ENV PATH=$DSE_HOME/bin:$PATH
+ENV HOME=$DSE_HOME
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
@@ -96,7 +96,7 @@ COPY --from=dse-server-base /LICENSE /licenses/
 # Replace bin/cassandra with modified that doesn't hang in k8s
 COPY --chown=dse:root dse/files/cassandra ${DSE_HOME}/resources/cassandra/bin/cassandra
 COPY --chown=dse:root dse/files/entrypoint.sh /entrypoint.sh
-copy --chown=dse:root dse/files/overwritable-conf-files /overwritable-conf-files
+COPY --chown=dse:root dse/files/overwritable-conf-files /overwritable-conf-files
 # Update permissions and build directories
 RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh && \
     (for dir in /var/lib/cassandra \
@@ -111,8 +111,8 @@ RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh
     done )
 
 # Use OSS Management API
-ENV CASSANDRA_CONF ${DSE_HOME}/resources/cassandra/conf
-ENV MAAC_PATH /opt/management-api
+ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
+ENV MAAC_PATH=/opt/management-api
 COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 # Add CDC Agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent

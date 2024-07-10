@@ -22,7 +22,7 @@ WORKDIR /
 ###
 # Download and extract Metrics Collector
 ###
-ENV MCAC_PATH /opt/metrics-collector
+ENV MCAC_PATH=/opt/metrics-collector
 RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
@@ -44,11 +44,11 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 #############################################################
 
 # Build and extract Cassandra
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim as cass-builder
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS cass-builder
 ARG CASSANDRA_VERSION
 ARG COMMITSHA="HEAD"
-ENV CASSANDRA_PATH /opt/cassandra
-ENV CASSANDRA_FILES_PATH /opt/cassandra_files
+ENV CASSANDRA_PATH=/opt/cassandra
+ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 WORKDIR /build
 RUN set -x \
     && rm -fr /etc/apt/sources.list.d/* \
@@ -71,12 +71,11 @@ COPY cassandra-trunk/files ${CASSANDRA_FILES_PATH}
 
 #############################################################
 # Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS mgmtapi-setup
 
 WORKDIR /
 
-ENV MAAC_PATH /opt/management-api
-ENV DSE_HOME /opt/dse
+ENV MAAC_PATH=/opt/management-api
 
 # copy over cassandra maven artifacts
 COPY --from=cass-builder /root/.m2 /root/.m2
@@ -103,7 +102,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -DskipTests  -DskipOpenApi -P trunk \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests  -DskipOpenApi -P trunk \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-3* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
@@ -118,7 +117,7 @@ RUN mkdir -m 775 ${MAAC_PATH} \
 
 ############################################################
 
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} as cass-trunk
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cass-trunk
 ARG TARGETARCH
 ARG CASSANDRA_VERSION
 ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
@@ -132,18 +131,18 @@ LABEL description="Apache Cassandra is an open source distributed database manag
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
-ENV CASSANDRA_PATH /opt/cassandra
-ENV MAAC_PATH /opt/management-api
-ENV MCAC_PATH /opt/metrics-collector
+ENV CASSANDRA_PATH=/opt/cassandra
+ENV MAAC_PATH=/opt/management-api
+ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 
-ENV PATH ${CASSANDRA_PATH}/bin:${PATH}
-ENV CASSANDRA_HOME ${CASSANDRA_PATH}
-ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
-ENV CASSANDRA_LOG_DIR /var/log/cassandra
-ENV CASSANDRA_DATA_DIR /var/lib/cassandra
+ENV PATH=${CASSANDRA_PATH}/bin:${PATH}
+ENV CASSANDRA_HOME=${CASSANDRA_PATH}
+ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
+ENV CASSANDRA_LOG_DIR=/var/log/cassandra
+ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 
-ENV CASSANDRA_FILES_PATH /opt/cassandra_files
+ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 
 # Update base layer
 RUN microdnf install --nodocs shadow-utils \
@@ -176,7 +175,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     # change mode of directories
     chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
-ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
 

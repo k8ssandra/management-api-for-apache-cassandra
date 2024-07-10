@@ -9,7 +9,7 @@ ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME /opt/cassandra
+ENV CASSANDRA_HOME=/opt/cassandra
 
 # Update base layer
 RUN microdnf install --nodocs shadow-utils \
@@ -26,7 +26,7 @@ WORKDIR /
 ###
 # Download and extract Metrics Collector
 ###
-ENV MCAC_PATH /opt/metrics-collector
+ENV MCAC_PATH=/opt/metrics-collector
 RUN mkdir -m 775 ${MCAC_PATH} && \
     if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
@@ -55,12 +55,11 @@ RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L 
 
 #############################################################
 # Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim as mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS mgmtapi-setup
 
 WORKDIR /
 
-ENV MAAC_PATH /opt/management-api
-ENV DSE_HOME /opt/dse
+ENV MAAC_PATH=/opt/management-api
 
 COPY pom.xml /tmp/pom.xml
 COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
@@ -114,16 +113,16 @@ LABEL description="Apache Cassandra is an open source distributed database manag
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
-ENV CASSANDRA_PATH /opt/cassandra
-ENV MAAC_PATH /opt/management-api
-ENV MCAC_PATH /opt/metrics-collector
+ENV CASSANDRA_PATH=/opt/cassandra
+ENV MAAC_PATH=/opt/management-api
+ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 
-ENV PATH ${CASSANDRA_PATH}/bin:${PATH}
-ENV CASSANDRA_HOME ${CASSANDRA_PATH}
-ENV CASSANDRA_CONF ${CASSANDRA_PATH}/conf
-ENV CASSANDRA_LOG_DIR /var/log/cassandra
-ENV CASSANDRA_DATA_DIR /var/lib/cassandra
+ENV PATH=${CASSANDRA_PATH}/bin:${PATH}
+ENV CASSANDRA_HOME=${CASSANDRA_PATH}
+ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
+ENV CASSANDRA_LOG_DIR=/var/log/cassandra
+ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 
 # Update base layer
 RUN microdnf install --nodocs shadow-utils \
@@ -162,7 +161,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd
   ln -sf /proc/mounts /etc/mtab
 
-ENV TINI_VERSION v0.19.0
+ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini
 RUN chmod +x /tini
 
