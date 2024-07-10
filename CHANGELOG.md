@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.83 (2024-07-10)
 * [BUGFIX] [#510](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/510) CDC is not working in the OSS images (at least not UBI)
 * [BUGFIX] [#507](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/507) Fix the SSLContext reloading in the initChannel when certificates have changed.
 * [FEATURE] [#511](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/511) Add DSE 6.8.50 and DSE 6.9.0-rc.3 to the build matrix
