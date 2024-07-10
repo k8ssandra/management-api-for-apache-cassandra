@@ -57,7 +57,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 | Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x | DSE 6.9.x     |
 | ---------------- | --------------- | --------------- | --------- | ------------- |
 | 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    | 6.9.0-rc.1    |
-| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    |               |
+| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    | 6.9.0-rc.3    |
 | 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    |               |
 | 3.11.12          | 4.0.4           | 4.1.3           | 6.8.29    |               |
 | 3.11.13          | 4.0.5           | 4.1.4           | 6.8.30    |               |
@@ -79,6 +79,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 |                  |                 |                 | 6.8.47    |               |
 |                  |                 |                 | 6.8.48    |               |
 |                  |                 |                 | 6.8.49    |               |
+|                  |                 |                 | 6.8.50    |               |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra trunk) are available as an Ubuntu based image or a RedHat UBI 8 based image.
