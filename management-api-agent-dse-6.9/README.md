@@ -27,13 +27,13 @@ mvn package -P dse
 To run the project tests against DSE, you need to enable the `dse` profile and specify the property to run DSE tests as follows:
 
 ```sh
-mvn verify -P dse -DrunDSE69tests
+mvn verify -P dse -DrunDSE6.9tests
 ```
 
 To run the test suite using the UBI based image:
 
 ```sh
-mvn verify -P dse -DrunDSE69testsUBI
+mvn verify -P dse -DrunDSE6.9testsUBI
 ```
 
 ## Docker image builds
@@ -55,7 +55,7 @@ Building DSE images locally requires the [buildx](https://docs.docker.com/build/
 DSE 6.9 images can be built based on Ubuntu or RedHat's UBI8 base images. To build an Ubuntu based image, run the following from the root of the parent project:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse69.jdk11 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.9.jdk11 --target dse --platform linux/amd64 .
 ```
 
 where `my-dse` is whatever tag you want to use for your image.
@@ -63,7 +63,7 @@ where `my-dse` is whatever tag you want to use for your image.
 Likewise, to build a UBI8 based image, run:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse69.ubi8 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.9.ubi8 --target dse --platform linux/amd64 .
 ```
 
 ### Building a specific version of DSE
@@ -72,7 +72,7 @@ By default, the DSE version for the image build will be the latest released vers
 specific DSE version, specify the `DSE_VERSION` build-arg:
 
 ```sh
-docker buildx build --load --build-arg DSE_VERSION=6.9.0 --progress plain --tag my-dse --file dse/Dockerfile-dse69.jdk11 --target dse --platform linux/amd64 .
+docker buildx build --load --build-arg DSE_VERSION=6.9.0 --progress plain --tag my-dse --file dse/Dockerfile-dse6.9.jdk11 --target dse --platform linux/amd64 .
 ```
 
 ## Running a locally built image

@@ -27,13 +27,13 @@ mvn package -P dse
 To run the project tests against DSE, you need to enable the `dse` profile and specify the property to run DSE tests as follows:
 
 ```sh
-mvn verify -P dse -DrunDSE68tests
+mvn verify -P dse -DrunDSE6.8tests
 ```
 
 To run the test suite using the UBI based image:
 
 ```sh
-mvn verify -P dse -DrunDSE68testsUBI
+mvn verify -P dse -DrunDSE6.8testsUBI
 ```
 
 ## Docker image builds
@@ -55,7 +55,7 @@ Building DSE images locally requires the [buildx](https://docs.docker.com/build/
 DSE images can be built with JDK8 or JDK11 using an Ubuntu base image. To build a JDK8 based image, run the following from the root of the parent project:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse68.jdk8 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.jdk8 --target dse --platform linux/amd64 .
 ```
 
 where `my-dse` is whatever tag you want to use for your image.
@@ -63,13 +63,13 @@ where `my-dse` is whatever tag you want to use for your image.
 Likewise, to build a JDK11 Ubuntu based image, run:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse68.jdk11 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.jdk11 --target dse --platform linux/amd64 .
 ```
 
 You can also build a RedHat UBI8 based image with JDK8 with the following:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse68.ubi8 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.ubi8 --target dse --platform linux/amd64 .
 ```
 
 
@@ -79,7 +79,7 @@ By default, the DSE version for the image build will be the latest released vers
 specific DSE version, specify the `DSE_VERSION` build-arg:
 
 ```sh
-docker buildx build --load --build-arg DSE_VERSION=6.8.26 --progress plain --tag my-dse --file dse/Dockerfile-dse68.jdk11 --target dse --platform linux/amd64 .
+docker buildx build --load --build-arg DSE_VERSION=6.8.26 --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.jdk11 --target dse --platform linux/amd64 .
 ```
 
 ## Running a locally built image

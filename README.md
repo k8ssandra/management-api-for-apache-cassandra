@@ -56,8 +56,8 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 
 | Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x | DSE 6.9.x     |
 | ---------------- | --------------- | --------------- | --------- | ------------- |
-| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    | 6.9.0-rc.1    |
-| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    | 6.9.0-rc.3    |
+| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    | 6.9.0         |
+| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    |               |
 | 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    |               |
 | 3.11.12          | 4.0.4           | 4.1.3           | 6.8.29    |               |
 | 3.11.13          | 4.0.5           | 4.1.4           | 6.8.30    |               |
@@ -89,7 +89,7 @@ Cassandra trunk images are only RedHat UBI8 based.
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
 - All DSE 6.9.x Ubuntu based images come with only JDK 11
-- All DSE 6.9.x RedHat UBI 9 based images come with only JDK 11
+- All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
 
 ### Docker coordinates for Cassandra OSS images
 
@@ -164,6 +164,8 @@ For all RedHat UBI 8 based DSE 6.9.x images, the Docker coordinates are as follo
 Example for DSE 6.9.0
 
       datastax/dse-mgmtapi-6_8:6.9.0-ubi8
+
+** NOTE: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
 
 ### Docker coordinates for Cassandra Trunk images
 
