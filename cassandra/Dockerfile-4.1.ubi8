@@ -117,6 +117,7 @@ ENV CASSANDRA_PATH=/opt/cassandra
 ENV MAAC_PATH=/opt/management-api
 ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 ENV PATH=${CASSANDRA_PATH}/bin:${PATH}
 ENV CASSANDRA_HOME=${CASSANDRA_PATH}
@@ -153,6 +154,9 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
     chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
+
+RUN echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+  echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
 
 # backwards compat with upstream ENTRYPOINT
 COPY cassandra/scripts/docker-entrypoint.sh /usr/local/bin/

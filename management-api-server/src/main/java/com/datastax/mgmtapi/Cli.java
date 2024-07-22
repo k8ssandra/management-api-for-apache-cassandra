@@ -120,7 +120,7 @@ public class Cli implements Runnable {
       description = "Create a PID file at this file path.")
   private String pidfile = null;
 
-  @Path(executable = true)
+  @Path(executable = true, writable = false)
   @Option(
       name = {"-C", "--cassandra-home", "--db-home"},
       arity = 1,

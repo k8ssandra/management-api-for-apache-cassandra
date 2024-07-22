@@ -12,6 +12,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 * [FEATURE] [#517](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/517) Add DSE 6.9.0 to the build matrix
 * [ENHANCEMENT] [#516](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/516) Address warnings in Dockerfiles
+* [ENHANCEMENT] [#521](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/521) Add management-api to Cassandra conf in the Dockerfile, not entrypoint for DSE 6.9, Cassandra 4.1 and Cassandra 5.0. This allows to run the container with readOnlyRootFilesystem.
 
 ## v0.1.83 (2024-07-10)
 * [BUGFIX] [#510](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/510) CDC is not working in the OSS images (at least not UBI)
