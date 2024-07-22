@@ -79,6 +79,7 @@ ENV MAAC_PATH=/opt/management-api
 ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV USER_HOME_PATH=/home/cassandra
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 ENV CASSANDRA_HOME=${CASSANDRA_PATH}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
@@ -108,6 +109,9 @@ RUN set -eux; \
   apt-get update; \
   apt-get install -y --no-install-recommends wget iproute2; \
   rm -rf /var/lib/apt/lists/*
+
+RUN echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+  echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
 
 # backwards compat with upstream ENTRYPOINT
 COPY cassandra/scripts/docker-entrypoint.sh /usr/local/bin/

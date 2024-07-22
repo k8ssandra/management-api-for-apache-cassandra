@@ -149,6 +149,7 @@ ENV DSE_AGENT_HOME=/opt/agent
 ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
 ENV MAAC_PATH=/opt/management-api
 ENV CDC_AGENT_PATH=/opt/cdc_agent
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 RUN set -eux; \
     apt-get update; \
@@ -184,6 +185,10 @@ COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 
 # Add CDC Agent
 COPY --chown=dse:root --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
+
+# Add management-api
+RUN echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+  echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
 
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
