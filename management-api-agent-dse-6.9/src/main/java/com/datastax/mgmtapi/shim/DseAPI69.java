@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.shim;
 
+import com.datastax.bdp.transport.common.DseReloadableTrustManager;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import com.datastax.mgmtapi.shims.RpcStatementShim;
 import com.google.common.base.Suppliers;
@@ -333,4 +334,9 @@ public class DseAPI69 implements CassandraAPI {
   public HintsService getHintsService() {
     return HintsService.instance;
   }
+
+  public void reloadTrustManager() throws Exception {
+    DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
+  }
+
 }

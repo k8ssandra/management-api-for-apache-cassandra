@@ -82,4 +82,9 @@ public interface CassandraAPI {
   default List<String> getKeyspaces() {
     return StorageService.instance.getKeyspaces();
   }
+
+  default void reloadTrustManager() throws Exception {
+    throw new Exception("Unimplemented for Cassandra, only available for DSE");
+  };
+
 }

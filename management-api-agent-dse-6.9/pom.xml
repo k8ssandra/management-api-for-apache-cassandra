@@ -45,9 +45,15 @@
     </dependency>
     <dependency>
       <groupId>com.datastax.dse</groupId>
-      <artifactId>dse-commons</artifactId>
+      <artifactId>dse-core</artifactId>
       <version>${dse.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.datastax.dse</groupId>
