@@ -663,39 +663,38 @@ public class NodeOpsResources extends BaseResources {
         });
   }
 
-    @POST
-    @Path("/reload-truststore")
-    @Produces(MediaType.TEXT_PLAIN)
-    @ApiResponse(
-            responseCode = "200",
-            description = "Truststore reloaded successfully",
-            content =
-            @Content(
-                    mediaType = MediaType.TEXT_PLAIN,
-                    schema = @Schema(implementation = String.class),
-                    examples = @ExampleObject(value = "OK")))
-    @Operation(summary = "reload truststore", operationId = "reloadTruststore")
-    public Response reloadTruststore() {
-        return handle(
-                () -> {
-                    final String releaseVersion =
-                            ResponseTools.getSingleRowStringResponse(
-                                    app.dbUnixSocketFile, app.cqlService, CASSANDRA_VERSION_CQL_STRING);
-                    if (!releaseVersion.startsWith("4.0.0.68") && !releaseVersion.startsWith("4.0.0.69")) {
-                        // rebuilding search index is only possible on DSE
-                        return Response.status(Response.Status.BAD_REQUEST)
-                                .entity("Reloading the truststore manually is only possible on DSE")
-                                .build();
-                    }
+  @POST
+  @Path("/reload-truststore")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Truststore reloaded successfully",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
+  @Operation(summary = "reload truststore", operationId = "reloadTruststore")
+  public Response reloadTruststore() {
+    return handle(
+        () -> {
+          final String releaseVersion =
+              ResponseTools.getSingleRowStringResponse(
+                  app.dbUnixSocketFile, app.cqlService, CASSANDRA_VERSION_CQL_STRING);
+          if (!releaseVersion.startsWith("4.0.0.68") && !releaseVersion.startsWith("4.0.0.69")) {
+            // rebuilding search index is only possible on DSE
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Reloading the truststore manually is only possible on DSE")
+                .build();
+          }
 
-                    app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadTruststore()");
+          app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadTruststore()");
 
-                    return Response.ok("OK").build();
-                });
-    }
+          return Response.ok("OK").build();
+        });
+  }
 
-
-    private static final String FQL_QUERY_RESPONSE_EXAMPLE =
+  private static final String FQL_QUERY_RESPONSE_EXAMPLE =
       "{\n"
           + "    \"entity\": false,\n"
           + "    \"variant\": {\n"

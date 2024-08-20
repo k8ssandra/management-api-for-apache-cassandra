@@ -338,5 +338,4 @@ public class DseAPI69 implements CassandraAPI {
   public void reloadTrustManager() throws Exception {
     DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
   }
-
 }

@@ -60,7 +60,6 @@ import org.apache.cassandra.utils.progress.ProgressEventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /** Replace JMX calls with CQL 'CALL' methods via the Rpc framework */
 public class NodeOpsProvider {
   private static final Logger logger = LoggerFactory.getLogger(NodeOpsProvider.class);
@@ -943,9 +942,8 @@ public class NodeOpsProvider {
 
   @Rpc(name = "reloadTruststore")
   public void reloadTruststore() throws Exception {
-   ShimLoader.instance.get().reloadTrustManager();
+    ShimLoader.instance.get().reloadTrustManager();
   }
-
 
   @Rpc(name = "getRangeToEndpointMap")
   public Map<List<String>, List<String>> getRangeToEndpointMap(

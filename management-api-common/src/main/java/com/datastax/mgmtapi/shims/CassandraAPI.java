@@ -86,5 +86,4 @@ public interface CassandraAPI {
   default void reloadTrustManager() throws Exception {
     throw new Exception("Unimplemented for Cassandra, only available for DSE");
   };
-
 }
