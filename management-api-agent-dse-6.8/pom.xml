@@ -49,7 +49,7 @@
       <version>${dse.version}</version>
       <scope>provided</scope>
       <exclusions>
-         <exclusion>
+        <exclusion>
           <groupId>org.eclipse.jetty.aggregate</groupId>
           <artifactId>jetty-all</artifactId>
         </exclusion>
