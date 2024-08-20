@@ -872,6 +872,25 @@
         "summary" : "Move node on the token ring to a new token. This operation returns immediately with a job id."
       }
     },
+    "/api/v0/ops/node/reload-truststore" : {
+      "post" : {
+        "operationId" : "reloadTruststore",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Truststore reloaded successfully"
+          }
+        },
+        "summary" : "reload truststore"
+      }
+    },
     "/api/v0/ops/node/repair" : {
       "post" : {
         "operationId" : "repair",
