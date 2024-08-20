@@ -53,6 +53,18 @@
           <groupId>org.eclipse.jetty.aggregate</groupId>
           <artifactId>jetty-all</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.cryptsoft</groupId>
+          <artifactId>kmip</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.datastax.logging</groupId>
+          <artifactId>cassandra-log4j-appender</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
