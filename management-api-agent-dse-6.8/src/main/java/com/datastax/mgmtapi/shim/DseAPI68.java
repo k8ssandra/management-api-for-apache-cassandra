@@ -21,13 +21,8 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.security.cert.X509Certificate;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -335,7 +330,11 @@ public class DseAPI68 implements CassandraAPI {
     return HintsService.instance;
   }
 
-  public void reloadTrustManager() throws Exception {
+  public void reloadInternodeEncryptionTruststore() throws Exception {
     DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
+  }
+
+  public X509Certificate[] getEncryptionTruststoreIssuers() throws Exception {
+    return DseReloadableTrustManager.serverEncryptionInstance().getAcceptedIssuers();
   }
 }

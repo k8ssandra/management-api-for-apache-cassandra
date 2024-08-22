@@ -21,6 +21,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -335,7 +336,11 @@ public class DseAPI69 implements CassandraAPI {
     return HintsService.instance;
   }
 
-  public void reloadTrustManager() throws Exception {
+  public void reloadInternodeEncryptionTruststore() throws Exception {
     DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
+  }
+
+  public X509Certificate[] getEncryptionTruststoreIssuers() throws Exception {
+    return DseReloadableTrustManager.serverEncryptionInstance().getAcceptedIssuers();
   }
 }

@@ -8,6 +8,7 @@ package com.datastax.mgmtapi.shims;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import java.net.InetAddress;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,7 +84,11 @@ public interface CassandraAPI {
     return StorageService.instance.getKeyspaces();
   }
 
-  default void reloadTrustManager() throws Exception {
+  default void reloadInternodeEncryptionTruststore() throws Exception {
     throw new Exception("Unimplemented for Cassandra, only available for DSE");
   };
+
+  default X509Certificate[] getEncryptionTruststoreIssuers() throws Exception {
+    throw new Exception("Unimplemented for Cassandra, only available for DSE");
+  }
 }

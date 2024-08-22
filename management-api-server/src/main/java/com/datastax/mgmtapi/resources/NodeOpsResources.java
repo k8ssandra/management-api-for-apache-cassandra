@@ -664,7 +664,7 @@ public class NodeOpsResources extends BaseResources {
   }
 
   @POST
-  @Path("/reload-truststore")
+  @Path("/encryption/internode/truststore/reload")
   @Produces(MediaType.TEXT_PLAIN)
   @ApiResponse(
       responseCode = "200",
@@ -688,9 +688,47 @@ public class NodeOpsResources extends BaseResources {
                 .build();
           }
 
-          app.cqlService.executeCql(app.dbUnixSocketFile, "CALL NodeOps.reloadTruststore()");
+          app.cqlService.executeCql(
+              app.dbUnixSocketFile, "CALL NodeOps.reloadInternodeEncryptionTruststore()");
 
           return Response.ok("OK").build();
+        });
+  }
+
+  @GET
+  @Path("/encryption/internode/truststore/issuers")
+  @Produces(MediaType.TEXT_PLAIN)
+  @ApiResponse(
+      responseCode = "200",
+      description = "Got list of truststore issuers",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "OK")))
+  @Operation(summary = "get internode trustsstore", operationId = "getInternodeTrustStoreIssuers")
+  public Response getInternodeTruststoreIssuers() {
+    return handle(
+        () -> {
+          final String releaseVersion =
+              ResponseTools.getSingleRowStringResponse(
+                  app.dbUnixSocketFile, app.cqlService, CASSANDRA_VERSION_CQL_STRING);
+          if (!releaseVersion.startsWith("4.0.0.68") && !releaseVersion.startsWith("4.0.0.69")) {
+            // rebuilding search index is only possible on DSE
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Reloading the truststore manually is only possible on DSE")
+                .build();
+          }
+
+          Row res =
+              app.cqlService
+                  .executeCql(app.dbUnixSocketFile, "CALL NodeOps.getEncryptionTruststoreIssuers()")
+                  .one();
+          Object queryResponse = null;
+          if (res != null) {
+            queryResponse = res.getObject(0);
+          }
+          return Response.ok(Entity.json(queryResponse)).build();
         });
   }
 

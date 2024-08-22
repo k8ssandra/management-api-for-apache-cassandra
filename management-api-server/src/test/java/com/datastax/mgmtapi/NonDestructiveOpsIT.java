@@ -918,4 +918,17 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
               assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
             });
   }
+
+  @Test
+  public void testInternodeTruststoreReload() throws IOException, URISyntaxException {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+    ensureStarted();
+
+    NettyHttpClient client = new NettyHttpClient(BASE_URL);
+
+    URI reloadUri =
+            new URIBuilder(BASE_PATH + "/ops/node/encryption/internode/reload").build();
+    Integer respCode =
+            client.post(reloadUri.toURL(), null);
+    assertThat(respCode).isEqualTo(HttpStatus.SC_ACCEPTED);
 }
