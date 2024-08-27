@@ -146,11 +146,11 @@ public class CassandraMetricsTest {
             Lists.newArrayList(),
             Lists.newArrayList());
     assertEquals(
-        "org_apache_cassandra_metrics_read_coordination_replica_latency", coordinationMetric.getMetricName());
+        "org_apache_cassandra_metrics_read_coordination_replica_latency",
+        coordinationMetric.getMetricName());
     assertEquals(1, coordinationMetric.getLabelNames().size());
     assertEquals(1, coordinationMetric.getLabelValues().size());
     assertEquals("peer_ip", coordinationMetric.getLabelNames().get(0));
     assertEquals("127.0.0.1.7000", coordinationMetric.getLabelValues().get(0));
-
   }
 }
