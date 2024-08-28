@@ -952,15 +952,16 @@ public class NodeOpsProvider {
         Arrays.stream(ShimLoader.instance.get().getEncryptionTruststoreIssuers())
             .collect(Collectors.toList());
     ObjectMapper objectMapper = new ObjectMapper();
-    try {
-      List<String> out =
-          issuers.stream()
-              .map(i -> objectMapper.writeValueAsString(i))
-              .collect(Collectors.toList());
-      return out;
-    } catch (JsonProcessingException e) {
-      throw new Exception("couldn't serialise x509Certificates to json");
-    }
+    return issuers.stream()
+        .map(
+            i -> {
+              try {
+                return objectMapper.writeValueAsString(i);
+              } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+              }
+            })
+        .collect(Collectors.toList());
   }
 
   @Rpc(name = "getRangeToEndpointMap")

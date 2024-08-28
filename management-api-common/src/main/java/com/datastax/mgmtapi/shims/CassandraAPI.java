@@ -85,10 +85,10 @@ public interface CassandraAPI {
   }
 
   default void reloadInternodeEncryptionTruststore() throws Exception {
-    throw new Exception("Unimplemented for Cassandra, only available for DSE");
+    throw new UnsupportedOperationException("Unimplemented for Cassandra, only available for DSE");
   };
 
   default X509Certificate[] getEncryptionTruststoreIssuers() throws Exception {
-    throw new Exception("Unimplemented for Cassandra, only available for DSE");
+    throw new UnsupportedOperationException("Unimplemented for Cassandra, only available for DSE");
   }
 }
