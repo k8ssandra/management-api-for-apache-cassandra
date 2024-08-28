@@ -80,13 +80,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     String requestSuccessful =
-        client
-            .post(URI.create(BASE_PATH + "/ops/seeds/reload").toURL(), null)
-            .thenApply(
-                r -> {
-                  return responseAsString(r);
-                })
-            .join();
+            client
+                    .post(URI.create(BASE_PATH + "/ops/seeds/reload").toURL(), null)
+                    .thenApply(
+                            r -> {
+                              return responseAsString(r);
+                            })
+                    .join();
 
     // Empty because getSeeds removes local node
     assertEquals("[]", requestSuccessful);
@@ -100,49 +100,49 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     Integer code =
-        client
-            .get(URI.create(BASE_PATH + "/probes/cluster?consistency_level=ONE").toURL())
-            .thenApply(
-                r -> {
-                  byte[] versionBytes = new byte[r.content().readableBytes()];
-                  r.content().readBytes(versionBytes);
-                  logger.info(new String(versionBytes));
+            client
+                    .get(URI.create(BASE_PATH + "/probes/cluster?consistency_level=ONE").toURL())
+                    .thenApply(
+                            r -> {
+                              byte[] versionBytes = new byte[r.content().readableBytes()];
+                              r.content().readBytes(versionBytes);
+                              logger.info(new String(versionBytes));
 
-                  return r.status().code();
-                })
-            .join();
+                              return r.status().code();
+                            })
+                    .join();
 
     assertEquals(200, (int) code);
 
     code =
-        client
-            .get(URI.create(BASE_PATH + "/probes/cluster?consistency_level=QUORUM").toURL())
-            .thenApply(
-                r -> {
-                  byte[] versionBytes = new byte[r.content().readableBytes()];
-                  r.content().readBytes(versionBytes);
-                  logger.info(new String(versionBytes));
+            client
+                    .get(URI.create(BASE_PATH + "/probes/cluster?consistency_level=QUORUM").toURL())
+                    .thenApply(
+                            r -> {
+                              byte[] versionBytes = new byte[r.content().readableBytes()];
+                              r.content().readBytes(versionBytes);
+                              logger.info(new String(versionBytes));
 
-                  return r.status().code();
-                })
-            .join();
+                              return r.status().code();
+                            })
+                    .join();
 
     assertEquals(500, (int) code);
 
     code =
-        client
-            .get(
-                URI.create(BASE_PATH + "/probes/cluster?consistency_level=QUORUM&rf_per_dc=1")
-                    .toURL())
-            .thenApply(
-                r -> {
-                  byte[] versionBytes = new byte[r.content().readableBytes()];
-                  r.content().readBytes(versionBytes);
-                  logger.info(new String(versionBytes));
+            client
+                    .get(
+                            URI.create(BASE_PATH + "/probes/cluster?consistency_level=QUORUM&rf_per_dc=1")
+                                    .toURL())
+                    .thenApply(
+                            r -> {
+                              byte[] versionBytes = new byte[r.content().readableBytes()];
+                              r.content().readBytes(versionBytes);
+                              logger.info(new String(versionBytes));
 
-                  return r.status().code();
-                })
-            .join();
+                              return r.status().code();
+                            })
+                    .join();
 
     assertEquals(200, (int) code);
   }
@@ -156,7 +156,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/node/compaction").addParameter("value", "5").build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -168,12 +168,12 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     URI uri =
-        new URIBuilder(BASE_PATH + "/ops/node/logging")
-            .addParameter("target", "cql")
-            .addParameter("rawLevel", "debug")
-            .build();
+            new URIBuilder(BASE_PATH + "/ops/node/logging")
+                    .addParameter("target", "cql")
+                    .addParameter("rawLevel", "debug")
+                    .build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -186,23 +186,23 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     // try IP of container
     URI uri =
-        new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
-            .addParameter("host", docker.getIpAddressOfContainer())
-            .build();
+            new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
+                    .addParameter("host", docker.getIpAddressOfContainer())
+                    .build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
 
     if (!requestSuccessful) {
       // try 127.0.0.1
       uri =
-          new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
-              .addParameter("host", "127.0.0.1")
-              .build();
+              new URIBuilder(BASE_PATH + "/ops/node/hints/truncate")
+                      .addParameter("host", "127.0.0.1")
+                      .build();
       requestSuccessful =
-          client
-              .post(uri.toURL(), null)
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
+              client
+                      .post(uri.toURL(), null)
+                      .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                      .join();
       assertTrue(requestSuccessful);
     }
   }
@@ -216,7 +216,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/node/hints/truncate").build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -234,7 +234,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/node/schema/reset").build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -247,7 +247,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/node/schema/reload").build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -260,13 +260,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/metadata/versions/release").build();
     String response =
-        client
-            .get(uri.toURL())
-            .thenApply(
-                r -> {
-                  return responseAsString(r);
-                })
-            .join();
+            client
+                    .get(uri.toURL())
+                    .thenApply(
+                            r -> {
+                              return responseAsString(r);
+                            })
+                    .join();
     assertNotNull(response);
     assertNotEquals("", response);
   }
@@ -280,19 +280,20 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     URI uri = new URIBuilder(BASE_PATH + "/metadata/endpoints").build();
     String responseJson =
-        client
-            .get(uri.toURL())
-            .thenApply(
-                r -> {
-                  return responseAsString(r);
-                })
-            .join();
+            client
+                    .get(uri.toURL())
+                    .thenApply(
+                            r -> {
+                              return responseAsString(r);
+                            })
+                    .join();
 
     assertNotNull(responseJson);
     assertNotEquals("", responseJson);
 
     Map<String, Object> response =
-        new ObjectMapper().readValue(responseJson, new TypeReference<Map<String, Object>>() {});
+            new ObjectMapper().readValue(responseJson, new TypeReference<Map<String, Object>>() {
+            });
     @SuppressWarnings("unchecked")
     List<Map<String, String>> entity = (List<Map<String, String>>) response.get("entity");
     Map<String, String> endpoint = entity.get(0);
@@ -301,8 +302,8 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertThat(endpoint.get("IS_LOCAL")).isEqualTo("true");
     Iterable<String> tokens = Splitter.on(",").split(endpoint.get("TOKENS"));
     assertThat(tokens)
-        .allSatisfy(
-            token -> assertThatCode(() -> Long.parseLong(token)).doesNotThrowAnyException());
+            .allSatisfy(
+                    token -> assertThatCode(() -> Long.parseLong(token)).doesNotThrowAnyException());
   }
 
   @Test
@@ -313,16 +314,16 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     KeyspaceRequest keyspaceRequest =
-        new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
+            new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
     String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/cleanup").build();
 
     // Get job_id here..
     Pair<Integer, String> postResponse =
-        client
-            .post(uri.toURL(), keyspaceRequestAsJSON)
-            .thenApply(this::responseAsCodeAndBody)
-            .join();
+            client
+                    .post(uri.toURL(), keyspaceRequestAsJSON)
+                    .thenApply(this::responseAsCodeAndBody)
+                    .join();
     assertEquals(HttpStatus.SC_OK, postResponse.getLeft().longValue());
 
     String jobId = postResponse.getRight();
@@ -333,19 +334,19 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     for (int i = 0; i < 10; i++) {
       URI uriJobStatus = new URIBuilder(BASE_PATH + "/ops/executor/job?job_id=" + jobId).build();
       currentStatus =
-          client
-              .get(uriJobStatus.toURL())
-              .thenApply(
-                  re -> {
-                    String jobJson = responseAsString(re);
-                    try {
-                      return new ObjectMapper().readValue(jobJson, Job.class);
-                    } catch (JsonProcessingException e) {
-                      fail();
-                    }
-                    return null;
-                  })
-              .join();
+              client
+                      .get(uriJobStatus.toURL())
+                      .thenApply(
+                              re -> {
+                                String jobJson = responseAsString(re);
+                                try {
+                                  return new ObjectMapper().readValue(jobJson, Job.class);
+                                } catch (JsonProcessingException e) {
+                                  fail();
+                                }
+                                return null;
+                              })
+                      .join();
       if (currentStatus != null) {
         if (currentStatus.getStatus() == Job.JobStatus.COMPLETED) {
           break;
@@ -368,13 +369,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     URI uri =
-        new URIBuilder(BASE_PATH + "/ops/keyspace/refresh")
-            .addParameter("keyspaceName", "system_traces")
-            .addParameter("table", "events")
-            .addParameter("resetLevels", "true")
-            .build();
+            new URIBuilder(BASE_PATH + "/ops/keyspace/refresh")
+                    .addParameter("keyspaceName", "system_traces")
+                    .addParameter("table", "events")
+                    .addParameter("resetLevels", "true")
+                    .build();
     boolean requestSuccessful =
-        client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
+            client.post(uri.toURL(), null).thenApply(r -> r.status().code() == HttpStatus.SC_OK).join();
     assertTrue(requestSuccessful);
   }
 
@@ -386,15 +387,15 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     ScrubRequest scrubRequest =
-        new ScrubRequest(
-            true, true, true, true, 2, "system_traces", Collections.singletonList("events"));
+            new ScrubRequest(
+                    true, true, true, true, 2, "system_traces", Collections.singletonList("events"));
     String requestAsJSON = JSON_MAPPER.writeValueAsString(scrubRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/scrub").build();
     boolean requestSuccessful =
-        client
-            .post(uri.toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(uri.toURL(), requestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -406,15 +407,15 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     CompactRequest compactRequest =
-        new CompactRequest(
-            false, false, null, null, "system_traces", null, Collections.singletonList("events"));
+            new CompactRequest(
+                    false, false, null, null, "system_traces", null, Collections.singletonList("events"));
     String requestAsJSON = JSON_MAPPER.writeValueAsString(compactRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/compact").build();
     boolean requestSuccessful =
-        client
-            .post(uri.toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(uri.toURL(), requestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -426,14 +427,14 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     KeyspaceRequest keyspaceRequest =
-        new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
+            new KeyspaceRequest(1, "system_traces", Collections.singletonList("events"));
     String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/garbagecollect").build();
     boolean requestSuccessful =
-        client
-            .post(uri.toURL(), keyspaceRequestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(uri.toURL(), keyspaceRequestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -448,10 +449,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/flush").build();
     boolean requestSuccessful =
-        client
-            .post(uri.toURL(), keyspaceRequestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(uri.toURL(), keyspaceRequestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -466,10 +467,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String keyspaceRequestAsJSON = JSON_MAPPER.writeValueAsString(keyspaceRequest);
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/sstables/upgrade").build();
     boolean requestSuccessful =
-        client
-            .post(uri.toURL(), keyspaceRequestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(uri.toURL(), keyspaceRequestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -493,10 +494,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     createKeyspace(client, localDc, "someTestKeyspace", 1);
   }
@@ -508,23 +509,23 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     String ks = "alteringKeyspaceTest";
     createKeyspace(client, localDc, ks, 1);
 
     CreateOrAlterKeyspaceRequest request =
-        new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
+            new CreateOrAlterKeyspaceRequest(ks, Arrays.asList(new ReplicationSetting(localDc, 3)));
     String requestAsJSON = JSON_MAPPER.writeValueAsString(request);
 
     boolean requestSuccessful =
-        client
-            .post(new URIBuilder(BASE_PATH + "/ops/keyspace/alter").build().toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(new URIBuilder(BASE_PATH + "/ops/keyspace/alter").build().toURL(), requestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(requestSuccessful);
   }
 
@@ -535,10 +536,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     String ks = "getkeyspacestest";
     createKeyspace(client, localDc, ks, 1);
@@ -556,7 +557,8 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     final ObjectMapper jsonMapper = new ObjectMapper();
     List<String> keyspaces =
-        jsonMapper.readValue(responseFilter, new TypeReference<List<String>>() {});
+            jsonMapper.readValue(responseFilter, new TypeReference<List<String>>() {
+            });
     assertEquals(1, keyspaces.size());
     assertEquals(ks, keyspaces.get(0));
   }
@@ -572,7 +574,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     URI uri = uriBuilder.build();
 
     Pair<Integer, String> response =
-        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+            client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     // The response body should look something like this,
@@ -583,7 +585,8 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // are only testing with a single node we should expect the list to contain a single value.
 
     Map<String, List> actual =
-        new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, List>>() {});
+            new JsonMapper().readValue(response.getRight(), new TypeReference<Map<String, List>>() {
+            });
     assertThat(actual).hasSizeGreaterThanOrEqualTo(1);
 
     List nodes = Lists.emptyList();
@@ -597,7 +600,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
   @Test
   public void testGetSnapshotDetails()
-      throws IOException, URISyntaxException, InterruptedException {
+          throws IOException, URISyntaxException, InterruptedException {
     assumeTrue(IntegrationTestUtils.shouldRun());
     ensureStarted();
 
@@ -608,25 +611,25 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     // create a snapshot
     TakeSnapshotRequest takeSnapshotRequest =
-        new TakeSnapshotRequest(
-            "testSnapshot",
-            Arrays.asList("system_schema", "system_traces", "system_distributed"),
-            null,
-            null,
-            null);
+            new TakeSnapshotRequest(
+                    "testSnapshot",
+                    Arrays.asList("system_schema", "system_traces", "system_distributed"),
+                    null,
+                    null,
+                    null);
     String requestAsJSON = JSON_MAPPER.writeValueAsString(takeSnapshotRequest);
 
     boolean takeSnapshotSuccessful =
-        client
-            .post(takeSnapshotUri.toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(takeSnapshotUri.toURL(), requestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(takeSnapshotSuccessful);
 
     // get snapshot details
     URI getSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
     String getSnapshotResponse =
-        client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
+            client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
     assertNotNull(getSnapshotResponse);
     Object responseObject = JSON_MAPPER.readValue(getSnapshotResponse, Object.class);
     assertTrue(responseObject instanceof Map);
@@ -647,15 +650,15 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // delete snapshot
     URI clearSnapshotsUri = uriBuilder.addParameter("snapshotNames", "testSnapshot").build();
     boolean clearSnapshotSuccessful =
-        client
-            .delete(clearSnapshotsUri.toURL())
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .delete(clearSnapshotsUri.toURL())
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue(clearSnapshotSuccessful);
 
     // verify snapshot deleted
     getSnapshotResponse =
-        client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
+            client.get(getSnapshotsUri.toURL()).thenApply(this::responseAsString).join();
     assertNotNull(getSnapshotResponse);
     responseObject = JSON_MAPPER.readValue(getSnapshotResponse, Object.class);
     assertTrue(responseObject instanceof Map);
@@ -675,10 +678,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // create a keyspace with RF of at least 2
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     String ks = "someTestKeyspace";
     createKeyspace(client, localDc, ks, 2);
@@ -691,10 +694,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     String requestAsJSON = JSON_MAPPER.writeValueAsString(repairRequest);
 
     boolean repairSuccessful =
-        client
-            .post(repairUri.toURL(), requestAsJSON)
-            .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-            .join();
+            client
+                    .post(repairUri.toURL(), requestAsJSON)
+                    .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+                    .join();
     assertTrue("Repair request was not successful", repairSuccessful);
   }
 
@@ -705,10 +708,10 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     String ks = "getreplicationtest";
     createKeyspace(client, localDc, ks, 1);
@@ -716,7 +719,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // missing keyspace
     URI uri = new URIBuilder(BASE_PATH + "/ops/keyspace/replication").build();
     Pair<Integer, String> response =
-        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+            client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
     assertThat(response.getRight()).contains("Non-empty 'keyspaceName' must be provided");
 
@@ -732,12 +735,13 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     Map<String, String> actual =
-        new JsonMapper()
-            .readValue(response.getRight(), new TypeReference<Map<String, String>>() {});
+            new JsonMapper()
+                    .readValue(response.getRight(), new TypeReference<Map<String, String>>() {
+                    });
     assertThat(actual)
-        .hasSize(2)
-        .containsEntry("class", "org.apache.cassandra.locator.NetworkTopologyStrategy")
-        .containsKey(localDc);
+            .hasSize(2)
+            .containsEntry("class", "org.apache.cassandra.locator.NetworkTopologyStrategy")
+            .containsKey(localDc);
   }
 
   @Test
@@ -750,7 +754,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // missing keyspace
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables").build();
     Pair<Integer, String> response =
-        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+            client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
     assertThat(response.getRight()).contains("Non-empty 'keyspaceName' must be provided");
 
@@ -766,18 +770,19 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     List<String> actual =
-        new JsonMapper().readValue(response.getRight(), new TypeReference<List<String>>() {});
+            new JsonMapper().readValue(response.getRight(), new TypeReference<List<String>>() {
+            });
     assertThat(actual)
-        .contains(
-            "aggregates",
-            "columns",
-            "functions",
-            "indexes",
-            "keyspaces",
-            "tables",
-            "triggers",
-            "types",
-            "views");
+            .contains(
+                    "aggregates",
+                    "columns",
+                    "functions",
+                    "indexes",
+                    "keyspaces",
+                    "tables",
+                    "triggers",
+                    "types",
+                    "views");
   }
 
   @Test
@@ -790,7 +795,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     // missing keyspace
     URI uri = new URIBuilder(BASE_PATH_V1 + "/ops/tables").build();
     Pair<Integer, String> response =
-        client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
+            client.get(uri.toURL()).thenApply(this::responseAsCodeAndBody).join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
     assertThat(response.getRight()).contains("Non-empty 'keyspaceName' must be provided");
 
@@ -806,26 +811,27 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     List<Table> actual =
-        new JsonMapper().readValue(response.getRight(), new TypeReference<List<Table>>() {});
+            new JsonMapper().readValue(response.getRight(), new TypeReference<List<Table>>() {
+            });
     assertThat(actual)
-        .extracting("name")
-        .contains(
-            "aggregates",
-            "columns",
-            "functions",
-            "indexes",
-            "keyspaces",
-            "tables",
-            "triggers",
-            "types",
-            "views");
+            .extracting("name")
+            .contains(
+                    "aggregates",
+                    "columns",
+                    "functions",
+                    "indexes",
+                    "keyspaces",
+                    "tables",
+                    "triggers",
+                    "types",
+                    "views");
     assertThat(actual)
-        .allSatisfy(
-            table ->
-                assertThat(table.compaction)
-                    .containsEntry(
-                        "class",
-                        "org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy"));
+            .allSatisfy(
+                    table ->
+                            assertThat(table.compaction)
+                                    .containsEntry(
+                                            "class",
+                                            "org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy"));
   }
 
   @Test
@@ -835,42 +841,42 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
 
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
     String localDc =
-        client
-            .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
-            .thenApply(this::responseAsString)
-            .join();
+            client
+                    .get(new URIBuilder(BASE_PATH + "/metadata/localdc").build().toURL())
+                    .thenApply(this::responseAsString)
+                    .join();
 
     // this test also tests case sensitivity in CQL identifiers.
     String ks = "CreateTableTest";
     createKeyspace(client, localDc, ks, 1);
 
     CreateTableRequest request =
-        new CreateTableRequest(
-            ks,
-            "Table1",
-            ImmutableList.of(
-                // having two columns with the same name in different cases can only work if the
-                // internal name is being used.
-                new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
-                new Column("PK", "int", ColumnKind.PARTITION_KEY, 1, null),
-                new Column("cc", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
-                new Column("CC", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
-                new Column("v", "list<text>", ColumnKind.REGULAR, 0, null),
-                new Column("s", "boolean", ColumnKind.STATIC, 0, null)),
-            ImmutableMap.of(
-                "bloom_filter_fp_chance",
-                "0.01",
-                "caching",
-                ImmutableMap.of("keys", "ALL", "rows_per_partition", "NONE")));
+            new CreateTableRequest(
+                    ks,
+                    "Table1",
+                    ImmutableList.of(
+                            // having two columns with the same name in different cases can only work if the
+                            // internal name is being used.
+                            new Column("pk", "int", ColumnKind.PARTITION_KEY, 0, null),
+                            new Column("PK", "int", ColumnKind.PARTITION_KEY, 1, null),
+                            new Column("cc", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 0, ClusteringOrder.ASC),
+                            new Column("CC", "timeuuid", ColumnKind.CLUSTERING_COLUMN, 1, ClusteringOrder.DESC),
+                            new Column("v", "list<text>", ColumnKind.REGULAR, 0, null),
+                            new Column("s", "boolean", ColumnKind.STATIC, 0, null)),
+                    ImmutableMap.of(
+                            "bloom_filter_fp_chance",
+                            "0.01",
+                            "caching",
+                            ImmutableMap.of("keys", "ALL", "rows_per_partition", "NONE")));
 
     JsonMapper jsonMapper = new JsonMapper();
 
     URI uri = new URIBuilder(BASE_PATH + "/ops/tables/create").build();
     Pair<Integer, String> response =
-        client
-            .post(uri.toURL(), jsonMapper.writeValueAsString(request))
-            .thenApply(this::responseAsCodeAndBody)
-            .join();
+            client
+                    .post(uri.toURL(), jsonMapper.writeValueAsString(request))
+                    .thenApply(this::responseAsCodeAndBody)
+                    .join();
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     uri = new URIBuilder(BASE_PATH + "/ops/tables?keyspaceName=" + ks).build();
@@ -878,7 +884,8 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     assertThat(response.getLeft()).isEqualTo(HttpStatus.SC_OK);
 
     List<String> actual =
-        jsonMapper.readValue(response.getRight(), new TypeReference<List<String>>() {});
+            jsonMapper.readValue(response.getRight(), new TypeReference<List<String>>() {
+            });
     assertThat(actual).containsExactly("Table1");
   }
 
@@ -890,45 +897,33 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
     NettyHttpClient client = new NettyHttpClient(BASE_URL);
 
     URI nodeMoveUri =
-        new URIBuilder(BASE_PATH + "/ops/node/move").addParameter("newToken", "1234").build();
+            new URIBuilder(BASE_PATH + "/ops/node/move").addParameter("newToken", "1234").build();
     Pair<Integer, String> nodeMoveResponse =
-        client.post(nodeMoveUri.toURL(), null).thenApply(this::responseAsCodeAndBody).join();
+            client.post(nodeMoveUri.toURL(), null).thenApply(this::responseAsCodeAndBody).join();
     assertThat(nodeMoveResponse.getLeft()).isEqualTo(HttpStatus.SC_ACCEPTED);
     String jobId = nodeMoveResponse.getRight();
     assertThat(jobId).isNotEmpty();
 
     URI getJobDetailsUri =
-        new URIBuilder(BASE_PATH + "/ops/executor/job").addParameter("job_id", jobId).build();
+            new URIBuilder(BASE_PATH + "/ops/executor/job").addParameter("job_id", jobId).build();
 
     await()
-        .atMost(Duration.ofMinutes(5))
-        .untilAsserted(
-            () -> {
-              Pair<Integer, String> getJobDetailsResponse =
-                  client
-                      .get(getJobDetailsUri.toURL())
-                      .thenApply(this::responseAsCodeAndBody)
-                      .join();
-              assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
-              Job jobDetails =
-                  new JsonMapper()
-                      .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {});
-              assertThat(jobDetails.getJobId()).isEqualTo(jobId);
-              assertThat(jobDetails.getJobType()).isEqualTo("move");
-              assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
-            });
+            .atMost(Duration.ofMinutes(5))
+            .untilAsserted(
+                    () -> {
+                      Pair<Integer, String> getJobDetailsResponse =
+                              client
+                                      .get(getJobDetailsUri.toURL())
+                                      .thenApply(this::responseAsCodeAndBody)
+                                      .join();
+                      assertThat(getJobDetailsResponse.getLeft()).isEqualTo(HttpStatus.SC_OK);
+                      Job jobDetails =
+                              new JsonMapper()
+                                      .readValue(getJobDetailsResponse.getRight(), new TypeReference<Job>() {
+                                      });
+                      assertThat(jobDetails.getJobId()).isEqualTo(jobId);
+                      assertThat(jobDetails.getJobType()).isEqualTo("move");
+                      assertThat(jobDetails.getStatus().toString()).isIn("COMPLETED", "ERROR");
+                    });
   }
-
-  @Test
-  public void testInternodeTruststoreReload() throws IOException, URISyntaxException {
-    assumeTrue(IntegrationTestUtils.shouldRun());
-    ensureStarted();
-
-    NettyHttpClient client = new NettyHttpClient(BASE_URL);
-
-    URI reloadUri =
-            new URIBuilder(BASE_PATH + "/ops/node/encryption/internode/reload").build();
-    Integer respCode =
-            client.post(reloadUri.toURL(), null);
-    assertThat(respCode).isEqualTo(HttpStatus.SC_ACCEPTED);
 }
