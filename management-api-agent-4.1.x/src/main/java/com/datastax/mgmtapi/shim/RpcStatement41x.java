@@ -10,6 +10,7 @@ import org.apache.cassandra.audit.AuditLogContext;
 import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
+import org.apache.cassandra.transport.Dispatcher.RequestTime;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
 public class RpcStatement41x implements RpcStatementShim {
@@ -27,8 +28,19 @@ public class RpcStatement41x implements RpcStatementShim {
   @Override
   public void validate(ClientState clientState) {}
 
-  @Override
+  /**
+   * as of Cassandra 4.1.6, CASSANDRA-19534, org.apache.cassandra.cql3.CQLStatement no longer has
+   * the method signature below, so we need to remove the @Override annotation.
+   */
   public ResultMessage execute(QueryState queryState, QueryOptions queryOptions, long l) {
+    return new ResultMessage.Void();
+  }
+
+  /**
+   * as of Cassandra 4.1.6, CASSANDRA-19534, org.apache.cassandra.cql3.CQLStatement now has the
+   * method signature below, but it does not exist in Cassandra < 4.1.6.
+   */
+  public ResultMessage execute(QueryState queryState, QueryOptions queryOptions, RequestTime rt) {
     return new ResultMessage.Void();
   }
 
