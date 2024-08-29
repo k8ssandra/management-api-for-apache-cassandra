@@ -123,5 +123,34 @@ public class CassandraMetricsTest {
     assertEquals(1, streamingMetric.getLabelValues().size());
     assertEquals("peer_ip", streamingMetric.getLabelNames().get(0));
     assertEquals("127.0.0.1", streamingMetric.getLabelValues().get(0));
+
+    // HintDelay metrics
+    CassandraMetricDefinition delayMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.HintsService.Hint_delays-127.0.0.1.7000",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+    assertEquals(
+        "org_apache_cassandra_metrics_hints_service_hint_delays", delayMetric.getMetricName());
+    assertEquals(1, delayMetric.getLabelNames().size());
+    assertEquals(1, delayMetric.getLabelValues().size());
+    assertEquals("peer_ip", delayMetric.getLabelNames().get(0));
+    assertEquals("127.0.0.1.7000", delayMetric.getLabelValues().get(0));
+
+    // Streaming metrics
+    CassandraMetricDefinition coordinationMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.ReadCoordination.ReplicaLatency.127.0.0.1.7000",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+    assertEquals(
+        "org_apache_cassandra_metrics_read_coordination_replica_latency",
+        coordinationMetric.getMetricName());
+    assertEquals(1, coordinationMetric.getLabelNames().size());
+    assertEquals(1, coordinationMetric.getLabelValues().size());
+    assertEquals("peer_ip", coordinationMetric.getLabelNames().get(0));
+    assertEquals("127.0.0.1.7000", coordinationMetric.getLabelValues().get(0));
   }
 }
