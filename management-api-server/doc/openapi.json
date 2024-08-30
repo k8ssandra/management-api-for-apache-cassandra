@@ -724,6 +724,17 @@
               }
             },
             "description" : "Truststore reloaded successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Reloading the truststore manually is only possible on DSE",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Unsupported Operation"
           }
         },
         "summary" : "reload truststore"
