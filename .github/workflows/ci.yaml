@@ -341,6 +341,52 @@ jobs:
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
+  test-oss-41:
+    # This job is inetnded to run the various versiosn of Cassandra 4.1 where internal changes to OSS code
+    # require Java refelction tricks in the Agent code.
+    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}]
+    needs: build-oss-docker-images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        cassandra-version: ['4.1']
+        base-platform: ['ubuntu', 'ubi8']
+        itTest : ['Lifecycle412IT', 'Lifecycle415IT']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform == 'ubuntu' }}
+        run: |
+          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}tests \
+          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+      - name: Build with Maven and run tests
+        if: ${{ matrix.base-platform != 'ubuntu' }}
+        run: |
+          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}testsUBI \
+          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+
   test-dse:
     name: Run DSE ${{ matrix.itTest }} [${{ matrix.dse-version }}, ${{ matrix.base-platform }}]
     # if: github.repository_owner == 'k8ssandra'

@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-4.1.x</artifactId>
   <properties>
-    <cassandra4.version>4.1.5</cassandra4.version>
+    <cassandra4.version>4.1.6</cassandra4.version>
   </properties>
   <dependencies>
     <dependency>

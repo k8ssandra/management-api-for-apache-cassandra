@@ -101,7 +101,33 @@ public class UnixSocketServer41x {
         // logger.info("Executing {} {} {}", request, connection.getVersion(),
         // request.getStreamId());
 
-        Message.Response r = request.execute(qstate, queryStartNanoTime);
+        // In Cassandra 4.1.6, CASSANDRA-19534 changed the Message.Request.execute method signature
+        // to take a new Dispatcher.RequestTime object instead of a primitive long for the Query
+        // start time. We'll need to introduce reflection here to create the correct Objects and
+        // make the correct calls based on which version of 4.1.x we are.
+        Message.Response r = null;
+        try {
+          // First see if we have the Dispatcher.RequestTime class. If so, assume we are 4.1.6+
+          Class dispatcherRequestTime =
+              Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
+          // we are 4.1.6+, get Dispatcher.RequestTime.forImmediateExecution()
+          Method forImmediateExecution =
+              dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
+          Method requestExecute =
+              Message.Request.class.getDeclaredMethod(
+                  "execute", QueryState.class, dispatcherRequestTime);
+          r =
+              (Message.Response)
+                  requestExecute.invoke(request, qstate, forImmediateExecution.invoke(null));
+
+        } catch (ClassNotFoundException cfne) {
+          logger.debug(
+              "Dispatcher$RequestTime in 4.1.6+ not found, trying Request.execute from older versions");
+          // we must be 4.1.5-
+          Method requestExecute =
+              Message.Request.class.getDeclaredMethod("execute", QueryState.class, long.class);
+          r = (Message.Response) requestExecute.invoke(request, qstate, queryStartNanoTime);
+        }
 
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
@@ -291,37 +317,24 @@ public class UnixSocketServer41x {
             // add CASSANDRA-15241 (https://issues.apache.org/jira/browse/CASSANDRA-15241). To
             // avoid splitting the 4.1 agent based on which version of Cassandra it runs with,
             // we'll use reflection here to determine the correct method to invoke.
-            Method processRequestMethod = null;
-            boolean requiresStartTime = false;
+
+            // In Cassandra 4.1.6, Dispatcher.processRequest method signatures changed again for
+            // CASSANDRA-19534. The long value for start time was replaced by RequestTime
+            Message.Response response = null;
             try {
-              // try to get the Cassandra 4.1.3+ method
-              processRequestMethod =
+              // try to see if the 4.1.6+ object RequestTime exists
+              Class dispatcherRequestTime =
+                  Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
+              // it's 4.1.6+, get Dispatcher.RequestTime.forImmediateExecution()
+              Method forImmediateExecution =
+                  dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
+              Method processRequestMethod =
                   Dispatcher.class.getDeclaredMethod(
                       "processRequest",
                       Channel.class,
                       Message.Request.class,
                       Overload.class,
-                      long.class);
-              // 4.1.3 method found so we'll need to invoke it with a start time
-              requiresStartTime = true;
-            } catch (NoSuchMethodException ex) {
-              // 4.1.3+ method doesn't existy, try 4.1.2- method
-              logger.debug(
-                  "Cassandra Dispatcher.processRequest() for 4.1.3 not found, trying 4.1.2 method");
-              try {
-                processRequestMethod =
-                    Dispatcher.class.getDeclaredMethod(
-                        "processRequest", Channel.class, Message.Request.class, Overload.class);
-              } catch (NoSuchMethodException ex2) {
-                // something is broken, need to figure out what method/signature should be used
-                logger.error(
-                    "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
-                    ex2);
-                throw ex2;
-              }
-            }
-            Message.Response response;
-            if (requiresStartTime) {
+                      dispatcherRequestTime);
               response =
                   (Message.Response)
                       processRequestMethod.invoke(
@@ -329,11 +342,48 @@ public class UnixSocketServer41x {
                           ctx.channel(),
                           startup,
                           Overload.NONE,
-                          MonotonicClock.Global.approxTime.now());
-            } else {
-              response =
-                  (Message.Response)
-                      processRequestMethod.invoke(null, ctx.channel(), startup, Overload.NONE);
+                          forImmediateExecution.invoke(null));
+
+            } catch (ClassNotFoundException cnfe) {
+              logger.debug(
+                  "Dispatcher$RequestTime in 4.1.6+ not found, trying Dispatcher.processRequest from older versions");
+              try {
+                // try to get the Cassandra 4.1.3+ method
+                Method processRequestMethod =
+                    Dispatcher.class.getDeclaredMethod(
+                        "processRequest",
+                        Channel.class,
+                        Message.Request.class,
+                        Overload.class,
+                        long.class);
+                // 4.1.3 method found so we'll need to invoke it with a start time
+                response =
+                    (Message.Response)
+                        processRequestMethod.invoke(
+                            null,
+                            ctx.channel(),
+                            startup,
+                            Overload.NONE,
+                            MonotonicClock.Global.approxTime.now());
+              } catch (NoSuchMethodException ex) {
+                // 4.1.3+ method doesn't existy, try 4.1.2- method
+                logger.debug(
+                    "Cassandra Dispatcher.processRequest() for 4.1.3 not found, trying 4.1.2 method");
+                try {
+                  Method processRequestMethod =
+                      Dispatcher.class.getDeclaredMethod(
+                          "processRequest", Channel.class, Message.Request.class, Overload.class);
+                  response =
+                      (Message.Response)
+                          processRequestMethod.invoke(null, ctx.channel(), startup, Overload.NONE);
+                } catch (NoSuchMethodException ex2) {
+                  // something is broken, need to figure out what method/signature should be used
+                  logger.error(
+                      "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
+                      ex2);
+                  throw ex2;
+                }
+              }
             }
 
             if (response.type.equals(Message.Type.AUTHENTICATE))
