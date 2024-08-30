@@ -149,25 +149,30 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
+        name: Publish ${{ matrix.dse-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:6.8-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
+        name: Publish ${{ matrix.cassandra-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -220,14 +225,17 @@ jobs:
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:3.11-ubi8 \
+            --tag k8ssandra/cass-management-api:3.11-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-3.11.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
@@ -238,7 +246,9 @@ jobs:
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-3.11.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
@@ -291,25 +301,30 @@ jobs:
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:4.0-ubi8 \
+            --tag k8ssandra/cass-management-api:4.0-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.0.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.0.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
@@ -362,25 +377,30 @@ jobs:
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:4.1-ubi8 \
+            --tag k8ssandra/cass-management-api:4.1-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.1.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.1.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
@@ -410,25 +430,30 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:5.0-ubi8 \
+            --tag k8ssandra/cass-management-api:5.0-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-5.0.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }}-ubi8 to Registry
+        name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
+            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-5.0.ubi8 \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
@@ -438,10 +463,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.9.0]
+        dse-version: [6.9.0, 6.9.1, 6.9.2]
         image-base: [jdk11]
         include:
-          - dse-version: 6.9.0
+          - dse-version: 6.9.2
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -509,10 +534,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.9.0]
+        dse-version: [6.9.0, 6.9.1, 6.9.2]
         image-base: [ubi8]
         include:
-          - dse-version: 6.9.0
+          - dse-version: 6.9.2
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -550,25 +575,30 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       - if: ${{ matrix.latest }}
-        name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
+        name: Publish ${{ matrix.dse-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:6.9-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
       - if: ${{ !matrix.latest }}
-        name: Publish ${{ matrix.cassandra-version }} (${{ matrix.image-base }}) to Registry
+        name: Publish ${{ matrix.cassandra-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
