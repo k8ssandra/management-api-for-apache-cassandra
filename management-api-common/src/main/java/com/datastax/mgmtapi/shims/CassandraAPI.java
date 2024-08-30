@@ -82,4 +82,8 @@ public interface CassandraAPI {
   default List<String> getKeyspaces() {
     return StorageService.instance.getKeyspaces();
   }
+
+  default void reloadInternodeEncryptionTruststore() throws Exception {
+    throw new UnsupportedOperationException("Unimplemented for Cassandra, only available for DSE");
+  };
 }

@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.shim;
 
+import com.datastax.bdp.transport.common.DseReloadableTrustManager;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import com.datastax.mgmtapi.shims.RpcStatementShim;
 import com.google.common.base.Suppliers;
@@ -20,13 +21,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -332,5 +327,9 @@ public class DseAPI68 implements CassandraAPI {
   @Override
   public HintsService getHintsService() {
     return HintsService.instance;
+  }
+
+  public void reloadInternodeEncryptionTruststore() throws Exception {
+    DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
   }
 }

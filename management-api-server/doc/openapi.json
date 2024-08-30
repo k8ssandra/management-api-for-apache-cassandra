@@ -710,6 +710,36 @@
         "summary" : "Drain the node (stop accepting writes and flush all tables)"
       }
     },
+    "/api/v0/ops/node/encryption/internode/truststore/reload" : {
+      "post" : {
+        "operationId" : "reloadTruststore",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Truststore reloaded successfully"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Reloading the truststore manually is only possible on DSE",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Unsupported Operation"
+          }
+        },
+        "summary" : "reload truststore"
+      }
+    },
     "/api/v0/ops/node/fullquerylogging" : {
       "get" : {
         "operationId" : "isFullQueryLogEnabled",
@@ -2152,7 +2182,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK", "ASYNC_MOVE_TASK", "ASYNC_GC_TASK", "ASYNC_FLUSH_TASK" ]
+              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK", "ASYNC_MOVE_TASK", "ASYNC_GC_TASK", "RELOAD_INTERNODE_TRUSTSTORE", "ASYNC_FLUSH_TASK" ]
             }
           },
           "mgmt_version" : {

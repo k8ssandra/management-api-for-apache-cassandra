@@ -23,6 +23,7 @@ public class FeatureSet implements Serializable {
     ASYNC_SCRUB_TASK("async_scrub_task"),
     ASYNC_MOVE_TASK("async_move_task"),
     ASYNC_GC_TASK("async_gc_task"),
+    RELOAD_INTERNODE_TRUSTSTORE("reload_internode_truststore"),
     ASYNC_FLUSH_TASK("async_flush_task");
 
     @JsonValue private String featureName;

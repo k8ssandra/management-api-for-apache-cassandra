@@ -940,6 +940,11 @@ public class NodeOpsProvider {
     return submitJob("move", moveOperation, async);
   }
 
+  @Rpc(name = "reloadInternodeEncryptionTruststore")
+  public void reloadInternodeEncryptionTruststore() throws Exception {
+    ShimLoader.instance.get().reloadInternodeEncryptionTruststore();
+  }
+
   @Rpc(name = "getRangeToEndpointMap")
   public Map<List<String>, List<String>> getRangeToEndpointMap(
       @RpcParam(name = "keyspaceName") String keyspaceName) {

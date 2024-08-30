@@ -45,9 +45,27 @@
     </dependency>
     <dependency>
       <groupId>com.datastax.dse</groupId>
-      <artifactId>dse-commons</artifactId>
+      <artifactId>dse-core</artifactId>
       <version>${dse.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty.aggregate</groupId>
+          <artifactId>jetty-all</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.cryptsoft</groupId>
+          <artifactId>kmip</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.datastax.logging</groupId>
+          <artifactId>cassandra-log4j-appender</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.datastax.dse</groupId>
