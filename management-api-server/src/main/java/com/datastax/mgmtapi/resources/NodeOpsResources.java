@@ -674,6 +674,16 @@ public class NodeOpsResources extends BaseResources {
               mediaType = MediaType.TEXT_PLAIN,
               schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "OK")))
+  @ApiResponse(
+      responseCode = "400",
+      description = "Unsupported Operation",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples =
+                  @ExampleObject(
+                      value = "Reloading the truststore manually is only possible on DSE")))
   @Operation(summary = "reload truststore", operationId = "reloadTruststore")
   public Response reloadTruststore() {
     return handle(
