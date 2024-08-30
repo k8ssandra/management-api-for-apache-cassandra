@@ -710,25 +710,6 @@
         "summary" : "Drain the node (stop accepting writes and flush all tables)"
       }
     },
-    "/api/v0/ops/node/encryption/internode/truststore/issuers" : {
-      "get" : {
-        "operationId" : "getInternodeTrustStoreIssuers",
-        "responses" : {
-          "200" : {
-            "content" : {
-              "text/plain" : {
-                "example" : "OK",
-                "schema" : {
-                  "type" : "string"
-                }
-              }
-            },
-            "description" : "Got list of truststore issuers"
-          }
-        },
-        "summary" : "get internode trustsstore"
-      }
-    },
     "/api/v0/ops/node/encryption/internode/truststore/reload" : {
       "post" : {
         "operationId" : "reloadTruststore",

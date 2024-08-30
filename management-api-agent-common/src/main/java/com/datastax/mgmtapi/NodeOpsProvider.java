@@ -29,7 +29,6 @@ import io.k8ssandra.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -944,24 +943,6 @@ public class NodeOpsProvider {
   @Rpc(name = "reloadInternodeEncryptionTruststore")
   public void reloadInternodeEncryptionTruststore() throws Exception {
     ShimLoader.instance.get().reloadInternodeEncryptionTruststore();
-  }
-
-  @Rpc(name = "getInternodeEncryptionTruststoreIssuers")
-  public List<String> getEncryptionTruststoreIssuers() throws Exception {
-    List<X509Certificate> issuers =
-        Arrays.stream(ShimLoader.instance.get().getEncryptionTruststoreIssuers())
-            .collect(Collectors.toList());
-    ObjectMapper objectMapper = new ObjectMapper();
-    return issuers.stream()
-        .map(
-            i -> {
-              try {
-                return objectMapper.writeValueAsString(i);
-              } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-              }
-            })
-        .collect(Collectors.toList());
   }
 
   @Rpc(name = "getRangeToEndpointMap")

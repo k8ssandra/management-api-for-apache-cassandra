@@ -340,7 +340,4 @@ public class DseAPI69 implements CassandraAPI {
     DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
   }
 
-  public X509Certificate[] getEncryptionTruststoreIssuers() throws Exception {
-    return DseReloadableTrustManager.serverEncryptionInstance().getAcceptedIssuers();
-  }
 }
