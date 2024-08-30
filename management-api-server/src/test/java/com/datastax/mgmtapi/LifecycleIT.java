@@ -183,6 +183,8 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
       }
 
       assertTrue(ready);
+      // sometimes we need to wait a little before creating the CQLSession
+      Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
 
       try {
         // verify that we can't login with user cassandra/cassandra
@@ -315,6 +317,9 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
                   null)
               .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
               .join();
+
+      // sometimes we need to wait a little before creating the CQLSession
+      Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
 
       // create a session
       CqlSession session =
