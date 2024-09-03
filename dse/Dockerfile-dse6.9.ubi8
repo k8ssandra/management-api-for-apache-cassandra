@@ -125,8 +125,10 @@ RUN chmod g+w /etc /etc/ld.so.cache  && \
     chmod g+w ${MAAC_PATH} ${DSE_HOME} ${CDC_AGENT_PATH}
 
 # Add management-api
-RUN echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
-  echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 
 # Set user to run as
 USER dse:root

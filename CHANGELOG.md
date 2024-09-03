@@ -20,6 +20,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#521](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/521) Add management-api to Cassandra conf in the Dockerfile, not entrypoint for DSE 6.9, Cassandra 4.1 and Cassandra 5.0. This allows to run the container with readOnlyRootFilesystem.
 * [BUGFIX] [#524](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/524) Fix HintsService Hint_delays- metrics parsing and ReadCoordination metrics parsing
 * [BUGFIX] [#520](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/520) Update DSE 6.9.0 dependnecy
+* [BUGFIX] [#531](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/531) Fix DSE 6.9 UBI image agent loading
 
 ## v0.1.83 (2024-07-10)
 * [BUGFIX] [#510](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/510) CDC is not working in the OSS images (at least not UBI)

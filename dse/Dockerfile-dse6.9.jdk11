@@ -187,9 +187,10 @@ COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 COPY --chown=dse:root --from=mgmtapi-setup $CDC_AGENT_PATH $CDC_AGENT_PATH
 
 # Add management-api
-RUN echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
-  echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
-
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
