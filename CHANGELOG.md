@@ -11,7 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
-## v0.1.85
+## v0.1.85 (2024-09-03)
 * [FEATURE] [#523](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/523) Trust store reload functionality for DSE only (not Cassandra)
 * [FEATURE] [#527](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/527) Add Cassandra 4.1.6 to the build matrix
 * [FEATURE] [#522](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/522) Add DSE 6.9.1 to the build matrix
@@ -21,7 +21,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [BUGFIX] [#520](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/520) Update DSE 6.9.0 dependnecy
 * [BUGFIX] [#531](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/531) Fix DSE 6.9 UBI image agent loading
 
-## v0.1.84
+## v0.1.84 (2024-07-11)
 * [FEATURE] [#517](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/517) Add DSE 6.9.0 to the build matrix
 * [ENHANCEMENT] [#516](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/516) Address warnings in Dockerfiles
 
