@@ -10,17 +10,20 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
-* [FEATURE] [#523](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/517) Trust store reload functionality for DSE only (not Cassandra)
-* [FEATURE] [#517](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/517) Add DSE 6.9.0 to the build matrix
+
+## v0.1.85
 * [FEATURE] [#523](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/523) Trust store reload functionality for DSE only (not Cassandra)
 * [FEATURE] [#527](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/527) Add Cassandra 4.1.6 to the build matrix
 * [FEATURE] [#522](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/522) Add DSE 6.9.1 to the build matrix
 * [FEATURE] [#529](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/529) Add DSE 6.9.2 to the build matrix
-* [ENHANCEMENT] [#516](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/516) Address warnings in Dockerfiles
 * [ENHANCEMENT] [#521](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/521) Add management-api to Cassandra conf in the Dockerfile, not entrypoint for DSE 6.9, Cassandra 4.1 and Cassandra 5.0. This allows to run the container with readOnlyRootFilesystem.
 * [BUGFIX] [#524](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/524) Fix HintsService Hint_delays- metrics parsing and ReadCoordination metrics parsing
 * [BUGFIX] [#520](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/520) Update DSE 6.9.0 dependnecy
 * [BUGFIX] [#531](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/531) Fix DSE 6.9 UBI image agent loading
+
+## v0.1.84
+* [FEATURE] [#517](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/517) Add DSE 6.9.0 to the build matrix
+* [ENHANCEMENT] [#516](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/516) Address warnings in Dockerfiles
 
 ## v0.1.83 (2024-07-10)
 * [BUGFIX] [#510](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/510) CDC is not working in the OSS images (at least not UBI)
