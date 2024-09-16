@@ -7,6 +7,7 @@ resources/solr/web
 resources/tomcat/conf
 resources/tomcat/conf/webapps
 resources/cassandra/conf/cassandra-env.sh
+resources/cassandra/conf/jvm-dependent.sh
 resources/hadoop2-client/conf/hadoop-env.sh
 resources/hadoop2-client/conf/httpfs-env.sh
 resources/hadoop2-client/conf/kms-env.sh
