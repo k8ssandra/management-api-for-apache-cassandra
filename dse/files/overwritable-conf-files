@@ -1,7 +1,6 @@
 resources/cassandra/conf/jvm.options
 resources/spark/conf/hive-site.xml
 resources/dse/conf/dse.default
-bin/dse-env.sh
 resources/solr/conf
 resources/solr/web
 resources/tomcat/conf
