@@ -113,6 +113,7 @@ RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh
 # Use OSS Management API
 ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
 ENV MAAC_PATH=/opt/management-api
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
 # Add CDC Agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
@@ -122,6 +123,12 @@ COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH
 RUN chmod g+w /etc /etc/ld.so.cache  && \
     # still need to change the mode of the COPY directories, though this does not duplicate layers
     chmod g+w ${MAAC_PATH} ${DSE_HOME} ${CDC_AGENT_PATH}
+
+# Add management-api
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 
 # Set user to run as
 USER dse:root
