@@ -9,7 +9,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [BUGFIX]
 ```
 
-## unreleased
+## v0.1.86
+
+* [ENHANCEMENT] [#539](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/539) Add the ability to run DSE 6.8 and 6.9 in readOnlyRootFilesystem mode
 
 ## v0.1.85 (2024-09-03)
 * [FEATURE] [#523](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/523) Trust store reload functionality for DSE only (not Cassandra)
