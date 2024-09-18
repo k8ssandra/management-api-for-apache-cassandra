@@ -15,8 +15,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import java.io.File;
+import java.lang.reflect.Constructor;
 import java.nio.file.Paths;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -58,7 +61,7 @@ public class CassandraDaemonInterceptor {
       File unixSock = Paths.get(socketFileStr).toFile();
 
       final EventLoopGroup group = new EpollEventLoopGroup(8);
-      final Server.ConnectionTracker connectionTracker = new Server.ConnectionTracker();
+      final Server.ConnectionTracker connectionTracker = getTracker();
 
       IPCController controller =
           IPCController.newServer()
@@ -93,5 +96,30 @@ public class CassandraDaemonInterceptor {
     } catch (Exception e) {
       logger.warn("Problem starting DataStax Management API for Apache Cassandra", e);
     }
+  }
+
+  private static Server.ConnectionTracker getTracker() throws Exception {
+    // ConnectionTracker constructor is private in 5.0, need to use reflection
+    for (Constructor ctor : Server.ConnectionTracker.class.getDeclaredConstructors()) {
+      // Try to get the 5.0 constructor that takes a BooleanSupplier
+      Class[] types = ctor.getParameterTypes();
+      if (types.length == 1 && types[0].equals(BooleanSupplier.class)) {
+        logger.info("BooleanSupplier constructor found!");
+        ctor.setAccessible(true);
+        Object[] args = new Object[1];
+        final AtomicBoolean isRunning = new AtomicBoolean(false);
+        final BooleanSupplier supplier = isRunning::get;
+        args[0] = supplier;
+        Object obj = ctor.newInstance(args);
+        return (Server.ConnectionTracker) obj;
+      } else if (types.length == 0) {
+        // try to get the no arg constructor from Cassandra < 5.0
+        logger.info("no-arg constructor found!");
+        ctor.setAccessible(true);
+        Object obj = ctor.newInstance();
+        return (Server.ConnectionTracker) obj;
+      }
+    }
+    throw new RuntimeException("No suitable Server.ConnectionTracker constructor found!!!");
   }
 }
