@@ -55,7 +55,7 @@ RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L 
 
 #############################################################
 # Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-11 AS mgmtapi-setup
 
 WORKDIR /
 
@@ -99,6 +99,18 @@ RUN mkdir -m 775 ${MAAC_PATH} \
 
 ############################################################
 
+# Build tools we need
+FROM --platform=$BUILDPLATFORM maven:3.9-eclipse-temurin-11 AS tools-builder
+
+ARG CASSANDRA_VERSION
+ENV CASSANDRA_VERSION=${CASSANDRA_VERSION}
+
+WORKDIR /
+RUN git clone https://github.com/instaclustr/cassandra-sstable-tools.git
+WORKDIR /cassandra-sstable-tools
+RUN git checkout cassandra-${CASSANDRA_VERSION} && mvn clean package
+
+# Build final image
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra
 ARG TARGETARCH
 ARG CASSANDRA_VERSION
@@ -159,6 +171,10 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CA
       echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
       echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
+
+# Copy sstable-tools
+COPY --from=tools-builder --chown=cassandra:root /cassandra-sstable-tools/target/ic-sstable-tools.jar $CASSANDRA_HOME/lib
+COPY --from=tools-builder --chown=cassandra:root --chmod=755 /cassandra-sstable-tools/bin/ic-sstable-tools /usr/local/bin
 
 # backwards compat with upstream ENTRYPOINT
 COPY cassandra/scripts/docker-entrypoint.sh /usr/local/bin/
