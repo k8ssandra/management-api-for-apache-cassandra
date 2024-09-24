@@ -106,16 +106,6 @@ fi
 if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     echo "Starting Management API"
 
-    # Ensure jmxremote.password file is linked and specified in cassandra-env.sh, if it exists in /config
-    if [ -e "/config/jmxremote.password" ] && [ ! -e "$CASSANDRA_CONF/jmxremote.password" ]; then
-        # link jmxremote.password to CASSANDRA_CONF
-        ln -s /config/jmxremote.password $CASSANDRA_CONF/jmxremote.password
-        # add jmxremote.password file to cassandra-env.sh
-        if ! grep -qx "^JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=.*" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
-            echo "JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=${CASSANDRA_CONF}/jmxremote.password\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
-        fi
-    fi
-
     MGMT_API_ARGS=""
     # set the listen port to 8080 if not already set
     : ${MGMT_API_LISTEN_TCP_PORT='8080'}

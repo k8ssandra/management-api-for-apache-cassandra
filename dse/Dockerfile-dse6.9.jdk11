@@ -203,6 +203,19 @@ RUN if ! grep -qxf "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" < 
     echo "  JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
     echo "fi" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
+# link /config/jmxremote.password if it exists and there isn't one in CASSANDRA_CONF
+RUN if [ -e "/config/jmxremote.password" ] && [ ! -e "$CASSANDRA_CONF/jmxremote.password" ]; then \
+    ln -s /config/jmxremote.password $CASSANDRA_CONF/jmxremote.password ; \
+  fi
+# edit cassandra-env.sh to specify JMX remote password file
+RUN if ! grep -qx "^JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=.*" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    # jmxremote password file option not found, add it at the end
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=${CASSANDRA_CONF}/jmxremote.password\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi ; \
+  if ! grep -qx "^JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=${CASSANDRA_CONF}/jmxremote.password\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    sed -i 's|^JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=.*|JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file='${CASSANDRA_CONF}'\/jmxremote.password\"|g'  ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
