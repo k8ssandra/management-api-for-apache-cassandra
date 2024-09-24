@@ -11,12 +11,6 @@ set -e
 
 link_external_config "${DSE_HOME}"
 
-#create directories for holding the node's data, logs, etc.
-mkdir -p /var/lib/spark/worker
-mkdir -p /var/lib/spark/rdd
-mkdir -p /var/log/spark/worker
-mkdir -p /var/log/spark/master
-
 ############################################
 # Set up variables/configure the image
 ############################################
@@ -122,10 +116,6 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
         fi
     fi
 
-    if [ ! -z "$MGMT_API_DISABLE_MCAC" ]; then
-      echo "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
-    fi
-
     MGMT_API_ARGS=""
     # set the listen port to 8080 if not already set
     : ${MGMT_API_LISTEN_TCP_PORT='8080'}
@@ -163,14 +153,6 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
         MGMT_API_NO_KEEP_ALIVE="--no-keep-alive $MGMT_API_NO_KEEP_ALIVE"
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
-    fi
-
-    # Add Management API Agent to JVM_OPTS
-    MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
-    if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
-        # ensure newline at end of file
-        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
-        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
     MGMT_API_JAR="${MAAC_PATH}/datastax-mgmtapi-server.jar"

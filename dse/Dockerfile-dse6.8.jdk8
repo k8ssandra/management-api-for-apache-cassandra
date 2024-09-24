@@ -1,6 +1,7 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
+ARG DSE_VERSION=6.8.50
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-8
 ARG BASETAG=8u392-jdk-ubuntu-20240123
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
@@ -10,7 +11,7 @@ ENV DSE_HOME=/opt/dse
 ENV DSE_AGENT_HOME=/opt/agent
 
 # Get commandline parameters
-ARG DSE_VERSION=6.8.50
+ARG DSE_VERSION
 ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
@@ -140,7 +141,6 @@ FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
-
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
@@ -171,10 +171,14 @@ COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
 # Create folders
 RUN (for dir in /var/lib/cassandra \
                 /var/lib/spark \
+                /var/lib/spark/worker \
+                /var/lib/spark/rdd \
                 /var/lib/dsefs \
                 /var/lib/datastax-agent \
                 /var/log/cassandra \
                 /var/log/spark \
+                /var/log/spark/worker \
+                /var/log/spark/master \
                 /config ; do \
         mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
     done )
@@ -193,6 +197,14 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CA
       echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
       echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
+# Add MCAC check to cassandra-env.sh
+RUN if ! grep -qxf "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if [ ! -z \"\$MGMT_API_DISABLE_MCAC\" ]; then" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "fi" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
