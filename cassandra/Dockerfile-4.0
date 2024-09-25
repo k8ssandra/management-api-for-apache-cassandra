@@ -62,7 +62,19 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
-FROM cassandra:${CASSANDRA_VERSION} AS cassandra
+FROM --platform=linux/amd64 cassandra:${CASSANDRA_VERSION} AS cassandra-amd64
+# MCAC isn't supported on ARM achitectures
+ENV MCAC_PATH=/opt/metrics-collector
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if  [ -z \"\${MGMT_API_DISABLE_MCAC}\" ] ; then" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+
+FROM --platform=linux/arm64 cassandra:${CASSANDRA_VERSION} AS cassandra-arm64
+
+FROM cassandra-${TARGETARCH} AS cassandra
 
 ARG TARGETARCH
 
@@ -78,6 +90,7 @@ ENV MAAC_PATH=/opt/management-api
 ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV USER_HOME_PATH=/home/cassandra
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 ENV CASSANDRA_HOME=${CASSANDRA_PATH}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
@@ -117,6 +130,11 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /proc/mounts /etc/mtab; \
   # remove cassandra-topology.properties file
   rm "${CASSANDRA_CONF}/cassandra-topology.properties"
+
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 # Fix nodetool issue in some combinations of Cassandra and Java
 RUN if [ -e /opt/cassandra/bin/nodetool ] ; then \
     cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig ; \
