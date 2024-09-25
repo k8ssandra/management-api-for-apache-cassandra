@@ -126,6 +126,12 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   # remove cassandra-topology.properties file
   rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 
+# Fix nodetool issue in some combinations of Cassandra and Java
+RUN if [ -e /opt/cassandra/bin/nodetool ] ; then \
+    cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig ; \
+    echo "#!/bin/sh" > /opt/cassandra/bin/nodetool ; \
+    echo "/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy \"\$@\"" >> /opt/cassandra/bin/nodetool ; \
+  fi
 EXPOSE 9103 9000
 EXPOSE 8080
 

@@ -45,87 +45,6 @@ _metrics_collector_supported() {
     [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ]
 }
 
-# compare 2 dot notation versions. Returns 0 if they are equal, 1 if the first
-# arg is greater, or 2 if the second arg is greater
-_vercomp () {
-    if [[ $1 == $2 ]]
-    then
-        return 0
-    fi
-    local IFS=.
-    local i ver1=($1) ver2=($2)
-    # fill empty fields in ver1 with zeros
-    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
-    do
-        ver1[i]=0
-    done
-    for ((i=0; i<${#ver1[@]}; i++))
-    do
-        if [[ -z ${ver2[i]} ]]
-        then
-            # fill empty fields in ver2 with zeros
-            ver2[i]=0
-        fi
-        if ((10#${ver1[i]} > 10#${ver2[i]}))
-        then
-            return 1
-        fi
-        if ((10#${ver1[i]} < 10#${ver2[i]}))
-        then
-            return 2
-        fi
-    done
-    return 0
-}
-
-# see if the FIRST version is between the SECOND and THIRD version arguments
-_verbetween () {
-    _vercomp $1 $2
-    _comp1=$?
-    _vercomp $3 $1
-    _comp2=$?
-    [ ${_comp1} -le 1 ] && [ ${_comp2} -le 1 ]
-}
-
-_ubi_less_than_3_11_13() {
-    [ -e /etc/redhat-release ] && _verbetween "${CASSANDRA_VERSION}" "3.11.0" "3.11.12"
-}
-
-_ubi_less_than_4_0_4() {
-    [ -e /etc/redhat-release ] && _verbetween "${CASSANDRA_VERSION}" "4.0.0" "4.0.3"
-}
-
-_needs_nodetool_fix() {
-    # JDK (8 and 11) updates that include the fix for JDK-8278972 cause nodetool
-    # to break due to the more strict URI parsing. This is fixed in Cassandra as
-    # of 3.11.13 and 4.0.4. Management API images based on Cassandra versions
-    # 3.11.12 and 4.0.3 will need to provide a work around
-    #
-    # This fix will also need to be applied to Cassandra versions lower than
-    # 3.11.12 and 4.0.3 when the image is built from scratch as the JDK in those
-    # images will be newer than it was when those releases first came out, and
-    # will have the fix for JDK-8278972. Currently this only applies to UBI
-    # based images as Ubuntu based images pull from static/fixed DockerHub base
-    # images where the JDK hasn't changed.
-    [ "${CASSANDRA_VERSION}" == "3.11.12" ] || \
-    [ "${CASSANDRA_VERSION}" == "4.0.3" ] || \
-    _ubi_less_than_3_11_13 || \
-    _ubi_less_than_4_0_4
-}
-
-_nodetool_fix() {
-    # create a wrapper around nodetool to switch URI parsing to legacy mode
-    if [ -e /opt/cassandra/bin/nodetool ] ; then
-        cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig
-        # create a wrapper
-        cat << EOF > /opt/cassandra/bin/nodetool
-#!/bin/sh
-/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy "\$@"
-
-EOF
-    fi
-}
-
 if [ "$1" = 'mgmtapi' ]; then
     echo "Starting Management API"
 
@@ -133,11 +52,6 @@ if [ "$1" = 'mgmtapi' ]; then
     # cp /config/cassandra.yaml /etc/cassandra/cassandra.yaml
     if [ -d "/config" ] && ! [ "/config" -ef "$CASSANDRA_CONF" ]; then
         cp -R /config/* "${CASSANDRA_CONF:-/etc/cassandra}"
-    fi
-
-    # Add the nodetool fix if needed
-    if _needs_nodetool_fix ; then
-        _nodetool_fix
     fi
 
     # Make sure the management api agent jar is set
