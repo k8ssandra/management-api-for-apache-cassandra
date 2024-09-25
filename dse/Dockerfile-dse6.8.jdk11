@@ -164,11 +164,9 @@ COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
 
 # Create folders
 RUN (for dir in /var/lib/cassandra \
-                /var/lib/spark \
                 /var/lib/dsefs \
                 /var/lib/datastax-agent \
                 /var/log/cassandra \
-                /var/log/spark \
                 /config ; do \
         mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
     done )
