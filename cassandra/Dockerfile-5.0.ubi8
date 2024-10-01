@@ -34,21 +34,6 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder
-ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
-ARG CASSANDRA_VERSION
-
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME=/opt/cassandra
-
-# Update base layer
-RUN microdnf install --nodocs shadow-utils \
-    && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
-
 ###
 # Download Cassandra archive
 ###
@@ -141,8 +126,8 @@ RUN microdnf install --nodocs shadow-utils \
     && microdnf clean all
 
 # Copy trimmed installation
-COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
-COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
+COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
+COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
