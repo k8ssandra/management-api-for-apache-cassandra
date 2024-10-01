@@ -83,7 +83,6 @@ public class UnixSocketServer50x {
         throws Exception {
       final Message.Response response;
       final UnixSocketConnection connection;
-      long queryStartNanoTime = System.nanoTime();
 
       try {
         assert request.connection() instanceof UnixSocketConnection;
@@ -97,7 +96,8 @@ public class UnixSocketServer50x {
         // logger.info("Executing {} {} {}", request, connection.getVersion(),
         // request.getStreamId());
 
-        Message.Response r = request.execute(qstate, queryStartNanoTime);
+        Message.Response r =
+            request.execute(qstate, Dispatcher.RequestTime.forImmediateExecution());
 
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
@@ -286,7 +286,10 @@ public class UnixSocketServer50x {
             long approxStartTimeNanos = MonotonicClock.Global.approxTime.now();
             Message.Response response =
                 Dispatcher.processRequest(
-                    ctx.channel(), startup, Overload.NONE, approxStartTimeNanos);
+                    ctx.channel(),
+                    startup,
+                    Overload.NONE,
+                    Dispatcher.RequestTime.forImmediateExecution());
 
             if (response.type.equals(Message.Type.AUTHENTICATE))
               // bypass authentication

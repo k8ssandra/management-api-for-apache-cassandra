@@ -10,6 +10,7 @@ import org.apache.cassandra.audit.AuditLogContext;
 import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
+import org.apache.cassandra.transport.Dispatcher;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
 public class RpcStatement50x implements RpcStatementShim {
@@ -28,7 +29,8 @@ public class RpcStatement50x implements RpcStatementShim {
   public void validate(ClientState clientState) {}
 
   @Override
-  public ResultMessage execute(QueryState queryState, QueryOptions queryOptions, long l) {
+  public ResultMessage execute(
+      QueryState queryState, QueryOptions queryOptions, Dispatcher.RequestTime rt) {
     return new ResultMessage.Void();
   }
 
