@@ -116,6 +116,20 @@ fi
 if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     echo "Starting Management API"
 
+    # Ensure jmxremote.password file is linked and specified in cassandra-env.sh, if it exists in /config
+    if [ -e "/config/jmxremote.password" ] && [ ! -e "$CASSANDRA_CONF/jmxremote.password" ]; then
+        # link jmxremote.password to CASSANDRA_CONF
+        ln -s /config/jmxremote.password $CASSANDRA_CONF/jmxremote.password
+        # add jmxremote.password file to cassandra-env.sh
+        if ! grep -qx "^JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=.*" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+            echo "JVM_OPTS=\"\$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=${CASSANDRA_CONF}/jmxremote.password\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        fi
+    fi
+
+    if [ ! -z "$MGMT_API_DISABLE_MCAC" ]; then
+      echo "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
+    fi
+
     MGMT_API_ARGS=""
     # set the listen port to 8080 if not already set
     : ${MGMT_API_LISTEN_TCP_PORT='8080'}
@@ -153,6 +167,14 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     if [ ! -z "$MGMT_API_NO_KEEP_ALIVE" ]; then
         MGMT_API_NO_KEEP_ALIVE="--no-keep-alive $MGMT_API_NO_KEEP_ALIVE"
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_NO_KEEP_ALIVE"
+    fi
+
+    # Add Management API Agent to JVM_OPTS
+    MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
+    if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+        # ensure newline at end of file
+        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
     MGMT_API_JAR="${MAAC_PATH}/datastax-mgmtapi-server.jar"

@@ -42,7 +42,7 @@ _sed-in-place() {
 
 _metrics_collector_supported() {
     # currently, metrics collector does not work on arm64
-    [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ]
+    [ "$(uname -m)" != "aarch64" ] && [ -z "$MGMT_API_DISABLE_MCAC" ] && [ -e ${MCAC_PATH}/lib/datastax-mcac-agent.jar ]
 }
 
 if [ "$1" = 'mgmtapi' ]; then
@@ -63,7 +63,10 @@ if [ "$1" = 'mgmtapi' ]; then
     # MCAC metric filters are expected as an env variable in the following format:
     # "deny:org.apache.cassandra.metrics.table allow:org.apache.cassandra.metrics.table.test"
     
-    if _metrics_collector_supported ; then
+    if _metrics_collector_supported && ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+        # ensure newline at end of file
+        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
         mkdir -p ${MCAC_PATH}
         echo "" >> ${MCAC_PATH}/config/metric-collector.yaml
         echo "data_dir_max_size_in_mb: 100" >> ${MCAC_PATH}/config/metric-collector.yaml
@@ -76,6 +79,13 @@ if [ "$1" = 'mgmtapi' ]; then
                 echo "    scope: global" >> ${MCAC_PATH}/config/metric-collector.yaml
             done
         fi
+    fi
+
+    MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
+    if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then
+        # ensure newline at end of file
+        echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh
+        echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh
     fi
 
     # Set this if you want to ignore default env variables, i.e. when running inside an operator
