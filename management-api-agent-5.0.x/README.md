@@ -1,18 +1,18 @@
-# Management API for Cassandra 5.0/5.1/trunk
+# Management API for Cassandra 5.0
 
-This Maven sub-module if for building a Management API agent that works with Cassandra 5.0/5.1/trunk. Currently,
-the version in trunk is 5.1-SNAPSHOT, and the artifacts produced by this project work with 5.0-alpha1, as well
+This Maven sub-module if for building a Management API agent that works with Cassandra 5.0. Currently,
+the version in trunk is 5.1-SNAPSHOT, and the artifacts produced by this project work with 5.0.x, as well
 as the 5.1-SNAPSHOT version of Cassandra in trunk.
 
 ## Building Against Published Cassandra Artifacts
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`5.0-alpha1` as of this writing). If you wish to build for a different
-published version, for example `5.0-alpha2` when it is released, specify the version:
+set to the latest published version (`5.0.1` as of this writing). If you wish to build for a different
+published version, for example `5.0.2` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra5.version=5.0-alpha2
+mvn package -Dcassandra5.version=5.0.2
 ```
 
 ## Building Against Cassandra Trunk
@@ -55,7 +55,7 @@ mvn package -Dcassandra5.version=5.1-SNAPSHOT
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:5.0.0
+    k8ssandra/cass-management-api:5.0.1
 
 ### Building Images Locally for Cassandra trunk
 
@@ -73,6 +73,6 @@ The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.0
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.1
 ```
 
