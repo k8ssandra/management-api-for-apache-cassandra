@@ -44,6 +44,21 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-amd64
+ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
+ARG CASSANDRA_VERSION
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+ENV CASSANDRA_HOME=/opt/cassandra
+
+# Update base layer
+RUN microdnf install --nodocs shadow-utils \
+    && groupadd -r cassandra --gid=999 \
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf install tar gzip unzip && microdnf clean all
+
 ###
 # Download Cassandra archive
 ###
@@ -51,6 +66,42 @@ RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L 
     tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
+# MCAC isn't supported on ARM achitectures
+ENV CASSANDRA_PATH=${CASSANDRA_HOME}
+ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
+ENV MCAC_PATH=/opt/metrics-collector
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if  [ -z \"\${MGMT_API_DISABLE_MCAC}\" ] ; then" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+
+
+FROM --platform=linux/arm64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-arm64
+ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
+ARG CASSANDRA_VERSION
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+ENV CASSANDRA_HOME=/opt/cassandra
+
+# Update base layer
+RUN microdnf install --nodocs shadow-utils \
+    && groupadd -r cassandra --gid=999 \
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf install tar gzip unzip && microdnf clean all
+
+###
+# Download Cassandra archive
+###
+RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L -O "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"; fi && \
+    tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
+    chown -R cassandra:root ${CASSANDRA_HOME} && \
+    chmod -R a+rwX ${CASSANDRA_HOME}
+
+FROM cassandra-builder-${TARGETARCH} as cassandra-builder
 
 #############################################################
 # Build the Management API
@@ -116,6 +167,7 @@ ENV CASSANDRA_PATH=/opt/cassandra
 ENV MAAC_PATH=/opt/management-api
 ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 ENV PATH=${CASSANDRA_PATH}/bin:${PATH}
 ENV CASSANDRA_HOME=${CASSANDRA_PATH}
@@ -133,8 +185,8 @@ RUN microdnf install --nodocs shadow-utils \
     && microdnf clean all
 
 # Copy trimmed installation
-COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
-COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
+COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
@@ -161,6 +213,17 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /proc/mounts /etc/mtab && \
   # remove cassandra-topology.properties file
   rm "${CASSANDRA_CONF}/cassandra-topology.properties"
+
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+# Fix nodetool issue in some combinations of Cassandra and Java
+RUN if [ -e /opt/cassandra/bin/nodetool ] ; then \
+    cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig ; \
+    echo "#!/bin/sh" > /opt/cassandra/bin/nodetool ; \
+    echo "/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy \"\$@\"" >> /opt/cassandra/bin/nodetool ; \
+  fi
 
 ENV TINI_VERSION=v0.19.0
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TARGETARCH} /tini

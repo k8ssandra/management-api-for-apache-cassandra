@@ -100,11 +100,9 @@ COPY --chown=dse:root dse/files/overwritable-conf-files /overwritable-conf-files
 # Update permissions and build directories
 RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh && \
     (for dir in /var/lib/cassandra \
-                /var/lib/spark \
                 /var/lib/dsefs \
                 /var/lib/datastax-agent \
                 /var/log/cassandra \
-                /var/log/spark \
                 /config \
                 /licenses ; do \
         mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
@@ -129,12 +127,18 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CA
       echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
       echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
-
+# Add MCAC check to cassandra-env.sh
+RUN if ! grep -qxf "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if [ ! -z \"\$MGMT_API_DISABLE_MCAC\" ]; then" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "fi" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 # Set user to run as
 USER dse:root
 
 # Expose DSE folders
-VOLUME ["/var/lib/cassandra", "/var/lib/spark", "/var/lib/dsefs", "/var/log/cassandra", "/var/log/spark"]
+VOLUME ["/var/lib/cassandra", "/var/lib/dsefs", "/var/log/cassandra"]
 
 # CASSANDRA PORTS (INTRA-NODE, TLS INTRA-NODE, JMX, CQL, THRIFT, DSEFS INTRA-NODE, INTRA-NODE MESSAGING SERVICE)
 EXPOSE 7000 7001 7199 8609 9042 9160

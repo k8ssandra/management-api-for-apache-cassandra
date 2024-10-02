@@ -64,15 +64,23 @@ RUN mkdir -m 775 ${USER_HOME_PATH}
 FROM --platform=$BUILDPLATFORM maven:3.6.3-jdk-8-slim AS netty4150
 RUN mvn dependency:get -DgroupId=io.netty -DartifactId=netty-all -Dversion=4.1.50.Final -Dtransitive=false
 
-FROM --platform=linux/amd64 cassandra:${CASSANDRA_VERSION} AS oss311-amd64
+FROM --platform=linux/amd64 cassandra:${CASSANDRA_VERSION} AS cassandra-amd64
+# MCAC isn't supported on ARM achitectures
+ENV MCAC_PATH=/opt/metrics-collector
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if  [ -z \"\${MGMT_API_DISABLE_MCAC}\" ] ; then" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 
-FROM --platform=linux/arm64 cassandra:${CASSANDRA_VERSION} AS oss311-arm64
+FROM --platform=linux/arm64 cassandra:${CASSANDRA_VERSION} AS cassandra-arm64
 # Netty arm64 epoll support was not added until 4.1.50 (https://github.com/netty/netty/pull/9804)
 # Only replace this dependency for arm64 to avoid regressions
 RUN rm /opt/cassandra/lib/netty-all-*.jar
 COPY --from=netty4150 --chown=cassandra:root /root/.m2/repository/io/netty/netty-all/4.1.50.Final/netty-all-4.1.50.Final.jar /opt/cassandra/lib/netty-all-4.1.50.Final.jar
 
-FROM oss311-${TARGETARCH} AS cassandra
+FROM cassandra-${TARGETARCH} AS cassandra
 
 ARG TARGETARCH
 
@@ -88,6 +96,7 @@ ENV MAAC_PATH=/opt/management-api
 ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV USER_HOME_PATH=/home/cassandra
+ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
 ENV CASSANDRA_HOME=${CASSANDRA_PATH}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
@@ -126,6 +135,16 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   # remove cassandra-topology.properties file
   rm "${CASSANDRA_CONF}/cassandra-topology.properties"
 
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+      echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+      echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+# Fix nodetool issue in some combinations of Cassandra and Java
+RUN if [ -e /opt/cassandra/bin/nodetool ] ; then \
+    cp -a /opt/cassandra/bin/nodetool /opt/cassandra/bin/nodetool.orig ; \
+    echo "#!/bin/sh" > /opt/cassandra/bin/nodetool ; \
+    echo "/opt/cassandra/bin/nodetool.orig -Dcom.sun.jndi.rmiURLParsing=legacy \"\$@\"" >> /opt/cassandra/bin/nodetool ; \
+  fi
 EXPOSE 9103 9000
 EXPOSE 8080
 

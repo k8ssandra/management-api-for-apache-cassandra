@@ -1,8 +1,9 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
+ARG DSE_VERSION=6.8.50
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-8
-ARG BASETAG=8u392-jdk-ubuntu-20240123
+ARG BASETAG=8u402-jdk-ubuntu-20240427
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
 
 # Set up configuration variables
@@ -10,7 +11,7 @@ ENV DSE_HOME=/opt/dse
 ENV DSE_AGENT_HOME=/opt/agent
 
 # Get commandline parameters
-ARG DSE_VERSION=6.8.50
+ARG DSE_VERSION
 ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
@@ -140,7 +141,6 @@ FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
-
 LABEL maintainer="DataStax, Inc <info@datastax.com>"
 LABEL name="dse-server"
 LABEL vendor="DataStax, Inc"
@@ -152,11 +152,6 @@ ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
 ENV MAAC_PATH=/opt/management-api
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
-
-RUN set -eux; \
-    apt-get update; \
-    apt-get -y upgrade; \
-    rm -rfv /var/lib/apt/lists/* ;
 
 RUN set -x \
 # Add DSE user
@@ -170,11 +165,9 @@ COPY --chown=dse:root --from=dse-server-prep $DSE_AGENT_HOME $DSE_AGENT_HOME
 
 # Create folders
 RUN (for dir in /var/lib/cassandra \
-                /var/lib/spark \
                 /var/lib/dsefs \
                 /var/lib/datastax-agent \
                 /var/log/cassandra \
-                /var/log/spark \
                 /config ; do \
         mkdir -p $dir && chown -R dse:root $dir && chmod 775 $dir ; \
     done )
@@ -193,8 +186,15 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CA
       echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
       echo "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
+# Add MCAC check to cassandra-env.sh
+RUN if ! grep -qxf "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if [ ! -z \"\$MGMT_API_DISABLE_MCAC\" ]; then" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "fi" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
 # Fix COPY directory modes
-RUN chmod g+w ${MAAC_PATH} ${MCAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
+RUN chmod g+w ${MAAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
 ENV PATH=$DSE_HOME/bin:$PATH
 ENV HOME=$DSE_HOME
@@ -203,7 +203,7 @@ WORKDIR $HOME
 USER dse
 
 # Expose DSE folders
-VOLUME ["/var/lib/cassandra", "/var/lib/spark", "/var/lib/dsefs", "/var/log/cassandra", "/var/log/spark"]
+VOLUME ["/var/lib/cassandra", "/var/lib/dsefs", "/var/log/cassandra"]
 
 # CASSANDRA PORTS (INTRA-NODE, TLS INTRA-NODE, JMX, CQL, THRIFT, DSEFS INTRA-NODE, INTRA-NODE MESSAGING SERVICE)
 EXPOSE 7000 7001 7199 8609 9042 9160
