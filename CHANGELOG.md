@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.87 (2024-10-02)
 * [FEATURE] [#535](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/535) Add Cassandra 5.0.0 to the build matrix
 * [BUGFIX] [#541](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/541) readOnlyRootFilesystem still fails due to some Spark folders in OpenShift
 * [FEATURE] [#543](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/543) Add Cassandra 5.0.1 to the build matrix
@@ -18,8 +19,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#545](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/545) Add Cassandra 4.1.7 to the build matrix
 * [FEATURE] [#534](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/534) Add DSE 6.8.51 to the build matrix
 
-## v0.1.86
-
+## v0.1.86 (2024-09-17)
 * [ENHANCEMENT] [#539](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/539) Add the ability to run DSE 6.8 and 6.9 in readOnlyRootFilesystem mode
 
 ## v0.1.85 (2024-09-03)
