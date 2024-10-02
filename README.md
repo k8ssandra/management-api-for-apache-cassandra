@@ -54,42 +54,44 @@
 
 The following versions of Cassandra and DSE are published to Docker and supported:
 
-| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | DSE 6.8.x | DSE 6.9.x     |
-| ---------------- | --------------- | --------------- | --------- | ------------- |
-| 3.11.7           | 4.0.0           | 4.1.0           | 6.8.25    | 6.9.0         |
-| 3.11.8           | 4.0.1           | 4.1.1           | 6.8.26    | 6.9.1         |
-| 3.11.11          | 4.0.3           | 4.1.2           | 6.8.28    | 6.9.2         |
-| 3.11.12          | 4.0.4           | 4.1.3           | 6.8.29    |               |
-| 3.11.13          | 4.0.5           | 4.1.4           | 6.8.30    |               |
-| 3.11.14          | 4.0.6           | 4.1.5           | 6.8.31    |               |
-| 3.11.15          | 4.0.7           | 4.1.6           | 6.8.32    |               |
-| 3.11.16          | 4.0.8           |                 | 6.8.33    |               |
-| 3.11.17          | 4.0.9           |                 | 6.8.34    |               |
-|                  | 4.0.10          |                 | 6.8.35    |               |
-|                  | 4.0.11          |                 | 6.8.36    |               |
-|                  | 4.0.12          |                 | 6.8.37    |               |
-|                  | 4.0.13          |                 | 6.8.38    |               |
-|                  |                 |                 | 6.8.39    |               |
-|                  |                 |                 | 6.8.40    |               |
-|                  |                 |                 | 6.8.41    |               |
-|                  |                 |                 | 6.8.42    |               |
-|                  |                 |                 | 6.8.43    |               |
-|                  |                 |                 | 6.8.44    |               |
-|                  |                 |                 | 6.8.46    |               |
-|                  |                 |                 | 6.8.47    |               |
-|                  |                 |                 | 6.8.48    |               |
-|                  |                 |                 | 6.8.49    |               |
-|                  |                 |                 | 6.8.50    |               |
+| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x     | HCD 1.0.x |
+| ---------------- | --------------- | --------------- | --------------- | --------- | ------------- | ----------|
+| 3.11.7           | 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0         | 1.0.0     |
+| 3.11.8           | 4.0.1           | 4.1.1           |                 | 6.8.26    | 6.9.1         |           |
+| 3.11.11          | 4.0.3           | 4.1.2           |                 | 6.8.28    | 6.9.2         |           |
+| 3.11.12          | 4.0.4           | 4.1.3           |                 | 6.8.29    |               |           |
+| 3.11.13          | 4.0.5           | 4.1.4           |                 | 6.8.30    |               |           |
+| 3.11.14          | 4.0.6           | 4.1.5           |                 | 6.8.31    |               |           |
+| 3.11.15          | 4.0.7           | 4.1.6           |                 | 6.8.32    |               |           |
+| 3.11.16          | 4.0.8           | 4.1.7           |                 | 6.8.33    |               |           |
+| 3.11.17          | 4.0.9           |                 |                 | 6.8.34    |               |           |
+|                  | 4.0.10          |                 |                 | 6.8.35    |               |           |
+|                  | 4.0.11          |                 |                 | 6.8.36    |               |           |
+|                  | 4.0.12          |                 |                 | 6.8.37    |               |           |
+|                  | 4.0.13          |                 |                 | 6.8.38    |               |           |
+|                  | 4.0.14          |                 |                 | 6.8.39    |               |           |
+|                  |                 |                 |                 | 6.8.40    |               |           |
+|                  |                 |                 |                 | 6.8.41    |               |           |
+|                  |                 |                 |                 | 6.8.42    |               |           |
+|                  |                 |                 |                 | 6.8.43    |               |           |
+|                  |                 |                 |                 | 6.8.44    |               |           |
+|                  |                 |                 |                 | 6.8.46    |               |           |
+|                  |                 |                 |                 | 6.8.47    |               |           |
+|                  |                 |                 |                 | 6.8.48    |               |           |
+|                  |                 |                 |                 | 6.8.49    |               |           |
+|                  |                 |                 |                 | 6.8.50    |               |           |
+|                  |                 |                 |                 | 6.8.51    |               |           |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
-- All images (with the exception of Cassandra trunk) are available as an Ubuntu based image or a RedHat UBI 8 based image.
-Cassandra trunk images are only RedHat UBI8 based.
+- All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
+Cassandra 5.0 images are only RedHat UBI8 based.
 - All Cassandra 3.11.x images come with JDK 8
-- All Cassandra 4.0.x and 4.1.x images come with JDK 11
+- All Cassandra 4.0.x, 4.1.x and 5.0.x images come with JDK 11
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
 - All DSE 6.9.x Ubuntu based images come with only JDK 11
 - All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
+- HCD images are not built within this repo. Only the Agent for HCD ois maintained within this repo
 
 ### Docker coordinates for Cassandra OSS images
 
@@ -167,22 +169,27 @@ Example for DSE 6.9.0
 
 ** NOTE: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
 
-### Docker coordinates for Cassandra Trunk images
+### Docker coordinates for HCD 1.0.x images
 
-We also build and publish Nightly images for Cassandra trunk. These images are only published with a RedHat UBI 8 base platform, with JDK 11.
-**NOTE: These are not production ready images. Use with caution!**
+#### Ubuntu based images (HCD 1.0)
 
-The most recent nightly build is available at
+For all JDK 11 Ubuntu based HCD 1.0.x images, the Docker coordinates are as follows:
 
-      k8ssandra/cass-management-api:5.0-nightly-latest
+      datastax/hcd:<version>
 
-You can also use an image built on a specific date
+Example for HCD 1.0.0
 
-      k8ssandra/cass-management-api:5.0-nightly-YYYYMMDD
+      datastax/hcd:1.0.0
 
-There is also an image tag for the specific Cassandra commit SHA (not all commits are built)
+#### RedHat UBI images (HCD 1.0)
 
-      k8ssandra/cass-management-api:5.0-nightly-<Short SHA>
+For all RedHat UBI based HCD 1.0.x images, the Docker coordinates are as follows:
+
+      datastax/hcd:<version>-ubi
+
+Example for HCD 1.0.0
+
+      datastax/hcd:1.0.0-ubi
 
 ## Building
 
