@@ -124,7 +124,7 @@ public class LifecycleResources extends BaseResources {
     try {
       Optional<Integer> maybePid = findPid();
 
-      if (maybePid.isPresent()) {
+      if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
         return Response.status(canConnect ? HttpStatus.SC_ACCEPTED : HttpStatus.SC_NO_CONTENT)
             .build();
       } else if (canConnect) return Response.status(HttpStatus.SC_PARTIAL_CONTENT).build();
@@ -283,7 +283,7 @@ public class LifecycleResources extends BaseResources {
       } while (tries-- > 0);
 
       Optional<Integer> maybePid = findPid();
-      if (maybePid.isPresent()) {
+      if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
         Boolean stopped = UnixCmds.killProcess(maybePid.get());
 
         if (!stopped) {
@@ -296,7 +296,7 @@ public class LifecycleResources extends BaseResources {
         Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
 
         maybePid = findPid();
-        if (maybePid.isPresent()) {
+        if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
           logger.info("Cassandra is not able to die");
           return Response.serverError()
               .entity(Entity.text(String.format("Killing %s Failed", getServerTypeName())))
