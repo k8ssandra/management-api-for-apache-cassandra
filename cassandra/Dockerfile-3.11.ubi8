@@ -101,7 +101,7 @@ RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L 
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
 
-FROM cassandra-builder-${TARGETARCH} as cassandra-builder
+FROM cassandra-builder-${TARGETARCH} AS cassandra-builder
 
 #############################################################
 # Build the Management API
