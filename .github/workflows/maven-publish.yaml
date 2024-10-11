@@ -95,7 +95,7 @@ jobs:
           REPO="gh::default::https://maven.pkg.github.com/${GITHUB_REPOSITORY}"
           mvn -B clean deploy \
           -P dse,hcd \
-          -Drevision="${{ env.RELEASE_VERSION }}" \
+          -Dskip.surefire.tests \
           -DskipTests \
           -DaltDeploymentRepository="${REPO}" \
           -DaltSnapshotDeploymentRepository="${REPO}"
