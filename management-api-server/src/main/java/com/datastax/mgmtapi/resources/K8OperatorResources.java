@@ -5,7 +5,10 @@
  */
 package com.datastax.mgmtapi.resources;
 
+import static com.datastax.mgmtapi.ManagementApplication.STATE.STARTED;
+
 import com.datastax.mgmtapi.ManagementApplication;
+import com.datastax.mgmtapi.UnixCmds;
 import com.datastax.mgmtapi.resources.common.BaseResources;
 import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.mgmtapi.resources.models.Job;
@@ -19,8 +22,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -28,9 +33,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/api/v0")
 public class K8OperatorResources extends BaseResources {
+  private static final Logger logger = LoggerFactory.getLogger(K8OperatorResources.class);
+
   private static final ObjectMapper jsonMapper = new ObjectMapper();
 
   public K8OperatorResources(ManagementApplication application) {
@@ -50,6 +59,19 @@ public class K8OperatorResources extends BaseResources {
               schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "OK")))
   public Response checkLiveness() {
+    if (app.getRequestedState() == STARTED) {
+      // Verify it is still running
+      try {
+        Optional<Integer> pid = UnixCmds.findPid(app.dbUnixSocketFile.getAbsolutePath());
+        if (pid.isPresent() && UnixCmds.isPidRunning(pid.get())) {
+          return Response.ok("OK").build();
+        }
+      } catch (IOException e) {
+        // NOOP
+        logger.error("Unable to read the pid file, " + e.getMessage(), e);
+      }
+      return Response.serverError().build();
+    }
     return Response.ok("OK").build();
   }
 
