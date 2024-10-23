@@ -22,11 +22,11 @@ import com.datastax.mgmtapi.resources.v2.models.RepairRequestResponse;
 import com.datastax.mgmtapi.resources.v2.models.RingRange;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.ws.rs.core.Response;
 import org.junit.Test;
 
 public class RepairResourcesV2Test {

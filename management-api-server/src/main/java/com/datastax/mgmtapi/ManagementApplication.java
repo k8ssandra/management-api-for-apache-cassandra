@@ -17,13 +17,13 @@ import com.datastax.mgmtapi.resources.v2.TokenResourcesV2;
 import com.google.common.collect.ImmutableSet;
 import io.swagger.v3.jaxrs2.SwaggerSerializers;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

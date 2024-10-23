@@ -10,9 +10,9 @@ import com.datastax.mgmtapi.resources.helpers.ResponseTools;
 import com.datastax.oss.driver.api.core.NoNodeAvailableException;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
 import java.util.concurrent.Callable;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Response;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 
