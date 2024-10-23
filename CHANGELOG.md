@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 * [ENHANCEMENT] [#552](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/552) Improve "liveness" probe implementation
+* [FEATURE] [#551](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/551) Add Cassandra 5.0.2 to the build matrix
 
 ## v0.1.87 (2024-10-02)
 * [FEATURE] [#535](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/535) Add Cassandra 5.0.0 to the build matrix

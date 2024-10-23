@@ -8,11 +8,11 @@ as the 5.1-SNAPSHOT version of Cassandra in trunk.
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`5.0.1` as of this writing). If you wish to build for a different
-published version, for example `5.0.2` when it is released, specify the version:
+set to the latest published version (`5.0.2` as of this writing). If you wish to build for a different
+published version, for example `5.0.3` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra5.version=5.0.2
+mvn package -Dcassandra5.version=5.0.3
 ```
 
 ## Building Against Cassandra Trunk
@@ -55,7 +55,7 @@ mvn package -Dcassandra5.version=5.1-SNAPSHOT
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:5.0.1
+    k8ssandra/cass-management-api:5.0.2
 
 ### Building Images Locally for Cassandra trunk
 
@@ -73,6 +73,6 @@ The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.1
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.2
 ```
 
