@@ -8,7 +8,6 @@ package io.k8ssandra.metrics.prometheus;
 import com.codahale.metrics.MetricRegistry;
 import com.datastax.mgmtapi.ShimLoader;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
 import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
