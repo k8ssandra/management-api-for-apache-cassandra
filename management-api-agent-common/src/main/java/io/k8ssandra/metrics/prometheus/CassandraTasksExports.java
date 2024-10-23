@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.apache.cassandra.db.compaction.OperationType;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -306,12 +305,13 @@ public class CassandraTasksExports extends Collector implements Collector.Descri
                   }
 
                   try {
-                    OperationType operationType = OperationType.valueOf(taskType.toUpperCase());
+                    // Can't use OperationType since it differs between 5.0 and 4.1
+                    String operationType = taskType.toUpperCase().replaceAll(" ", "_");
                     // Ignore taskTypes: COUNTER_CACHE_SAVE, KEY_CACHE_SAVE, ROW_CACHE_SAVE (from
                     // Cassandra 4.1)
-                    return operationType != OperationType.COUNTER_CACHE_SAVE
-                        && operationType != OperationType.KEY_CACHE_SAVE
-                        && operationType != OperationType.ROW_CACHE_SAVE;
+                    return operationType != "COUNTER_CACHE_SAVE"
+                        && operationType != "KEY_CACHE_SAVE"
+                        && operationType != "ROW_CACHE_SAVE";
                   } catch (IllegalArgumentException e) {
                     return false;
                   }
