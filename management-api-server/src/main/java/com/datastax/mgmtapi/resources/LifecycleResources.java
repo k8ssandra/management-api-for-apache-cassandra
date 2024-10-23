@@ -108,7 +108,6 @@ public class LifecycleResources extends BaseResources {
               examples = @ExampleObject(value = "error message")))
   public synchronized Response startNode(
       @QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp) {
-    app.setRequestedState(STARTED);
 
     // Todo we should add a CALL getPid command and compare;
     boolean canConnect;
@@ -125,7 +124,7 @@ public class LifecycleResources extends BaseResources {
     try {
       Optional<Integer> maybePid = findPid();
 
-      if (maybePid.isPresent()) {
+      if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
         return Response.status(canConnect ? HttpStatus.SC_ACCEPTED : HttpStatus.SC_NO_CONTENT)
             .build();
       } else if (canConnect) return Response.status(HttpStatus.SC_PARTIAL_CONTENT).build();
@@ -195,6 +194,8 @@ public class LifecycleResources extends BaseResources {
           // DSE and HCD need the extra "cassandra" startup argument
           dbCmdPb.command().add("cassandra");
         }
+        dbCmdPb.command().add("-p");
+        dbCmdPb.command().add("/tmp/cassandra.pid");
         dbCmdPb.command().add("-R");
         dbCmdPb.command().add("-Dcassandra.server_process");
         dbCmdPb.command().add("-Dcassandra.skip_default_role_setup=true");
@@ -220,8 +221,12 @@ public class LifecycleResources extends BaseResources {
                 environment);
       }
 
-      if (started) logger.info("Started {}", getServerTypeName());
-      else logger.warn("Error starting {}", getServerTypeName());
+      if (started) {
+        logger.info("Started {}", getServerTypeName());
+        app.setRequestedState(STARTED);
+      } else {
+        logger.warn("Error starting {}", getServerTypeName());
+      }
 
       return Response.status(started ? HttpStatus.SC_CREATED : HttpStatus.SC_METHOD_FAILURE)
           .entity(started ? "OK\n" : String.format("Error starting %s", getServerTypeName()))
@@ -278,7 +283,7 @@ public class LifecycleResources extends BaseResources {
       } while (tries-- > 0);
 
       Optional<Integer> maybePid = findPid();
-      if (maybePid.isPresent()) {
+      if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
         Boolean stopped = UnixCmds.killProcess(maybePid.get());
 
         if (!stopped) {
@@ -291,7 +296,7 @@ public class LifecycleResources extends BaseResources {
         Uninterruptibles.sleepUninterruptibly(sleepSeconds, TimeUnit.SECONDS);
 
         maybePid = findPid();
-        if (maybePid.isPresent()) {
+        if (maybePid.isPresent() && UnixCmds.isPidRunning(maybePid.get())) {
           logger.info("Cassandra is not able to die");
           return Response.serverError()
               .entity(Entity.text(String.format("Killing %s Failed", getServerTypeName())))
@@ -520,10 +525,8 @@ public class LifecycleResources extends BaseResources {
   }
 
   private Optional<Integer> findPid() throws IOException {
-    return UnixCmds.findDbProcessWithMatchingArg(
-        "-Ddb.unix_socket_file=" + app.dbUnixSocketFile.getAbsolutePath());
+    return UnixCmds.findPid(app.dbUnixSocketFile.getAbsolutePath());
   }
-
   /**
    * Verifies that the provided log directory can be written. Will attempt to create the directory
    * if it does not exist.

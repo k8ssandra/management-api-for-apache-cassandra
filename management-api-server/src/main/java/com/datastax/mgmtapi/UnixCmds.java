@@ -8,6 +8,8 @@ package com.datastax.mgmtapi;
 import com.datastax.mgmtapi.util.ShellUtils;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,6 +42,25 @@ public class UnixCmds {
         (input, err) ->
             input.findFirst().map(path -> new File(path.toLowerCase())).filter(File::canExecute),
         (exitCode, err) -> Optional.empty());
+  }
+
+  public static final Optional<Integer> findPid(String socketFilePath) throws IOException {
+    java.nio.file.Path pidPath = Paths.get("/tmp/cassandra.pid");
+    if (pidPath.toFile().canRead()) {
+      List<String> lines = Files.readAllLines(pidPath);
+      if (!lines.isEmpty()) {
+        return Optional.of(Integer.parseInt(lines.get(0)));
+      }
+    }
+    return UnixCmds.findDbProcessWithMatchingArg("-Ddb.unix_socket_file=" + socketFilePath);
+  }
+
+  public static boolean isPidRunning(int pid) throws IOException {
+    ProcessBuilder psListPb = new ProcessBuilder(PS_CMD, "-eo", "pid");
+    return ShellUtils.executeWithHandlers(
+        psListPb,
+        (input, err) -> input.anyMatch(x -> x.contains(String.valueOf(pid))),
+        (exitCode, err) -> false);
   }
 
   public static Optional<Integer> findDbProcessWithMatchingArg(String filterStr)
