@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE] [#556](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/556) Update Management API dependencies to address CVEs
 * [FEATURE] [#551](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/551) Add Cassandra 5.0.2 to the build matrix
 * [ENHANCEMENT] [#552](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/552) Improve "liveness" probe implementation
 * [BUGFIX] [#553](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/553) Fix CassandraTaskExports metric filtering to make it work with 5.0.x Major compactions
