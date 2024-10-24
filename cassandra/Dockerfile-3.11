@@ -123,7 +123,7 @@ RUN set -eux; \
   rm -fr /etc/apt/sources.list.d/*; \
   rm -rf /var/lib/apt/lists/*; \
   apt-get update; \
-  apt-get install -y --no-install-recommends wget iproute2; \
+  apt-get install -y --no-install-recommends openjdk-11-jdk wget iproute2; \
   rm -rf /var/lib/apt/lists/*
 
 # backwards compat with upstream ENTRYPOINT

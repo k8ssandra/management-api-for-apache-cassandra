@@ -564,10 +564,7 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "class" : "org.apache.cassandra.locator.SimpleStrategy",
-                  "replication_factor" : "2"
-                },
+                "example" : "{\"class\":\"org.apache.cassandra.locator.SimpleStrategy\",\"replication_factor\":\"2\"}",
                 "schema" : {
                   "type" : "string"
                 }
@@ -747,31 +744,7 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : {
-                  "entity" : false,
-                  "variant" : {
-                    "language" : null,
-                    "mediaType" : {
-                      "type" : "application",
-                      "subtype" : "json",
-                      "parameters" : { },
-                      "wildcardType" : false,
-                      "wildcardSubtype" : false
-                    },
-                    "encoding" : null,
-                    "languageString" : null
-                  },
-                  "annotations" : [ ],
-                  "mediaType" : {
-                    "type" : "application",
-                    "subtype" : "json",
-                    "parameters" : { },
-                    "wildcardType" : false,
-                    "wildcardSubtype" : false
-                  },
-                  "language" : null,
-                  "encoding" : null
-                },
+                "example" : "{\"entity\":false,\"variant\":{\"language\":null,\"mediaType\":{\"type\":\"application\",\"subtype\":\"json\",\"parameters\":{},\"wildcardType\":false,\"wildcardSubtype\":false},\"encoding\":null,\"languageString\":null},\"annotations\":[],\"mediaType\":{\"type\":\"application\",\"subtype\":\"json\",\"parameters\":{},\"wildcardType\":false,\"wildcardSubtype\":false},\"language\":null,\"encoding\":null}",
                 "schema" : {
                   "type" : "string"
                 }
@@ -1936,7 +1909,7 @@
                 "example" : "keyspace must be specified",
                 "schema" : {
                   "type" : "string",
-                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
+                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Multiple Choices", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Permanent Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Unavailable For Legal Reasons", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
                 }
               }
             },
@@ -1948,7 +1921,7 @@
                 "example" : "internal error, we did not receive the expected repair ID from Cassandra.",
                 "schema" : {
                   "type" : "string",
-                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
+                  "enum" : [ "OK", "Created", "Accepted", "No Content", "Reset Content", "Partial Content", "Multiple Choices", "Moved Permanently", "Found", "See Other", "Not Modified", "Use Proxy", "Temporary Redirect", "Permanent Redirect", "Bad Request", "Unauthorized", "Payment Required", "Forbidden", "Not Found", "Method Not Allowed", "Not Acceptable", "Proxy Authentication Required", "Request Timeout", "Conflict", "Gone", "Length Required", "Precondition Failed", "Request Entity Too Large", "Request-URI Too Long", "Unsupported Media Type", "Requested Range Not Satisfiable", "Expectation Failed", "Precondition Required", "Too Many Requests", "Request Header Fields Too Large", "Unavailable For Legal Reasons", "Internal Server Error", "Not Implemented", "Bad Gateway", "Service Unavailable", "Gateway Timeout", "HTTP Version Not Supported", "Network Authentication Required" ]
                 }
               }
             },
@@ -2182,7 +2155,7 @@
             "type" : "array",
             "items" : {
               "type" : "string",
-              "enum" : [ "ASYNC_SSTABLE_TASKS", "FULL_QUERY_LOGGING", "REBUILD", "ASYNC_UPGRADE_SSTABLE_TASK", "ASYNC_COMPACTION_TASKS", "ASYNC_SCRUB_TASK", "ASYNC_MOVE_TASK", "ASYNC_GC_TASK", "RELOAD_INTERNODE_TRUSTSTORE", "ASYNC_FLUSH_TASK" ]
+              "enum" : [ "async_sstable_tasks", "full_query_logging", "rebuild", "async_upgrade_sstable_task", "async_compaction_task", "async_scrub_task", "async_move_task", "async_gc_task", "reload_internode_truststore", "async_flush_task" ]
             }
           },
           "mgmt_version" : {

@@ -58,6 +58,7 @@ RUN mkdir -m 775 $MAAC_PATH \
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS dse
+ARG TARGETARCH
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
@@ -75,8 +76,8 @@ ENV HOME=$DSE_HOME
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Install runtime dependencies and updates
-RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
+RUN microdnf update && rm -rf /var/cache/yum \
+    && microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel java-11-openjdk-headless python2 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
 
 WORKDIR $HOME
 
