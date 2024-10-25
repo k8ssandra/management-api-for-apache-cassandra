@@ -13,7 +13,6 @@ ENV MAAC_PATH=/opt/management-api
 COPY pom.xml ./
 COPY management-api-agent-shaded-libs/pom.xml ./management-api-agent-shaded-libs/pom.xml
 COPY management-api-agent-common/pom.xml ./management-api-agent-common/pom.xml
-COPY management-api-agent-3.x/pom.xml ./management-api-agent-3.x/pom.xml
 COPY management-api-agent-4.x/pom.xml ./management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml ./management-api-agent-4.1.x/pom.xml
 COPY management-api-agent-5.0.x/pom.xml ./management-api-agent-5.0.x/pom.xml
@@ -25,7 +24,6 @@ RUN mvn -q -ff -T 1C install -Dskip.surefire.tests -DskipTests -DskipOpenApi && 
 
 COPY management-api-agent-shaded-libs ./management-api-agent-shaded-libs
 COPY management-api-agent-common ./management-api-agent-common
-COPY management-api-agent-3.x ./management-api-agent-3.x
 COPY management-api-agent-4.x ./management-api-agent-4.x
 COPY management-api-agent-4.1.x ./management-api-agent-4.1.x
 COPY management-api-agent-5.0.x ./management-api-agent-5.0.x
@@ -34,7 +32,6 @@ COPY management-api-server ./management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} && \
     mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi && \
     find /build -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
-    rm $MAAC_PATH/datastax-mgmtapi-agent-3* && \
     rm $MAAC_PATH/datastax-mgmtapi-agent-4.x* && \
     rm $MAAC_PATH/datastax-mgmtapi-agent-5* && \
     rm $MAAC_PATH/datastax-mgmtapi-*shaded* && \

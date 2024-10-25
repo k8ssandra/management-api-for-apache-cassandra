@@ -17,7 +17,6 @@
     <build.version.file>build_version.sh</build.version.file>
     <revision>0.1.0-SNAPSHOT</revision>
     <driver.version>4.15.0</driver.version>
-    <cassandra3.version>3.11.17</cassandra3.version>
     <cassandra4.version>4.0.14</cassandra4.version>
     <docker.java.version>3.3.6</docker.java.version>
     <junit.version>4.13.2</junit.version>
@@ -54,7 +53,6 @@
         <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
-        <module>management-api-agent-3.x</module>
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
@@ -73,7 +71,6 @@
         <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
-        <module>management-api-agent-3.x</module>
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
@@ -94,7 +91,6 @@
         <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
-        <module>management-api-agent-3.x</module>
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
@@ -113,11 +109,29 @@
         <module>management-api-agent-shaded-libs</module>
         <module>management-api-common</module>
         <module>management-api-agent-common</module>
-        <module>management-api-agent-3.x</module>
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
         <module>management-api-agent-hcd</module>
+        <module>management-api-server</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>311</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <properties>
+        <dseIncluded>false</dseIncluded>
+      </properties>
+      <modules>
+        <module>management-api-agent-shaded-libs</module>
+        <module>management-api-common</module>
+        <module>management-api-agent-common</module>
+        <module>management-api-agent-3.x</module>
+        <module>management-api-agent-4.x</module>
+        <module>management-api-agent-4.1.x</module>
+        <module>management-api-agent-5.0.x</module>
         <module>management-api-server</module>
       </modules>
     </profile>

@@ -46,7 +46,6 @@ jobs:
           zip jars.zip \
           management-api-agent-shaded-libs/target/datastax-mgmtapi-agent-shaded-libs*.jar \
           management-api-agent-common/target/datastax-mgmtapi-agent-*.jar \
-          management-api-agent-3.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-4.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-4.1.x/target/datastax-mgmtapi-agent-*.jar \
           management-api-agent-5.0.x/target/datastax-mgmtapi-agent-*.jar \

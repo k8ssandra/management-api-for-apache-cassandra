@@ -134,7 +134,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P 311 \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \
