@@ -17,6 +17,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#552](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/552) Improve "liveness" probe implementation
 * [BUGFIX] [#553](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/553) Fix CassandraTaskExports metric filtering to make it work with 5.0.x Major compactions
 * [BUGFIX] [#560](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/560) Fix LatencyMetrics bucketing on 4.1 and 5.0 as their reservoir stores the data in microseconds, not nano (unlike 3.11 and 4.0)
+* [BUGFIX] [#562](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/562) Fix version detection
 
 ## v0.1.87 (2024-10-02)
 * [FEATURE] [#535](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/535) Add Cassandra 5.0.0 to the build matrix

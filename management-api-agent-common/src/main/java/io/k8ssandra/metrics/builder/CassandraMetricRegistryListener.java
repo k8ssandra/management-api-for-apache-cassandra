@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.cassandra.utils.CassandraVersion;
 import org.apache.cassandra.utils.EstimatedHistogram;
 import org.apache.cassandra.utils.FBUtilities;
 import org.slf4j.LoggerFactory;
@@ -54,6 +53,8 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
       Pattern.compile("([1-9]\\d*)\\.(\\d+)\\.(\\d+)(?:-([a-zA-Z0-9]+))?");
 
   private static final String SERVER_VERSION = FBUtilities.getReleaseVersionString();
+  private static final int SERVER_MAJOR_VERSION;
+  private static final int SERVER_MINOR_VERSION;
   private static final int SERVER_PATCH_VERSION;
 
   private boolean microLatencyBuckets = false;
@@ -61,10 +62,14 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   static {
     Matcher matcher = VERSION_PATTERN.matcher(SERVER_VERSION);
     if (matcher.matches()) {
+      SERVER_MAJOR_VERSION = Integer.parseInt(matcher.group(1));
+      SERVER_MINOR_VERSION = Integer.parseInt(matcher.group(2));
       SERVER_PATCH_VERSION = Integer.parseInt(matcher.group(3));
     } else {
       // unexpected Server version
       logger.warn("Unexpected Server Version string: " + SERVER_VERSION);
+      SERVER_MAJOR_VERSION = -1;
+      SERVER_MINOR_VERSION = -1;
       SERVER_PATCH_VERSION = -1;
     }
   }
@@ -86,12 +91,8 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     parser = CassandraMetricNameParser.getDefaultParser(config);
     cache = new ConcurrentHashMap<>();
 
-    CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
-
-    if (cassandraVersion.major > 4 || (cassandraVersion.major == 4 && cassandraVersion.minor > 0)) {
-      // 4.1 and up should use microsecond buckets
-      microLatencyBuckets = true;
-    }
+    // 4.1 and up should use microsecond buckets
+    microLatencyBuckets = isMicrosecondLatencyBuckets();
 
     this.familyCache = familyCache;
   }
@@ -516,5 +517,23 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   @Override
   public void onTimerRemoved(String name) {
     onHistogramRemoved(name);
+  }
+
+  /**
+   * Returns true if the server version should use microsecond latency buckets, as opposed to
+   * nanosecond latency buckets. For Cassandra 4.1 and newer, this should return true. For Cassandra
+   * 4.0 and older, and DSE 6.8/6.9, this should return false.
+   *
+   * @return true if microsecond latency buckets should be used, false if nanosecond should be used.
+   */
+  private boolean isMicrosecondLatencyBuckets() {
+
+    // This should only catch Cassandra 4.1+ and 5+ versions. DSE 6.8 reports something like
+    // 4.0.0.6851 and 6.9 reports something like 4.0.0.693, both of which would follow C* 4.0.x
+    // nanosecond buckets
+    if (SERVER_MAJOR_VERSION > 4 || (SERVER_MAJOR_VERSION == 4 && SERVER_MINOR_VERSION > 0)) {
+      return true;
+    }
+    return false;
   }
 }
