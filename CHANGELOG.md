@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.88 (2024-10-28)
 * [CHANGE] [#556](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/556) Update Management API dependencies to address CVEs
 * [CHANGE] [#547](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/547) Deprecate Cassandra 3.11 support
 * [FEATURE] [#551](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/551) Add Cassandra 5.0.2 to the build matrix
