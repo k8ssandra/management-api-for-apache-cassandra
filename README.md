@@ -93,6 +93,13 @@ Cassandra 5.0 images are only RedHat UBI8 based.
 - All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
 - HCD images are not built within this repo. Only the Agent for HCD ois maintained within this repo
 
+### Java versions in DOcker images
+
+As of v0.1.88, all images produced from this repo will have Java 11 installed as the 
+Management API server code must now run with Java 11. For images where the Cassandra/DSE
+version runs with Java 8 (see above), Both Java 8 and Java 11 will be available, with
+Java 8 being the default and Java 8 used to run the Cassandra/DSE process.
+
 ### Docker coordinates for Cassandra OSS images
 
 #### Ubuntu based images (OSS)

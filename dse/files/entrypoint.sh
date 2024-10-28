@@ -182,8 +182,23 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     # use default of 128m heap if env variable not set
     : "${MGMT_API_HEAP_SIZE:=128m}"
 
-    echo "Running" java ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
-    java ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    # locate Java 11 for running the server
+    if [ "$JAVA11_JAVA" = "" ]; then
+        # use default Java if it reports version 11
+        DEFAULT_JAVA_VERSION=$(java -version 2>&1|awk -F '"' '/version/ {print $2}')
+        echo "Default Java version: ${DEFAULT_JAVA_VERSION}"
+        if [[ $DEFAULT_JAVA_VERSION == 11* ]]; then
+            # Java version seems to be 11
+            JAVA11_JAVA=java
+        else
+            # find java 11
+            JAVA11_HOME=$(find /usr/lib/jvm -type d -name "*java-11*")
+            echo "Found JAVA11 HOME: ${JAVA11_HOME}"
+            JAVA11_JAVA=${JAVA11_HOME}/bin/java
+        fi
+    fi
+    echo "Running" ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
 else
     echo "Running $@"
     exec "$@"

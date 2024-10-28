@@ -138,6 +138,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse
+ARG TARGETARCH
 ARG DSE_VERSION
 ENV DSE_VERSION=${DSE_VERSION}
 
@@ -156,7 +157,15 @@ ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 RUN set -x \
 # Add DSE user
     && groupadd -r dse --gid=999 \
-    && useradd -m -d "$DSE_HOME" -r -g dse -G root --uid=999 dse
+    && useradd -m -d "$DSE_HOME" -r -g dse -G root --uid=999 dse \
+# Add JDK11 for Management API server
+    && rm -fr /etc/apt/sources.list.d/* \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends openjdk-11-jdk \
+    && rm -rf /var/lib/apt/lists/* \
+# JDK8 should be the default for DSE
+    && update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-${TARGETARCH}
 
 COPY --chown=dse:root dse/files /
 
