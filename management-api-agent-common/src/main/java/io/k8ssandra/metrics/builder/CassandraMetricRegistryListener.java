@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.cassandra.utils.CassandraVersion;
 import org.apache.cassandra.utils.EstimatedHistogram;
 import org.apache.cassandra.utils.FBUtilities;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,8 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
   private static final String SERVER_VERSION = FBUtilities.getReleaseVersionString();
   private static final int SERVER_PATCH_VERSION;
+
+  private boolean microLatencyBuckets = false;
 
   static {
     Matcher matcher = VERSION_PATTERN.matcher(SERVER_VERSION);
@@ -82,6 +85,13 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
       throws NoSuchMethodException {
     parser = CassandraMetricNameParser.getDefaultParser(config);
     cache = new ConcurrentHashMap<>();
+
+    CassandraVersion cassandraVersion = new CassandraVersion(FBUtilities.getReleaseVersionString());
+
+    if (cassandraVersion.major > 4 || (cassandraVersion.major == 4 && cassandraVersion.minor > 0)) {
+      // 4.1 and up should use microsecond buckets
+      microLatencyBuckets = true;
+    }
 
     this.familyCache = familyCache;
   }
@@ -372,7 +382,6 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
               }
               buckets = (long[]) bucketOffsetField.get(snapshot);
             } catch (NoSuchFieldException | IllegalAccessException e) {
-              logger.debug("Unable to get bucketOffsets", e);
               buckets = CassandraMetricsTools.DECAYING_BUCKETS;
             }
 
@@ -407,8 +416,9 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
           int outputIndex = 0; // output index
           long cumulativeCount = 0;
           for (int i = 0; i < buckets.length; i++) {
+            int offsetFix = microLatencyBuckets ? 1 : 1000;
             if (outputIndex < LATENCY_OFFSETS.length
-                && buckets[i] > (LATENCY_OFFSETS[outputIndex] * 1000)) {
+                && buckets[i] > (LATENCY_OFFSETS[outputIndex] * offsetFix)) {
               List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
               int j = 0;
               for (; j < bucket.getLabelValues().size(); j++) {

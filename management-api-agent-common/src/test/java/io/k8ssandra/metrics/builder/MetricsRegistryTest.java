@@ -5,7 +5,7 @@
  */
 package io.k8ssandra.metrics.builder;
 
-import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_BUCKETS;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.cassandra.metrics.CassandraMetricsRegistry;
 import org.apache.cassandra.metrics.DefaultNameFactory;
+import org.apache.cassandra.metrics.LatencyMetrics;
 import org.junit.Test;
 
 public class MetricsRegistryTest {
@@ -125,7 +126,7 @@ public class MetricsRegistryTest {
 
     List<Collector.MetricFamilySamples> collect = exporter.collect();
 
-    HashMap<String, Double> bucketMap = new HashMap<>(LATENCY_BUCKETS.length + 1);
+    HashMap<String, Double> bucketMap = new HashMap<>(LATENCY_OFFSETS.length + 1);
     Double countValue = -1.0D;
     Double sumValue = -1.0D;
     for (Collector.MetricFamilySamples mfs : collect) {
@@ -140,12 +141,29 @@ public class MetricsRegistryTest {
       }
     }
 
-    assertEquals(LATENCY_BUCKETS.length + 1, bucketMap.keySet().size());
+    assertEquals(LATENCY_OFFSETS.length + 1, bucketMap.keySet().size());
     assertEquals(countValue, bucketMap.get("+Inf"));
     assertTrue(countValue > 0);
     assertTrue(sumValue > 0);
 
     registry.remove(createMetricName("test_timer"));
+  }
+
+  @Test
+  public void timerBucketTest() throws Exception {
+    CassandraMetricsRegistry registry = CassandraMetricsRegistry.Metrics;
+    Configuration config = new Configuration();
+    CassandraDropwizardExports exporter = new CassandraDropwizardExports(registry, config);
+
+    LatencyMetrics latencyMetrics = new LatencyMetrics("ClientRequest", "TimerTest");
+    latencyMetrics.addNano(TimeUnit.NANOSECONDS.convert(1, TimeUnit.MILLISECONDS));
+    latencyMetrics.addNano(TimeUnit.NANOSECONDS.convert(3, TimeUnit.MILLISECONDS));
+
+    List<Collector.MetricFamilySamples> collect = exporter.collect();
+    assertEquals(4000.0, collect.get(0).samples.get(0).value, 0.01);
+    assertEquals(1.0, collect.get(1).samples.get(7).value, 0.01);
+    assertEquals(2.0, collect.get(1).samples.get(9).value, 0.01);
+    assertEquals(2.0, collect.get(1).samples.get(collect.get(1).samples.size() - 1).value, 0.01);
   }
 
   private CassandraMetricsRegistry.MetricName createMetricName(String name) {
