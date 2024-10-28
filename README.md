@@ -54,38 +54,37 @@
 
 The following versions of Cassandra and DSE are published to Docker and supported:
 
-| Cassandra 3.11.x | Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x     | HCD 1.0.x |
-| ---------------- | --------------- | --------------- |-----------------| --------- | ------------- | ----------|
-| 3.11.7           | 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0         | 1.0.0     |
-| 3.11.8           | 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1         |           |
-| 3.11.11          | 4.0.3           | 4.1.2           |                 | 6.8.28    | 6.9.2         |           |
-| 3.11.12          | 4.0.4           | 4.1.3           |                 | 6.8.29    |               |           |
-| 3.11.13          | 4.0.5           | 4.1.4           |                 | 6.8.30    |               |           |
-| 3.11.14          | 4.0.6           | 4.1.5           |                 | 6.8.31    |               |           |
-| 3.11.15          | 4.0.7           | 4.1.6           |                 | 6.8.32    |               |           |
-| 3.11.16          | 4.0.8           | 4.1.7           |                 | 6.8.33    |               |           |
-| 3.11.17          | 4.0.9           |                 |                 | 6.8.34    |               |           |
-|                  | 4.0.10          |                 |                 | 6.8.35    |               |           |
-|                  | 4.0.11          |                 |                 | 6.8.36    |               |           |
-|                  | 4.0.12          |                 |                 | 6.8.37    |               |           |
-|                  | 4.0.13          |                 |                 | 6.8.38    |               |           |
-|                  | 4.0.14          |                 |                 | 6.8.39    |               |           |
-|                  |                 |                 |                 | 6.8.40    |               |           |
-|                  |                 |                 |                 | 6.8.41    |               |           |
-|                  |                 |                 |                 | 6.8.42    |               |           |
-|                  |                 |                 |                 | 6.8.43    |               |           |
-|                  |                 |                 |                 | 6.8.44    |               |           |
-|                  |                 |                 |                 | 6.8.46    |               |           |
-|                  |                 |                 |                 | 6.8.47    |               |           |
-|                  |                 |                 |                 | 6.8.48    |               |           |
-|                  |                 |                 |                 | 6.8.49    |               |           |
-|                  |                 |                 |                 | 6.8.50    |               |           |
-|                  |                 |                 |                 | 6.8.51    |               |           |
+| Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x     | HCD 1.0.x |
+| --------------- | --------------- |-----------------| --------- | ------------- | ----------|
+| 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0         | 1.0.0     |
+| 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1         |           |
+| 4.0.3           | 4.1.2           |                 | 6.8.28    | 6.9.2         |           |
+| 4.0.4           | 4.1.3           |                 | 6.8.29    |               |           |
+| 4.0.5           | 4.1.4           |                 | 6.8.30    |               |           |
+| 4.0.6           | 4.1.5           |                 | 6.8.31    |               |           |
+| 4.0.7           | 4.1.6           |                 | 6.8.32    |               |           |
+| 4.0.8           | 4.1.7           |                 | 6.8.33    |               |           |
+| 4.0.9           |                 |                 | 6.8.34    |               |           |
+| 4.0.10          |                 |                 | 6.8.35    |               |           |
+| 4.0.11          |                 |                 | 6.8.36    |               |           |
+| 4.0.12          |                 |                 | 6.8.37    |               |           |
+| 4.0.13          |                 |                 | 6.8.38    |               |           |
+| 4.0.14          |                 |                 | 6.8.39    |               |           |
+|                 |                 |                 | 6.8.40    |               |           |
+|                 |                 |                 | 6.8.41    |               |           |
+|                 |                 |                 | 6.8.42    |               |           |
+|                 |                 |                 | 6.8.43    |               |           |
+|                 |                 |                 | 6.8.44    |               |           |
+|                 |                 |                 | 6.8.46    |               |           |
+|                 |                 |                 | 6.8.47    |               |           |
+|                 |                 |                 | 6.8.48    |               |           |
+|                 |                 |                 | 6.8.49    |               |           |
+|                 |                 |                 | 6.8.50    |               |           |
+|                 |                 |                 | 6.8.51    |               |           |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
 Cassandra 5.0 images are only RedHat UBI8 based.
-- All Cassandra 3.11.x images come with JDK 8
 - All Cassandra 4.0.x, 4.1.x and 5.0.x images come with JDK 11
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
@@ -93,12 +92,30 @@ Cassandra 5.0 images are only RedHat UBI8 based.
 - All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
 - HCD images are not built within this repo. Only the Agent for HCD ois maintained within this repo
 
-### Java versions in DOcker images
+### Java versions in Docker images
 
 As of v0.1.88, all images produced from this repo will have Java 11 installed as the 
 Management API server code must now run with Java 11. For images where the Cassandra/DSE
 version runs with Java 8 (see above), Both Java 8 and Java 11 will be available, with
 Java 8 being the default and Java 8 used to run the Cassandra/DSE process.
+
+### Cassandra 3.11.x support is now deprecated
+
+Cassandra 3.11.x is no longer supported as of version v0.1.88. Images with Cassandra 3.11 are still available in DockerHub.
+No new Management API functionality will be released for any Cassandra 3.11 versions going forward and no new Cassandra 3.11.x
+patch version images will be published going forward. The table below shows the last published Cassandra 3.11.x versions:
+
+| Cassandra 3.11.x |
+| ---------------- |
+| 3.11.7           |
+| 3.11.8           |
+| 3.11.11          |
+| 3.11.12          |
+| 3.11.13          |
+| 3.11.14          |
+| 3.11.15          |
+| 3.11.16          |
+| 3.11.17          |
 
 ### Docker coordinates for Cassandra OSS images
 
@@ -211,19 +228,15 @@ First, you will need to have the [Docker buildx plugin](https://docs.docker.com/
 
 To build an image based on the desired Cassandra version see the examples below:
 
-    #Create a docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11 --file cassandra/Dockerfile-3.11 --target cassandra --platform linux/amd64 .
-
     #Create a docker image with management api and C* 4.0 (version 4.0.0 and newer are supported)
     docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0 --file cassandra/Dockerfile-4.0 --target cassandra --platform linux/amd64 .
 
     #Create a docker image with management api and C* 4.1 (version 4.1.0 and newer are supported)
     docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1 --file cassandra/Dockerfile-4.1 --target cassandra --platform linux/amd64 .
 
-To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi8` Dockerfile. Examples:
+    # Cassandra 5.0 and newer images are based on RedHat Universal Base Images (see below)
 
-    #Create a UBI8 based image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11_ubi8 --file cassandra/Dockerfile-3.11.ubi8 --target cassandra --platform linux/amd64 .
+To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi8` Dockerfile. Examples:
 
     #Create a UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
     docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8 --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/amd64 .
@@ -231,13 +244,13 @@ To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi
     #Create a UBI8 based image with management api and C* 4.1 (version 4.1.0 and newer are supported)
     docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1_ubi8 --file cassandra/Dockerfile-4.1.ubi8 --target cassandra --platform linux/amd64 .
 
+    #Create a UBI8 based image with management api and C* 5.0 (version 5.0.1 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=5.0.2 --tag mgmtapi-5_0_ubi8 --file cassandra/Dockerfile-5.0.ubi8 --target cassandra --platform linux/amd64 .
+
 You can also build OSS Cassandra images for `linux/arm64` based platforms. Both Ubuntu and UBI8 based images support this. Simply change the `--platform` argument above to `--platform linux/arm64`. Examples:
 
-    #Create an ARM64 docker image with management api and C* 3.11 (version 3.11.7 and newer are supported, replace `3.11.16` with the version you want below)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=3.11.16 --tag mgmtapi-3_11 --file cassandra/Dockerfile-3.11 --target cassandra --platform linux/arm64 .
-
     #Create an ARM64 UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8 --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/arm64 .
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8-arm --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/arm64 .
 
 To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.8/README.md).
 
@@ -316,9 +329,9 @@ For building an image based on DSE 6.9, see the [DSE 6.9 README](management-api-
 By default, all images will listen on port 8080 for Management API connections. This can be overridden by specifying
 the environment variable `MGMT_API_LISTEN_TCP_PORT` and setting it to your desired port. For example:
 
-    > docker run -e USE_MGMT_API=true -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:3.11.15
+    > docker run -e USE_MGMT_API=true -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:4.0.14
 
-The above would run a Cassandra 3.11.15 image with Management API listening on port 9090 (instead of 8080).
+The above would run a Cassandra 4.0.14 image with Management API listening on port 9090 (instead of 8080).
 
 ## Usage with DSE
 

@@ -15,6 +15,9 @@
   </parent>
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-3.x</artifactId>
+  <properties>
+    <cassandra3.version>3.11.17</cassandra3.version>
+  </properties>
   <profiles>
     <profile>
       <id>default</id>

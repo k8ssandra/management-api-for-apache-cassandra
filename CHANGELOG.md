@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 * [CHANGE] [#556](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/556) Update Management API dependencies to address CVEs
+* [CHANGE] [#547](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/547) Deprecate Cassandra 3.11 support
 * [FEATURE] [#551](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/551) Add Cassandra 5.0.2 to the build matrix
 * [FEATURE] [#549](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/549) Add DSE 6.9.3 to the build matrix
 * [ENHANCEMENT] [#552](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/552) Improve "liveness" probe implementation
