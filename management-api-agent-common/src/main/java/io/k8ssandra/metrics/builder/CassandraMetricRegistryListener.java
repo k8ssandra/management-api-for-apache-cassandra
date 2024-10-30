@@ -528,12 +528,21 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
    */
   private boolean isMicrosecondLatencyBuckets() {
 
-    // This should only catch Cassandra 4.1+ and 5+ versions. DSE 6.8 reports something like
-    // 4.0.0.6851 and 6.9 reports something like 4.0.0.693, both of which would follow C* 4.0.x
-    // nanosecond buckets
-    if (SERVER_MAJOR_VERSION > 4 || (SERVER_MAJOR_VERSION == 4 && SERVER_MINOR_VERSION > 0)) {
+    // Only Cassandra 4.1 and newer should use microsecond resolution.
+
+    boolean isCassandra = false;
+    try {
+      Class.forName("org.apache.cassandra.utils.CassandraVersion");
+      isCassandra = true;
+    } catch (ClassNotFoundException cfne) {
+      // DSE doesn't have CassandraVersion
+    }
+    if (isCassandra
+        && (SERVER_MAJOR_VERSION > 4 || (SERVER_MAJOR_VERSION == 4 && SERVER_MINOR_VERSION > 0))) {
+      logger.info("Server version indicates metrics are microsecond resolution");
       return true;
     }
+    logger.info("Server version indicates metrics are nanosecond resolution");
     return false;
   }
 }

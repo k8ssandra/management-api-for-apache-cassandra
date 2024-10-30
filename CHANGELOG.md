@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#564](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/564) Fix LatencyMetrics for DSE
 
 ## v0.1.88 (2024-10-28)
 * [CHANGE] [#556](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/556) Update Management API dependencies to address CVEs
