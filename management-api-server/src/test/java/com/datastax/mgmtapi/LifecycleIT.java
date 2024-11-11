@@ -9,6 +9,7 @@ import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_P
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_PROVIDER_PASSWORD;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_PROVIDER_USER_NAME;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.LOAD_BALANCING_LOCAL_DATACENTER;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -32,6 +33,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -222,6 +224,18 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
 
       assertTrue(roleAdded);
 
+      // getRoles
+      Pair<Integer, String> roleList =
+          client
+              .get(URI.create(BASE_PATH + "/ops/auth/role").toURL())
+              .thenApply(this::responseAsCodeAndBody)
+              .join();
+
+      assertThat(roleList.getLeft()).isEqualTo(HttpStatus.SC_OK);
+      assertThat(roleList.getRight())
+          .contains(
+              "{\"super\":\"true\",\"datacenters\":\"ALL\",\"name\":\"authtest\",\"options\":\"{}\",\"login\":\"true\"}");
+
       // verify that we can login with user authtest/authtest
       CqlSession session =
           new TestgCqlSessionBuilder()
@@ -247,6 +261,16 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
         Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
         assertEquals("1", params.get("dc1"));
       }
+
+      // dropRole
+
+      Boolean roleDropped =
+          client
+              .delete(URI.create(BASE_PATH + "/ops/auth/role").toURL())
+              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+              .join();
+
+      assertTrue(roleDropped);
 
     } finally {
       // Stop before next test starts
