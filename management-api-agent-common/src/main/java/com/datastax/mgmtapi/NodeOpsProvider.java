@@ -45,9 +45,11 @@ import javax.management.NotificationFilter;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.TabularData;
 import org.apache.cassandra.auth.AuthenticatedUser;
+import org.apache.cassandra.auth.INetworkAuthorizer;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.auth.RoleOptions;
 import org.apache.cassandra.auth.RoleResource;
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.compaction.OperationType;
@@ -549,6 +551,40 @@ public class NodeOpsProvider {
     ro.setOption(IRoleManager.Option.PASSWORD, password);
 
     ShimLoader.instance.get().getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
+  }
+
+  @Rpc(name = "listRoles")
+  public List<Map<String, String>> listRoles() {
+    logger.debug("Listing roles");
+    IRoleManager roleManager = ShimLoader.instance.get().getRoleManager();
+    Set<RoleResource> allRoles = roleManager.getAllRoles();
+    List<Map<String, String>> roles = new ArrayList<>();
+    for (RoleResource role : allRoles) {
+      Map<String, String> roleOutput = new HashMap<>();
+      roleOutput.put("name", role.getRoleName());
+      roleOutput.put("super", String.valueOf(roleManager.isSuper(role)));
+      roleOutput.put("login", String.valueOf(roleManager.canLogin(role)));
+      ObjectMapper objectMapper = new ObjectMapper();
+      try {
+        String s = objectMapper.writeValueAsString(roleManager.getCustomOptions(role));
+        roleOutput.put("options", s);
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException(e);
+      }
+      INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+      roleOutput.put("datacenters", networkAuthorizer.authorize(role).toString());
+      roles.add(roleOutput);
+    }
+
+    return roles;
+  }
+
+  @Rpc(name = "dropRole")
+  public void dropRole(@RpcParam(name = "username") String username) {
+    logger.debug("Dropping role {}", username);
+    RoleResource rr = RoleResource.role(username);
+
+    ShimLoader.instance.get().getRoleManager().dropRole(AuthenticatedUser.SYSTEM_USER, rr);
   }
 
   @Rpc(name = "checkConsistencyLevel")
