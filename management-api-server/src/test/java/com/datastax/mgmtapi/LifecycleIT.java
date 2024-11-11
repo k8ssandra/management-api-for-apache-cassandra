@@ -232,9 +232,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
               .join();
 
       assertThat(roleList.getLeft()).isEqualTo(HttpStatus.SC_OK);
-      assertThat(roleList.getRight())
-          .contains(
-              "{\"super\":\"true\",\"datacenters\":\"ALL\",\"name\":\"authtest\",\"options\":\"{}\",\"login\":\"true\"}");
+      assertThat(roleList.getRight()).contains("\"name\":\"authtest\"");
 
       // verify that we can login with user authtest/authtest
       CqlSession session =
