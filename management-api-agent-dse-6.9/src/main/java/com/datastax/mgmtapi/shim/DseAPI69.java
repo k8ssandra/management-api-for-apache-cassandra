@@ -32,6 +32,8 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.auth.Role;
+import org.apache.cassandra.auth.RoleResource;
 import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
@@ -345,27 +347,16 @@ public class DseAPI69 implements CassandraAPI {
     Set<RoleResource> allRoles = roleManager.getAllRoles();
     List<Map<String, String>> roles = new ArrayList<>();
     for (RoleResource role : allRoles) {
-        Role data = roleManager.getRoleData(role, authContext);
-        if (data.hidden)
-          continue;
-
-        result.addColumnValue(optionsType.decompose(data.options));
-
       Map<String, String> roleOutput = new HashMap<>();
       roleOutput.put("name", role.getRoleName());
       roleOutput.put("super", String.valueOf(roleManager.isSuper(role)));
       roleOutput.put("login", String.valueOf(roleManager.canLogin(role)));
 
-      Map<String, String> customOptions = data.options;
-      String optionsAsString = customOptions.keySet().stream()
-          .map(key -> key + ": " + customOptions.get(key))
-          .collect(Collectors.joining(", ", "{", "}"));
-
+      roleOutput.put("options", "{}");
       roleOutput.put("datacenters", "");
       roles.add(roleOutput);
     }
 
     return roles;
   }
-
 }
