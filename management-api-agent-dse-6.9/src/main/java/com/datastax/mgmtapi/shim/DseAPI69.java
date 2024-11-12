@@ -338,4 +338,34 @@ public class DseAPI69 implements CassandraAPI {
   public void reloadInternodeEncryptionTruststore() throws Exception {
     DseReloadableTrustManager.serverEncryptionInstance().reloadTrustManager();
   }
+
+  @Override
+  public List<Map<String, String>> listRoles() {
+    IRoleManager roleManager = getRoleManager();
+    Set<RoleResource> allRoles = roleManager.getAllRoles();
+    List<Map<String, String>> roles = new ArrayList<>();
+    for (RoleResource role : allRoles) {
+        Role data = roleManager.getRoleData(role, authContext);
+        if (data.hidden)
+          continue;
+
+        result.addColumnValue(optionsType.decompose(data.options));
+
+      Map<String, String> roleOutput = new HashMap<>();
+      roleOutput.put("name", role.getRoleName());
+      roleOutput.put("super", String.valueOf(roleManager.isSuper(role)));
+      roleOutput.put("login", String.valueOf(roleManager.canLogin(role)));
+
+      Map<String, String> customOptions = data.options;
+      String optionsAsString = customOptions.keySet().stream()
+          .map(key -> key + ": " + customOptions.get(key))
+          .collect(Collectors.joining(", ", "{", "}"));
+
+      roleOutput.put("datacenters", "");
+      roles.add(roleOutput);
+    }
+
+    return roles;
+  }
+
 }
