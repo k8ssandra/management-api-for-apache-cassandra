@@ -264,7 +264,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
 
       Boolean roleDropped =
           client
-              .delete(URI.create(BASE_PATH + "/ops/auth/role").toURL())
+              .delete(URI.create(BASE_PATH + "/ops/auth/role?username=authtest").toURL())
               .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
               .join();
 
