@@ -32,7 +32,6 @@ import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.cassandra.auth.IRoleManager;
-import org.apache.cassandra.auth.Role;
 import org.apache.cassandra.auth.RoleResource;
 import org.apache.cassandra.concurrent.TPCTaskType;
 import org.apache.cassandra.config.DatabaseDescriptor;
