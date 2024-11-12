@@ -322,9 +322,11 @@
           "200" : {
             "content" : {
               "application/json" : {
-                "example" : "OK",
                 "schema" : {
-                  "type" : "string"
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Role"
+                  }
                 }
               }
             },
@@ -2373,6 +2375,26 @@
           }
         },
         "required" : [ "end", "start" ]
+      },
+      "Role" : {
+        "type" : "object",
+        "properties" : {
+          "datacenters" : {
+            "type" : "string"
+          },
+          "login" : {
+            "type" : "boolean"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "options" : {
+            "type" : "string"
+          },
+          "super" : {
+            "type" : "boolean"
+          }
+        }
       },
       "ScrubRequest" : {
         "type" : "object",

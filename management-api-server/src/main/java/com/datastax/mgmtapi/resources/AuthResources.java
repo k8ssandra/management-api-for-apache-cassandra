@@ -9,10 +9,12 @@ import static com.datastax.mgmtapi.resources.v1.TableOpsResources.LIST_OF_MAP_OF
 
 import com.datastax.mgmtapi.ManagementApplication;
 import com.datastax.mgmtapi.resources.common.BaseResources;
+import com.datastax.mgmtapi.resources.models.Role;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,10 +27,10 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
 
 @Path("/api/v0/ops/auth")
 public class AuthResources extends BaseResources {
@@ -129,8 +131,7 @@ public class AuthResources extends BaseResources {
       content =
           @Content(
               mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(implementation = String.class),
-              examples = @ExampleObject(value = "OK")))
+              array = @ArraySchema(schema = @Schema(implementation = Role.class))))
   @ApiResponse(
       responseCode = "400",
       description = "Username is empty",
@@ -142,6 +143,8 @@ public class AuthResources extends BaseResources {
   public Response listRoles() {
     return handle(
         () -> {
+          List<Role> roleResult = new ArrayList<>();
+
           ResultSet result =
               app.cqlService.executePreparedStatement(
                   app.dbUnixSocketFile, "CALL NodeOps.listRoles()");
@@ -149,11 +152,18 @@ public class AuthResources extends BaseResources {
           if (row != null) {
             List<Map<String, String>> roles = row.get(0, LIST_OF_MAP_OF_STRINGS);
 
-            return Response.ok(jsonMapper.writeValueAsString(roles), MediaType.APPLICATION_JSON)
-                .build();
+            for (Map<String, String> role : roles) {
+              roleResult.add(
+                  new Role(
+                      role.get("name"),
+                      Boolean.valueOf(role.get("super")),
+                      Boolean.valueOf(role.get("login")),
+                      role.get("datacenters"),
+                      role.get("options")));
+            }
           }
 
-          return Response.status(HttpStatus.SC_NO_CONTENT).build();
+          return Response.ok(roleResult, MediaType.APPLICATION_JSON).build();
         });
   }
 }

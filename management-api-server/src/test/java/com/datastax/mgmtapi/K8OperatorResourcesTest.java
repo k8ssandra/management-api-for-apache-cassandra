@@ -2255,7 +2255,8 @@ public class K8OperatorResourcesTest {
     MockHttpRequest getRequest = MockHttpRequest.get(ROOT_PATH + "/ops/auth/role");
     MockHttpResponse response = context.invoke(getRequest);
 
-    assertEquals(HttpStatus.SC_NO_CONTENT, response.getStatus());
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+    assertEquals("[]", response.getContentAsString());
 
     verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.listRoles()"));
 
@@ -2292,7 +2293,7 @@ public class K8OperatorResourcesTest {
     verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.listRoles()"));
 
     assertEquals(
-        "[{\"super\":\"true\",\"datacenters\":\"ALL\",\"name\":\"abc\",\"options\":\"{}\",\"login\":\"false\"}]",
+        "[{\"name\":\"abc\",\"super\":true,\"login\":false,\"datacenters\":\"ALL\",\"options\":\"{}\"}]",
         response.getContentAsString());
 
     MockHttpRequest deleteRequest =
