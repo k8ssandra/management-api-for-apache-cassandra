@@ -551,6 +551,20 @@ public class NodeOpsProvider {
     ShimLoader.instance.get().getRoleManager().createRole(AuthenticatedUser.SYSTEM_USER, rr, ro);
   }
 
+  @Rpc(name = "listRoles")
+  public List<Map<String, String>> listRoles() {
+    logger.debug("Listing roles");
+    return ShimLoader.instance.get().listRoles();
+  }
+
+  @Rpc(name = "dropRole")
+  public void dropRole(@RpcParam(name = "username") String username) {
+    logger.debug("Dropping role {}", username);
+    RoleResource rr = RoleResource.role(username);
+
+    ShimLoader.instance.get().getRoleManager().dropRole(AuthenticatedUser.SYSTEM_USER, rr);
+  }
+
   @Rpc(name = "checkConsistencyLevel")
   public Map<List<Long>, List<String>> checkConsistencyLevel(
       @RpcParam(name = "consistency_level") String consistencyLevelName,

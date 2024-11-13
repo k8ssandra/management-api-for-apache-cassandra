@@ -8,11 +8,17 @@ package com.datastax.mgmtapi.shims;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+import org.apache.cassandra.auth.INetworkAuthorizer;
 import org.apache.cassandra.auth.IRoleManager;
+import org.apache.cassandra.auth.RoleResource;
+import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.cql3.UntypedResultSet;
 import org.apache.cassandra.db.ConsistencyLevel;
@@ -86,4 +92,31 @@ public interface CassandraAPI {
   default void reloadInternodeEncryptionTruststore() throws Exception {
     throw new UnsupportedOperationException("Unimplemented for Cassandra, only available for DSE");
   };
+
+  default List<Map<String, String>> listRoles() {
+    IRoleManager roleManager = getRoleManager();
+    Set<RoleResource> allRoles = roleManager.getAllRoles();
+    List<Map<String, String>> roles = new ArrayList<>();
+    for (RoleResource role : allRoles) {
+      Map<String, String> roleOutput = new HashMap<>();
+      roleOutput.put("name", role.getRoleName());
+      roleOutput.put("super", String.valueOf(roleManager.isSuper(role)));
+      roleOutput.put("login", String.valueOf(roleManager.canLogin(role)));
+
+      Map<String, String> customOptions = roleManager.getCustomOptions(role);
+      // The driver has similar code, but that's private
+      String optionsAsString =
+          customOptions.keySet().stream()
+              .map(key -> key + ": " + customOptions.get(key))
+              .collect(Collectors.joining(", ", "{", "}"));
+
+      roleOutput.put("options", optionsAsString);
+
+      INetworkAuthorizer networkAuthorizer = DatabaseDescriptor.getNetworkAuthorizer();
+      roleOutput.put("datacenters", networkAuthorizer.authorize(role).toString());
+      roles.add(roleOutput);
+    }
+
+    return roles;
+  }
 }

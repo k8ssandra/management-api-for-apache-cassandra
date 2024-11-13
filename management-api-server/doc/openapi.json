@@ -281,6 +281,71 @@
       }
     },
     "/api/v0/ops/auth/role" : {
+      "delete" : {
+        "operationId" : "dropRole",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "username",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Role dropped"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Username is empty",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Username is empty"
+          }
+        },
+        "summary" : "Drops a user role"
+      },
+      "get" : {
+        "operationId" : "listRoles",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Role"
+                  }
+                }
+              }
+            },
+            "description" : "List of roles"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Username is empty",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Username is empty"
+          }
+        },
+        "summary" : "Lists existing user rules"
+      },
       "post" : {
         "operationId" : "createRole",
         "parameters" : [ {
@@ -2310,6 +2375,26 @@
           }
         },
         "required" : [ "end", "start" ]
+      },
+      "Role" : {
+        "type" : "object",
+        "properties" : {
+          "datacenters" : {
+            "type" : "string"
+          },
+          "login" : {
+            "type" : "boolean"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "options" : {
+            "type" : "string"
+          },
+          "super" : {
+            "type" : "boolean"
+          }
+        }
       },
       "ScrubRequest" : {
         "type" : "object",

@@ -43,7 +43,7 @@ import org.apache.http.HttpStatus;
 @Path("/api/v1/ops/tables")
 public class TableOpsResources extends BaseResources {
 
-  private static final GenericType<List<Map<String, String>>> LIST_OF_MAP_OF_STRINGS =
+  public static final GenericType<List<Map<String, String>>> LIST_OF_MAP_OF_STRINGS =
       GenericType.listOf(GenericType.mapOf(String.class, String.class));
 
   public TableOpsResources(ManagementApplication application) {

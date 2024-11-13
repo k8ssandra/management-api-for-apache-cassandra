@@ -14,6 +14,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.datastax.mgmtapi.resources.AuthResources;
 import com.datastax.mgmtapi.resources.K8OperatorResources;
 import com.datastax.mgmtapi.resources.KeyspaceOpsResources;
 import com.datastax.mgmtapi.resources.MetadataResources;
@@ -40,6 +42,7 @@ import com.datastax.mgmtapi.resources.models.TakeSnapshotRequest;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
+import com.datastax.oss.driver.api.core.type.reflect.GenericType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,6 +96,7 @@ public class K8OperatorResourcesTest {
     ManagementApplication app =
         new ManagementApplication(null, null, null, context.cqlService, null);
 
+    context.dispatcher.getRegistry().addSingletonResource(new AuthResources(app));
     context.dispatcher.getRegistry().addSingletonResource(new K8OperatorResources(app));
     context.dispatcher.getRegistry().addSingletonResource(new KeyspaceOpsResources(app));
     context
@@ -2236,5 +2240,69 @@ public class K8OperatorResourcesTest {
 
     when(mockKeyspacesResultSet.one()).thenReturn(mockKeyspacesRow);
     when(mockKeyspacesRow.getList(0, String.class)).thenReturn(Arrays.asList(keyspaceName));
+  }
+
+  @Test
+  public void testAuthMethods() throws Exception {
+    Context context = setup();
+
+    ResultSet mockResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(any(), any(), any()))
+        .thenReturn(mockResultSet);
+
+    MockHttpRequest getRequest = MockHttpRequest.get(ROOT_PATH + "/ops/auth/role");
+    MockHttpResponse response = context.invoke(getRequest);
+
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+    assertEquals("[]", response.getContentAsString());
+
+    verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.listRoles()"));
+
+    MockHttpRequest postRequest = MockHttpRequest.post(ROOT_PATH + "/ops/auth/role");
+    response = context.invoke(postRequest);
+
+    assertEquals(HttpStatus.SC_BAD_REQUEST, response.getStatus());
+
+    postRequest = MockHttpRequest.post(ROOT_PATH + "/ops/auth/role?username=abc&password=def");
+    response = context.invoke(postRequest);
+
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+
+    verify(context.cqlService)
+        .executePreparedStatement(
+            any(), eq("CALL NodeOps.createRole(?,?,?,?)"), any(), any(), any(), any());
+
+    clearInvocations(context.cqlService);
+
+    when(mockResultSet.one()).thenReturn(mockRow);
+    List<Map<String, String>> example = new ArrayList<>();
+    Map<String, String> item = new HashMap<>();
+    item.put("name", "abc");
+    item.put("super", "true");
+    item.put("login", "false");
+    item.put("options", "{}");
+    item.put("datacenters", "ALL");
+    example.add(item);
+    when(mockRow.get(0, GenericType.listOf(GenericType.mapOf(String.class, String.class))))
+        .thenReturn(example);
+
+    response = context.invoke(getRequest);
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+    verify(context.cqlService).executePreparedStatement(any(), eq("CALL NodeOps.listRoles()"));
+
+    assertEquals(
+        "[{\"name\":\"abc\",\"super\":true,\"login\":false,\"datacenters\":\"ALL\",\"options\":\"{}\"}]",
+        response.getContentAsString());
+
+    MockHttpRequest deleteRequest =
+        MockHttpRequest.delete(ROOT_PATH + "/ops/auth/role?username=abc");
+    response = context.invoke(deleteRequest);
+
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+
+    verify(context.cqlService)
+        .executePreparedStatement(any(), eq("CALL NodeOps.dropRole(?)"), eq("abc"));
   }
 }
