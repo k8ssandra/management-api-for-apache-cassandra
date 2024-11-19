@@ -1,4 +1,4 @@
-ARG CASSANDRA_VERSION=4.0.14
+ARG CASSANDRA_VERSION=4.0.15
 
 FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 AS builder
 

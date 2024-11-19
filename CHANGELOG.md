@@ -12,6 +12,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 
 * [FEATURE] [#566](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/566) Add listRoles and dropRole functionality to the REST interface
+* [FEATURE] [#](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/) Add Cassandra 4.0.15 to the build matrix
+* [FEATURE] [#](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/) Add DSE 6.9.4 to the build matrix
+* [FEATURE] [#](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/) Add DSE 6.8.52 to the build matrix
 
 ## v0.1.89 (2024-10-29)
 * [BUGFIX] [#564](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/564) Fix LatencyMetrics for DSE

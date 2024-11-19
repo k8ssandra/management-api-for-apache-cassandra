@@ -11,10 +11,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41, 6.8.42, 6.8.43, 6.8.44, 6.8.46, 6.8.47, 6.8.48, 6.8.49, 6.8.50, 6.8.51]
+        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41, 6.8.42, 6.8.43, 6.8.44, 6.8.46, 6.8.47, 6.8.48, 6.8.49, 6.8.50, 6.8.51, 6.8.52]
         image-base: [jdk8, jdk11]
         include:
-          - dse-version: 6.8.51
+          - dse-version: 6.8.52
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -108,10 +108,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41, 6.8.42, 6.8.43, 6.8.44, 6.8.46, 6.8.47, 6.8.48, 6.8.49, 6.8.50, 6.8.51]
+        dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41, 6.8.42, 6.8.43, 6.8.44, 6.8.46, 6.8.47, 6.8.48, 6.8.49, 6.8.50, 6.8.51, 6.8.52]
         image-base: [ubi8]
         include:
-          - dse-version: 6.8.51
+          - dse-version: 6.8.52
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -259,9 +259,9 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        cassandra-version: [4.0.0, 4.0.1, 4.0.3, 4.0.4, 4.0.5, 4.0.6, 4.0.7, 4.0.8, 4.0.9, 4.0.10, 4.0.11, 4.0.12, 4.0.13, 4.0.14]
+        cassandra-version: [4.0.0, 4.0.1, 4.0.3, 4.0.4, 4.0.5, 4.0.6, 4.0.7, 4.0.8, 4.0.9, 4.0.10, 4.0.11, 4.0.12, 4.0.13, 4.0.14, 4.0.15]
         include:
-          - cassandra-version: 4.0.14
+          - cassandra-version: 4.0.15
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -464,10 +464,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.9.0, 6.9.1, 6.9.2, 6.9.3]
+        dse-version: [6.9.0, 6.9.1, 6.9.2, 6.9.3, 6.9.4]
         image-base: [jdk11]
         include:
-          - dse-version: 6.9.3
+          - dse-version: 6.9.4
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -535,10 +535,10 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        dse-version: [6.9.0, 6.9.1, 6.9.2, 6.9.3]
+        dse-version: [6.9.0, 6.9.1, 6.9.2, 6.9.3, 6.9.4]
         image-base: [ubi8]
         include:
-          - dse-version: 6.9.3
+          - dse-version: 6.9.4
             latest: true
     runs-on: ubuntu-latest
     steps:

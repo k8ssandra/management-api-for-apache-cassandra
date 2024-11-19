@@ -54,33 +54,34 @@
 
 The following versions of Cassandra and DSE are published to Docker and supported:
 
-| Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x     | HCD 1.0.x |
-| --------------- | --------------- |-----------------| --------- | ------------- | ----------|
-| 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0         | 1.0.0     |
-| 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1         |           |
-| 4.0.3           | 4.1.2           |                 | 6.8.28    | 6.9.2         |           |
-| 4.0.4           | 4.1.3           |                 | 6.8.29    |               |           |
-| 4.0.5           | 4.1.4           |                 | 6.8.30    |               |           |
-| 4.0.6           | 4.1.5           |                 | 6.8.31    |               |           |
-| 4.0.7           | 4.1.6           |                 | 6.8.32    |               |           |
-| 4.0.8           | 4.1.7           |                 | 6.8.33    |               |           |
-| 4.0.9           |                 |                 | 6.8.34    |               |           |
-| 4.0.10          |                 |                 | 6.8.35    |               |           |
-| 4.0.11          |                 |                 | 6.8.36    |               |           |
-| 4.0.12          |                 |                 | 6.8.37    |               |           |
-| 4.0.13          |                 |                 | 6.8.38    |               |           |
-| 4.0.14          |                 |                 | 6.8.39    |               |           |
-|                 |                 |                 | 6.8.40    |               |           |
-|                 |                 |                 | 6.8.41    |               |           |
-|                 |                 |                 | 6.8.42    |               |           |
-|                 |                 |                 | 6.8.43    |               |           |
-|                 |                 |                 | 6.8.44    |               |           |
-|                 |                 |                 | 6.8.46    |               |           |
-|                 |                 |                 | 6.8.47    |               |           |
-|                 |                 |                 | 6.8.48    |               |           |
-|                 |                 |                 | 6.8.49    |               |           |
-|                 |                 |                 | 6.8.50    |               |           |
-|                 |                 |                 | 6.8.51    |               |           |
+| Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x | HCD 1.0.x |
+|-----------------| --------------- |-----------------|-----------|-----------| ----------|
+| 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0     | 1.0.0     |
+| 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1     |           |
+| 4.0.3           | 4.1.2           |                 | 6.8.28    | 6.9.2     |           |
+| 4.0.4           | 4.1.3           |                 | 6.8.29    | 6.9.3     |           |
+| 4.0.5           | 4.1.4           |                 | 6.8.30    | 6.9.4     |           |
+| 4.0.6           | 4.1.5           |                 | 6.8.31    |           |           |
+| 4.0.7           | 4.1.6           |                 | 6.8.32    |           |           |
+| 4.0.8           | 4.1.7           |                 | 6.8.33    |           |           |
+| 4.0.9           |                 |                 | 6.8.34    |           |           |
+| 4.0.10          |                 |                 | 6.8.35    |           |           |
+| 4.0.11          |                 |                 | 6.8.36    |           |           |
+| 4.0.12          |                 |                 | 6.8.37    |           |           |
+| 4.0.13          |                 |                 | 6.8.38    |           |           |
+| 4.0.14          |                 |                 | 6.8.39    |           |           |
+| 4.0.15          |                 |                 | 6.8.40    |           |           |
+|                 |                 |                 | 6.8.41    |           |           |
+|                 |                 |                 | 6.8.42    |           |           |
+|                 |                 |                 | 6.8.43    |           |           |
+|                 |                 |                 | 6.8.44    |           |           |
+|                 |                 |                 | 6.8.46    |           |           |
+|                 |                 |                 | 6.8.47    |           |           |
+|                 |                 |                 | 6.8.48    |           |           |
+|                 |                 |                 | 6.8.49    |           |           |
+|                 |                 |                 | 6.8.50    |           |           |
+|                 |                 |                 | 6.8.51    |           |           |
+|                 |                 |                 | 6.8.52    |           |           |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
@@ -329,9 +330,9 @@ For building an image based on DSE 6.9, see the [DSE 6.9 README](management-api-
 By default, all images will listen on port 8080 for Management API connections. This can be overridden by specifying
 the environment variable `MGMT_API_LISTEN_TCP_PORT` and setting it to your desired port. For example:
 
-    > docker run -e USE_MGMT_API=true -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:4.0.14
+    > docker run -e USE_MGMT_API=true -e MGMT_API_LISTEN_TCP_PORT=9090 -p 9090:9090 k8ssandra/cass-management-api:4.0.15
 
-The above would run a Cassandra 4.0.14 image with Management API listening on port 9090 (instead of 8080).
+The above would run a Cassandra 4.0.15 image with Management API listening on port 9090 (instead of 8080).
 
 ## Usage with DSE
 
