@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#573](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/573) Add support for HCD 1.2
 
 ## v0.1.90 (2024-11-22)
 * [FEATURE] [#566](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/566) Add listRoles and dropRole functionality to the REST interface
