@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -91,6 +92,14 @@ public class LifecycleResources extends BaseResources {
   @ApiResponse(responseCode = "204", description = "Cassandra already running but can't connect")
   @ApiResponse(responseCode = "206", description = "Cassandra process not found but can connect")
   @ApiResponse(
+      responseCode = "400",
+      description = "Invalid parameters",
+      content =
+          @Content(
+              mediaType = MediaType.TEXT_PLAIN,
+              schema = @Schema(implementation = String.class),
+              examples = @ExampleObject(value = "Invalid replace IP passed: 0.0.0.0.0")))
+  @ApiResponse(
       responseCode = "420",
       description = "Cassandra could not start successfully",
       content =
@@ -107,7 +116,9 @@ public class LifecycleResources extends BaseResources {
               schema = @Schema(implementation = String.class),
               examples = @ExampleObject(value = "error message")))
   public synchronized Response startNode(
-      @QueryParam("profile") String profile, @QueryParam("replace_ip") String replaceIp) {
+      @QueryParam("profile") String profile,
+      @QueryParam("replace_ip") String replaceIp,
+      @QueryParam("replace_consistency") String consistency) {
 
     // Todo we should add a CALL getPid command and compare;
     boolean canConnect;
@@ -153,11 +164,20 @@ public class LifecycleResources extends BaseResources {
 
       if (replaceIp != null) {
         if (!replaceIp.matches(IPV4_PATTERN))
-          return Response.serverError()
+          return Response.status(HttpStatus.SC_BAD_REQUEST)
               .entity(Entity.text("Invalid replace IP passed: " + replaceIp))
               .build();
 
         cmdArgs.add(String.format("-Dcassandra.replace_address_first_boot=%s", replaceIp));
+        if (!Strings.isNullOrEmpty(consistency)) {
+          if (app.dbExe.getAbsolutePath().endsWith("dse")) {
+            cmdArgs.add(String.format("-Ddse.consistent_replace=%s", consistency));
+          } else {
+            return Response.status(HttpStatus.SC_BAD_REQUEST)
+                .entity(Entity.text("Consistency parameter for replace is only accepted with DSE"))
+                .build();
+          }
+        }
       }
 
       // Delete stale file if it exists
