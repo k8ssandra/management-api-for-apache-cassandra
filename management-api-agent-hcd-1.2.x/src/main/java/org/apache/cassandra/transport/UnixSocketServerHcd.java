@@ -17,6 +17,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,17 +27,17 @@ import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.ClientWarn;
 import org.apache.cassandra.service.QueryState;
-import org.apache.cassandra.transport.ClientResourceLimits.Overload;
 import org.apache.cassandra.transport.messages.AuthenticateMessage;
 import org.apache.cassandra.transport.messages.ErrorMessage;
 import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.transport.messages.StartupMessage;
 import org.apache.cassandra.transport.messages.SupportedMessage;
 import org.apache.cassandra.utils.JVMStabilityInspector;
+import org.apache.cassandra.utils.MonotonicClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UnixSocketServer50x {
+public class UnixSocketServerHcd {
   private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
 
   // Names of handlers used in pre-V5 pipelines
@@ -82,6 +83,7 @@ public class UnixSocketServer50x {
         throws Exception {
       final Message.Response response;
       final UnixSocketConnection connection;
+      long queryStartNanoTime = System.nanoTime();
 
       try {
         assert request.connection() instanceof UnixSocketConnection;
@@ -95,8 +97,7 @@ public class UnixSocketServer50x {
         // logger.info("Executing {} {} {}", request, connection.getVersion(),
         // request.getStreamId());
 
-        Message.Response r =
-            request.execute(qstate, Dispatcher.RequestTime.forImmediateExecution());
+        Message.Response r = request.execute(qstate, queryStartNanoTime);
 
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
@@ -282,13 +283,86 @@ public class UnixSocketServer50x {
 
             promise = new VoidChannelPromise(ctx.channel(), false);
 
-            Message.Response response =
-                Dispatcher.processRequest(
-                    ctx.channel(),
-                    startup,
-                    Overload.NONE,
-                    Dispatcher.RequestTime.forImmediateExecution());
+            // HCD 1.2 uses Converged Core 5, which will advance over time to pull in Cassandra 5.0
+            // code. For now, this bit will act a lot like the Cassandra 4.1 code changes mentioned
+            // below.
 
+            // In Cassandra 4.1.3, Dispatcher.processRequest method signatures changed in order to
+            // add CASSANDRA-15241 (https://issues.apache.org/jira/browse/CASSANDRA-15241). To
+            // avoid splitting the 4.1 agent based on which version of Cassandra it runs with,
+            // we'll use reflection here to determine the correct method to invoke.
+
+            // In Cassandra 4.1.6, Dispatcher.processRequest method signatures changed again for
+            // CASSANDRA-19534. The long value for start time was replaced by RequestTime
+            Message.Response response = null;
+            try {
+              // try to see if the Converged Core 5 object RequestTime exists
+              Class dispatcherRequestTime =
+                  Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
+              // this version of CC has it, get Dispatcher.RequestTime.forImmediateExecution()
+              Method forImmediateExecution =
+                  dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
+              Method processRequestMethod =
+                  Dispatcher.class.getDeclaredMethod(
+                      "processRequest",
+                      Channel.class,
+                      Message.Request.class,
+                      ClientResourceLimits.Overload.class,
+                      dispatcherRequestTime);
+              response =
+                  (Message.Response)
+                      processRequestMethod.invoke(
+                          null,
+                          ctx.channel(),
+                          startup,
+                          ClientResourceLimits.Overload.NONE,
+                          forImmediateExecution.invoke(null));
+
+            } catch (ClassNotFoundException cnfe) {
+              logger.debug(
+                  "Dispatcher$RequestTime in Converged Core 5 not found, trying Dispatcher.processRequest with primitive long from older versions");
+              try {
+                // try to get the CC5 version with a primitive long instead of RequestTime
+                Method processRequestMethod =
+                    Dispatcher.class.getDeclaredMethod(
+                        "processRequest",
+                        Channel.class,
+                        Message.Request.class,
+                        ClientResourceLimits.Overload.class,
+                        long.class);
+                // CC5 method found so we'll need to invoke it with a start time
+                response =
+                    (Message.Response)
+                        processRequestMethod.invoke(
+                            null,
+                            ctx.channel(),
+                            startup,
+                            ClientResourceLimits.Overload.NONE,
+                            MonotonicClock.Global.approxTime.now());
+              } catch (NoSuchMethodException ex) {
+                // CC5 version has an older signature still
+                logger.debug(
+                    "Cassandra Dispatcher.processRequest() with primitve long not found, trying yet an older signature");
+                try {
+                  Method processRequestMethod =
+                      Dispatcher.class.getDeclaredMethod(
+                          "processRequest",
+                          Channel.class,
+                          Message.Request.class,
+                          ClientResourceLimits.Overload.class);
+                  response =
+                      (Message.Response)
+                          processRequestMethod.invoke(
+                              null, ctx.channel(), startup, ClientResourceLimits.Overload.NONE);
+                } catch (NoSuchMethodException ex2) {
+                  // something is broken, need to figure out what method/signature should be used
+                  logger.debug(
+                      "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
+                      ex2);
+                  throw ex2;
+                }
+              }
+            }
             if (response.type.equals(Message.Type.AUTHENTICATE))
               // bypass authentication
               response = new ReadyMessage();
