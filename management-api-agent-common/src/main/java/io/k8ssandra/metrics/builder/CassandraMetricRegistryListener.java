@@ -50,7 +50,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
   private static final int MIN_DSE_PATCH_VERSION = 33;
 
   private static final Pattern VERSION_PATTERN =
-      Pattern.compile("([1-9]\\d*)\\.(\\d+)\\.(\\d+)(?:-([a-zA-Z0-9]+))?");
+      Pattern.compile("([1-9]\\d*)\\.(\\d+)\\.(\\d+)(?:-([a-zA-Z0-9\\.]+))?");
 
   private static final String SERVER_VERSION = FBUtilities.getReleaseVersionString();
   private static final int SERVER_MAJOR_VERSION;
