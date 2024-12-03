@@ -11,6 +11,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [ENHANCEMENT] [#574](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/574) Support consistency parameter in the /start when replacing a DSE node. 
+
 ## v0.1.90 (2024-11-22)
 * [FEATURE] [#566](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/566) Add listRoles and dropRole functionality to the REST interface
 * [FEATURE] [#571](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/571) Add Cassandra 4.0.15 to the build matrix

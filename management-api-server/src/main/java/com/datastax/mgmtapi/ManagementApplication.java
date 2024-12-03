@@ -83,7 +83,7 @@ public class ManagementApplication extends Application {
       STATE currentState = getRequestedState();
       logger.debug("Current Requested State is {}", currentState);
       if (currentState != STATE.STOPPED) {
-        Response r = lifecycle.startNode(getActiveProfile(), null);
+        Response r = lifecycle.startNode(getActiveProfile(), null, null);
         return r.getStatus() >= 200 && r.getStatus() < 300;
       }
 

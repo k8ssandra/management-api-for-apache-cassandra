@@ -129,6 +129,12 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "in" : "query",
+          "name" : "replace_consistency",
+          "schema" : {
+            "type" : "string"
+          }
         } ],
         "responses" : {
           "201" : {
@@ -150,6 +156,17 @@
           },
           "206" : {
             "description" : "Cassandra process not found but can connect"
+          },
+          "400" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "Invalid replace IP passed: 0.0.0.0.0",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Invalid parameters"
           },
           "420" : {
             "content" : {
