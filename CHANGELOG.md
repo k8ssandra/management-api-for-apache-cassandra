@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#573](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/573) Add support for HCD 1.2
 
 * [ENHANCEMENT] [#574](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/574) Support consistency parameter in the /start when replacing a DSE node. 
 
