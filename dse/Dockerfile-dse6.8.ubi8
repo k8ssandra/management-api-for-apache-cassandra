@@ -67,7 +67,7 @@ LABEL summary="The best distribution of Apache Cassandra™ with integrated Sear
 LABEL description="Built on the best distribution of Apache Cassandra™, DataStax Enterprise is the always-on database designed to allow you to effortlessly build and scale your apps, integrating graph, search, analytics, administration, developer tooling, and monitoring into a single unified platform. We power your apps' real-time moments so you can create instant insights and powerful customer experiences."
 
 ENV DSE_HOME=/opt/dse
-ENV PATH=$DSE_HOME/bin:$PATH
+ENV PATH=$DSE_HOME/bin:$DSE_HOME/resources/cassandra/tools/bin:$PATH
 ENV HOME=$DSE_HOME
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
