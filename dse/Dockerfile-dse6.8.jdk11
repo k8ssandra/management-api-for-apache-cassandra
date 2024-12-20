@@ -192,7 +192,7 @@ RUN if ! grep -qxf "JVM_OPTS=\"\$JVM_OPTS -Dinsights.default_mode=disabled\"" < 
 # Fix COPY directory modes
 RUN chmod g+w ${MAAC_PATH} ${DSE_HOME} ${DSE_AGENT_HOME} ${CDC_AGENT_PATH}
 
-ENV PATH=$DSE_HOME/bin:$PATH
+ENV PATH=$DSE_HOME/bin:$DSE_HOME/resources/cassandra/tools/bin:$PATH
 ENV HOME=$DSE_HOME
 WORKDIR $HOME
 

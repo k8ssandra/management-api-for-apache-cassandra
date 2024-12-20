@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [ENHANCEMENT] [#579](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/579) Add /opt/dse/resources/cassandra/tools/bin to the default PATH for sstable tools
 * [ENHANCEMENT] [#574](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/574) Support consistency parameter in the /start when replacing a DSE node. 
 
 ## v0.1.90 (2024-11-22)
