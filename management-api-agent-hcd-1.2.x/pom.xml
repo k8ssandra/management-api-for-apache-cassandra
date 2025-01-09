@@ -14,7 +14,7 @@
     <version>${revision}</version>
   </parent>
   <version>${revision}</version>
-  <artifactId>datastax-mgmtapi-agent-hcd</artifactId>
+  <artifactId>datastax-mgmtapi-agent-hcd-1.2.x</artifactId>
   <repositories>
     <repository>
       <id>artifactory</id>
@@ -72,7 +72,7 @@
         <dependency>
           <groupId>com.datastax.dse</groupId>
           <artifactId>dse-db-all</artifactId>
-          <version>4.0.11-3b5d38811943</version>
+          <version>5.0.0-beta2.82a4ce1a2756</version>
           <exclusions>
             <exclusion>
               <groupId>commons-codec</groupId>
