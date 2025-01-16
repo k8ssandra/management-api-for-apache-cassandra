@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#590](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/590) Fix Artifact release to also publish HCD 1.2 Agent
 
 ## v0.1.91 (2025-01-10)
 * [FEATURE] [#573](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/573) Add support for HCD 1.2
