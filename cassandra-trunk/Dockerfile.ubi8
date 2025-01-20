@@ -87,6 +87,7 @@ COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
 COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
 COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
+COPY management-api-test/pom.xml /tmp/management-api-test/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
 RUN cd /tmp && mvn -q -ff -T 1C install -DskipOpenApi -P trunk && rm -rf target
@@ -98,6 +99,7 @@ COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
+COPY management-api-test /tmp/management-api-test
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
     && mvn -q -ff package -Dskip.surefire.tests -DskipTests  -DskipOpenApi -P trunk \
