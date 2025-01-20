@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.92 (2025-01-20)
 * [FEATURE] [#589](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/589) Add DSE 6.9.6 to the build matrix
 * [BUGFIX] [#590](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/590) Fix Artifact release to also publish HCD 1.2 Agent
 
