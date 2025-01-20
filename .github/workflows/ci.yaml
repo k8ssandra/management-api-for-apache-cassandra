@@ -51,7 +51,6 @@ jobs:
             </servers>
           </settings>
           EOF
-          cp ~/.m2/settings.xml settings.xml
       - name: Build with Maven and run unit tests (k8ssandra repo)
         if: github.repository_owner == 'k8ssandra'
         run: mvn -B -q package --file pom.xml -P dse,hcd

@@ -16,7 +16,6 @@ dse-db*.jar
 dse-db*.pom
 dse-commons*.jar
 dse-commons*.pom
-settings.xml
 
 .metadata
 bin/
