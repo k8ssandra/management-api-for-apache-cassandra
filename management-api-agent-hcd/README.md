@@ -14,13 +14,7 @@ sub-module is for HCD 1.0.x. For HCD 1.2.x, use the agent in sub-module `managem
 ## Maven Settings
 
 In order to build Management API artifacts for HCD (jarfiles and/or Docker images), you will need to have access to the DSE Maven
-Artifactory. This will require credentials that should be stored in your `${HOME}/.m2/settings.xml` file. Before attempting any of
-the steps below, make sure to copy your Maven settings file to the root of the parent project. Assuming you have a terminal and
-are in the root of this git repo:
-
-```sh
-cp $HOME/.m2/settings.xml $PWD
-```
+Artifactory. This will require credentials that should be stored in your `${HOME}/.m2/settings.xml` file.
 
 ## Building the Management API with HCD
 

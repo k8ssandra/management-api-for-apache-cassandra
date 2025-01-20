@@ -6,13 +6,7 @@ can be added to any other projects/modules, as users without access to DSE artif
 ## Maven Settings
 
 In order to build Management API artifacts for DSE (jarfiles and/or Docker images), you will need to have access to the DSE Maven
-Artifactory. This will require credentials that should be stored in your `${HOME}/.m2/settings.xml` file. Before attempting any of
-the steps below, make sure to copy your Maven settings file to the root of the parent project. Assuming you have a terminal and
-are in the root of this git repo:
-
-```sh
-cp $HOME/.m2/settings.xml $PWD
-```
+Artifactory. This will require credentials that should be stored in your `${HOME}/.m2/settings.xml` file.
 
 ## Building the Management API with DSE
 
