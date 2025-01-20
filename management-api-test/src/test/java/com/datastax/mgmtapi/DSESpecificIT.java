@@ -298,7 +298,7 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
                     .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
                     // creating the search index can take longer than the default 2 second request
                     // timeout
-                    .withString(REQUEST_TIMEOUT, "20s")
+                    .withString(REQUEST_TIMEOUT, "30s")
                     .build())
             .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
             .build();

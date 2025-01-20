@@ -58,6 +58,17 @@ jobs:
       - name: Build with Maven and run unit tests (3rd party repo)
         if: github.repository_owner != 'k8ssandra'
         run: mvn -B -q package --file pom.xml
+      - name: Save Maven cache
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Save Maven build artifacts
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+          key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+        
 
   build-oss-docker-images:
     name: Build Cassandra images
@@ -73,8 +84,22 @@ jobs:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
+      - name: Restore build workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+          key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       # Setup metadata based on the commit/tag that will be used for tagging the image
       # Only build and publish a commit based tag
       - name: Setup Docker meta
@@ -116,7 +141,7 @@ jobs:
         with:
           name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
           path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          retention-days: 7
+          retention-days: 3
 
   build-dse-ubuntu-docker-images:
     name: Build DSE Ubuntu images
@@ -132,28 +157,22 @@ jobs:
           - dse-version: '6.9'
             base-platform: 'jdk8'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
+      - name: Restore build workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+          key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       # Setup metadata based on the commit/tag that will be used for tagging the image
       # Only build and publish a commit based tag
       - name: Setup Docker meta
@@ -182,7 +201,7 @@ jobs:
         with:
           name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
           path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
-          retention-days: 7
+          retention-days: 3
 
   build-dse-ubi-docker-images:
     name: Build DSE UBI images
@@ -206,28 +225,22 @@ jobs:
           - dse-version: '6.9'
             jdk: 'jdk11'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
+      - name: Restore build workspace
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+          key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       # Setup metadata based on the commit/tag that will be used for tagging the image
       # Only build and publish a commit based tag
       - name: Setup Docker meta
@@ -275,7 +288,7 @@ jobs:
         with:
           name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
           path: /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
-          retention-days: 7
+          retention-days: 3
 
   test-oss:
     name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}]
@@ -302,7 +315,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -331,20 +344,20 @@ jobs:
       - name: Build with Maven and run tests
         if: ${{ matrix.base-platform == 'ubuntu' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}tests \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
       - name: Build with Maven and run tests
         if: ${{ matrix.base-platform != 'ubuntu' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
   test-oss-41:
     # This job is inetnded to run the various versiosn of Cassandra 4.1 where internal changes to OSS code
     # require Java refelction tricks in the Agent code.
-    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}]
+    name: Run Cassandra [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.base-platform }}]
     needs: build-oss-docker-images
     runs-on: ubuntu-latest
     strategy:
@@ -353,7 +366,7 @@ jobs:
       matrix:
         cassandra-version: ['4.1']
         base-platform: ['ubuntu', 'ubi8']
-        itTest : ['Lifecycle412IT', 'Lifecycle415IT']
+        minor-version : ['2', '5']
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 11
@@ -365,8 +378,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-oss-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      - name: Build artifacts
+        run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Setup Buildx
@@ -374,18 +389,34 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           version: latest
-      - name: Build with Maven and run tests
+      - name: Build Docker test image Ubuntu
         if: ${{ matrix.base-platform == 'ubuntu' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
-          -Drun${{ matrix.cassandra-version }}tests \
-          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
-      - name: Build with Maven and run tests
+          docker buildx build --load \
+            --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }}.${{ matrix.minor-version }} \
+            --tag mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest \
+            --file cassandra/Dockerfile-${{ matrix.cassandra-version }} \
+            --target cassandra .
+      - name: Build Docker test image UBI
         if: ${{ matrix.base-platform != 'ubuntu' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml \
+          docker buildx build --load \
+            --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }}.${{ matrix.minor-version }} \
+            --tag mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest \
+            --file cassandra/Dockerfile-${{ matrix.cassandra-version }} \
+            --target cassandra .
+      - name: Build with Maven and run tests Ubuntu
+        if: ${{ matrix.base-platform == 'ubuntu' }}
+        run: |
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}tests \
+          -Dit.test=Lifecycle41${{ matrix.minor-version }}IT -DfailIfNoTests=false
+      - name: Build with Maven and run tests UBI
+        if: ${{ matrix.base-platform != 'ubuntu' }}
+        run: |
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
-          -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+          -Dit.test=Lifecycle41${{ matrix.minor-version }}IT -DfailIfNoTests=false
 
   test-dse:
     name: Run DSE ${{ matrix.itTest }} [${{ matrix.dse-version }}, ${{ matrix.base-platform }}]
@@ -415,7 +446,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2
-          key: ${{ runner.os }}-m2-68-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -436,32 +467,16 @@ jobs:
           docker image ls -a
       - name: Setup Maven settings.xml
         run: |
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
           cp ~/.m2/settings.xml settings.xml
       - name: Build with Maven and run tests
         if: ${{ matrix.base-platform != 'ubi8' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}tests
       - name: Build with Maven and run tests
         if: ${{ matrix.base-platform == 'ubi8' }}
         run: |
-          mvn -B -q install -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}testsUBI
 
   publish-oss:
@@ -478,18 +493,6 @@ jobs:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: k8ssandra/cass-management-api
-          tags: type=sha,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to DockerHub
@@ -497,70 +500,32 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Build and push Cassandra ${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform == 'ubuntu' }}
-        id: docker_build_ubuntu
-        uses: docker/build-push-action@v5
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
         with:
-          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64,linux/arm64
-          target: cassandra
-      - name: Build and push Cassandra ${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}
-        if: ${{ matrix.base-platform == 'ubi8' }}
-        id: docker_build_ubi
-        uses: docker/build-push-action@v5
-        with:
-          file: cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64,linux/arm64
-          target: cassandra
+          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          path: /tmp
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+        run: |
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+          docker image ls -a
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }}
 
-  publish-dse-68-ubuntu:
-    name: Publish DSE 6.8 Ubuntu image
+  publish-dse:
+    name: Publish DSE 6.x Ubuntu image
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: test-dse
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        jdk-version: [jdk8, jdk11]
+        dse-version: ['6.8', '6.9']
+        base-platform: ['jdk8', 'jdk11', 'ubi8']
+        exclude:
+          - dse-version: '6.9'
+            base-platform: 'jdk8'
+          - dse-version: '6.8'
+            base-platform: 'jdk11'
     steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: datastax/dse-mgmtapi-6_8
-          tags: type=sha,prefix=dse68-${{ matrix.jdk-version }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to DockerHub
@@ -568,192 +533,13 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Build and push DSE 6.8-${{ matrix.jdk-version }}
-        id: docker_build
-        uses: docker/build-push-action@v5
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
         with:
-          file: dse/Dockerfile-dse6.8.${{ matrix.jdk-version }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: dse
-
-  publish-dse-69-ubuntu:
-    name: Publish DSE 6.9 Ubuntu image
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: test-dse
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        jdk-version: [jdk11]
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
+          name: dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          path: /tmp
+      - name: Load Docker ${{ matrix.dse-version }}-${{ matrix.base-platform }} image
         run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: datastax/dse-mgmtapi-6_8
-          tags: type=sha,prefix=dse69-${{ matrix.jdk-version }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Build and push DSE 6.9-${{ matrix.jdk-version }}
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          file: dse/Dockerfile-dse6.9.${{ matrix.jdk-version }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: dse
-
-  publish-dse-68-ubi:
-    name: Publish DSE 6.8 UBI 8 image
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: publish-dse-68-ubuntu
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: datastax/dse-mgmtapi-6_8
-          tags: type=sha,prefix=dse68-ubi8-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Build and push DSE 6.8-ubi8
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          file: dse/Dockerfile-dse6.8.ubi8
-          build-args: VERSION=dse68-ubi8-${{ steps.vars.outputs.sha_short }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: dse
-
-  publish-dse-69-ubi:
-    name: Publish DSE 6.9 UBI 8 image
-    if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
-    needs: publish-dse-69-ubuntu
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out source code
-        uses: actions/checkout@v4
-      - name: Setup Maven settings file
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          <settings>
-            <servers>
-              <server>
-                <id>artifactory-snapshots</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-              <server>
-                <id>artifactory-releases</id>
-                <username>${{ secrets.ARTIFACTORY_USERNAME }}</username>
-                <password>${{ secrets.ARTIFACTORY_PASSWORD }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-          cp ~/.m2/settings.xml settings.xml
-      # Setup metadata based on the commit/tag that will be used for tagging the image
-      # Only build and publish a commit based tag
-      - name: Setup Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: datastax/dse-mgmtapi-6_8
-          tags: type=sha,prefix=dse69-ubi8-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Set outputs
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Build and push DSE 6.9-8
-        id: docker_build
-        uses: docker/build-push-action@v5
-        with:
-          file: dse/Dockerfile-dse6.9.ubi8
-          build-args: VERSION=dse69-ubi8-${{ steps.vars.outputs.sha_short }}
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
-          target: dse
+          docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
+          docker image ls -a
+          docker push datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.base-platform }}-${{ github.sha }}

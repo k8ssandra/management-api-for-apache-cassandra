@@ -5,52 +5,6 @@ ARG DSE_BASE_IMAGE=datastax/dse-mgmtapi-6_8:${DSE_VERSION}-jdk11
 
 FROM ${DSE_BASE_IMAGE} AS dse-server-base
 
-FROM --platform=$BUILDPLATFORM maven:3.8.7-eclipse-temurin-11 AS mgmtapi-setup
-
-WORKDIR /
-
-ENV MAAC_PATH=/opt/management-api
-ENV DSE_HOME=/opt/dse
-
-COPY pom.xml /tmp/pom.xml
-COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
-COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xml
-COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
-COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
-COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
-COPY management-api-agent-dse-6.8/pom.xml tmp/management-api-agent-dse-6.8/pom.xml
-COPY management-api-agent-dse-6.9/pom.xml tmp/management-api-agent-dse-6.9/pom.xml
-COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
-COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
-COPY settings.xml settings.xml /root/.m2/
-# this duplicates work done in the next steps, but this should provide
-# a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C install -Dskip.surefire.tests -DskipTests -DskipOpenApi -P dse && rm -rf target
-
-COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
-COPY management-api-agent-common /tmp/management-api-agent-common
-COPY management-api-agent-4.x /tmp/management-api-agent-4.x
-COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
-COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
-COPY management-api-agent-dse-6.8 /tmp/management-api-agent-dse-6.8
-COPY management-api-agent-dse-6.9 /tmp/management-api-agent-dse-6.9
-COPY management-api-common /tmp/management-api-common
-COPY management-api-server /tmp/management-api-server
-RUN mkdir -m 775 $MAAC_PATH \
-    && cd /tmp \
-    && mvn -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3 -Daether.connector.http.connectionMaxTtl=25 -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P dse \
-    && find /tmp -type f -name "datastax-*.jar" -exec mv -t $MAAC_PATH -i '{}' + \
-    && rm $MAAC_PATH/datastax-mgmtapi-agent-4* \
-    && rm $MAAC_PATH/datastax-mgmtapi-agent-5* \
-    && rm $MAAC_PATH/datastax-mgmtapi-agent-dse-6.8* \
-    && rm $MAAC_PATH/datastax-mgmtapi-*shaded* \
-    && rm $MAAC_PATH/datastax-mgmtapi-*common* \
-    && cd ${MAAC_PATH} \
-    && ln -s datastax-mgmtapi-agent-dse-6.9-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
-    && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
-    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
-    chmod -R g+w ${MAAC_PATH}
-
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
@@ -109,7 +63,7 @@ RUN chmod 0555 /entrypoint.sh /overwritable-conf-files /licenses /base-checks.sh
 ENV CASSANDRA_CONF=${DSE_HOME}/resources/cassandra/conf
 ENV MAAC_PATH=/opt/management-api
 ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
-COPY --chown=dse:root --from=mgmtapi-setup $MAAC_PATH $MAAC_PATH
+COPY --chown=dse:root --from=dse-server-base $MAAC_PATH $MAAC_PATH
 # Add CDC Agent
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 COPY --chown=dse:root --from=dse-server-base $CDC_AGENT_PATH $CDC_AGENT_PATH

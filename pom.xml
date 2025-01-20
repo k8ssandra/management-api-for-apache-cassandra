@@ -57,6 +57,7 @@
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
         <module>management-api-server</module>
+        <module>management-api-test</module>
       </modules>
     </profile>
     <profile>
@@ -77,6 +78,7 @@
         <module>management-api-agent-dse-6.8</module>
         <module>management-api-agent-dse-6.9</module>
         <module>management-api-server</module>
+        <module>management-api-test</module>
       </modules>
     </profile>
     <profile>
@@ -95,6 +97,7 @@
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
         <module>management-api-server</module>
+        <module>management-api-test</module>
       </modules>
     </profile>
     <profile>
@@ -115,6 +118,7 @@
         <module>management-api-agent-hcd</module>
         <module>management-api-agent-hcd-1.2.x</module>
         <module>management-api-server</module>
+        <module>management-api-test</module>
       </modules>
     </profile>
     <profile>
@@ -134,6 +138,7 @@
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
         <module>management-api-server</module>
+        <module>management-api-test</module>
       </modules>
     </profile>
   </profiles>

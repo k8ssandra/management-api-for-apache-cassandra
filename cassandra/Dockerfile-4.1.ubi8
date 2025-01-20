@@ -1,9 +1,8 @@
 ARG UBI_MAJOR=8
 ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=4.1.7
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
+FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
-ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG METRICS_COLLECTOR_VERSION=0.3.5
 ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CASSANDRA_VERSION
@@ -19,16 +18,14 @@ RUN microdnf install --nodocs shadow-utils \
 # Install packages needed during install process
     && microdnf install tar gzip unzip && microdnf clean all
 
-# COPY in files if they are available locally
-COPY * /
 WORKDIR /
 
 ###
 # Download and extract Metrics Collector
 ###
 ENV MCAC_PATH=/opt/metrics-collector
+ADD "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz" ./
 RUN mkdir -m 775 ${MCAC_PATH} && \
-    if test ! -e datastax-mcac-agent-${METRICS_COLLECTOR_VERSION}.tar.gz; then curl -L -O "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz"; fi && \
     tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
     chmod -R g+w ${MCAC_PATH}
 
@@ -38,15 +35,14 @@ RUN mkdir -m 775 ${MCAC_PATH} && \
 ARG CDC_AGENT_VERSION=2.2.9
 ARG CDC_AGENT_EDITION=agent-c4
 ENV CDC_AGENT_PATH=/opt/cdc_agent
+ADD "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" ./
 RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
-  curl -L -O "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" && \
   mv ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar ${CDC_AGENT_PATH}/ && \
   cd ${CDC_AGENT_PATH}/ && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 FROM --platform=linux/amd64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-amd64
-ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
@@ -63,8 +59,8 @@ RUN microdnf install --nodocs shadow-utils \
 ###
 # Download Cassandra archive
 ###
-RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L -O "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"; fi && \
-    tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
+ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
+RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
 # MCAC isn't supported on ARM achitectures
@@ -80,7 +76,6 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-m
 
 
 FROM --platform=linux/arm64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-arm64
-ARG URL_PREFIX=https://dlcdn.apache.org/cassandra
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
@@ -97,52 +92,28 @@ RUN microdnf install --nodocs shadow-utils \
 ###
 # Download Cassandra archive
 ###
-RUN if test ! -e apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz; then curl -L -O "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"; fi && \
-    tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
+ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
+RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
 
 FROM cassandra-builder-${TARGETARCH} AS cassandra-builder
 
 #############################################################
-# Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS mgmtapi-setup
+# Copy Management API
+FROM --platform=$BUILDPLATFORM alpine:latest AS mgmtapi-setup
 
-WORKDIR /
-
+WORKDIR /build
 ENV MAAC_PATH=/opt/management-api
 
-COPY pom.xml /tmp/pom.xml
-COPY management-api-agent-shaded-libs/pom.xml /tmp/management-api-agent-shaded-libs/pom.xml
-COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xml
-COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
-COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
-COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
-COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
-COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
-# this duplicates work done in the next steps, but this should provide
-# a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C install -Dskip.surefire.tests -DskipTests -DskipOpenApi && rm -rf target
-
-COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
-COPY management-api-agent-common /tmp/management-api-agent-common
-COPY management-api-agent-4.x /tmp/management-api-agent-4.x
-COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
-COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
-COPY management-api-common /tmp/management-api-common
-COPY management-api-server /tmp/management-api-server
-RUN mkdir -m 775 ${MAAC_PATH} \
-    && cd /tmp \
-    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi \
-    && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
-    && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
-    && rm ${MAAC_PATH}/datastax-mgmtapi-agent-5* \
-    && rm ${MAAC_PATH}/datastax-mgmtapi-*shaded* \
-    && rm ${MAAC_PATH}/datastax-mgmtapi-*common* \
-    && cd ${MAAC_PATH} \
-    && ln -s datastax-mgmtapi-agent-4.1.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
-    && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
-    && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
+COPY management-api-agent-4.1.x/target/datastax-mgmtapi-agent*.jar ./
+COPY management-api-server/target/datastax-mgmtapi-server*.jar ./
+RUN mkdir -m 775 ${MAAC_PATH} && \
+    find /build -type f -name "datastax-mgmtapi*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
+    rm $MAAC_PATH/datastax-mgmtapi*test* && \
+    cd ${MAAC_PATH} && \
+    ln -s datastax-mgmtapi-agent*.jar datastax-mgmtapi-agent.jar && \
+    ln -s datastax-mgmtapi-server*.jar datastax-mgmtapi-server.jar && \
     chmod -R g+w ${MAAC_PATH}
 
 ############################################################
