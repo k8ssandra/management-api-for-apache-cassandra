@@ -97,7 +97,34 @@ public class UnixSocketServerHcd {
         // logger.info("Executing {} {} {}", request, connection.getVersion(),
         // request.getStreamId());
 
-        Message.Response r = request.execute(qstate, queryStartNanoTime);
+        // In Cassandra 4.1.6, CASSANDRA-19534 changed the Message.Request.execute method signature
+        // to take a new Dispatcher.RequestTime object instead of a primitive long for the Query
+        // start time. We'll need to introduce reflection here to create the correct Objects and
+        // make the correct calls based on which version of 4.1.x we are. For Cassandra 5.0, this
+        // patch was ported between 5.0-rc1 and 5.0-rc2.
+        Message.Response r = null;
+        try {
+          // First see if we have the Dispatcher.RequestTime class. If so, assume we are 4.1.6+
+          Class dispatcherRequestTime =
+              Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
+          // we are 4.1.6+, get Dispatcher.RequestTime.forImmediateExecution()
+          Method forImmediateExecution =
+              dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
+          Method requestExecute =
+              Message.Request.class.getDeclaredMethod(
+                  "execute", QueryState.class, dispatcherRequestTime);
+          r =
+              (Message.Response)
+                  requestExecute.invoke(request, qstate, forImmediateExecution.invoke(null));
+
+        } catch (ClassNotFoundException cfne) {
+          logger.debug(
+              "Dispatcher$RequestTime in 4.1.6+ not found, trying Request.execute from older versions");
+          // we must be 4.1.5-
+          Method requestExecute =
+              Message.Request.class.getDeclaredMethod("execute", QueryState.class, long.class);
+          r = (Message.Response) requestExecute.invoke(request, qstate, queryStartNanoTime);
+        }
 
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
