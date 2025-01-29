@@ -35,6 +35,8 @@ import org.slf4j.LoggerFactory;
 public class CassandraDaemonInterceptor {
   private static final Logger logger = LoggerFactory.getLogger(CassandraDaemonInterceptor.class);
   private static final String socketFileStr = System.getProperty("db.unix_socket_file");
+  private static final String apiVersion =
+      CassandraDaemonInterceptor.class.getPackage().getImplementationVersion();
 
   public static ElementMatcher<? super TypeDescription> type() {
     return ElementMatchers.nameEndsWith(".CassandraDaemon");
@@ -52,7 +54,7 @@ public class CassandraDaemonInterceptor {
 
   public static void intercept(@SuperCall Callable<Void> zuper) throws Exception {
     try {
-      logger.info("Starting DataStax Management API Agent for Apache Cassandra v0.1");
+      logger.info("Starting DataStax Management API Agent for Apache Cassandra {}", apiVersion);
 
       NodeOpsProvider.instance.get().register();
 
