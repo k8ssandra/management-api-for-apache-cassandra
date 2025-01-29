@@ -72,7 +72,7 @@
         <dependency>
           <groupId>com.datastax.dse</groupId>
           <artifactId>dse-db-all</artifactId>
-          <version>5.0.0-beta2.82a4ce1a2756</version>
+          <version>5.0.2-94c48ebf299a</version>
           <exclusions>
             <exclusion>
               <groupId>commons-codec</groupId>
