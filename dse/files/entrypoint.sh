@@ -197,6 +197,10 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
             JAVA11_JAVA=${JAVA11_HOME}/bin/java
         fi
     fi
+
+    # some uses of these images require /tmp/dse.sock to exist, symlink it here
+    ln -s /tmp/cassandra.sock /tmp/dse.sock
+
     echo "Running" ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
     ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
 else
