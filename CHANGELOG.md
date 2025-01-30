@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#596](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/596) Add symlink to /tmp/dse.sock for DSE images
 
 ## v0.1.93 (2025-01-29)
 * [BUGFIX] [#593](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/593) Update HCD 1.2 Agent for CC 5.0.2

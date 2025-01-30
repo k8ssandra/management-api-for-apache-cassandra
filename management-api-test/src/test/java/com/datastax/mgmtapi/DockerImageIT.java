@@ -110,4 +110,27 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
           "CDC agent jarfile at /opt/cdc_agent/cdc-agent.jar links to a file that does not exist!");
     }
   }
+
+  @Test
+  public void testCassandraSocket() throws Exception {
+    assumeTrue(IntegrationTestUtils.shouldRun());
+
+    // for this test, we need Management API to start the Cassandra process
+    ensureStarted();
+
+    try {
+      // see if /tmp/cassandra.sock exists and is a Socket file
+      docker.runCommand("test", "-S", "/tmp/cassandra.sock");
+    } catch (Throwable t) {
+      fail("/tmp/cassandra.sock socket file does not exist or is not a Socket file");
+    }
+    if (this.version.startsWith("dse")) {
+      // DSE should also have a symlink to the socket file
+      try {
+        docker.runCommand("test", "-L", "/tmp/dse.sock");
+      } catch (Throwable t) {
+        fail("/tmp/dse.sock does not exist or is not a symlink");
+      }
+    }
+  }
 }
