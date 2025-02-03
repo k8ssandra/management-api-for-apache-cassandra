@@ -22,7 +22,7 @@ public class UnixCmds {
 
   private static final String PS_CMD = "/bin/ps";
   private static final String KILL_CMD = "/bin/kill";
-  private static final String WHICH_CMD = "/bin/which";
+  private static final String WHICH_CMD = "which";
 
   public static Optional<File> whichCassandra() throws IOException {
     return which("cassandra");
