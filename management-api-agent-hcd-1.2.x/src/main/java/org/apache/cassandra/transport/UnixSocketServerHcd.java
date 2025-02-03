@@ -17,7 +17,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,6 @@ import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.transport.messages.StartupMessage;
 import org.apache.cassandra.transport.messages.SupportedMessage;
 import org.apache.cassandra.utils.JVMStabilityInspector;
-import org.apache.cassandra.utils.MonotonicClock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +79,7 @@ public class UnixSocketServerHcd {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message.Request request)
         throws Exception {
-      final Message.Response response;
+
       final UnixSocketConnection connection;
       long queryStartNanoTime = System.nanoTime();
 
@@ -102,37 +100,21 @@ public class UnixSocketServerHcd {
         // start time. We'll need to introduce reflection here to create the correct Objects and
         // make the correct calls based on which version of 4.1.x we are. For Cassandra 5.0, this
         // patch was ported between 5.0-rc1 and 5.0-rc2.
-        Message.Response r = null;
-        try {
-          // First see if we have the Dispatcher.RequestTime class. If so, assume we are 4.1.6+
-          Class dispatcherRequestTime =
-              Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
-          // we are 4.1.6+, get Dispatcher.RequestTime.forImmediateExecution()
-          Method forImmediateExecution =
-              dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
-          Method requestExecute =
-              Message.Request.class.getDeclaredMethod(
-                  "execute", QueryState.class, dispatcherRequestTime);
-          r =
-              (Message.Response)
-                  requestExecute.invoke(request, qstate, forImmediateExecution.invoke(null));
-
-        } catch (ClassNotFoundException cfne) {
-          logger.debug(
-              "Dispatcher$RequestTime in 4.1.6+ not found, trying Request.execute from older versions");
-          // we must be 4.1.5-
-          Method requestExecute =
-              Message.Request.class.getDeclaredMethod("execute", QueryState.class, long.class);
-          r = (Message.Response) requestExecute.invoke(request, qstate, queryStartNanoTime);
-        }
-
-        // UnixSocket has no auth
-        response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
-
-        response.setStreamId(request.getStreamId());
-        response.setWarnings(ClientWarn.instance.getWarnings());
-        response.attach(connection);
-        connection.applyStateTransition(request.type, response.type);
+        request
+            .execute(qstate, queryStartNanoTime)
+            .addCallback(
+                (response, ignore) -> {
+                  // UnixSocket has no auth
+                  if (response instanceof AuthenticateMessage) {
+                    response = new ReadyMessage();
+                  }
+                  response.setStreamId(request.getStreamId());
+                  response.setWarnings(ClientWarn.instance.getWarnings());
+                  response.attach(connection);
+                  connection.applyStateTransition(request.type, response.type);
+                  ctx.writeAndFlush(response);
+                  request.getSource().release();
+                });
       } catch (Throwable t) {
         // logger.warn("Exception encountered", t);
         JVMStabilityInspector.inspectThrowable(t);
@@ -145,9 +127,6 @@ public class UnixSocketServerHcd {
       } finally {
         ClientWarn.instance.resetWarnings();
       }
-
-      ctx.writeAndFlush(response);
-      request.getSource().release();
     }
   }
 
@@ -249,9 +228,10 @@ public class UnixSocketServerHcd {
 
       try {
         Envelope outbound;
+        ProtocolVersion version = inbound.header.version;
         switch (inbound.header.type) {
           case OPTIONS:
-            logger.debug("OPTIONS received {}", inbound.header.version);
+            logger.debug("OPTIONS received {}", version);
             List<String> cqlVersions = new ArrayList<>();
             cqlVersions.add(QueryProcessor.CQL_VERSION.toString());
 
@@ -266,7 +246,7 @@ public class UnixSocketServerHcd {
             supportedOptions.put(
                 StartupMessage.PROTOCOL_VERSIONS, ProtocolVersion.supportedVersions());
             SupportedMessage supported = new SupportedMessage(supportedOptions);
-            outbound = supported.encode(inbound.header.version);
+            outbound = supported.encode(version);
             ctx.writeAndFlush(outbound);
             break;
 
@@ -274,7 +254,7 @@ public class UnixSocketServerHcd {
             Attribute<Connection> attrConn = ctx.channel().attr(Connection.attributeKey);
             Connection connection = attrConn.get();
             if (connection == null) {
-              connection = factory.newConnection(ctx.channel(), inbound.header.version);
+              connection = factory.newConnection(ctx.channel(), version);
               attrConn.set(connection);
             }
             assert connection instanceof ServerConnection;
@@ -287,7 +267,7 @@ public class UnixSocketServerHcd {
             // ClientResourceLimits.getAllocatorForEndpoint(remoteAddress);
 
             ChannelPromise promise;
-            if (inbound.header.version.isGreaterOrEqualTo(ProtocolVersion.V5)) {
+            if (version.isGreaterOrEqualTo(ProtocolVersion.V5)) {
               // v5 not yet supported
               logger.warn("PROTOCOL v5 not yet supported.");
             }
@@ -311,92 +291,30 @@ public class UnixSocketServerHcd {
             promise = new VoidChannelPromise(ctx.channel(), false);
 
             // HCD 1.2 uses Converged Core 5, which will advance over time to pull in Cassandra 5.0
-            // code. For now, this bit will act a lot like the Cassandra 4.1 code changes mentioned
-            // below.
-
-            // In Cassandra 4.1.3, Dispatcher.processRequest method signatures changed in order to
-            // add CASSANDRA-15241 (https://issues.apache.org/jira/browse/CASSANDRA-15241). To
-            // avoid splitting the 4.1 agent based on which version of Cassandra it runs with,
-            // we'll use reflection here to determine the correct method to invoke.
-
-            // In Cassandra 4.1.6, Dispatcher.processRequest method signatures changed again for
-            // CASSANDRA-19534. The long value for start time was replaced by RequestTime
-            Message.Response response = null;
-            try {
-              // try to see if the Converged Core 5 object RequestTime exists
-              Class dispatcherRequestTime =
-                  Class.forName("org.apache.cassandra.transport.Dispatcher$RequestTime");
-              // this version of CC has it, get Dispatcher.RequestTime.forImmediateExecution()
-              Method forImmediateExecution =
-                  dispatcherRequestTime.getDeclaredMethod("forImmediateExecution");
-              Method processRequestMethod =
-                  Dispatcher.class.getDeclaredMethod(
-                      "processRequest",
-                      Channel.class,
-                      Message.Request.class,
-                      ClientResourceLimits.Overload.class,
-                      dispatcherRequestTime);
-              response =
-                  (Message.Response)
-                      processRequestMethod.invoke(
-                          null,
-                          ctx.channel(),
-                          startup,
-                          ClientResourceLimits.Overload.NONE,
-                          forImmediateExecution.invoke(null));
-
-            } catch (ClassNotFoundException cnfe) {
-              logger.debug(
-                  "Dispatcher$RequestTime in Converged Core 5 not found, trying Dispatcher.processRequest with primitive long from older versions");
-              try {
-                // try to get the CC5 version with a primitive long instead of RequestTime
-                Method processRequestMethod =
-                    Dispatcher.class.getDeclaredMethod(
-                        "processRequest",
-                        Channel.class,
-                        Message.Request.class,
-                        ClientResourceLimits.Overload.class,
-                        long.class);
-                // CC5 method found so we'll need to invoke it with a start time
-                response =
-                    (Message.Response)
-                        processRequestMethod.invoke(
-                            null,
-                            ctx.channel(),
-                            startup,
-                            ClientResourceLimits.Overload.NONE,
-                            MonotonicClock.Global.approxTime.now());
-              } catch (NoSuchMethodException ex) {
-                // CC5 version has an older signature still
-                logger.debug(
-                    "Cassandra Dispatcher.processRequest() with primitve long not found, trying yet an older signature");
-                try {
-                  Method processRequestMethod =
-                      Dispatcher.class.getDeclaredMethod(
-                          "processRequest",
-                          Channel.class,
-                          Message.Request.class,
-                          ClientResourceLimits.Overload.class);
-                  response =
-                      (Message.Response)
-                          processRequestMethod.invoke(
-                              null, ctx.channel(), startup, ClientResourceLimits.Overload.NONE);
-                } catch (NoSuchMethodException ex2) {
-                  // something is broken, need to figure out what method/signature should be used
-                  logger.debug(
-                      "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
-                      ex2);
-                  throw ex2;
-                }
-              }
-            }
-            if (response.type.equals(Message.Type.AUTHENTICATE))
-              // bypass authentication
-              response = new ReadyMessage();
-
-            outbound = response.encode(inbound.header.version);
-            ctx.writeAndFlush(outbound, promise);
-            logger.debug("Configured pipeline: {}", ctx.pipeline());
+            // code. The processRequest/processInit call below may need to change with it. This is
+            // generally a copy of the code in InitialConnectionHandler.java upstream
+            Dispatcher.processInit((ServerConnection) connection, startup)
+                .addCallback(
+                    (response, error) -> {
+                      if (error == null) {
+                        if (response.type.equals(
+                            Message.Type.AUTHENTICATE)) // bypass authentication
+                        {
+                          response = new ReadyMessage();
+                        }
+                        Envelope encoded = response.encode(version);
+                        ctx.writeAndFlush(encoded, promise);
+                        logger.debug("Configured pipeline: {}", ctx.pipeline());
+                      } else {
+                        ErrorMessage message =
+                            ErrorMessage.fromException(
+                                new ProtocolException(
+                                    String.format("Unexpected error %s", error.getMessage())));
+                        Envelope encoded = message.encode(version);
+                        ctx.writeAndFlush(encoded);
+                      }
+                    });
+            ;
             break;
 
           default:
@@ -406,7 +324,7 @@ public class UnixSocketServerHcd {
                         String.format(
                             "Unexpected message %s, expecting STARTUP or OPTIONS",
                             inbound.header.type)));
-            outbound = error.encode(inbound.header.version);
+            outbound = error.encode(version);
             ctx.writeAndFlush(outbound);
         }
       } finally {
