@@ -16,6 +16,13 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-4.x</artifactId>
   <dependencies>
+    <!-- Need to explicitly declare SLF4J as "provided" to avoid it being bundled into the resulting agent jarfile -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>io.k8ssandra</groupId>
       <artifactId>datastax-mgmtapi-common</artifactId>
