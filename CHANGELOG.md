@@ -10,8 +10,12 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.96 [2025-02-05]
 * [FEATURE] [#600](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/600) Add Cassandra 5.0.3, 4.1.8, 4.0.16 to the build matrix
 * [BUGFIX] [#598](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/598) Update HCD 1.2 Agent
+* [ENHANCEMENT] Update SLF4J to version 2.0.9
+* [ENHANCEMENT] Update Logback to version 1.4.14
 
 ## v0.1.95 (2025-02-03)
 * [BUGFIX] [#XXX] Change "/bin/which" command to simply "which" (no issue filed)
