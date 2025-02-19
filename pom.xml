@@ -115,8 +115,8 @@
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
-        <module>management-api-agent-hcd</module>
-        <module>management-api-agent-hcd-1.2.x</module>
+        <module>management-api-agent-hcd-cc4</module>
+        <module>management-api-agent-hcd-cc5</module>
         <module>management-api-server</module>
         <module>management-api-test</module>
       </modules>
