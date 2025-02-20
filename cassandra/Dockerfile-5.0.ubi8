@@ -39,6 +39,16 @@ RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --fi
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
 
+###
+# Add sstable tools to Cassandra
+###
+ARG SSTABLE_TOOLS_VERSION=cassandra-5.0.2-1.0-preview-4
+RUN curl -LO "https://github.com/burmanm/cassandra-sstable-tools/releases/download/${SSTABLE_TOOLS_VERSION}/ic-sstable-tools.jar" && \
+    mv ic-sstable-tools.jar $CASSANDRA_HOME/lib && \
+    curl -LO "https://github.com/burmanm/cassandra-sstable-tools/releases/download/${SSTABLE_TOOLS_VERSION}/ic-sstable-tools" && \
+    mv ic-sstable-tools $CASSANDRA_HOME/bin && \
+    chmod +x $CASSANDRA_HOME/bin/ic-sstable-tools
+
 #############################################################
 # Copy Management API
 FROM --platform=$BUILDPLATFORM alpine:latest AS mgmtapi-setup
