@@ -64,7 +64,7 @@ public class UnixSocketServerHcd {
             INITIAL_HANDLER,
             new PipelineChannelInitializer(
                 new Envelope.Decoder(),
-                (channel1, version) ->
+                (Channel channel1, ProtocolVersion version) ->
                     new UnixSocketConnection(channel1, version, connectionTracker)));
         /**
          * The exceptionHandler will take care of handling exceptionCaught(...) events while still
@@ -111,32 +111,15 @@ public class UnixSocketServerHcd {
                 (CompletableFuture<Message.Response>)
                     requestExecute.invoke(request, qstate, queryStartNanoTime);
             future.whenComplete(
-                (response, ignore) -> {
-                  // UnixSocket has no auth
-                  if (response instanceof AuthenticateMessage) {
-                    response = new ReadyMessage();
-                  }
-                  response.setStreamId(request.getStreamId());
-                  response.setWarnings(ClientWarn.instance.getWarnings());
-                  response.attach(connection);
-                  connection.applyStateTransition(request.type, response.type);
-                  ctx.writeAndFlush(response);
-                  request.getSource().release();
+                (Message.Response response, Throwable ignore) -> {
+                  processMessageResponse(response, request, connection, ctx);
                 });
           } else if (Message.Response.class.equals(requestExecute.getReturnType())) {
             // older non-async processing
             Message.Response response =
                 (Message.Response) requestExecute.invoke(request, qstate, queryStartNanoTime);
 
-            // UnixSocket has no auth
-            response = response instanceof AuthenticateMessage ? new ReadyMessage() : response;
-
-            response.setStreamId(request.getStreamId());
-            response.setWarnings(ClientWarn.instance.getWarnings());
-            response.attach(connection);
-            connection.applyStateTransition(request.type, response.type);
-            ctx.writeAndFlush(response);
-            request.getSource().release();
+            processMessageResponse(response, request, connection, ctx);
           }
         } catch (NoSuchMethodException ex) {
           // Unexepected missing method, throw an error and figure out what method signature we have
@@ -157,6 +140,23 @@ public class UnixSocketServerHcd {
       } finally {
         ClientWarn.instance.resetWarnings();
       }
+    }
+
+    private void processMessageResponse(
+        Message.Response response,
+        Message.Request request,
+        final UnixSocketConnection connection,
+        ChannelHandlerContext ctx) {
+      if (response instanceof AuthenticateMessage) {
+        // UnixSocket has no auth
+        response = new ReadyMessage();
+      }
+      response.setStreamId(request.getStreamId());
+      response.setWarnings(ClientWarn.instance.getWarnings());
+      response.attach(connection);
+      connection.applyStateTransition(request.type, response.type);
+      ctx.writeAndFlush(response);
+      request.getSource().release();
     }
   }
 
@@ -330,11 +330,9 @@ public class UnixSocketServerHcd {
               ((CompletableFuture<Message.Response>)
                       processInit.invoke(null, (ServerConnection) connection, startup))
                   .whenComplete(
-                      (response, error) -> {
+                      (Message.Response response, Throwable error) -> {
                         if (error == null) {
-                          Envelope encoded = response.encode(inbound.header.version);
-                          ctx.writeAndFlush(encoded, promise);
-                          logger.debug("Configured pipeline: {}", ctx.pipeline());
+                          processStartupResponse(response, inbound, ctx, promise);
                         } else {
                           ErrorMessage message =
                               ErrorMessage.fromException(
@@ -361,13 +359,7 @@ public class UnixSocketServerHcd {
                             (ServerConnection) connection,
                             startup,
                             ClientResourceLimits.Overload.NONE);
-                if (response.type.equals(Message.Type.AUTHENTICATE))
-                  // bypass authentication
-                  response = new ReadyMessage();
-
-                outbound = response.encode(inbound.header.version);
-                ctx.writeAndFlush(outbound, promise);
-                logger.debug("Configured pipeline: {}", ctx.pipeline());
+                processStartupResponse(response, inbound, ctx, promise);
                 break;
               } catch (NoSuchMethodException nsme2) {
                 // Expected method not found. Log an error and figure out what signature we need
@@ -391,6 +383,20 @@ public class UnixSocketServerHcd {
       } finally {
         inbound.release();
       }
+    }
+
+    private void processStartupResponse(
+        Message.Response response,
+        Envelope inbound,
+        ChannelHandlerContext ctx,
+        ChannelPromise promise) {
+      if (response.type.equals(Message.Type.AUTHENTICATE)) {
+        // bypass authentication
+        response = new ReadyMessage();
+      }
+      Envelope encoded = response.encode(inbound.header.version);
+      ctx.writeAndFlush(encoded, promise);
+      logger.debug("Configured pipeline: {}", ctx.pipeline());
     }
   }
 }

@@ -103,17 +103,8 @@ public class UnixSocketServerHcd {
         request
             .execute(qstate, queryStartNanoTime)
             .addCallback(
-                (response, ignore) -> {
-                  // UnixSocket has no auth
-                  if (response instanceof AuthenticateMessage) {
-                    response = new ReadyMessage();
-                  }
-                  response.setStreamId(request.getStreamId());
-                  response.setWarnings(ClientWarn.instance.getWarnings());
-                  response.attach(connection);
-                  connection.applyStateTransition(request.type, response.type);
-                  ctx.writeAndFlush(response);
-                  request.getSource().release();
+                (Message.Response response, Throwable ignore) -> {
+                  processMessageResponse(response, request, connection, ctx);
                 });
       } catch (Throwable t) {
         // logger.warn("Exception encountered", t);
@@ -127,6 +118,23 @@ public class UnixSocketServerHcd {
       } finally {
         ClientWarn.instance.resetWarnings();
       }
+    }
+
+    private void processMessageResponse(
+        Message.Response response,
+        Message.Request request,
+        final UnixSocketConnection connection,
+        ChannelHandlerContext ctx) {
+      if (response instanceof AuthenticateMessage) {
+        // UnixSocket has no auth
+        response = new ReadyMessage();
+      }
+      response.setStreamId(request.getStreamId());
+      response.setWarnings(ClientWarn.instance.getWarnings());
+      response.attach(connection);
+      connection.applyStateTransition(request.type, response.type);
+      ctx.writeAndFlush(response);
+      request.getSource().release();
     }
   }
 
@@ -295,16 +303,9 @@ public class UnixSocketServerHcd {
             // generally a copy of the code in InitialConnectionHandler.java upstream
             Dispatcher.processInit((ServerConnection) connection, startup)
                 .addCallback(
-                    (response, error) -> {
+                    (Message.Response response, Throwable error) -> {
                       if (error == null) {
-                        if (response.type.equals(
-                            Message.Type.AUTHENTICATE)) // bypass authentication
-                        {
-                          response = new ReadyMessage();
-                        }
-                        Envelope encoded = response.encode(version);
-                        ctx.writeAndFlush(encoded, promise);
-                        logger.debug("Configured pipeline: {}", ctx.pipeline());
+                        processResponse(response, version, ctx, promise);
                       } else {
                         ErrorMessage message =
                             ErrorMessage.fromException(
@@ -314,7 +315,6 @@ public class UnixSocketServerHcd {
                         ctx.writeAndFlush(encoded);
                       }
                     });
-            ;
             break;
 
           default:
@@ -330,6 +330,20 @@ public class UnixSocketServerHcd {
       } finally {
         inbound.release();
       }
+    }
+
+    private void processResponse(
+        Message.Response response,
+        ProtocolVersion version,
+        ChannelHandlerContext ctx,
+        ChannelPromise promise) {
+      if (response.type.equals(Message.Type.AUTHENTICATE)) {
+        // bypass authentication
+        response = new ReadyMessage();
+      }
+      Envelope encoded = response.encode(version);
+      ctx.writeAndFlush(encoded, promise);
+      logger.debug("Configured pipeline: {}", ctx.pipeline());
     }
   }
 
