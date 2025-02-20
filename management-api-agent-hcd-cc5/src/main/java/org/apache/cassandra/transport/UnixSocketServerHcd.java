@@ -58,12 +58,9 @@ public class UnixSocketServerHcd {
         ChannelPipeline pipeline = channel.pipeline();
 
         pipeline.addLast(ENVELOPE_ENCODER, Envelope.Encoder.instance);
+        final _ConnectionFactory factory = new _ConnectionFactory(connectionTracker);
         pipeline.addLast(
-            INITIAL_HANDLER,
-            new PipelineChannelInitializer(
-                new Envelope.Decoder(),
-                (channel1, version) ->
-                    new UnixSocketConnection(channel1, version, connectionTracker)));
+            INITIAL_HANDLER, new PipelineChannelInitializer(new Envelope.Decoder(), factory));
         /**
          * The exceptionHandler will take care of handling exceptionCaught(...) events while still
          * running on the same EventLoop as all previous added handlers in the pipeline. This is
@@ -82,7 +79,7 @@ public class UnixSocketServerHcd {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message.Request request)
         throws Exception {
-      final Message.Response response;
+
       final UnixSocketConnection connection;
       long queryStartNanoTime = System.nanoTime();
 
@@ -98,15 +95,17 @@ public class UnixSocketServerHcd {
         // logger.info("Executing {} {} {}", request, connection.getVersion(),
         // request.getStreamId());
 
-        Message.Response r = request.execute(qstate, queryStartNanoTime);
-
-        // UnixSocket has no auth
-        response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
-
-        response.setStreamId(request.getStreamId());
-        response.setWarnings(ClientWarn.instance.getWarnings());
-        response.attach(connection);
-        connection.applyStateTransition(request.type, response.type);
+        // In Cassandra 4.1.6, CASSANDRA-19534 changed the Message.Request.execute method signature
+        // to take a new Dispatcher.RequestTime object instead of a primitive long for the Query
+        // start time. We'll need to introduce reflection here to create the correct Objects and
+        // make the correct calls based on which version of 4.1.x we are. For Cassandra 5.0, this
+        // patch was ported between 5.0-rc1 and 5.0-rc2.
+        request
+            .execute(qstate, queryStartNanoTime)
+            .addCallback(
+                (Message.Response response, Throwable ignore) -> {
+                  processMessageResponse(response, request, connection, ctx);
+                });
       } catch (Throwable t) {
         // logger.warn("Exception encountered", t);
         JVMStabilityInspector.inspectThrowable(t);
@@ -119,7 +118,21 @@ public class UnixSocketServerHcd {
       } finally {
         ClientWarn.instance.resetWarnings();
       }
+    }
 
+    private void processMessageResponse(
+        Message.Response response,
+        Message.Request request,
+        final UnixSocketConnection connection,
+        ChannelHandlerContext ctx) {
+      if (response instanceof AuthenticateMessage) {
+        // UnixSocket has no auth
+        response = new ReadyMessage();
+      }
+      response.setStreamId(request.getStreamId());
+      response.setWarnings(ClientWarn.instance.getWarnings());
+      response.attach(connection);
+      connection.applyStateTransition(request.type, response.type);
       ctx.writeAndFlush(response);
       request.getSource().release();
     }
@@ -223,9 +236,10 @@ public class UnixSocketServerHcd {
 
       try {
         Envelope outbound;
+        ProtocolVersion version = inbound.header.version;
         switch (inbound.header.type) {
           case OPTIONS:
-            logger.debug("OPTIONS received {}", inbound.header.version);
+            logger.debug("OPTIONS received {}", version);
             List<String> cqlVersions = new ArrayList<>();
             cqlVersions.add(QueryProcessor.CQL_VERSION.toString());
 
@@ -240,7 +254,7 @@ public class UnixSocketServerHcd {
             supportedOptions.put(
                 StartupMessage.PROTOCOL_VERSIONS, ProtocolVersion.supportedVersions());
             SupportedMessage supported = new SupportedMessage(supportedOptions);
-            outbound = supported.encode(inbound.header.version);
+            outbound = supported.encode(version);
             ctx.writeAndFlush(outbound);
             break;
 
@@ -248,7 +262,7 @@ public class UnixSocketServerHcd {
             Attribute<Connection> attrConn = ctx.channel().attr(Connection.attributeKey);
             Connection connection = attrConn.get();
             if (connection == null) {
-              connection = factory.newConnection(ctx.channel(), inbound.header.version);
+              connection = factory.newConnection(ctx.channel(), version);
               attrConn.set(connection);
             }
             assert connection instanceof ServerConnection;
@@ -261,7 +275,7 @@ public class UnixSocketServerHcd {
             // ClientResourceLimits.getAllocatorForEndpoint(remoteAddress);
 
             ChannelPromise promise;
-            if (inbound.header.version.isGreaterOrEqualTo(ProtocolVersion.V5)) {
+            if (version.isGreaterOrEqualTo(ProtocolVersion.V5)) {
               // v5 not yet supported
               logger.warn("PROTOCOL v5 not yet supported.");
             }
@@ -284,17 +298,23 @@ public class UnixSocketServerHcd {
 
             promise = new VoidChannelPromise(ctx.channel(), false);
 
-            Message.Response response =
-                Dispatcher.processRequest(
-                    (ServerConnection) connection, startup, ClientResourceLimits.Overload.NONE);
-
-            if (response.type.equals(Message.Type.AUTHENTICATE))
-              // bypass authentication
-              response = new ReadyMessage();
-
-            outbound = response.encode(inbound.header.version);
-            ctx.writeAndFlush(outbound, promise);
-            logger.debug("Configured pipeline: {}", ctx.pipeline());
+            // HCD 1.2 uses Converged Core 5, which will advance over time to pull in Cassandra 5.0
+            // code. The processRequest/processInit call below may need to change with it. This is
+            // generally a copy of the code in InitialConnectionHandler.java upstream
+            Dispatcher.processInit((ServerConnection) connection, startup)
+                .addCallback(
+                    (Message.Response response, Throwable error) -> {
+                      if (error == null) {
+                        processResponse(response, version, ctx, promise);
+                      } else {
+                        ErrorMessage message =
+                            ErrorMessage.fromException(
+                                new ProtocolException(
+                                    String.format("Unexpected error %s", error.getMessage())));
+                        Envelope encoded = message.encode(version);
+                        ctx.writeAndFlush(encoded);
+                      }
+                    });
             break;
 
           default:
@@ -304,12 +324,45 @@ public class UnixSocketServerHcd {
                         String.format(
                             "Unexpected message %s, expecting STARTUP or OPTIONS",
                             inbound.header.type)));
-            outbound = error.encode(inbound.header.version);
+            outbound = error.encode(version);
             ctx.writeAndFlush(outbound);
         }
       } finally {
         inbound.release();
       }
+    }
+
+    private void processResponse(
+        Message.Response response,
+        ProtocolVersion version,
+        ChannelHandlerContext ctx,
+        ChannelPromise promise) {
+      if (response.type.equals(Message.Type.AUTHENTICATE)) {
+        // bypass authentication
+        response = new ReadyMessage();
+      }
+      Envelope encoded = response.encode(version);
+      ctx.writeAndFlush(encoded, promise);
+      logger.debug("Configured pipeline: {}", ctx.pipeline());
+    }
+  }
+
+  public static class _ConnectionFactory implements Connection.Factory {
+
+    private final Server.ConnectionTracker connectionTracker;
+
+    public _ConnectionFactory(Server.ConnectionTracker connectionTracker) {
+      this.connectionTracker = connectionTracker;
+    }
+
+    @Override
+    public Connection newConnection(Channel chnl, ProtocolVersion pv) {
+      if (chnl.remoteAddress() != null) {
+        // need to wrap the channel
+        Channel channelWraper = new NettyChannelWrapper(chnl);
+        return new UnixSocketConnection(channelWraper, pv, connectionTracker);
+      }
+      return new UnixSocketConnection(chnl, pv, connectionTracker);
     }
   }
 }

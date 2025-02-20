@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 * [CHANGE] Remove Cassandra 4.0.16 from the build matrix due to a regression (https://issues.apache.org/jira/browse/CASSANDRA-20090)
+* [CHANGE] [#608](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/608) Refactor HCD Agents (cc4 vs cc5)
 * [FEATURE] [#601](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/602) Add Cassandra 4.0.17 to the build matrix
 * [FEATURE] [#603](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/603) Add DSE 6.8.54 to the build matrix
 * [FEATURE] [#604](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/604) Add DSE 6.9.7 to the build matrix

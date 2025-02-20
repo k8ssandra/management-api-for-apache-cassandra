@@ -196,29 +196,29 @@ Example for DSE 6.9.0
 
 ** NOTE: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
 
-### Docker coordinates for HCD 1.0.x/1.2.x images
+### Docker coordinates for HCD 1.1.x/1.2.x images
 
-#### Ubuntu based images (HCD 1.0/1.2)
+#### Ubuntu based images (HCD 1.1/1.2)
 
-For all JDK 11 Ubuntu based HCD 1.0.x/1.2.x images, the Docker coordinates are as follows:
+For all JDK 11 Ubuntu based HCD 1.1.x/1.2.x images, the Docker coordinates are as follows:
 
       datastax/hcd:<version>
 
-Example for HCD 1.0.0
+Example for HCD 1.1.0
 
-      datastax/hcd:1.0.0
+      datastax/hcd:1.1.0
 
 Example for HCD 1.2.0
 
       datastax/hcd:1.2.0
 
-#### RedHat UBI images (HCD 1.0/1.2)
+#### RedHat UBI images (HCD 1.1/1.2)
 
-For all RedHat UBI based HCD 1.0.x/1.2.x images, the Docker coordinates are as follows:
+For all RedHat UBI based HCD 1.1.x/1.2.x images, the Docker coordinates are as follows:
 
       datastax/hcd:<version>-ubi
 
-Example for HCD 1.0.0
+Example for HCD 1.1.0
 
       datastax/hcd:1.0.0-ubi
 
