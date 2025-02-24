@@ -60,12 +60,9 @@ public class UnixSocketServerHcd {
         ChannelPipeline pipeline = channel.pipeline();
 
         pipeline.addLast(ENVELOPE_ENCODER, Envelope.Encoder.instance);
+        final _ConnectionFactory factory = new _ConnectionFactory(connectionTracker);
         pipeline.addLast(
-            INITIAL_HANDLER,
-            new PipelineChannelInitializer(
-                new Envelope.Decoder(),
-                (Channel channel1, ProtocolVersion version) ->
-                    new UnixSocketConnection(channel1, version, connectionTracker)));
+            INITIAL_HANDLER, new PipelineChannelInitializer(new Envelope.Decoder(), factory));
         /**
          * The exceptionHandler will take care of handling exceptionCaught(...) events while still
          * running on the same EventLoop as all previous added handlers in the pipeline. This is
@@ -397,6 +394,25 @@ public class UnixSocketServerHcd {
       Envelope encoded = response.encode(inbound.header.version);
       ctx.writeAndFlush(encoded, promise);
       logger.debug("Configured pipeline: {}", ctx.pipeline());
+    }
+  }
+
+  public static class _ConnectionFactory implements Connection.Factory {
+
+    private final Server.ConnectionTracker connectionTracker;
+
+    public _ConnectionFactory(Server.ConnectionTracker connectionTracker) {
+      this.connectionTracker = connectionTracker;
+    }
+
+    @Override
+    public Connection newConnection(Channel chnl, ProtocolVersion pv) {
+      if (chnl.remoteAddress() != null) {
+        // need to wrap the channel
+        Channel channelWraper = new NettyChannelWrapper(chnl);
+        return new UnixSocketConnection(channelWraper, pv, connectionTracker);
+      }
+      return new UnixSocketConnection(chnl, pv, connectionTracker);
     }
   }
 }
