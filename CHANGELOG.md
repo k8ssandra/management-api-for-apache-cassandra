@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#611](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/611) Fix HCD CC4 Agent for newer Netty
 
 ## v0.1.97 [2025-02-20]
 * [CHANGE] Remove Cassandra 4.0.16 from the build matrix due to a regression (https://issues.apache.org/jira/browse/CASSANDRA-20090)
