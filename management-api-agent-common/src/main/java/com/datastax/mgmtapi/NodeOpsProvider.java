@@ -866,8 +866,6 @@ public class NodeOpsProvider {
     // this.
     logger.debug("Starting repair for keyspace: {}", keyspace);
     logger.debug("Repair spec: {}", repairSpec);
-    logger.info("Repair parallelism from the request is: {}", repairParallelism);
-    logger.info("Repair parallelism: {}", repairSpec.get(RepairOption.PARALLELISM_KEY));
 
     final int repairJobId =
         ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
