@@ -20,6 +20,7 @@ import com.datastax.oss.driver.api.querybuilder.schema.CreateTable;
 import com.datastax.oss.driver.api.querybuilder.schema.CreateTableWithOptions;
 import com.datastax.oss.driver.api.querybuilder.schema.OngoingPartitionKey;
 import com.datastax.oss.driver.internal.core.metadata.schema.parsing.DataTypeCqlNameParser;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
@@ -65,13 +66,14 @@ public class NodeOpsProvider {
   private static final Logger logger = LoggerFactory.getLogger(NodeOpsProvider.class);
   public static final Supplier<NodeOpsProvider> instance =
       Suppliers.memoize(() -> new NodeOpsProvider());
-  public static final JobExecutor service = new JobExecutor();
+  public static JobExecutor service = new JobExecutor();
 
   public static final String RPC_CLASS_NAME = "NodeOps";
 
   private static final DataTypeCqlNameParser DATA_TYPE_PARSER = new DataTypeCqlNameParser();
 
-  private NodeOpsProvider() {}
+  @VisibleForTesting
+  protected NodeOpsProvider() {}
 
   public synchronized void register() {
     RpcRegistry.register(RPC_CLASS_NAME, this);
@@ -830,17 +832,16 @@ public class NodeOpsProvider {
     }
     // set incremental reapir
     repairSpec.put(RepairOption.INCREMENTAL_KEY, Boolean.toString(!full));
+
+    // set repair parallelism
+    repairSpec.put(RepairOption.PARALLELISM_KEY, repairParallelism);
+
     // Parallelism should be set if it's requested OR if incremental repair is requested.
     if (!full) {
       // Incremental repair requested, make sure parallelism is correct
-      if (repairParallelism != null
-          && !RepairParallelism.PARALLEL.getName().equals(repairParallelism)) {
-        throw new IOException(
-            "Invalid repair combination. Incremental repair if Parallelism is not set");
-      }
-      // Incremental repair and parallelism should be set
       repairSpec.put(RepairOption.PARALLELISM_KEY, RepairParallelism.PARALLEL.getName());
     }
+
     if (repairThreadCount != null) {
       // if specified, the value should be at least 1
       if (repairThreadCount.compareTo(Integer.valueOf(0)) <= 0) {
@@ -863,6 +864,11 @@ public class NodeOpsProvider {
 
     // Since Cassandra provides us with a async, we don't need to use our executor interface for
     // this.
+    logger.debug("Starting repair for keyspace: {}", keyspace);
+    logger.debug("Repair spec: {}", repairSpec);
+    logger.info("Repair parallelism from the request is: {}", repairParallelism);
+    logger.info("Repair parallelism: {}", repairSpec.get(RepairOption.PARALLELISM_KEY));
+
     final int repairJobId =
         ShimLoader.instance.get().getStorageService().repairAsync(keyspace, repairSpec);
 

@@ -28,9 +28,12 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Path("/api/v2/repairs")
 public class RepairResourcesV2 extends BaseResources {
+  private static final Logger logger = LoggerFactory.getLogger(RepairResourcesV2.class);
 
   public RepairResourcesV2(ManagementApplication application) {
     super(application);
@@ -75,6 +78,10 @@ public class RepairResourcesV2 extends BaseResources {
                 .entity("keyspaceName must be specified")
                 .build();
           }
+          logger.info("repair request: {}", request);
+          logger.info("repair parallelism: {}", request.repairParallelism);
+          logger.info(
+              "repair getParallelismName: {}", getParallelismName(request.repairParallelism));
 
           ResultSet res =
               app.cqlService.executePreparedStatement(
@@ -121,6 +128,7 @@ public class RepairResourcesV2 extends BaseResources {
   }
 
   private String getParallelismName(RepairParallelism parallelism) {
+    logger.info("parallelism: {}", parallelism);
     return parallelism != null ? parallelism.getName() : null;
   }
 

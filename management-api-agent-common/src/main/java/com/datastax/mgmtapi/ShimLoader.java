@@ -11,7 +11,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 
 public class ShimLoader {
-  public static final Supplier<CassandraAPI> instance = Suppliers.memoize(ShimLoader::loadShim);
+  public static Supplier<CassandraAPI> instance = Suppliers.memoize(ShimLoader::loadShim);
 
   private static CassandraAPI loadShim() {
     ServiceProviderLoader<CassandraAPIServiceProvider> loader = new ServiceProviderLoader<>();
