@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.cassandra.repair.messages.RepairOption;
 import org.apache.cassandra.service.StorageService;
 import org.junit.Before;
@@ -61,8 +60,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -87,8 +94,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -113,8 +128,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -140,8 +163,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -169,11 +200,18 @@ public class NodeOpsProviderTest {
     Job job = mock(Job.class);
     when(jobExecutor.createJob(any(), any())).thenReturn(job);
     when(job.getJobId()).thenReturn("repair-1");
-    when(jobExecutor.createJob(any(), any()))
-      .thenReturn(job);
+    when(jobExecutor.createJob(any(), any())).thenReturn(job);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("repair-1", jobId);
@@ -199,8 +237,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -226,8 +272,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -253,8 +307,16 @@ public class NodeOpsProviderTest {
     when(cassandraApi.getStorageService()).thenReturn(storageService);
     when(storageService.repairAsync(eq(keyspace), anyMap())).thenReturn(1);
 
-    String jobId = nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+    String jobId =
+        nodeOpsProvider.repair(
+            keyspace,
+            tables,
+            full,
+            notifications,
+            repairParallelism,
+            datacenters,
+            ringRangeString,
+            repairThreadCount);
 
     verify(storageService).repairAsync(eq(keyspace), eq(repairSpec));
     assertEquals("1", jobId);
@@ -272,6 +334,13 @@ public class NodeOpsProviderTest {
     Integer repairThreadCount = 0;
 
     nodeOpsProvider.repair(
-      keyspace, tables, full, notifications, repairParallelism, datacenters, ringRangeString, repairThreadCount);
+        keyspace,
+        tables,
+        full,
+        notifications,
+        repairParallelism,
+        datacenters,
+        ringRangeString,
+        repairThreadCount);
   }
 }
