@@ -36,8 +36,9 @@ public class NodeOpsProviderTest {
   @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
-    nodeOpsProvider = new NodeOpsProvider();
     ShimLoader.instance = () -> cassandraApi;
+    when(cassandraApi.getStorageService()).thenReturn(storageService);
+    nodeOpsProvider = new NodeOpsProvider();
     NodeOpsProvider.service = jobExecutor;
   }
 
@@ -45,7 +46,7 @@ public class NodeOpsProviderTest {
   public void testBasicRepair() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = false;
     String repairParallelism = "sequential";
     List<String> datacenters = null;
@@ -113,7 +114,7 @@ public class NodeOpsProviderTest {
   public void testIncrementalRepair() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = false;
+    boolean full = false;
     boolean notifications = false;
     String repairParallelism = "parallel";
     List<String> datacenters = null;
@@ -147,7 +148,7 @@ public class NodeOpsProviderTest {
   public void testIncrementalSequentialRepair() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = false;
+    boolean full = false;
     boolean notifications = false;
     String repairParallelism = "sequential";
     List<String> datacenters = null;
@@ -182,7 +183,7 @@ public class NodeOpsProviderTest {
   public void testRepairWithNotifications() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = true;
     String repairParallelism = "parallel";
     List<String> datacenters = null;
@@ -221,7 +222,7 @@ public class NodeOpsProviderTest {
   public void testRepairWithDatacenters() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = false;
     String repairParallelism = "parallel";
     List<String> datacenters = Arrays.asList("dc1", "dc2");
@@ -256,7 +257,7 @@ public class NodeOpsProviderTest {
   public void testRepairWithRingRange() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = false;
     String repairParallelism = "parallel";
     List<String> datacenters = null;
@@ -291,7 +292,7 @@ public class NodeOpsProviderTest {
   public void testRepairWithThreadCount() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = false;
     String repairParallelism = "parallel";
     List<String> datacenters = null;
@@ -326,7 +327,7 @@ public class NodeOpsProviderTest {
   public void testRepairWithInvalidThreadCount() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
-    Boolean full = true;
+    boolean full = true;
     boolean notifications = false;
     String repairParallelism = "parallel";
     List<String> datacenters = null;
