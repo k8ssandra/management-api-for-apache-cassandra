@@ -11,6 +11,10 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.99 [2025-03-10]
+* [BUGFIX] Create notificationListener before any repairs are submitted (#616)
+* [BUGFIX] Properly apply parallelism in the repair specs (#615)
+
 ## v0.1.98 [2025-02-24]
 * [BUGFIX] [#611](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/611) Fix HCD CC4 Agent for newer Netty
 
