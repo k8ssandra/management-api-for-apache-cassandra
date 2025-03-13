@@ -92,7 +92,6 @@ COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
 COPY management-api-agent-5.1.x /tmp/management-api-agent-5.1.x
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
-COPY management-api-test /tmp/management-api-test
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
     && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P trunk \
@@ -148,11 +147,10 @@ RUN microdnf install --nodocs shadow-utils \
     && microdnf clean all
 
 # Copy trimmed installation
-COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
-COPY --from=builder --chown=cassandra:root $CDC_AGENT_PATH $CDC_AGENT_PATH
 COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_FILES_PATH} /
+COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
 # Create directories

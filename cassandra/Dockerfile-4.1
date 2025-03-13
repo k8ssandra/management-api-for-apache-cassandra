@@ -14,7 +14,7 @@ COPY management-api-agent-4.1.x/target/datastax-mgmtapi-agent*.jar ./
 COPY management-api-server/target/datastax-mgmtapi-server*.jar ./
 RUN mkdir -m 775 ${MAAC_PATH} && \
     find /build -type f -name "datastax-mgmtapi*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
-    rm $MAAC_PATH/datastax-mgmtapi*test* && \
+    rm -rf $MAAC_PATH/datastax-mgmtapi*test* && \
     cd ${MAAC_PATH} && \
     ln -s datastax-mgmtapi-agent*.jar datastax-mgmtapi-agent.jar && \
     ln -s datastax-mgmtapi-server*.jar datastax-mgmtapi-server.jar && \
