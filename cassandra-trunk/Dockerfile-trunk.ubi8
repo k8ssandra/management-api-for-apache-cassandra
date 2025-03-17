@@ -53,7 +53,7 @@ RUN set -x \
     # create an empty javadoc archive so we can skip javadoc generation
     && mkdir -p ./build/ \
     && touch ./build/apache-cassandra-${CASSANDRA_VERSION}-javadoc.jar \
-    && ant artifacts mvn-install -Duse.jdk11=true -Dno-javadoc=true \
+    && ant artifacts mvn-install -Duse.jdk11=true -Dno-javadoc=true -Dant.gen-doc.skip=true \
     && mkdir -m 775 ${CASSANDRA_PATH} ${CASSANDRA_FILES_PATH} \
     && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc \
