@@ -96,6 +96,7 @@
         <module>management-api-agent-4.x</module>
         <module>management-api-agent-4.1.x</module>
         <module>management-api-agent-5.0.x</module>
+        <module>management-api-agent-5.1.x</module>
         <module>management-api-server</module>
         <module>management-api-test</module>
       </modules>

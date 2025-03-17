@@ -5,7 +5,9 @@
  */
 package io.k8ssandra.metrics.builder;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -14,10 +16,15 @@ import java.util.List;
 import java.util.Map;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.locator.IEndpointSnitch;
+import org.apache.cassandra.locator.InetAddressAndPort;
 import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.utils.EstimatedHistogram;
+import org.apache.cassandra.utils.FBUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CassandraMetricsTools {
+  private static final Logger LOGGER = LoggerFactory.getLogger(CassandraMetricsTools.class);
 
   public static final String CLUSTER_LABEL_NAME = "cluster";
   public static final String DATACENTER_LABEL_NAME = "datacenter";
@@ -104,6 +111,7 @@ public class CassandraMetricsTools {
               .getMethod("getLocalRack")
               .invoke(DatabaseDescriptor.getEndpointSnitch());
     } catch (NoSuchMethodException
+        | NoSuchMethodError
         | IllegalArgumentException
         | InvocationTargetException
         | NullPointerException
@@ -122,6 +130,22 @@ public class CassandraMetricsTools {
         | NoSuchMethodException
         | NullPointerException
         | SecurityException e) {
+      try {
+        // try using the newer Locator
+        Class locatorClass = Class.forName("org.apache.cassandra.locator.Locator");
+        Class locationClass = Class.forName("org.apache.cassandra.tcm.membership.Location");
+        Method getLocator = DatabaseDescriptor.class.getDeclaredMethod("getLocator", null);
+        Object locatorObj = getLocator.invoke(null, null);
+        Method locationMethod =
+            locatorClass.getDeclaredMethod("location", InetAddressAndPort.class);
+        Object locator = locatorClass.cast(getLocator.invoke(null, null));
+        Object locationObj =
+            locationMethod.invoke(locator, FBUtilities.getBroadcastAddressAndPort());
+        Field rack = locationClass.getDeclaredField("rack");
+        return (String) rack.get(locationObj);
+      } catch (Throwable ex) {
+        LOGGER.warn("Failed to get Rack", ex);
+      }
       return "unknown_rack";
     }
   }
@@ -145,6 +169,7 @@ public class CassandraMetricsTools {
               .getMethod("getLocalDatacenter")
               .invoke(DatabaseDescriptor.getEndpointSnitch());
     } catch (NoSuchMethodException
+        | NoSuchMethodError
         | IllegalArgumentException
         | InvocationTargetException
         | NullPointerException
@@ -163,6 +188,23 @@ public class CassandraMetricsTools {
         | NoSuchMethodException
         | NullPointerException
         | SecurityException e) {
+      try {
+        // try using the newer Locator
+        Class locatorClass = Class.forName("org.apache.cassandra.locator.Locator");
+        Class locationClass = Class.forName("org.apache.cassandra.tcm.membership.Location");
+        Method getLocator = DatabaseDescriptor.class.getDeclaredMethod("getLocator", null);
+        Object locatorObj = getLocator.invoke(null, null);
+        Method locationMethod =
+            locatorClass.getDeclaredMethod("location", InetAddressAndPort.class);
+        Object locator = locatorClass.cast(getLocator.invoke(null, null));
+        Object locationObj =
+            locationClass.cast(
+                locationMethod.invoke(locator, FBUtilities.getBroadcastAddressAndPort()));
+        Field datacenter = locationClass.getDeclaredField("datacenter");
+        return (String) datacenter.get(locationObj);
+      } catch (Throwable ex) {
+        LOGGER.warn("Failed to get datacenter", ex);
+      }
       return "unknown_dc";
     }
   }

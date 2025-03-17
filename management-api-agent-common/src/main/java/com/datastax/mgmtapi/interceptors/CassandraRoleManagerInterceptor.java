@@ -44,7 +44,7 @@ public class CassandraRoleManagerInterceptor {
       return;
     }
 
-    if (ShimLoader.instance.get().getStorageService().getTokenMetadata().sortedTokens().isEmpty())
+    if (ShimLoader.instance.get().getTokens().isEmpty())
       throw new IllegalStateException(
           "CassandraRoleManager skipped default role setup: no known tokens in ring");
 
