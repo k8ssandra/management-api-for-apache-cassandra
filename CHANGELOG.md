@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.100 [2-25-03-24]
 * [ENHANCEMENT] [#620](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/620) Update Dependnecies
 * [BUGFIX] [#438](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/438) Add Cassandra 5.1 Agent
 * [BUGFIX] [#617](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/617) Fix Cassandra trunk builds
