@@ -68,6 +68,39 @@ public class CassandraMetricsTest {
     assertEquals("Path", threadPoolMetric.getLabelValues().get(0));
     assertEquals("ThreadPoolName", threadPoolMetric.getLabelValues().get(1));
 
+    // DSE TPC ThreadPool Metrics have dash or slash in the pool_name
+    CassandraMetricDefinition tpcThreadPoolMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.ThreadPools.MetricName.Path.Thread-Pool-Name",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+    assertEquals(
+        "org_apache_cassandra_metrics_thread_pools_metric_name",
+        tpcThreadPoolMetric.getMetricName());
+    assertEquals(2, tpcThreadPoolMetric.getLabelNames().size());
+    assertEquals(2, tpcThreadPoolMetric.getLabelValues().size());
+    assertEquals("pool_type", tpcThreadPoolMetric.getLabelNames().get(0));
+    assertEquals("pool_name", tpcThreadPoolMetric.getLabelNames().get(1));
+    assertEquals("Path", tpcThreadPoolMetric.getLabelValues().get(0));
+    assertEquals("Thread-Pool-Name", tpcThreadPoolMetric.getLabelValues().get(1));
+
+    CassandraMetricDefinition tpcThreadPoolMetricSlash =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.ThreadPools.MetricName.Path.Thread/Pool/Name",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+    assertEquals(
+        "org_apache_cassandra_metrics_thread_pools_metric_name",
+        tpcThreadPoolMetricSlash.getMetricName());
+    assertEquals(2, tpcThreadPoolMetricSlash.getLabelNames().size());
+    assertEquals(2, tpcThreadPoolMetricSlash.getLabelValues().size());
+    assertEquals("pool_type", tpcThreadPoolMetricSlash.getLabelNames().get(0));
+    assertEquals("pool_name", tpcThreadPoolMetricSlash.getLabelNames().get(1));
+    assertEquals("Path", tpcThreadPoolMetricSlash.getLabelValues().get(0));
+    assertEquals("Thread/Pool/Name", tpcThreadPoolMetricSlash.getLabelValues().get(1));
+
     // Client Request Metrics
     CassandraMetricDefinition clientRequestMetric =
         parser.parseDropwizardMetric(
