@@ -10,10 +10,12 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.101 [2025-03-26]
 * [ENHANCEMENT] [#624](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/624) Add Maven Enforcer plugin to keep dependency versions in sync
 * [BUGFIX] [#577](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/577) pool_name can include dashes and slashes.
 
-## v0.1.100 [2-25-03-24]
+## v0.1.100 [2025-03-24]
 * [ENHANCEMENT] [#620](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/620) Update Dependnecies
 * [BUGFIX] [#438](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/438) Add Cassandra 5.1 Agent
 * [BUGFIX] [#617](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/617) Fix Cassandra trunk builds
