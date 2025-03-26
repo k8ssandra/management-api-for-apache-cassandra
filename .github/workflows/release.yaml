@@ -346,6 +346,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} to Registry
         run: |
@@ -379,6 +385,7 @@ jobs:
             --tag k8ssandra/cass-management-api:4.0-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.0.ubi8 \
@@ -392,6 +399,7 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.0.ubi8 \
@@ -434,6 +442,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }} to Registry
         run: |
@@ -465,8 +479,10 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:4.1-ubi8 \
             --tag k8ssandra/cass-management-api:4.1-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:4.1-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.1.ubi8 \
@@ -480,6 +496,7 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-4.1.ubi8 \
@@ -522,6 +539,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.cassandra-version }}-ubi to Registry
         run: |
@@ -530,8 +553,10 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:5.0-ubi8 \
             --tag k8ssandra/cass-management-api:5.0-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:5.0-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-5.0.ubi8 \
@@ -545,6 +570,7 @@ jobs:
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
+            --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
             --file cassandra/Dockerfile-5.0.ubi8 \
