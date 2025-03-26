@@ -25,7 +25,7 @@
     <build.version.file>build_version.sh</build.version.file>
     <slf4j.version>2.0.9</slf4j.version>
     <logback.version>1.4.14</logback.version>
-    <netty.version>4.1.118.Final</netty.version>
+    <netty.version>4.1.119.Final</netty.version>
     <mockito.version>3.5.13</mockito.version>
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
@@ -191,6 +191,11 @@
           <artifactId>maven-shade-plugin</artifactId>
           <version>${maven.shade.version}</version>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -258,6 +263,23 @@ Please see the included license file for details.]]></inlineHeader>
             <phase>initialize</phase>
             <goals>
               <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce</id>
+            <configuration>
+              <rules>
+                <dependencyConvergence/>
+              </rules>
+            </configuration>
+            <goals>
+              <goal>enforce</goal>
             </goals>
           </execution>
         </executions>
