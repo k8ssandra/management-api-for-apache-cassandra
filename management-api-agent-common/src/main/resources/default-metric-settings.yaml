@@ -34,7 +34,7 @@ relabels:
     sourceLabels:
       - __origname__
     targetLabel: pool_type
-  - regex: "org\\.apache\\.cassandra\\.metrics\\.ThreadPools\\.(\\w+)\\.(\\w+)\\.(\\w+).*"
+  - regex: "org\\.apache\\.cassandra\\.metrics\\.ThreadPools\\.(\\w+)\\.(\\w+)\\.([\\w-/]+).*"
     replacement: $3
     sourceLabels:
       - __origname__
