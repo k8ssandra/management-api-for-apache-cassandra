@@ -11,6 +11,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [ENHANCEMENT] [#626](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/626) Bump MCAC to 0.3.6
+
 ## v0.1.101 [2025-03-26]
 * [ENHANCEMENT] [#624](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/624) Add Maven Enforcer plugin to keep dependency versions in sync
 * [BUGFIX] [#577](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/577) pool_name can include dashes and slashes.
