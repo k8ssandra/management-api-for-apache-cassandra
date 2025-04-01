@@ -1,0 +1,5 @@
+327,330d326
+<     exit1
+<   fi
+<   if [ ! -w "$HOME" ]; then
+<     echo "User home is set to $HOME but the current user cannot create files there. Please setup user home directory properly and try again."
