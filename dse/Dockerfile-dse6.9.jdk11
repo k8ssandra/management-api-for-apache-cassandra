@@ -35,6 +35,8 @@ RUN set -x \
     && apt-get install -y --install-recommends rdfind \
     && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME} \
     && chmod -R g+w ${DSE_HOME} ${DSE_AGENT_HOME}
+COPY patches/remove-writable.patch /tmp
+RUN patch ${DSE_HOME}/bin/dse < /tmp/remove-writable.patch
 
 #############################################################
 
