@@ -3,7 +3,17 @@ ARG UBI_MAJOR=8
 ARG UBI_BASETAG=latest
 ARG DSE_BASE_IMAGE=datastax/dse-mgmtapi-6_8:${DSE_VERSION}-jdk11
 
-FROM ${DSE_BASE_IMAGE} AS dse-server-base
+FROM --platform=$BUILDPLATFORM ${DSE_BASE_IMAGE} AS dse-server-base-amd64
+ENV DSE_HOME=/opt/dse
+RUN set -x \
+    && rm ${DSE_HOME}/resources/cassandra/lib/netty*aarch*
+
+FROM --platform=$BUILDPLATFORM ${DSE_BASE_IMAGE} AS dse-server-base-arm64
+ENV DSE_HOME=/opt/dse
+RUN set -x \
+    && rm ${DSE_HOME}/resources/cassandra/lib/netty*linux-x86*
+
+FROM --platform=$BUILDPLATFORM dse-server-base-${TARGETARCH} AS dse-server-base
 
 #############################################################
 

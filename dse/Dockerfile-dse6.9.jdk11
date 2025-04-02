@@ -3,7 +3,31 @@
 #
 ARG DSE_VERSION=6.9.7
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-11
-ARG BASETAG=11.0.22-jdk-ubuntu-20240427
+ARG BASETAG=11.0.26-4-1ubuntu1-20.04
+FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS netty-setup-base
+COPY settings.xml /root/.m2/settings.xml
+RUN set -x \
+    && mvn dependency:get -Dartifact=io.netty:netty-all:4.1.100.2.dse \
+    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-epoll:4.1.100.2.dse \
+    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-kqueue:4.1.100.2.dse \
+    ## The artifacts below don't seem to be present yet, we'll need them for ARM images to work on OSX
+#    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-kqueue:4.1.100.2.dse:jar:osx-x86_64 \
+#    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-kqueue:4.1.100.2.dse:jar:osx-aarch_64 \
+    && mkdir /netty \
+    && find ~/.m2/repository/io/netty -type f -name "netty*4.1.100.2.dse*.jar" -exec cp {} /netty/ \;
+
+FROM --platform=linux/arm64 netty-setup-base as netty-setup-arm64
+RUN set -x \
+    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-epoll:4.1.100.2.dse:jar:linux-aarch_64 \
+    && find ~/.m2/repository/io/netty -type f -name "netty*4.1.100.2.dse*.jar" -exec cp {} /netty/ \;
+
+FROM --platform=linux/amd64 netty-setup-base as netty-setup-amd64
+RUN set -x \
+    && mvn dependency:get -Dtransitive=false -Dartifact=io.netty:netty-transport-native-epoll:4.1.100.2.dse:jar:linux-x86_64 \
+    && find ~/.m2/repository/io/netty -type f -name "netty*4.1.100.2.dse*.jar" -exec cp {} /netty/ \;
+
+FROM netty-setup-${TARGETARCH} as netty-setup
+
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
 
 # Set up configuration variables
@@ -26,6 +50,8 @@ RUN set -x \
     && mkdir -p "$DSE_HOME" \
     && tar -C "$DSE_HOME" --strip-components=1 -xzf /${TARBALL} \
     && rm /${TARBALL} \
+# Replace Netty with ARM compatible version
+    && find ${DSE_HOME}/resources/cassandra/lib/ -type f -name "netty*" -exec rm {} \; \
 # Unpack Agent tarball
     && mkdir -p "$DSE_AGENT_HOME" \
     && tar -C "$DSE_AGENT_HOME" --strip-components=1 -xzf /${DSE_AGENT_TARBALL} \
@@ -35,6 +61,7 @@ RUN set -x \
     && apt-get install -y --install-recommends rdfind \
     && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME} \
     && chmod -R g+w ${DSE_HOME} ${DSE_AGENT_HOME}
+COPY --chown=dse:root --from=netty-setup /netty ${DSE_HOME}/resources/cassandra/lib/
 COPY dse/patches/remove-writable.patch /tmp
 RUN patch ${DSE_HOME}/bin/dse < /tmp/remove-writable.patch
 
