@@ -381,7 +381,7 @@ Please see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md) or the
 
 ## Code Formatting
 
-### Gogle Java Style
+### Google Java Style
 
 The project uses [google-java-format](https://github.com/google/google-java-format) and enforces the
 [Google Java Style](https://google.github.io/styleguide/javaguide.html) for all Java source files. The
