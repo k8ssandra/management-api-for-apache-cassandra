@@ -59,7 +59,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 | 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0     | 1.1.0     | 1.2.0     |
 | 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1     |           |           |
 | 4.0.3           | 4.1.2           | 5.0.3           | 6.8.28    | 6.9.2     |           |           |
-| 4.0.4           | 4.1.3           |                 | 6.8.29    | 6.9.3     |           |           |
+| 4.0.4           | 4.1.3           | 5.0.4           | 6.8.29    | 6.9.3     |           |           |
 | 4.0.5           | 4.1.4           |                 | 6.8.30    | 6.9.4     |           |           |
 | 4.0.6           | 4.1.5           |                 | 6.8.31    | 6.9.5     |           |           |
 | 4.0.7           | 4.1.6           |                 | 6.8.32    | 6.9.6     |           |           |
@@ -88,7 +88,8 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
 Cassandra 5.0 images are only RedHat UBI8 based.
-- All Cassandra 4.0.x, 4.1.x and 5.0.x images come with JDK 11
+- All Cassandra 4.0.x and 4.1.x images come with JDK 11
+- All Cassabdra 5.0.x images come with JDK17
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
 - All DSE 6.9.x Ubuntu based images come with only JDK 11
@@ -381,7 +382,7 @@ Please see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md) or the
 
 ## Code Formatting
 
-### Gogle Java Style
+### Google Java Style
 
 The project uses [google-java-format](https://github.com/google/google-java-format) and enforces the
 [Google Java Style](https://google.github.io/styleguide/javaguide.html) for all Java source files. The

@@ -206,7 +206,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
 # backwards compat with upstream ENTRYPOINT
-COPY cassandra/scripts/docker-entrypoint.sh /usr/local/bin/
+COPY cassandra/scripts/docker-entrypoint-jdk8.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
   ln -sf /usr/local/bin/docker-entrypoint.sh /docker-entrypoint.sh && \
 # fix for the missing mtab in the containerd
