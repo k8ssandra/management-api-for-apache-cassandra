@@ -64,7 +64,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 | 4.0.6           | 4.1.5           |                 | 6.8.31    | 6.9.5     |           |           |
 | 4.0.7           | 4.1.6           |                 | 6.8.32    | 6.9.6     |           |           |
 | 4.0.8           | 4.1.7           |                 | 6.8.33    | 6.9.7     |           |           |
-| 4.0.9           | 4.1.8           |                 | 6.8.34    |           |           |           |
+| 4.0.9           | 4.1.8           |                 | 6.8.34    | 6.9.8     |           |           |
 | 4.0.10          |                 |                 | 6.8.35    |           |           |           |
 | 4.0.11          |                 |                 | 6.8.36    |           |           |           |
 | 4.0.12          |                 |                 | 6.8.37    |           |           |           |
@@ -84,6 +84,8 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 |                 |                 |                 | 6.8.52    |           |           |           |
 |                 |                 |                 | 6.8.53    |           |           |           |
 |                 |                 |                 | 6.8.54    |           |           |           |
+|                 |                 |                 | 6.8.55    |           |           |           |
+|                 |                 |                 | 6.8.56    |           |           |           |
 
 - Apache Cassandra images are available in `linux/amd64` or `linux/arm64` formats. The DSE images are available only in the `linux/amd64` format.
 - All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
@@ -94,11 +96,11 @@ Cassandra 5.0 images are only RedHat UBI8 based.
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
 - All DSE 6.9.x Ubuntu based images come with only JDK 11
 - All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
-- HCD images are not built within this repo. Only the Agent for HCD ois maintained within this repo
+- HCD images are not built within this repo. Only the Agent for HCD is maintained within this repo
 
 ### Java versions in Docker images
 
-As of v0.1.88, all images produced from this repo will have Java 11 installed as the 
+As of v0.1.88, all images produced from this repo will have Java 11 or newer installed as the 
 Management API server code must now run with Java 11. For images where the Cassandra/DSE
 version runs with Java 8 (see above), Both Java 8 and Java 11 will be available, with
 Java 8 being the default and Java 8 used to run the Cassandra/DSE process.
