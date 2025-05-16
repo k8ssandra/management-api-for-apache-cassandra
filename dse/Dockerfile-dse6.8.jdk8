@@ -1,9 +1,9 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
-ARG DSE_VERSION=6.8.56
+ARG DSE_VERSION=6.8.57
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-8
-ARG BASETAG=8u402-jdk-ubuntu-20240427
+ARG BASETAG=8u452-ga-us1-0ubuntu1-20.04
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
 
 # Set up configuration variables
@@ -132,6 +132,10 @@ RUN set -x \
     && apt-get install -y --no-install-recommends openjdk-11-jdk \
     && rm -rf /var/lib/apt/lists/* \
 # JDK8 should be the default for DSE
+# Need to remove appletviewer, jconsole, and policytool from the alternatives
+    && sed -i 's/.*appletviewer.*//g' /usr/lib/jvm/.java-1.8.0-openjdk-amd64.jinfo \
+    && sed -i 's/.*jconsole.*//g' /usr/lib/jvm/.java-1.8.0-openjdk-amd64.jinfo \
+    && sed -i 's/.*policytool.*//g' /usr/lib/jvm/.java-1.8.0-openjdk-amd64.jinfo \
     && update-java-alternatives -s /usr/lib/jvm/java-1.8.0-openjdk-${TARGETARCH}
 
 COPY --chown=dse:root dse/files /
