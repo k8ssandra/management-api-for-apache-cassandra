@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.104 [2025-05-16]
 * [ENHANCEMENT] [#644](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/644) Upgrade Logback dependency to 1.5.13
 * [FEATURE] [#641](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/641) Add DSE 6.8.57 to the build matrix
 * [FEATURE] [#640](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/640) Add DSE 6.9.9 to the build matrix
