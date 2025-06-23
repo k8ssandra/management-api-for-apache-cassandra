@@ -67,6 +67,11 @@ jobs:
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
           key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Save Cassandra Download for tests
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
+          key: cassandra-download-${{ github.sha }}
         
 
   build-oss-docker-images:
@@ -338,6 +343,11 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      - name: Restore Cassandra Download for tests
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
+          key: cassandra-download-${{ github.sha }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -403,6 +413,11 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      - name: Restore Cassandra Download for tests
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
+          key: cassandra-download-${{ github.sha }}
       - name: Build artifacts
         run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
       - name: Set up QEMU
@@ -473,6 +488,11 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+      - name: Restore Cassandra Download for tests
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
+          key: cassandra-download-${{ github.sha }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
