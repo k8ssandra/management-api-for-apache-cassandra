@@ -1,7 +1,7 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
-ARG DSE_VERSION=6.9.9
+ARG DSE_VERSION=6.9.10
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-11
 ARG BASETAG=11.0.27-6-us1-0ubuntu1-20.04
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
@@ -16,7 +16,7 @@ ARG URL_PREFIX=https://downloads.datastax.com/enterprise
 ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
 ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
 
-ARG DSE_AGENT_VERSION=6.8.44
+ARG DSE_AGENT_VERSION=6.8.45
 ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
 ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
 ADD ${DOWNLOAD_URL} /${TARBALL}

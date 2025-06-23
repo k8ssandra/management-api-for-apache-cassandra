@@ -30,7 +30,7 @@
     </repository>
   </repositories>
   <properties>
-    <dse.version>6.9.9</dse.version>
+    <dse.version>6.9.10</dse.version>
   </properties>
   <dependencies>
     <!-- Need to explicitly declare SLF4J as "provided" to avoid it being bundled into the resulting agent jarfile -->
