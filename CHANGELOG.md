@@ -16,6 +16,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#650](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/650) Add DSE 6.9.10 to the build matrix
 * [FEATURE] [#654](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/654) Add DSE 6.9.11 to the build matrix
 * [FEATURE] [#656](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/656) Add DSE 6.8.59 to the build Matrix
+* [BUGFIX] [#657](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/657) HCD 1.1.2 fails to start
 
 ## v0.1.104 [2025-05-16]
 * [ENHANCEMENT] [#644](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/644) Upgrade Logback dependency to 1.5.13
