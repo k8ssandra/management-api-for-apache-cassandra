@@ -347,7 +347,7 @@ public class UnixSocketServerHcd {
                     Dispatcher.class.getDeclaredMethod(
                         "processRequest",
                         ServerConnection.class,
-                        StartupMessage.class,
+                        Message.Request.class,
                         ClientResourceLimits.Overload.class);
                 Message.Response response =
                     (Message.Response)
@@ -359,11 +359,30 @@ public class UnixSocketServerHcd {
                 processStartupResponse(response, inbound, ctx, promise);
                 break;
               } catch (NoSuchMethodException nsme2) {
-                // Expected method not found. Log an error and figure out what signature we need
-                logger.error(
-                    "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
-                    nsme2);
-                throw nsme2;
+                // try a different signature that may have never worked
+                try {
+                  Method processRequest =
+                      Dispatcher.class.getDeclaredMethod(
+                          "processRequest",
+                          ServerConnection.class,
+                          StartupMessage.class,
+                          ClientResourceLimits.Overload.class);
+                  Message.Response response =
+                      (Message.Response)
+                          processRequest.invoke(
+                              null,
+                              (ServerConnection) connection,
+                              startup,
+                              ClientResourceLimits.Overload.NONE);
+                  processStartupResponse(response, inbound, ctx, promise);
+                  break;
+                } catch (NoSuchMethodException nsme3) {
+                  // Expected method not found. Log an error and figure out what signature we need
+                  logger.error(
+                      "Expected Cassandra Dispatcher.processRequest() method signature not found. Management API agent will not be able to start Cassandra.",
+                      nsme3);
+                  throw nsme3;
+                }
               }
             }
 
