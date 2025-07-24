@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.105 [2025-07-03]
 * [FEATURE] [#652](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/652) Add Cassandra 4.0.18 to the build matrix
 * [FEATURE] [#651](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/651) Add Cassandra 4.1.9 to the build matrix
 * [FEATURE] [#649](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/649) Add DSE 6.8.58 to the build matrix
