@@ -416,7 +416,7 @@ public class DockerHelper {
           break;
         case "3_11_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11.ubi").toFile();
           config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
@@ -428,7 +428,7 @@ public class DockerHelper {
           break;
         case "4_0_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.0.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.0.ubi").toFile();
           config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
@@ -440,13 +440,13 @@ public class DockerHelper {
           break;
         case "4_1_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.1.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.1.ubi").toFile();
           config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
           break;
         case "5_0_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-5.0.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-5.0.ubi").toFile();
           config.target = "cassandra";
           config.envList =
               Lists.newArrayList(
@@ -454,7 +454,7 @@ public class DockerHelper {
           break;
         case "trunk_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile-trunk.ubi8")
+              Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile-trunk.ubi")
                   .toFile();
           config.target = "cassandra";
           config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M");
@@ -472,7 +472,7 @@ public class DockerHelper {
           break;
         case "dse-68_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.8.ubi").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
@@ -495,7 +495,7 @@ public class DockerHelper {
           break;
         case "dse-69_ubi":
           config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.ubi8").toFile();
+              Paths.get(config.baseDir.getPath(), "dse", "Dockerfile-dse6.9.ubi").toFile();
           config.target = "dse";
           config.envList =
               Lists.newArrayList(
