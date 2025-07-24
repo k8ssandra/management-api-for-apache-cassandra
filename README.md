@@ -138,15 +138,15 @@ Example for Cassandra 4.0.10
 
       k8ssandra/cass-management-api:4.0.10
 
-#### RedHat UBI 8 based images (OSS)
+#### RedHat UBI based images (OSS)
 
-For all RedHat UBI 8 based OSS Cassandra images, the Docker coordinates are as follows:
+For all RedHat UBI based OSS Cassandra images, the Docker coordinates are as follows:
 
-      k8ssandra/cass-management-api:<version>-ubi8
+      k8ssandra/cass-management-api:<version>-ubi
 
 Example for Cassandra 4.0.10
 
-      k8ssandra/cass-management-api:4.0.10-ubi8
+      k8ssandra/cass-management-api:4.0.10-ubi
 
 ### Docker coordinates for DSE 6.8.x images
 
@@ -168,15 +168,19 @@ Example for DSE 6.8.31
 
       datastax/dse-mgmtapi-6_8:6.8.31-jdk11
 
-#### RedHat UBI 8 based images (DSE 6.8)
+#### RedHat UBI based images (DSE 6.8)
 
-For all RedHat UBI 8 based DSE 6.8.x images, the Docker coordinates are as follows:
+For all RedHat UBI based DSE 6.8.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_8:<version>-ubi
+
+For legacy tagging conventions, the image is also tagged as:
 
       datastax/dse-mgmtapi-6_8:<version>-ubi8
 
 Example for DSE 6.8.31
 
-      datastax/dse-mgmtapi-6_8:6.8.31-ubi8
+      datastax/dse-mgmtapi-6_8:6.8.31-ubi
 
 ### Docker coordinates for DSE 6.9.x images
 
@@ -190,17 +194,22 @@ Example for DSE 6.9.0
 
       datastax/dse-mgmtapi-6_8:6.9.0-jdk11
 
-#### RedHat UBI 8 based images (DSE 6.9)
+#### RedHat UBI based images (DSE 6.9)
 
-For all RedHat UBI 8 based DSE 6.9.x images, the Docker coordinates are as follows:
+For all RedHat UBI based DSE 6.9.x images, the Docker coordinates are as follows:
+
+      datastax/dse-mgmtapi-6_8:<version>-ubi
+
+For legacy tagging conventions, the image is also tagged as:
 
       datastax/dse-mgmtapi-6_8:<version>-ubi8
 
 Example for DSE 6.9.0
 
-      datastax/dse-mgmtapi-6_8:6.9.0-ubi8
+      datastax/dse-mgmtapi-6_8:6.9.0-ubi
 
-** NOTE: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
+** NOTE 1: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
+** NOTE 2: While the Legacy tagging uses `ubi8`, the image as of v0.1.108 is actually UBI 9 based
 
 ### Docker coordinates for HCD 1.1.x/1.2.x images
 
@@ -253,21 +262,21 @@ To build an image based on the desired Cassandra version see the examples below:
 
     # Cassandra 5.0 and newer images are based on RedHat Universal Base Images (see below)
 
-To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi8` Dockerfile. Examples:
+To build a RedHat Universal Base Image (UBI) based Cassandra image, use the `ubi` Dockerfile. Examples:
 
-    #Create a UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8 --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/amd64 .
+    #Create a UBI based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi --file cassandra/Dockerfile-4.0.ubi --target cassandra --platform linux/amd64 .
 
-    #Create a UBI8 based image with management api and C* 4.1 (version 4.1.0 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1_ubi8 --file cassandra/Dockerfile-4.1.ubi8 --target cassandra --platform linux/amd64 .
+    #Create a UBI based image with management api and C* 4.1 (version 4.1.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.1.4 --tag mgmtapi-4_1_ubi --file cassandra/Dockerfile-4.1.ubi --target cassandra --platform linux/amd64 .
 
-    #Create a UBI8 based image with management api and C* 5.0 (version 5.0.1 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=5.0.2 --tag mgmtapi-5_0_ubi8 --file cassandra/Dockerfile-5.0.ubi8 --target cassandra --platform linux/amd64 .
+    #Create a UBI based image with management api and C* 5.0 (version 5.0.1 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=5.0.2 --tag mgmtapi-5_0_ubi --file cassandra/Dockerfile-5.0.ubi --target cassandra --platform linux/amd64 .
 
 You can also build OSS Cassandra images for `linux/arm64` based platforms. Both Ubuntu and UBI8 based images support this. Simply change the `--platform` argument above to `--platform linux/arm64`. Examples:
 
-    #Create an ARM64 UBI8 based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
-    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi8-arm --file cassandra/Dockerfile-4.0.ubi8 --target cassandra --platform linux/arm64 .
+    #Create an ARM64 UBI based image with management api and C* 4.0 (version 4.0.0 and newer are supported)
+    docker buildx build --load --build-arg CASSANDRA_VERSION=4.0.6 --tag mgmtapi-4_0_ubi-arm --file cassandra/Dockerfile-4.0.ubi --target cassandra --platform linux/arm64 .
 
 To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.8/README.md).
 

@@ -93,7 +93,7 @@ jobs:
         id: docker_build_schedule
         uses: docker/build-push-action@v4
         with:
-          file: cassandra-trunk/Dockerfile-trunk.ubi8
+          file: cassandra-trunk/Dockerfile-trunk.ubi
           context: .
           push: true
           tags: ${{ steps.meta_schedule.outputs.tags }}
@@ -104,7 +104,7 @@ jobs:
         id: docker_build_on_demand
         uses: docker/build-push-action@v4
         with:
-          file: cassandra-trunk/Dockerfile-trunk.ubi8
+          file: cassandra-trunk/Dockerfile-trunk.ubi
           context: .
           push: true
           tags: ${{ steps.meta_on_demand.outputs.tags }}

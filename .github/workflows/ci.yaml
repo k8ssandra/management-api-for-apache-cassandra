@@ -83,7 +83,7 @@ jobs:
       max-parallel: 8
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
-        base-platform: ['ubuntu', 'ubi8']
+        base-platform: ['ubuntu', 'ubi']
         exclude:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
@@ -132,7 +132,7 @@ jobs:
           outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
       - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
         if: ${{ matrix.base-platform != 'ubuntu' }}
-        id: docker_build_ubi8
+        id: docker_build_ubi
         uses: docker/build-push-action@v5
         with:
           file: cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
@@ -177,7 +177,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: k8ssandra/cass-management-api
-          tags: type=sha,format=long,prefix=trunk-ubi8-
+          tags: type=sha,format=long,prefix=trunk-ubi-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -188,18 +188,18 @@ jobs:
         id: docker_build_trunk
         uses: docker/build-push-action@v5
         with:
-          file: cassandra-trunk/Dockerfile-trunk.ubi8
+          file: cassandra-trunk/Dockerfile-trunk.ubi
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.trunk.ubi8.tar
+          outputs: type=docker,dest=/tmp/cassandra.trunk.ubi.tar
       - name: Upload Docker Image for Cassandra Trunk UBI8
         uses: actions/upload-artifact@v4
         with:
-          name: cassandra.trunk.ubi8
-          path: /tmp/cassandra.trunk.ubi8.tar
+          name: cassandra.trunk.ubi
+          path: /tmp/cassandra.trunk.ubi.tar
           retention-days: 3
           
   build-dse-ubuntu-docker-images:
@@ -279,7 +279,7 @@ jobs:
       max-parallel: 8
       matrix:
         dse-version: ['6.8', '6.9']
-        base-platform: ['ubi8']
+        base-platform: ['ubi']
         include:
           - dse-version: '6.8'
             jdk: 'jdk8'
@@ -362,7 +362,7 @@ jobs:
       max-parallel: 16
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
-        base-platform: ['ubuntu', 'ubi8']
+        base-platform: ['ubuntu', 'ubi']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         exclude:
           - cassandra-version: '5.0'
@@ -435,7 +435,7 @@ jobs:
       max-parallel: 16
       matrix:
         cassandra-version: ['4.1']
-        base-platform: ['ubuntu', 'ubi8']
+        base-platform: ['ubuntu', 'ubi']
         minor-version : ['2', '5']
     steps:
       - uses: actions/checkout@v4
@@ -506,7 +506,7 @@ jobs:
       max-parallel: 16
       matrix:
         cassandra-version: ['4.0']
-        base-platform: ['ubuntu', 'ubi8']
+        base-platform: ['ubuntu', 'ubi']
         minor-version : ['1']
     steps:
       - uses: actions/checkout@v4
@@ -567,7 +567,7 @@ jobs:
           -Dit.test=NodetoolIT -DfailIfNoTests=false
           
   test-oss-trunk:
-    name: Run Cassandra ${{ matrix.itTest }} [trunk, ubi8]
+    name: Run Cassandra ${{ matrix.itTest }} [trunk, ubi]
     needs: build-trunk-docker-images
     runs-on: ubuntu-latest
     strategy:
@@ -605,12 +605,12 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v4
         with:
-          name: cassandra.trunk.ubi8
+          name: cassandra.trunk.ubi
           path: /tmp
-      - name: Load Docker trunk-ubi8 image
+      - name: Load Docker trunk-ubi image
         run: |
-          docker load --input /tmp/cassandra.trunk.ubi8.tar
-          docker tag k8ssandra/cass-management-api:trunk-ubi8-${{ github.sha }} mgmtapi-dockerfile-trunk.ubi8-test:latest
+          docker load --input /tmp/cassandra.trunk.ubi.tar
+          docker tag k8ssandra/cass-management-api:trunk-ubi-${{ github.sha }} mgmtapi-dockerfile-trunk.ubi-test:latest
           docker image ls -a
       - name: Build with Maven and run tests
         run: |
@@ -628,7 +628,7 @@ jobs:
       max-parallel: 8
       matrix:
         dse-version: ['6.8', '6.9']
-        base-platform: ['jdk8', 'jdk11', 'ubi8']
+        base-platform: ['jdk8', 'jdk11', 'ubi']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         exclude:
           - dse-version: '6.9'
@@ -676,12 +676,12 @@ jobs:
         run: |
           cp ~/.m2/settings.xml settings.xml
       - name: Build with Maven and run tests
-        if: ${{ matrix.base-platform != 'ubi8' }}
+        if: ${{ matrix.base-platform != 'ubi' }}
         run: |
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}tests
       - name: Build with Maven and run tests
-        if: ${{ matrix.base-platform == 'ubi8' }}
+        if: ${{ matrix.base-platform == 'ubi' }}
         run: |
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}testsUBI
@@ -695,7 +695,7 @@ jobs:
       max-parallel: 4
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
-        base-platform: ['ubuntu', 'ubi8']
+        base-platform: ['ubuntu', 'ubi']
         exclude:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
@@ -734,13 +734,13 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v4
         with:
-          name: cassandra.trunk.ubi8
+          name: cassandra.trunk.ubi
           path: /tmp
-      - name: Load Docker trunk-ubi8 image
+      - name: Load Docker trunk-ubi image
         run: |
-          docker load --input /tmp/cassandra.trunk.ubi8.tar
+          docker load --input /tmp/cassandra.trunk.ubi.tar
           docker image ls -a
-          docker push k8ssandra/cass-management-api:trunk-ubi8-${{ github.sha }}
+          docker push k8ssandra/cass-management-api:trunk-ubi-${{ github.sha }}
 
   publish-dse:
     name: Publish DSE 6.x Ubuntu image
@@ -750,7 +750,7 @@ jobs:
     strategy:
       matrix:
         dse-version: ['6.8', '6.9']
-        base-platform: ['jdk8', 'jdk11', 'ubi8']
+        base-platform: ['jdk8', 'jdk11', 'ubi']
         exclude:
           - dse-version: '6.9'
             base-platform: 'jdk8'
