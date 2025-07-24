@@ -54,10 +54,10 @@ docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-d
 
 where `my-dse` is whatever tag you want to use for your image.
 
-Likewise, to build a UBI8 based image, run:
+Likewise, to build a UBI based image, run:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.9.ubi8 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.9.ubi --target dse --platform linux/amd64 .
 ```
 
 ### Building a specific version of DSE

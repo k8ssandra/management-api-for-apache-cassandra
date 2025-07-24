@@ -1,4 +1,4 @@
-ARG UBI_MAJOR=8
+ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=4.0.18
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
@@ -10,12 +10,12 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 ENV CASSANDRA_HOME=/opt/cassandra
 
 # Update base layer
-RUN microdnf install --nodocs shadow-utils \
+RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
+    && microdnf install -y tar gzip unzip && microdnf clean all
 
 WORKDIR /
 
@@ -114,12 +114,12 @@ ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 COPY cassandra/rh-repos/adoptium.repo /etc/yum.repos.d/adoptium.repo
 
 # Update base layer
-RUN microdnf install --nodocs shadow-utils \
+RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install --nodocs temurin-11-jdk tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf install -y --nodocs temurin-11-jdk tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all
 
 # Copy trimmed installation

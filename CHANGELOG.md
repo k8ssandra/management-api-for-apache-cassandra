@@ -14,6 +14,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#673](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/673) Update Netty to 4.1.127.Final
 * [FEATURE] [#675](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/675) Add Cassandra 4.1.10 to the build matrix
 * [FEATURE] [#677](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/677) Add Cassandra 5.0.5 to the build matrix
+* [ENHANCEMENT] [#660](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/660) Update images to UBI 9
+
+**NOTE: As of Release v0.1.108, all UBI images are UBI 9 based, except for DSE 6.8 which will remain UBI 8 based.**
 
 ## v0.1.107 [2025-08-22]
 * [FEATURE] [#666](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/666) Add DSE 6.9.13 to the build matrix
