@@ -10,6 +10,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [ENHANCEMENT] [#660](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/660) Update images to UBI 9
+
+**NOTE: As of Release v0.1.107, all UBI images are UBI 9 based, except for DSE 6.8 which will remain UBI 8 based.**
 
 ## v0.1.106 [2025-07-25]
 * [FEATURE] [#659](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/659) Add DSE 6.9.12 to the build matrix

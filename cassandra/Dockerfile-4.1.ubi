@@ -1,22 +1,33 @@
-ARG UBI_MAJOR=8
+ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=5.0.4
-FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
+ARG CASSANDRA_VERSION=4.1.9
+FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
+ARG METRICS_COLLECTOR_VERSION=0.3.6
+ARG METRICS_COLLECTOR_BUNDLE=${METRICS_COLLECTOR_VERSION}-4.1-beta1
 ARG CASSANDRA_VERSION
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 ENV CASSANDRA_HOME=/opt/cassandra
 
 # Update base layer
-RUN microdnf install --nodocs shadow-utils \
+RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
+    && microdnf install -y tar gzip unzip && microdnf clean all
 
 WORKDIR /
+
+###
+# Download and extract Metrics Collector
+###
+ENV MCAC_PATH=/opt/metrics-collector
+ADD "https://github.com/datastax/metric-collector-for-apache-cassandra/releases/download/v${METRICS_COLLECTOR_VERSION}/datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz" ./
+RUN mkdir -m 775 ${MCAC_PATH} && \
+    tar --directory ${MCAC_PATH} --strip-components 1 --gzip --extract --file datastax-mcac-agent-${METRICS_COLLECTOR_BUNDLE}.tar.gz && \
+    chmod -R g+w ${MCAC_PATH}
 
 ###
 # Download CDC Agent jarfile
@@ -31,6 +42,53 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
+FROM --platform=linux/amd64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-amd64
+ARG CASSANDRA_VERSION
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+ENV CASSANDRA_HOME=/opt/cassandra
+
+# Update base layer
+RUN microdnf install -y --nodocs shadow-utils \
+    && groupadd -r cassandra --gid=999 \
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf install -y tar gzip unzip && microdnf clean all
+
+###
+# Download Cassandra archive
+###
+ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
+RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
+    chown -R cassandra:root ${CASSANDRA_HOME} && \
+    chmod -R a+rwX ${CASSANDRA_HOME}
+# MCAC isn't supported on ARM achitectures
+ENV CASSANDRA_PATH=${CASSANDRA_HOME}
+ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
+ENV MCAC_PATH=/opt/metrics-collector
+RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
+    echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
+    echo "if  [ -z \"\${MGMT_API_DISABLE_MCAC}\" ] ; then" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "  JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+    echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
+  fi
+
+
+FROM --platform=linux/arm64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-arm64
+ARG CASSANDRA_VERSION
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+ENV CASSANDRA_HOME=/opt/cassandra
+
+# Update base layer
+RUN microdnf install -y --nodocs shadow-utils \
+    && groupadd -r cassandra --gid=999 \
+    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
+    && microdnf update && rm -rf /var/cache/yum \
+# Install packages needed during install process
+    && microdnf -y install tar gzip unzip && microdnf clean all
+
 ###
 # Download Cassandra archive
 ###
@@ -39,6 +97,8 @@ RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --fi
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
 
+FROM cassandra-builder-${TARGETARCH} AS cassandra-builder
+
 #############################################################
 # Copy Management API
 FROM --platform=$BUILDPLATFORM alpine:latest AS mgmtapi-setup
@@ -46,11 +106,11 @@ FROM --platform=$BUILDPLATFORM alpine:latest AS mgmtapi-setup
 WORKDIR /build
 ENV MAAC_PATH=/opt/management-api
 
-COPY management-api-agent-5.0.x/target/datastax-mgmtapi-agent*.jar ./
+COPY management-api-agent-4.1.x/target/datastax-mgmtapi-agent*.jar ./
 COPY management-api-server/target/datastax-mgmtapi-server*.jar ./
 RUN mkdir -m 775 ${MAAC_PATH} && \
     find /build -type f -name "datastax-mgmtapi*.jar" -exec mv -t $MAAC_PATH -i '{}' + && \
-    rm -rf $MAAC_PATH/datastax-mgmtapi*test* && \
+    rm $MAAC_PATH/datastax-mgmtapi*test* && \
     cd ${MAAC_PATH} && \
     ln -s datastax-mgmtapi-agent*.jar datastax-mgmtapi-agent.jar && \
     ln -s datastax-mgmtapi-server*.jar datastax-mgmtapi-server.jar && \
@@ -74,6 +134,7 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 ENV CASSANDRA_PATH=/opt/cassandra
 ENV MAAC_PATH=/opt/management-api
+ENV MCAC_PATH=/opt/metrics-collector
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ENV MGMT_AGENT_JAR="${MAAC_PATH}/datastax-mgmtapi-agent.jar"
 
@@ -83,20 +144,19 @@ ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
 ENV CASSANDRA_LOG_DIR=/var/log/cassandra
 ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 
-ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
-
 # Update base layer
-RUN microdnf install --nodocs shadow-utils \
+RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install --nodocs java-17-openjdk-headless tzdata-java python3.11 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf install -y --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all
 
 # Copy trimmed installation
-COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
-COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
+COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
+COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
@@ -112,7 +172,7 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
     mv ${CASSANDRA_CONF} /etc/cassandra && \
     ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
-    chmod a+rwX ${MAAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
+    chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
 RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MGMT_AGENT_JAR}\"" < ${CASSANDRA_CONF}/cassandra-env.sh ; then \
       echo "" >> ${CASSANDRA_CONF}/cassandra-env.sh && \
