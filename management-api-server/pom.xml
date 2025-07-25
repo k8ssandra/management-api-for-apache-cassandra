@@ -24,7 +24,7 @@
     <assertj.version>3.17.2</assertj.version>
     <servelet.version>6.1.0</servelet.version>
     <commons.io.version>2.17.0</commons.io.version>
-    <apache.commons.lang3.version>3.17.0</apache.commons.lang3.version>
+    <apache.commons.lang3.version>3.18.0</apache.commons.lang3.version>
     <jakarta.activation.version>2.1.3</jakarta.activation.version>
     <jakarta.validation.version>3.1.0</jakarta.validation.version>
   </properties>
@@ -141,6 +141,10 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.datatype</groupId>
           <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
