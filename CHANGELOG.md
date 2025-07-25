@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [ENHANCEMENT] [#661](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/661) Update commons-lang3
 
 ## v0.1.105 [2025-07-03]
 * [FEATURE] [#652](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/652) Add Cassandra 4.0.18 to the build matrix
