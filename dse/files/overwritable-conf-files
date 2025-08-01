@@ -67,6 +67,9 @@ resources/spark/conf/docker.properties.template
 resources/dse/collectd/etc/collectd/10-write-prom.conf
 resources/dse/collectd/etc/collectd/10-statsd.conf
 resources/dse/collectd/etc/collectd/10-write-graphite.conf
+resources/cassandra/conf/jvm8-clients.options
+resources/cassandra/conf/jvm-clients.options
+resources/cassandra/conf/jvm11-clients.options
 resources/cassandra/conf/jvm8-server.options
 resources/cassandra/conf/jvm-server.options
 resources/cassandra/conf/jvm11-server.options
