@@ -42,3 +42,6 @@ local.properties
 out/
 .idea_modules/
 .vscode/
+
+# Netbeans
+nb-configuration.xml

@@ -1,7 +1,7 @@
 # Copyright DataStax, Inc, 2017
 #   Please review the included LICENSE file for more information.
 #
-ARG DSE_VERSION=6.9.12
+ARG DSE_VERSION=6.9.13
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-11
 ARG BASETAG=11.0.27-6-us1-0ubuntu1-20.04
 FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
