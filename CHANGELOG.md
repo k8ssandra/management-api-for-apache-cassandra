@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#666](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/666) Add DSE 6.9.13 to the build matrix
 * [ENHANCEMENT] [#668](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/668) Update Netty to address CVE-2505-55163
 * [BUGFIX] [#664](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/664) Fix nodetool in readOnly root filesystems
 
