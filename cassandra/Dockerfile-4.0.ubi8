@@ -41,20 +41,6 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
-FROM --platform=linux/amd64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-amd64
-ARG CASSANDRA_VERSION
-
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME=/opt/cassandra
-
-# Update base layer
-RUN microdnf install --nodocs shadow-utils \
-    && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
-
 ###
 # Download Cassandra archive
 ###
@@ -62,6 +48,8 @@ ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassa
 RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
+
+FROM --platform=linux/amd64 builder AS cassandra-builder-amd64
 # MCAC isn't supported on ARM achitectures
 ENV CASSANDRA_PATH=${CASSANDRA_HOME}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
@@ -73,28 +61,7 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-m
     echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
 
-
-FROM --platform=linux/arm64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-arm64
-ARG CASSANDRA_VERSION
-
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME=/opt/cassandra
-
-# Update base layer
-RUN microdnf install --nodocs shadow-utils \
-    && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
-
-###
-# Download Cassandra archive
-###
-ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
-RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
-    chown -R cassandra:root ${CASSANDRA_HOME} && \
-    chmod -R a+rwX ${CASSANDRA_HOME}
+FROM --platform=linux/arm64 builder AS cassandra-builder-arm64
 
 FROM cassandra-builder-${TARGETARCH} AS cassandra-builder
 
@@ -143,20 +110,23 @@ ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
 ENV CASSANDRA_LOG_DIR=/var/log/cassandra
 ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 
+# Copy the Adoptium repo file for latest OpenJDK updates
+COPY cassandra/rh-repos/adoptium.repo /etc/yum.repos.d/adoptium.repo
+
 # Update base layer
 RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf install --nodocs temurin-11-jdk tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all
 
 # Copy trimmed installation
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
-COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
-COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
 # Create directories

@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE] [#670](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/670) Update OpenJDK 11 install for UBI based images
 
 ## v0.1.107 [2025-08-22]
 * [FEATURE] [#666](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/666) Add DSE 6.9.13 to the build matrix
