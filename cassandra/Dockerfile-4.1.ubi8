@@ -42,20 +42,6 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   ln -s ${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar cdc-agent.jar && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
-FROM --platform=linux/amd64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-amd64
-ARG CASSANDRA_VERSION
-
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME=/opt/cassandra
-
-# Update base layer
-RUN microdnf install --nodocs shadow-utils \
-    && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
-
 ###
 # Download Cassandra archive
 ###
@@ -63,6 +49,11 @@ ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassa
 RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
+ENV JDK_VERSION=11.0.28
+ENV JDK_PATCH_VERSION=6
+ENV JDK_TARBALL=/jdk11.tar.gz
+
+FROM --platform=linux/amd64 builder AS cassandra-builder-amd64
 # MCAC isn't supported on ARM achitectures
 ENV CASSANDRA_PATH=${CASSANDRA_HOME}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
@@ -73,31 +64,16 @@ RUN if ! grep -qxF "JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-m
     echo "  JVM_OPTS=\"\$JVM_OPTS -javaagent:${MCAC_PATH}/lib/datastax-mcac-agent.jar\"" >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
     echo "fi"  >> ${CASSANDRA_CONF}/cassandra-env.sh ; \
   fi
+ADD https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VERSION}%2B${JDK_PATCH_VERSION}/OpenJDK11U-jdk_x64_linux_hotspot_${JDK_VERSION}_${JDK_PATCH_VERSION}.tar.gz ${JDK_TARBALL}
 
-
-FROM --platform=linux/arm64 registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS cassandra-builder-arm64
-ARG CASSANDRA_VERSION
-
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
-ENV CASSANDRA_HOME=/opt/cassandra
-
-# Update base layer
-RUN microdnf install --nodocs shadow-utils \
-    && groupadd -r cassandra --gid=999 \
-    && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
-# Install packages needed during install process
-    && microdnf install tar gzip unzip && microdnf clean all
-
-###
-# Download Cassandra archive
-###
-ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
-RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
-    chown -R cassandra:root ${CASSANDRA_HOME} && \
-    chmod -R a+rwX ${CASSANDRA_HOME}
+FROM --platform=linux/arm64 builder AS cassandra-builder-arm64
+ADD https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VERSION}%2B${JDK_PATCH_VERSION}/OpenJDK11U-jdk_aarch64_linux_hotspot_${JDK_VERSION}_${JDK_PATCH_VERSION}.tar.gz ${JDK_TARBALL}
 
 FROM cassandra-builder-${TARGETARCH} AS cassandra-builder
+ENV JDK_HOME=/opt/jvm/openjdk11
+RUN \
+    mkdir -m 0775 -p "$JDK_HOME" && \
+    tar xzf ${JDK_TARBALL} -C "$JDK_HOME"
 
 #############################################################
 # Copy Management API
@@ -143,6 +119,9 @@ ENV CASSANDRA_HOME=${CASSANDRA_PATH}
 ENV CASSANDRA_CONF=${CASSANDRA_PATH}/conf
 ENV CASSANDRA_LOG_DIR=/var/log/cassandra
 ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
+ENV JDK_HOME=/opt/jvm/openjdk11
+
+COPY --from=cassandra-builder ${JDK_HOME} ${JDK_HOME}
 
 # Update base layer
 RUN microdnf install --nodocs shadow-utils \
@@ -150,14 +129,19 @@ RUN microdnf install --nodocs shadow-utils \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install --nodocs java-11-openjdk-headless tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
-    && microdnf clean all
+    && microdnf install --nodocs tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf clean all \
+    # setup Java
+    && JAVA_BIN=$(find ${JDK_HOME} -type f -name "java" -executable | head -n 1) \
+    && update-alternatives --install /usr/bin/java java "$JAVA_BIN" 100 \
+    && update-alternatives --set java "$JAVA_BIN"
+
 
 # Copy trimmed installation
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
-COPY --from=builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
-COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
+COPY --from=cassandra-builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
 
 # Create directories

@@ -5,6 +5,18 @@ ARG DSE_BASE_IMAGE=datastax/dse-mgmtapi-6_8:${DSE_VERSION}-jdk11
 
 FROM ${DSE_BASE_IMAGE} AS dse-server-base
 
+FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS jdk-base
+ENV JDK_VERSION=11.0.28
+ENV JDK_PATCH_VERSION=6
+ENV JDK_TARBALL=/jdk11.tar.gz
+ADD https://github.com/adoptium/temurin11-binaries/releases/download/jdk-${JDK_VERSION}%2B${JDK_PATCH_VERSION}/OpenJDK11U-jdk_x64_linux_hotspot_${JDK_VERSION}_${JDK_PATCH_VERSION}.tar.gz ${JDK_TARBALL}
+ENV JDK_HOME=/opt/jvm/openjdk11
+RUN \
+    microdnf update && rm -rf /var/cache/yum && \
+    microdnf install --nodocs -y tar gzip  && microdnf clean all && \
+    mkdir -m 0775 -p "$JDK_HOME" && \
+    tar xzf ${JDK_TARBALL} -C "$JDK_HOME"
+
 #############################################################
 
 # Using UBI8 with Python 2 support, eventually we may switch to Python 3
@@ -25,9 +37,18 @@ ENV HOME=$DSE_HOME
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
+ENV JDK_HOME=/opt/jvm/openjdk11
+
+COPY --from=jdk-base ${JDK_HOME} ${JDK_HOME}
+
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-11-openjdk-headless python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
+    microdnf install --nodocs -y python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all && \
+    # setup Java
+    JAVA_BIN=$(find ${JDK_HOME} -type f -name "java" -executable | head -n 1) && \
+    update-alternatives --install /usr/bin/java java "$JAVA_BIN" 100 && \
+    update-alternatives --set java "$JAVA_BIN"
+
 
 WORKDIR $HOME
 
