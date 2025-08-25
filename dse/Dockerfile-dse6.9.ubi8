@@ -25,9 +25,12 @@ ENV HOME=$DSE_HOME
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
+# Copy the Adoptium repo file for latest OpenJDK updates
+COPY dse/files/adoptium.repo /etc/yum.repos.d/adoptium.repo
+
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y java-11-openjdk-headless python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
+    microdnf install --nodocs -y temurin-11-jdk python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
 
 WORKDIR $HOME
 
