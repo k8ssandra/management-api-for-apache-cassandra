@@ -165,14 +165,14 @@ jobs:
             --target dse \
             --platform linux/amd64 .
 
-  build-dse-68-ubi8:
+  build-dse-68-ubi:
     needs: build-dse-68-ubuntu
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         dse-version: [6.8.25, 6.8.26, 6.8.28, 6.8.29, 6.8.30, 6.8.31, 6.8.32, 6.8.33, 6.8.34, 6.8.35, 6.8.36, 6.8.37, 6.8.38, 6.8.39, 6.8.40, 6.8.41, 6.8.42, 6.8.43, 6.8.44, 6.8.46, 6.8.47, 6.8.48, 6.8.49, 6.8.50, 6.8.51, 6.8.52, 6.8.53, 6.8.54, 6.8.55, 6.8.56, 6.8.57, 6.8.58, 6.8.59]
-        image-base: [ubi8]
+        image-base: [ubi]
         include:
           - dse-version: 6.8.59
             latest: true
@@ -209,11 +209,11 @@ jobs:
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:6.8-ubi \
+            --tag datastax/dse-mgmtapi-6_8:6.8-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -224,9 +224,9 @@ jobs:
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -381,14 +381,11 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:4.0-ubi8 \
             --tag k8ssandra/cass-management-api:4.0-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-4.0.ubi8 \
+            --file cassandra/Dockerfile-4.0.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
@@ -397,12 +394,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-4.0.ubi8 \
+            --file cassandra/Dockerfile-4.0.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
@@ -477,15 +472,12 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:4.1-ubi8 \
             --tag k8ssandra/cass-management-api:4.1-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:4.1-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-4.1.ubi8 \
+            --file cassandra/Dockerfile-4.1.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
@@ -494,12 +486,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-4.1.ubi8 \
+            --file cassandra/Dockerfile-4.1.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
@@ -551,15 +541,12 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:5.0-ubi8 \
             --tag k8ssandra/cass-management-api:5.0-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:5.0-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-5.0.ubi8 \
+            --file cassandra/Dockerfile-5.0.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
       - if: ${{ !matrix.latest }}
@@ -568,12 +555,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }} \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8 \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
             --tag ghcr.io/k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi \
-            --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi8-$RELEASE_VERSION \
             --tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-$RELEASE_VERSION \
-            --file cassandra/Dockerfile-5.0.ubi8 \
+            --file cassandra/Dockerfile-5.0.ubi \
             --target cassandra \
             --platform linux/amd64,linux/arm64 .
 
@@ -639,14 +624,14 @@ jobs:
             --target dse \
             --platform linux/amd64 .
 
-  build-dse-69-ubi8:
+  build-dse-69-ubi:
     needs: build-dse-69-ubuntu
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         dse-version: [6.9.0, 6.9.1, 6.9.2, 6.9.3, 6.9.4, 6.9.5, 6.9.6, 6.9.7, 6.9.8, 6.9.9, 6.9.10, 6.9.11, 6.9.12, 6.9.13]
-        image-base: [ubi8]
+        image-base: [ubi]
         include:
           - dse-version: 6.9.13
             latest: true
@@ -683,11 +668,11 @@ jobs:
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:6.9-ubi \
+            --tag datastax/dse-mgmtapi-6_8:6.9-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -698,9 +683,9 @@ jobs:
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
             --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi-$RELEASE_VERSION \
+            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .

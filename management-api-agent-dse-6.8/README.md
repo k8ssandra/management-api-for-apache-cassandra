@@ -60,10 +60,10 @@ Likewise, to build a JDK11 Ubuntu based image, run:
 docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.jdk11 --target dse --platform linux/amd64 .
 ```
 
-You can also build a RedHat UBI8 based image with JDK8 with the following:
+You can also build a RedHat UBI based image with JDK8 with the following:
 
 ```sh
-docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.ubi8 --target dse --platform linux/amd64 .
+docker buildx build --load --progress plain --tag my-dse --file dse/Dockerfile-dse6.8.ubi --target dse --platform linux/amd64 .
 ```
 
 
