@@ -25,7 +25,7 @@
     <build.version.file>build_version.sh</build.version.file>
     <slf4j.version>2.0.9</slf4j.version>
     <logback.version>1.5.13</logback.version>
-    <netty.version>4.1.124.Final</netty.version>
+    <netty.version>4.1.127.Final</netty.version>
     <mockito.version>3.5.13</mockito.version>
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
