@@ -30,7 +30,10 @@ COPY dse/files/adoptium.repo /etc/yum.repos.d/adoptium.repo
 
 # Install runtime dependencies and updates
 RUN microdnf update && rm -rf /var/cache/yum && \
-    microdnf install --nodocs -y temurin-11-jdk python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
+    microdnf install --nodocs -y temurin-11-jdk python39 zlib libaio which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar crypto-policies-scripts \
+# Set OS crypto policy to LEGACY to allow for older algorithms
+    && update-crypto-policies --set LEGACY \
+    && microdnf clean all
 
 WORKDIR $HOME
 
