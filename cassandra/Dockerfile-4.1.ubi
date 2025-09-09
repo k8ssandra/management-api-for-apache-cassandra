@@ -121,7 +121,9 @@ RUN microdnf install -y --nodocs shadow-utils \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && microdnf update && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install -y --nodocs temurin-11-jdk tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf install -y --nodocs temurin-11-jdk tzdata-java python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar crypto-policies-scripts \
+# Set OS crypto policy to LEGACY to allow for older algorithms
+    && update-crypto-policies --set LEGACY \
     && microdnf clean all
 
 # Copy trimmed installation
