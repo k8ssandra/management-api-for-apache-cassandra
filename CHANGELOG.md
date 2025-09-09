@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.108 [2025-08-2020]
 * [CHANGE] [#670](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/670) Update OpenJDK 11 install for UBI based images
 * [ENHANCEMENT] [#673](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/673) Update Netty to 4.1.127.Final
 * [FEATURE] [#675](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/675) Add Cassandra 4.1.10 to the build matrix
