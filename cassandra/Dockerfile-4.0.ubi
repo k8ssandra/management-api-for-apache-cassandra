@@ -42,9 +42,13 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 ###
-# Download Cassandra archive
+# Coppy Cassandra archive
+# NOTE: For local builds, you will need to download the archive from
+#       https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz
+# NOTE: For GitHub Actions, the build jobs should cache the versions and only
+#       download from the archives if the tarball isn't cached already.
 ###
-ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
+COPY apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz ./
 RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
     chown -R cassandra:root ${CASSANDRA_HOME} && \
     chmod -R a+rwX ${CASSANDRA_HOME}
