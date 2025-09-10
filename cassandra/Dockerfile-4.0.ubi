@@ -31,7 +31,7 @@ RUN mkdir -m 775 ${MCAC_PATH} && \
 ###
 # Download CDC Agent jarfile
 ###
-ARG CDC_AGENT_VERSION=2.2.9
+ARG CDC_AGENT_VERSION=2.3.2
 ARG CDC_AGENT_EDITION=agent-c4
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 ADD "https://github.com/datastax/cdc-apache-cassandra/releases/download/v${CDC_AGENT_VERSION}/${CDC_AGENT_EDITION}-${CDC_AGENT_VERSION}-all.jar" ./ 
