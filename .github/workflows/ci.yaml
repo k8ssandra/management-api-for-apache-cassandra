@@ -840,3 +840,41 @@ jobs:
           docker load --input /tmp/dse.${{ matrix.dse-version }}.${{ matrix.base-platform }}.tar
           docker image ls -a
           docker push datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.base-platform }}-${{ github.sha }}
+
+  test-tarball-cache:
+    needs: cassandra-tarball-cache
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        cassandra-version: [4.0.0, 4.0.1, 4.0.3, 4.0.4, 4.0.5, 4.0.6, 4.0.7, 4.0.8, 4.0.9, 4.0.10, 4.0.11, 4.0.12, 4.0.13, 4.0.14, 4.0.15, 4.0.17, 4.0.18]
+        include:
+          - cassandra-version: 4.0.18
+            latest: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Cassandra tarball cache directory
+        run: |
+          mkdir -p /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Restore Cassandra tarball cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Download Cassandra Tarball ${{ matrix.cassandra-version }}
+        run: |
+          echo "Checking for Cassandra tarball version: ${{ matrix.cassandra-version }}"
+          TARBALL="/home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "Cassandra tarball not present. Downloading tarball: $TARBALL"
+            curl -L "https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz" -o "$TARBALL"
+          else
+            echo "Cassandra tarball already present in cache: $TARBALL"
+            ls -l "$TARBALL"
+          fi
+          cp $TARBALL /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+      - name: Save Cassandra ${{ matrix.cassandra-version }} tarball cache
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
