@@ -96,21 +96,25 @@ jobs:
         run: |
           CASSVER=$(grep -E '^ARG[[:space:]]+CASSANDRA_VERSION=' cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }} | sed 's/^ARG[[:space:]]\+CASSANDRA_VERSION=//')
           echo "CASSANDRA_VERSION=$CASSVER" >> $GITHUB_ENV
+          echo "cassandraversion=$CASSVER" >> $GITHUB_OUTPUT
+      - name: DEBUG cassandraversion
+        run: |
+          echo "Calculated version is: ${{ steps.extract-cass-version.outputs.cassandraversion }}"
       - name: Create Cassandra tarball cache directory
         run: |
-          mkdir -p /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          mkdir -p /home/runner/cassandra-tarball-cache-${{ steps.extract-cass-version.outputs.cassandraversion }}
       - name: Restore Cassandra tarball cache
         uses: actions/cache/restore@v4
         with:
-          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
-          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          path: /home/runner/cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
+          key: cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
       - name: Download Cassandra Tarball ${{ matrix.cassandra-version }}
         run: |
-          echo "Checking for Cassandra tarball version: $CASSANDRA_VERSION"
-          TARBALL="/home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz"
+          echo "Checking for Cassandra tarball version: ${{ steps.extract-cass-version.outputs.cassandraversion }}"
+          TARBALL="/home/runner/cassandra-tarball-cache-${{ steps.extract-cass-version.outputs.cassandraversion }}/apache-cassandra-${{ steps.extract-cass-version.outputs.cassandraversion }}-bin.tar.gz"
           if [ ! -f "$TARBALL" ]; then
             echo "Cassandra tarball not present. Downloading tarball: $TARBALL"
-            curl -L "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" -o "$TARBALL"
+            curl -L "https://archive.apache.org/dist/cassandra/${{ steps.extract-cass-version.outputs.cassandraversion }}/apache-cassandra-${{ steps.extract-cass-version.outputs.cassandraversion }}-bin.tar.gz" -o "$TARBALL"
           else
             echo "Cassandra tarball already present in cache: $TARBALL"
             ls -l "$TARBALL"
@@ -118,8 +122,12 @@ jobs:
       - name: Save Cassandra ${{ matrix.cassandra-version }} tarball cache
         uses: actions/cache/save@v4
         with:
-          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
-          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          path: /home/runner/cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
+          key: cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
+      - name: Intentional Fail to Inspect Cache
+        run: |
+          echo "Stopping workflow intentionally to inspect cache behavior."
+          exit 1
 
   build-oss-docker-images:
     name: Build Cassandra images
