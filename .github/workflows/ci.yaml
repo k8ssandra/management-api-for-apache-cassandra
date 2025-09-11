@@ -97,9 +97,6 @@ jobs:
           CASSVER=$(grep -E '^ARG[[:space:]]+CASSANDRA_VERSION=' cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }} | sed 's/^ARG[[:space:]]\+CASSANDRA_VERSION=//')
           echo "CASSANDRA_VERSION=$CASSVER" >> $GITHUB_ENV
           echo "cassandraversion=$CASSVER" >> $GITHUB_OUTPUT
-      - name: DEBUG cassandraversion
-        run: |
-          echo "Calculated version is: ${{ steps.extract-cass-version.outputs.cassandraversion }}"
       - name: Create Cassandra tarball cache directory
         run: |
           mkdir -p /home/runner/cassandra-tarball-cache-${{ steps.extract-cass-version.outputs.cassandraversion }}
