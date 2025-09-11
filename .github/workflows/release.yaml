@@ -332,6 +332,31 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Create Cassandra tarball cache directory
+        run: |
+          mkdir -p /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Restore Cassandra tarball cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Download Cassandra Tarball ${{ matrix.cassandra-version }}
+        run: |
+          echo "Checking for Cassandra tarball version: ${{ matrix.cassandra-version }}"
+          TARBALL="/home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "Cassandra tarball not present. Downloading tarball: $TARBALL"
+            curl -L "https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz" -o "$TARBALL"
+          else
+            echo "Cassandra tarball already present in cache: $TARBALL"
+            ls -l "$TARBALL"
+          fi
+          cp $TARBALL /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+      - name: Save Cassandra ${{ matrix.cassandra-version }} tarball cache
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -423,6 +448,31 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Create Cassandra tarball cache directory
+        run: |
+          mkdir -p /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Restore Cassandra tarball cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Download Cassandra Tarball ${{ matrix.cassandra-version }}
+        run: |
+          echo "Checking for Cassandra tarball version: ${{ matrix.cassandra-version }}"
+          TARBALL="/home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "Cassandra tarball not present. Downloading tarball: $TARBALL"
+            curl -L "https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz" -o "$TARBALL"
+          else
+            echo "Cassandra tarball already present in cache: $TARBALL"
+            ls -l "$TARBALL"
+          fi
+          cp $TARBALL /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+      - name: Save Cassandra ${{ matrix.cassandra-version }} tarball cache
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
@@ -515,6 +565,31 @@ jobs:
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Create Cassandra tarball cache directory
+        run: |
+          mkdir -p /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Restore Cassandra tarball cache
+        uses: actions/cache/restore@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+      - name: Download Cassandra Tarball ${{ matrix.cassandra-version }}
+        run: |
+          echo "Checking for Cassandra tarball version: ${{ matrix.cassandra-version }}"
+          TARBALL="/home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz"
+          if [ ! -f "$TARBALL" ]; then
+            echo "Cassandra tarball not present. Downloading tarball: $TARBALL"
+            curl -L "https://archive.apache.org/dist/cassandra/${{ matrix.cassandra-version }}/apache-cassandra-${{ matrix.cassandra-version }}-bin.tar.gz" -o "$TARBALL"
+          else
+            echo "Cassandra tarball already present in cache: $TARBALL"
+            ls -l "$TARBALL"
+          fi
+          cp $TARBALL /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
+      - name: Save Cassandra ${{ matrix.cassandra-version }} tarball cache
+        uses: actions/cache/save@v4
+        with:
+          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
