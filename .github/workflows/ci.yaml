@@ -124,10 +124,6 @@ jobs:
         with:
           path: /home/runner/cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
           key: cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
-      - name: Intentional Fail to Inspect Cache
-        run: |
-          echo "Stopping workflow intentionally to inspect cache behavior."
-          exit 1
 
   build-oss-docker-images:
     name: Build Cassandra images
@@ -148,18 +144,23 @@ jobs:
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
           key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+      - name: Extract Version from Dockerfile
+        id: extract-cass-version
+        run: |
+          CASSVER=$(grep -E '^ARG[[:space:]]+CASSANDRA_VERSION=' cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }} | sed 's/^ARG[[:space:]]\+CASSANDRA_VERSION=//')
+          echo "CASSANDRA_VERSION=$CASSVER" >> $GITHUB_ENV
+          echo "cassandraversion=$CASSVER" >> $GITHUB_OUTPUT
       - name: Restore Cassandra tarball cache
         if: ${{ matrix.base-platform == 'ubi' }}
         uses: actions/cache/restore@v4
         with:
-          path: /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}
-          key: cassandra-tarball-cache-${{ matrix.cassandra-version }}
+          path: /home/runner/cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
+          key: cassandra-tarball-cache-${{ env.CASSANDRA_VERSION }}
       - name: Copy Cassandra tarball
         if: ${{ matrix.base-platform == 'ubi' }}
         run: |
-          CASSVER=$(grep -E '^ARG[[:space:]]+CASSANDRA_VERSION=' cassandra/Dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }} | sed 's/^ARG[[:space:]]\+CASSANDRA_VERSION=//')
-          echo "Copying Cassandra ${CASSVER} tarball"
-          cp /home/runner/cassandra-tarball-cache-${{ matrix.cassandra-version }}/apache-cassandra-${CASSVER}-bin.tar.gz \
+          echo "Copying Cassandra ${{ steps.extract-cass-version.outputs.cassandraversion }} tarball"
+          cp /home/runner/cassandra-tarball-cache-${{ steps.extract-cass-version.outputs.cassandraversion }}/apache-cassandra-${{ steps.extract-cass-version.outputs.cassandraversion }}-bin.tar.gz \
             /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/
       - name: Set up JDK 11
         uses: actions/setup-java@v4
