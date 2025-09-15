@@ -34,7 +34,7 @@ RUN mkdir -m 775 ${MCAC_PATH} && \
 ###
 # Download CDC Agent jarfile
 ###
-ARG CDC_AGENT_VERSION=2.2.9
+ARG CDC_AGENT_VERSION=2.3.2
 ARG CDC_AGENT_EDITION=agent-c3
 ENV CDC_AGENT_PATH=/opt/cdc_agent
 RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
