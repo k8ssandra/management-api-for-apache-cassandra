@@ -12,7 +12,7 @@ ENV CASSANDRA_HOME=/opt/cassandra
 RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && microdnf update -y && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install -y tar gzip unzip && microdnf clean all
 
@@ -34,7 +34,7 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
 #############################################################
 
 # Build and extract Cassandra
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS cass-builder
+FROM --platform=$BUILDPLATFORM maven:3-eclipse-temurin-11 AS cass-builder
 ARG CASSANDRA_VERSION
 ARG COMMITSHA="HEAD"
 ARG CASSANDRA_BRANCH="trunk"
@@ -42,8 +42,6 @@ ENV CASSANDRA_PATH=/opt/cassandra
 ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 WORKDIR /build
 RUN set -x \
-    && rm -fr /etc/apt/sources.list.d/* \
-    && rm -rf /var/lib/apt/lists/* \
     && apt-get update \
     && apt-get install -y --no-install-recommends git ant ant-optional make python3 \
     && git clone -b ${CASSANDRA_BRANCH} --single-branch https://github.com/apache/cassandra.git \
@@ -53,7 +51,7 @@ RUN set -x \
     # create an empty javadoc archive so we can skip javadoc generation
     && mkdir -p ./build/ \
     && touch ./build/apache-cassandra-${CASSANDRA_VERSION}-javadoc.jar \
-    && ant artifacts mvn-install -Duse.jdk11=true -Dno-javadoc=true -Dant.gen-doc.skip=true \
+    && ant artifacts mvn-install -Duse.jdk11=true -Dno-javadoc=true -Dant.gen-doc.skip=true -Dno-checkstyle=true \
     && mkdir -m 775 ${CASSANDRA_PATH} ${CASSANDRA_FILES_PATH} \
     && tar --directory ${CASSANDRA_PATH} --strip-components 1 --gzip --extract --file /build/cassandra/build/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc \
@@ -62,7 +60,7 @@ COPY cassandra-trunk/files ${CASSANDRA_FILES_PATH}
 
 #############################################################
 # Build the Management API
-FROM --platform=$BUILDPLATFORM maven:3.8.6-openjdk-11-slim AS mgmtapi-setup
+FROM --platform=$BUILDPLATFORM maven:3-eclipse-temurin-11 AS mgmtapi-setup
 
 WORKDIR /
 
@@ -141,10 +139,10 @@ ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && microdnf update -y && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install -y --nodocs java-17-openjdk-headless tzdata-java python3.11 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
-    && microdnf clean all
+    && microdnf clean all -y
 
 # Copy trimmed installation
 COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
