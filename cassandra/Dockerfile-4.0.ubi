@@ -1,6 +1,8 @@
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=4.0.18
+FROM cassandra:${CASSANDRA_VERSION} AS cassandra-base
+
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG METRICS_COLLECTOR_VERSION=0.3.6
@@ -42,12 +44,10 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 ###
-# Download Cassandra archive
+# Copy Cassandra
 ###
-ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
-RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
-    chown -R cassandra:root ${CASSANDRA_HOME} && \
-    chmod -R a+rwX ${CASSANDRA_HOME}
+COPY --from=cassandra-base /etc/cassandra /etc/cassandra
+COPY --from=cassandra-base ${CASSANDRA_HOME} ${CASSANDRA_HOME}
 
 FROM --platform=linux/amd64 builder AS cassandra-builder-amd64
 # MCAC isn't supported on ARM achitectures
@@ -123,6 +123,7 @@ RUN microdnf install -y --nodocs shadow-utils \
     && microdnf clean all
 
 # Copy trimmed installation
+COPY --from=cassandra-builder --chown=cassandra:root /etc/cassandra /etc/cassandra
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=cassandra-builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=cassandra-builder --chown=cassandra:root ${MCAC_PATH} ${MCAC_PATH}
@@ -134,12 +135,6 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
                 ${CASSANDRA_LOG_DIR} ; do \
         mkdir -p $dir && chown -R cassandra:root $dir && chmod 775 $dir ; \
     done ) && \
-    ln -sT ${CASSANDRA_DATA_DIR} ${CASSANDRA_HOME}/data && \
-    ln -sT ${CASSANDRA_LOG_DIR} ${CASSANDRA_HOME}/logs && \
-    # setup conf directory
-    [ ! -e "/etc/cassandra" ]; \
-    mv ${CASSANDRA_CONF} /etc/cassandra && \
-    ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
     chmod a+rwX ${MAAC_PATH} ${MCAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 

@@ -1,6 +1,8 @@
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=5.0.5
+FROM cassandra:${CASSANDRA_VERSION} AS cassandra-base
+
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG CASSANDRA_VERSION
@@ -32,12 +34,10 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 ###
-# Download Cassandra archive
+# Copy Cassandra
 ###
-ADD "https://archive.apache.org/dist/cassandra/${CASSANDRA_VERSION}/apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz" ./
-RUN tar --directory ${CASSANDRA_HOME} --strip-components 1 --extract --gzip --file apache-cassandra-${CASSANDRA_VERSION}-bin.tar.gz && \
-    chown -R cassandra:root ${CASSANDRA_HOME} && \
-    chmod -R a+rwX ${CASSANDRA_HOME}
+COPY --from=cassandra-base /etc/cassandra /etc/cassandra
+COPY --from=cassandra-base ${CASSANDRA_HOME} ${CASSANDRA_HOME}
 
 #############################################################
 # Copy Management API
@@ -95,6 +95,7 @@ RUN microdnf install -y --nodocs shadow-utils \
     && microdnf clean all
 
 # Copy trimmed installation
+COPY --from=builder --chown=cassandra:root /etc/cassandra /etc/cassandra
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
@@ -105,12 +106,6 @@ RUN (for dir in ${CASSANDRA_DATA_DIR} \
                 ${CASSANDRA_LOG_DIR} ; do \
         mkdir -p $dir && chown -R cassandra:root $dir && chmod 775 $dir ; \
     done ) && \
-    ln -sT ${CASSANDRA_DATA_DIR} ${CASSANDRA_HOME}/data && \
-    ln -sT ${CASSANDRA_LOG_DIR} ${CASSANDRA_HOME}/logs && \
-    # setup conf directory
-    [ ! -e "/etc/cassandra" ]; \
-    mv ${CASSANDRA_CONF} /etc/cassandra && \
-    ln -sT /etc/cassandra ${CASSANDRA_CONF} && \
     # change mode of directories
     chmod a+rwX ${MAAC_PATH} ${CASSANDRA_PATH} ${CDC_AGENT_PATH} /etc/cassandra
 
