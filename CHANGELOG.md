@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 * [ENHANCEMENT] [#686](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/686) Avoid pulling from Apache archives
+* [ENHANCEMENT] [#680](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/680) Update cdc-agent to 2.3.2
 * [BUGFIX] [#684](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/684) Fix Cassandra trunk builds
 * [BUGFIX] [#678](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/678) Older certificates broken for UBI9
 
