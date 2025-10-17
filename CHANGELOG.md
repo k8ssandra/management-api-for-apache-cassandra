@@ -12,6 +12,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 * [ENHANCEMENT] [#686](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/686) Avoid pulling from Apache archives
 * [BUGFIX] [#684](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/684) Fix Cassandra trunk builds
+* [ENHANCEMENT] [#690](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/690) Check bootstrap state in the /readiness before returning OK
 
 ## v0.1.108 [2025-08-2020]
 * [CHANGE] [#670](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/670) Update OpenJDK 11 install for UBI based images
