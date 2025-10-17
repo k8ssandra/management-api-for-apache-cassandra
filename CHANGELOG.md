@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.109 [2025-10-17]
 * [FEATURE] [#682](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/682) Add DSE 6.8.60 to the build matrix
 * [FEATURE] [#683](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/683) Add DSE 6.9.14 to the build matrix
 * [FEATURE] [#689](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/689) Add DSE 6.9.15 to the build matrix
@@ -18,7 +20,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#692](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/692) Update Netty to 4.1.128.Final
 * [BUGFIX] [#684](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/684) Fix Cassandra trunk builds
 
-## v0.1.108 [2025-08-2020]
+## v0.1.108 [2025-09-08]
 * [CHANGE] [#670](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/670) Update OpenJDK 11 install for UBI based images
 * [ENHANCEMENT] [#673](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/673) Update Netty to 4.1.127.Final
 * [FEATURE] [#675](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/675) Add Cassandra 4.1.10 to the build matrix
