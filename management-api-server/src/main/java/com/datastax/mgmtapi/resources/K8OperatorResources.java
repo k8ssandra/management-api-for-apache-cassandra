@@ -95,11 +95,13 @@ public class K8OperatorResources extends BaseResources {
   public Response checkReadiness() {
     return handle(
         () -> {
-
-          if(!bootStrapped) {
-            ResultSet bootstrapped = app.cqlService.executeCql(app.dbUnixSocketFile, "SELECT bootstrapped FROM system.local WHERE key = 'local'");
+          if (!bootStrapped) {
+            ResultSet bootstrapped =
+                app.cqlService.executeCql(
+                    app.dbUnixSocketFile,
+                    "SELECT bootstrapped FROM system.local WHERE key = 'local'");
             Row resultBootstrap = bootstrapped.one();
-            if(resultBootstrap != null) {
+            if (resultBootstrap != null) {
               if ("COMPLETED".equalsIgnoreCase(resultBootstrap.getString("bootstrapped"))) {
                 bootStrapped = true;
               }
