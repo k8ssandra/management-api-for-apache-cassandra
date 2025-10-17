@@ -134,6 +134,93 @@ public class K8OperatorResourcesTest {
   }
 
   @Test
+  public void testReadinessFailsWhenNotBootstrapped() throws Exception {
+    Context context = setup();
+
+    ResultSet bootstrapResultSet = mock(ResultSet.class);
+    Row bootstrapRow = mock(Row.class);
+    ResultSet localResultSet = mock(ResultSet.class);
+    Row localRow = mock(Row.class);
+
+    when(context.cqlService.executeCql(
+            any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'")))
+        .thenReturn(bootstrapResultSet);
+    when(bootstrapResultSet.one()).thenReturn(bootstrapRow);
+    when(bootstrapRow.getString("bootstrapped")).thenReturn("IN_PROGRESS");
+
+    when(context.cqlService.executeCql(any(), eq("SELECT * from system.local")))
+        .thenReturn(localResultSet);
+    when(localResultSet.one()).thenReturn(localRow);
+
+    MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
+    MockHttpResponse response = context.invoke(request);
+
+    Assert.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
+
+    verify(context.cqlService)
+        .executeCql(any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'"));
+    verify(context.cqlService).executeCql(any(), eq("SELECT * from system.local"));
+  }
+
+  @Test
+  public void testReadinessFailsWhenSystemLocalRowMissing() throws Exception {
+    Context context = setup();
+
+    ResultSet bootstrapResultSet = mock(ResultSet.class);
+    Row bootstrapRow = mock(Row.class);
+    ResultSet localResultSet = mock(ResultSet.class);
+
+    when(context.cqlService.executeCql(
+            any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'")))
+        .thenReturn(bootstrapResultSet);
+    when(bootstrapResultSet.one()).thenReturn(bootstrapRow);
+    when(bootstrapRow.getString("bootstrapped")).thenReturn("COMPLETED");
+
+    when(context.cqlService.executeCql(any(), eq("SELECT * from system.local")))
+        .thenReturn(localResultSet);
+    when(localResultSet.one()).thenReturn(null);
+
+    MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
+    MockHttpResponse response = context.invoke(request);
+
+    Assert.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
+
+    verify(context.cqlService)
+        .executeCql(any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'"));
+    verify(context.cqlService).executeCql(any(), eq("SELECT * from system.local"));
+  }
+
+  @Test
+  public void testReadinessSucceedsWhenBootstrappedAndSystemLocalPresent() throws Exception {
+    Context context = setup();
+
+    ResultSet bootstrapResultSet = mock(ResultSet.class);
+    Row bootstrapRow = mock(Row.class);
+    ResultSet localResultSet = mock(ResultSet.class);
+    Row localRow = mock(Row.class);
+
+    when(context.cqlService.executeCql(
+            any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'")))
+        .thenReturn(bootstrapResultSet);
+    when(bootstrapResultSet.one()).thenReturn(bootstrapRow);
+    when(bootstrapRow.getString("bootstrapped")).thenReturn("COMPLETED");
+
+    when(context.cqlService.executeCql(any(), eq("SELECT * from system.local")))
+        .thenReturn(localResultSet);
+    when(localResultSet.one()).thenReturn(localRow);
+
+    MockHttpRequest request = MockHttpRequest.get(ROOT_PATH + "/probes/readiness");
+    MockHttpResponse response = context.invoke(request);
+
+    Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+    Assert.assertEquals("OK", response.getContentAsString());
+
+    verify(context.cqlService)
+        .executeCql(any(), eq("SELECT bootstrapped FROM system.local WHERE key = 'local'"));
+    verify(context.cqlService).executeCql(any(), eq("SELECT * from system.local"));
+  }
+
+  @Test
   public void testSeedReload() throws Exception {
     Context context = setup();
     ResultSet mockResultSet = mock(ResultSet.class);
