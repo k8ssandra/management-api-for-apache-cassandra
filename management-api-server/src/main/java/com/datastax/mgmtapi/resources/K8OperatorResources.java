@@ -42,6 +42,8 @@ public class K8OperatorResources extends BaseResources {
 
   private static final ObjectMapper jsonMapper = new ObjectMapper();
 
+  private boolean bootStrapped = false;
+
   public K8OperatorResources(ManagementApplication application) {
     super(application);
   }
@@ -93,11 +95,24 @@ public class K8OperatorResources extends BaseResources {
   public Response checkReadiness() {
     return handle(
         () -> {
+          if (!bootStrapped) {
+            ResultSet bootstrapped =
+                app.cqlService.executeCql(
+                    app.dbUnixSocketFile,
+                    "SELECT bootstrapped FROM system.local WHERE key = 'local'");
+            Row resultBootstrap = bootstrapped.one();
+            if (resultBootstrap != null) {
+              if ("COMPLETED".equalsIgnoreCase(resultBootstrap.getString("bootstrapped"))) {
+                bootStrapped = true;
+              }
+            }
+          }
+
           ResultSet resultSet =
               app.cqlService.executeCql(app.dbUnixSocketFile, "SELECT * from system.local");
           Row result = resultSet.one();
 
-          if (result != null) {
+          if (result != null && bootStrapped) {
             return Response.ok("OK").build();
           } else {
             Response.ResponseBuilder rb = Response.status(Response.Status.INTERNAL_SERVER_ERROR);
