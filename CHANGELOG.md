@@ -14,6 +14,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [BUGFIX] [#684](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/684) Fix Cassandra trunk builds
 * [ENHANCEMENT] [#690](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/690) Check bootstrap state in the /readiness before returning OK
 * [FEATURE] [#682](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/682) Add DSE 6.8.60 to the build matrix
+* [FEATURE] [#683](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/683) Add DSE 6.9.14 to the build matrix
 
 ## v0.1.108 [2025-08-2020]
 * [CHANGE] [#670](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/670) Update OpenJDK 11 install for UBI based images
