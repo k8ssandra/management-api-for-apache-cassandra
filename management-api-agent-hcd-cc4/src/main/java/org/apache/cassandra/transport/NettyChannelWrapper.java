@@ -81,7 +81,7 @@ public class NettyChannelWrapper implements Channel {
   @Override
   public SocketAddress remoteAddress() {
     /**
-     * For Cassandra 5.0, and/or possibly Netty 4.1.96.Final, the remote address for the Channel
+     * For Cassandra 5.0, and/or possibly Netty 4.1.128.Final, the remote address for the Channel
      * seems to be initialized to a Netty io.netty.channel.unix.DomainSocketAddress instance. For
      * Cassandra 4.1 and lower, it seems to be null. Strangely enough, an initialized instance of
      * io.netty.channel.unix.DomainSocketAddress causes a ClassCastException in Cassandra, since it
