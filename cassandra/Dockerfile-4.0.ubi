@@ -1,6 +1,6 @@
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=4.0.18
+ARG CASSANDRA_VERSION=4.0.19
 FROM cassandra:${CASSANDRA_VERSION} AS cassandra-base
 
 FROM --platform=$BUILDPLATFORM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
