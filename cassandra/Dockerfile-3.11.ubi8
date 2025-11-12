@@ -14,7 +14,7 @@ ENV CASSANDRA_HOME=/opt/cassandra
 RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install tar gzip unzip && microdnf clean all
 
@@ -55,7 +55,7 @@ ENV CASSANDRA_HOME=/opt/cassandra
 RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install tar gzip unzip && microdnf clean all
 
@@ -89,7 +89,7 @@ ENV CASSANDRA_HOME=/opt/cassandra
 RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install tar gzip unzip && microdnf clean all
 
@@ -179,7 +179,7 @@ ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 RUN microdnf install --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update && rm -rf /var/cache/yum \
+    && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install --nodocs java-1.8.0-openjdk-headless java-11-openjdk-headless tzdata-java python2 python3 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all
