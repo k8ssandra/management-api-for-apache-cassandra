@@ -13,6 +13,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 * [FEATURE] [#695](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/695) Add Cassandra 5.0.6 to the build matrix
 * [FEATURE] [#699](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/699) Add Cassandra 4.0.19 to the build matrix
+* [FEATURE] [#702](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/702) Add DSE 6.8.61 to the build matrix
 * [BUGFIX] [#700](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/700) Remove microdnf update from the Dockerfile, rely on the base image updates. This also prevents blocking due to wanting user input for upgrades
 
 ## v0.1.109 [2025-10-17]
