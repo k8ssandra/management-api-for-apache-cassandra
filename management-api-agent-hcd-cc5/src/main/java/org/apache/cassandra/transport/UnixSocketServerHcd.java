@@ -81,7 +81,6 @@ public class UnixSocketServerHcd {
         throws Exception {
 
       final UnixSocketConnection connection;
-      long queryStartNanoTime = System.nanoTime();
 
       try {
         assert request.connection() instanceof UnixSocketConnection;
@@ -101,7 +100,7 @@ public class UnixSocketServerHcd {
         // make the correct calls based on which version of 4.1.x we are. For Cassandra 5.0, this
         // patch was ported between 5.0-rc1 and 5.0-rc2.
         request
-            .execute(qstate, queryStartNanoTime)
+            .execute(qstate, Dispatcher.RequestTime.forImmediateExecution())
             .addCallback(
                 (Message.Response response, Throwable ignore) -> {
                   processMessageResponse(response, request, connection, ctx);

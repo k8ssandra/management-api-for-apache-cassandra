@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#705](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/705) Fix Agent for CC5
 
 ## v0.1.110 [2025-11-20]
 * [FEATURE] [#695](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/695) Add Cassandra 5.0.6 to the build matrix
