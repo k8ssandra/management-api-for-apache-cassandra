@@ -10,6 +10,7 @@ import org.apache.cassandra.audit.AuditLogContext;
 import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
+import org.apache.cassandra.transport.Dispatcher.RequestTime;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
 public class RpcStatement implements RpcStatementShim {
@@ -30,6 +31,15 @@ public class RpcStatement implements RpcStatementShim {
    * this fix was ported between 5.0-rc1 and 5.0-rc2.
    */
   public ResultMessage execute(QueryState queryState, QueryOptions queryOptions, long l) {
+    return new ResultMessage.Void();
+  }
+
+  /**
+   * as of Cassandra 4.1.6, CASSANDRA-19534, org.apache.cassandra.cql3.CQLStatement now has the
+   * method signature below, but it does not exist in Cassandra < 4.1.6. For Cassandra 5.0, this fix
+   * was ported between 5.0-rc1 and 5.0-rc2.
+   */
+  public ResultMessage execute(QueryState queryState, QueryOptions queryOptions, RequestTime rt) {
     return new ResultMessage.Void();
   }
 
