@@ -14,6 +14,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 * [ENHANCEMENT] [#710](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/710) Upgrade Netty to 4.1.130.Final.
 
+* [FEATURE] [#707](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/707) Add DSE 6.9.17 to the build matrix
+
 ## v0.1.111 [2025-12-12]
 * [BUGFIX] [#705](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/705) Fix Agent for CC5
 
