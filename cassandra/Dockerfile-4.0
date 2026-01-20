@@ -91,10 +91,9 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-${TAR
 RUN chmod +x /tini
 
 RUN set -eux; \
-  rm -fr /etc/apt/sources.list.d/*; \
-  rm -rf /var/lib/apt/lists/*; \
   apt-get update; \
-  apt-get install -y --no-install-recommends wget iproute2; \
+  apt-get install -y --no-install-recommends wget iproute2 curl; \
+  rm -fr /etc/apt/sources.list.d/*; \
   rm -rf /var/lib/apt/lists/*
 
 # backwards compat with upstream ENTRYPOINT

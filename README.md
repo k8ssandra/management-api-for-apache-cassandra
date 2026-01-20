@@ -103,6 +103,15 @@ Cassandra 5.0 images are only RedHat UBI8 based.
 - All DSE 6.9.x RedHat UBI 8 based images come with only JDK 11
 - HCD images are not built within this repo. Only the Agent for HCD is maintained within this repo
 
+### OSS Cassandra 4.0.X/4.1.X Ubuntu images
+
+As of January 14, 2026, upstream Cassandra images have switched from Ubuntu to Debian for thier base
+image. The upstream project has also rebuilt and published the latest Cassandra releases, as of
+January 14, which are 4.1.10 and 4.0.19. Starting with v0.1.112 of this project, all OSS Cassandra
+Ubuntu images for versions 4.1.10 and newer in the 4.1.x stream, and 4.0.19 and newer in the 4.0.x stream
+will actually be Debian based. There is no chnage to the RedHat UBI based images at this time, nor are
+there any changes to Ubuntu based DSE images produced (they are still based on Ubuntu) by this repository.
+
 ### Java versions in Docker images
 
 As of v0.1.88, all images produced from this repo will have Java 11 or newer installed as the 
