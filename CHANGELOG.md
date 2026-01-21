@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.113 [2026-01-21]
 * [ENHANCEMENT] [#717](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/717) Update Dependencies (RestEasy 6.2.15.Final, Logback 1.5.25)
 
 ## v0.1.112 [2026-01-20]
