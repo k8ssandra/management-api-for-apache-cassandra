@@ -2326,13 +2326,16 @@
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/RingRange"
-            }
+            },
+            "nullable" : true
           },
           "datacenters" : {
             "type" : "array",
             "items" : {
-              "type" : "string"
-            }
+              "type" : "string",
+              "nullable" : true
+            },
+            "nullable" : true
           },
           "full_repair" : {
             "type" : "boolean"
@@ -2342,17 +2345,21 @@
           },
           "repair_parallelism" : {
             "type" : "string",
-            "enum" : [ "sequential", "parallel", "dc_parallel" ]
+            "enum" : [ "sequential", "parallel", "dc_parallel" ],
+            "nullable" : true
           },
           "repair_thread_count" : {
             "type" : "integer",
-            "format" : "int32"
+            "format" : "int32",
+            "nullable" : true
           },
           "tables" : {
             "type" : "array",
             "items" : {
-              "type" : "string"
-            }
+              "type" : "string",
+              "nullable" : true
+            },
+            "nullable" : true
           }
         },
         "required" : [ "keyspace" ]
@@ -2381,6 +2388,7 @@
       },
       "RingRange" : {
         "type" : "object",
+        "nullable" : true,
         "properties" : {
           "end" : {
             "type" : "integer",
