@@ -50,7 +50,7 @@
           <scope>provided</scope>
         </dependency>
         <dependency>
-          <groupId>com.datastax.oss</groupId>
+          <groupId>org.apache.cassandra</groupId>
           <artifactId>java-driver-query-builder</artifactId>
           <version>${driver.version}</version>
           <exclusions>
@@ -99,7 +99,7 @@
         <dependency>
           <groupId>org.mockito</groupId>
           <artifactId>mockito-core</artifactId>
-          <version>5.5.0</version>
+          <version>${mockito.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
@@ -192,7 +192,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>3.5.0</version>
         <executions>
           <execution>
             <goals>

@@ -4,39 +4,39 @@
 ARG DSE_VERSION=6.8.62
 ARG DS_BASE_DEBIAN=ds-base-ubuntu-openjdk-11
 ARG BASETAG=11.0.27-6-us1-0ubuntu1-20.04
-FROM datastax/${DS_BASE_DEBIAN}:${BASETAG} AS dse-server-prep
+FROM datastax/dse-server:${DSE_VERSION} AS dse-server-prep
 
-# Set up configuration variables
-ENV DSE_HOME=/opt/dse
-ENV DSE_AGENT_HOME=/opt/agent
-
-# Get commandline parameters
-ARG DSE_VERSION
-ARG URL_PREFIX=https://downloads.datastax.com/enterprise
-ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
-ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
-
-ARG DSE_AGENT_VERSION=6.8.45
-ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
-ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
-ADD ${DOWNLOAD_URL} /${TARBALL}
-ADD ${DSE_AGENT_DOWNLOAD_URL} /${DSE_AGENT_TARBALL}
-RUN set -x \
-# Unpack tarball
-    && mkdir -p "$DSE_HOME" \
-    && tar -C "$DSE_HOME" --strip-components=1 -xzf /${TARBALL} \
-    && rm /${TARBALL} \
-# Unpack Agent tarball
-    && mkdir -p "$DSE_AGENT_HOME" \
-    && tar -C "$DSE_AGENT_HOME" --strip-components=1 -xzf /${DSE_AGENT_TARBALL} \
-    && rm /${DSE_AGENT_TARBALL} \
-# Use hard links to reduce the size impact of duplicate jars
-    && apt-get update \
-    && apt-get install -y --install-recommends rdfind \
-    && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME} \
-    && chmod -R g+w ${DSE_HOME} ${DSE_AGENT_HOME}
-COPY dse/patches/remove-writable.patch /tmp
-RUN patch ${DSE_HOME}/bin/dse < /tmp/remove-writable.patch
+## Set up configuration variables
+#ENV DSE_HOME=/opt/dse
+#ENV DSE_AGENT_HOME=/opt/agent
+#
+## Get commandline parameters
+#ARG DSE_VERSION
+#ARG URL_PREFIX=https://downloads.datastax.com/enterprise
+#ARG TARBALL=dse-${DSE_VERSION}-bin.tar.gz
+#ARG DOWNLOAD_URL=${URL_PREFIX}/${TARBALL}
+#
+#ARG DSE_AGENT_VERSION=6.8.45
+#ARG DSE_AGENT_TARBALL=datastax-agent-${DSE_AGENT_VERSION}.tar.gz
+#ARG DSE_AGENT_DOWNLOAD_URL=${URL_PREFIX}/${DSE_AGENT_TARBALL}
+#ADD ${DOWNLOAD_URL} /${TARBALL}
+#ADD ${DSE_AGENT_DOWNLOAD_URL} /${DSE_AGENT_TARBALL}
+#RUN set -x \
+## Unpack tarball
+#    && mkdir -p "$DSE_HOME" \
+#    && tar -C "$DSE_HOME" --strip-components=1 -xzf /${TARBALL} \
+#    && rm /${TARBALL} \
+## Unpack Agent tarball
+#    && mkdir -p "$DSE_AGENT_HOME" \
+#    && tar -C "$DSE_AGENT_HOME" --strip-components=1 -xzf /${DSE_AGENT_TARBALL} \
+#    && rm /${DSE_AGENT_TARBALL} \
+## Use hard links to reduce the size impact of duplicate jars
+#    && apt-get update \
+#    && apt-get install -y --install-recommends rdfind \
+#    && rdfind -makehardlinks true -makeresultsfile false ${DSE_HOME} \
+#    && chmod -R g+w ${DSE_HOME} ${DSE_AGENT_HOME}
+#COPY dse/patches/remove-writable.patch /tmp
+#RUN patch ${DSE_HOME}/bin/dse < /tmp/remove-writable.patch
 
 #############################################################
 

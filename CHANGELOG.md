@@ -10,6 +10,21 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [CHANGE] [#722](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/722 Fix DSE images
+* [ENHANCEMENT] [#721](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/721) Update Dependnecy Versions 
+  Bytebuddy: 1.12.19 -> 1.14.6
+  Commons IO: 2.17.0 -> 2.21.0
+  Commons Lang3: 3.18.0 -> 3.20.0
+  Guava: 33.4.0-jre -> 33.5.0-jre
+  Jackson: 2.18.5 -> 2.18.6
+  Jakarta Validation: 3.1.0 -> 3.1.1
+  JaxRS: 2.2.28 -> 2.2.44
+  Logback: 1.5.25 -> 1.5.32
+  Mockito: 3.5.13 -> 5.5.0
+  Netty: 4.1.130.Final -> 4.1.131.Final
+  CC4: 4.0.11.0-d86e224aa19c -> 4.0.11.0-2522a0f25797
+  CC5: 5.0.4.0-a51cdccb78eb -> 5.0.6.0-3ba7eb526aaf
+  Java driver from com.datastax.oss:4.15.0 -> org.apache.cassandra:4.19.2
 
 ## v0.1.113 [2026-01-21]
 * [ENHANCEMENT] [#717](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/717) Update Dependencies (RestEasy 6.2.15.Final, Logback 1.5.25)

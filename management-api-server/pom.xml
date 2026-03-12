@@ -16,17 +16,18 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-server</artifactId>
   <properties>
-    <guava.version>33.4.0-jre</guava.version>
+    <guava.version>33.5.0-jre</guava.version>
     <airline.version>3.0.0</airline.version>
-    <jaxrs.version>2.2.28</jaxrs.version>
+    <jaxrs.version>2.2.44</jaxrs.version>
     <resteasy.version>6.2.15.Final</resteasy.version>
-    <awaitility.version>4.0.3</awaitility.version>
-    <assertj.version>3.17.2</assertj.version>
+    <awaitility.version>4.3.0</awaitility.version>
+    <assertj.version>3.27.7</assertj.version>
     <servelet.version>6.1.0</servelet.version>
-    <commons.io.version>2.17.0</commons.io.version>
-    <apache.commons.lang3.version>3.18.0</apache.commons.lang3.version>
+    <commons.io.version>2.21.0</commons.io.version>
+    <apache.commons.lang3.version>3.20.0</apache.commons.lang3.version>
     <jakarta.activation.version>2.1.4</jakarta.activation.version>
-    <jakarta.validation.version>3.1.0</jakarta.validation.version>
+    <jakarta.validation.version>3.1.1</jakarta.validation.version>
+    <jsr305.version>3.0.2</jsr305.version>
   </properties>
   <dependencies>
     <dependency>
@@ -93,8 +94,8 @@
       <version>${jakarta.validation.version}</version>
     </dependency>
     <!-- the next 3 Jackson dependnecies are here explictly to keep the versions
-         the same as what we use in the common modules. They are normally pulled
-         in transitively by swagger-jaxrs2-jakarta below -->
+    the same as what we use in the common modules. They are normally pulled
+    in transitively by swagger-jaxrs2-jakarta below -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
@@ -146,6 +147,14 @@
           <groupId>org.apache.commons</groupId>
           <artifactId>commons-lang3</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.validation</groupId>
+          <artifactId>jakarta.validation-api</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -172,6 +181,18 @@
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+          <artifactId>jackson-jakarta-rs-base</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+          <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.module</groupId>
+          <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -180,7 +201,7 @@
       <version>${netty.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.datastax.oss</groupId>
+      <groupId>org.apache.cassandra</groupId>
       <artifactId>java-driver-core</artifactId>
       <version>${driver.version}</version>
       <exclusions>
@@ -211,6 +232,11 @@
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <version>1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
     </dependency>
     <dependency>
       <groupId>com.github.docker-java</groupId>
