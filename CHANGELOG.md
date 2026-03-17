@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#723](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/723) Add DSE 6.8.63 to the build matrix
+* [FEATURE] [#724](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/724) Add DSE 6.9.20 to the build matrix
 * [CHANGE] [#722](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/722 Fix DSE images
 * [ENHANCEMENT] [#721](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/721) Update Dependnecy Versions 
   Bytebuddy: 1.12.19 -> 1.14.6
