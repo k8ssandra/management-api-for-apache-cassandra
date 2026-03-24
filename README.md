@@ -55,26 +55,26 @@
 The following versions of Cassandra and DSE are published to Docker and supported:
 
 | Cassandra 4.0.x | Cassandra 4.1.x | Cassandra 5.0.x | DSE 6.8.x | DSE 6.9.x | HCD 1.1.x | HCD 1.2.x |
-|-----------------| --------------- |-----------------|---------- |-----------| --------- | --------- |
+|-----------------|-----------------|-----------------|---------- |-----------| --------- | --------- |
 | 4.0.0           | 4.1.0           | 5.0.1           | 6.8.25    | 6.9.0     | 1.1.0     | 1.2.0     |
 | 4.0.1           | 4.1.1           | 5.0.2           | 6.8.26    | 6.9.1     |           |           |
 | 4.0.3           | 4.1.2           | 5.0.3           | 6.8.28    | 6.9.2     |           |           |
 | 4.0.4           | 4.1.3           | 5.0.4           | 6.8.29    | 6.9.3     |           |           |
 | 4.0.5           | 4.1.4           | 5.0.5           | 6.8.30    | 6.9.4     |           |           |
 | 4.0.6           | 4.1.5           | 5.0.6           | 6.8.31    | 6.9.5     |           |           |
-| 4.0.7           | 4.1.6           |                 | 6.8.32    | 6.9.6     |           |           |
+| 4.0.7           | 4.1.6           | 5.0.7           | 6.8.32    | 6.9.6     |           |           |
 | 4.0.8           | 4.1.7           |                 | 6.8.33    | 6.9.7     |           |           |
 | 4.0.9           | 4.1.8           |                 | 6.8.34    | 6.9.8     |           |           |
 | 4.0.10          | 4.1.9           |                 | 6.8.35    | 6.9.9     |           |           |
 | 4.0.11          | 4.1.10          |                 | 6.8.36    | 6.9.10    |           |           |
-| 4.0.12          |                 |                 | 6.8.37    | 6.9.11    |           |           |
+| 4.0.12          | 4.1.11          |                 | 6.8.37    | 6.9.11    |           |           |
 | 4.0.13          |                 |                 | 6.8.38    | 6.9.12    |           |           |
 | 4.0.14          |                 |                 | 6.8.39    | 6.9.13    |           |           |
 | 4.0.15          |                 |                 | 6.8.40    | 6.9.14    |           |           |
 | 4.0.17          |                 |                 | 6.8.41    | 6.9.15    |           |           |
 | 4.0.18          |                 |                 | 6.8.42    | 6.9.16    |           |           |
 | 4.0.19          |                 |                 | 6.8.43    | 6.9.17    |           |           |
-|                 |                 |                 | 6.8.44    | 6.9.18    |           |           |
+| 4.0.20          |                 |                 | 6.8.44    | 6.9.18    |           |           |
 |                 |                 |                 | 6.8.46    | 6.9.20    |           |           |
 |                 |                 |                 | 6.8.47    |           |           |           |
 |                 |                 |                 | 6.8.48    |           |           |           |
@@ -98,7 +98,7 @@ The following versions of Cassandra and DSE are published to Docker and supporte
 - All images (with the exception of Cassandra 5.0) are available as an Ubuntu based image or a RedHat UBI 8 based image.
 Cassandra 5.0 images are only RedHat UBI8 based.
 - All Cassandra 4.0.x and 4.1.x images come with JDK 11
-- All Cassabdra 5.0.x images come with JDK17
+- All Cassandra 5.0.x images come with JDK17
 - All DSE 6.8.x Ubuntu based images are available with either JDK 8 or JDK 11 (you have to pick, only  one JDK is installed in an image)
 - All DSE 6.8.x RedHat UBI 8 based images come with JDK 8
 - All DSE 6.9.x Ubuntu based images come with only JDK 11
@@ -107,11 +107,11 @@ Cassandra 5.0 images are only RedHat UBI8 based.
 
 ### OSS Cassandra 4.0.X/4.1.X Ubuntu images
 
-As of January 14, 2026, upstream Cassandra images have switched from Ubuntu to Debian for thier base
+As of January 14, 2026, upstream Cassandra images have switched from Ubuntu to Debian for their base
 image. The upstream project has also rebuilt and published the latest Cassandra releases, as of
 January 14, which are 4.1.10 and 4.0.19. Starting with v0.1.112 of this project, all OSS Cassandra
 Ubuntu images for versions 4.1.10 and newer in the 4.1.x stream, and 4.0.19 and newer in the 4.0.x stream
-will actually be Debian based. There is no chnage to the RedHat UBI based images at this time, nor are
+will actually be Debian based. There is no change to the RedHat UBI based images at this time, nor are
 there any changes to Ubuntu based DSE images produced (they are still based on Ubuntu) by this repository.
 
 ### Java versions in Docker images
