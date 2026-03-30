@@ -1,23 +1,23 @@
-# Management API for Cassandra 5.0/5.1/trunk
+# Management API for Cassandra trunk
 
-This Maven sub-module if for building a Management API agent that works with Cassandra 5.1/trunk. Currently,
-the version in trunk is 5.1-SNAPSHOT, and the artifacts produced by this project work with the 5.1-SNAPSHOT
+This Maven sub-module if for building a Management API agent that works with Cassandra trunk. Currently,
+the version in trunk is 6.0-alpha1-SNAPSHOT, and the artifacts produced by this project work with the 6.0-alpha1-SNAPSHOT
 version of Cassandra in trunk.
 
 ## Building Against Published Cassandra Artifacts
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`5.1-SNAPSHOT` as of this writing). If you wish to build for a different
-published version, for example `5.1.1` when it is released, specify the version:
+set to the latest published version (`6.0-alpha1-SNAPSHOT` as of this writing). If you wish to build for a different
+published version, for example `6.0.1` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra5.version=5.1.1
+mvn package -Dcassandra6.version=5.1.1
 ```
 
 ## Building Against Cassandra Trunk
 
-To build the agent against the latest trunk, you will need to build the Cassandra 5 Maven artifacts first and
+To build the agent against the latest trunk, you will need to build the Cassandra trunk Maven artifacts first and
 install them locally. This may or may not be necessary in some cases, depending on what changes have occurred
 in the Cassandra code base since the latest published version of Cassandra artifacts.
 
@@ -44,7 +44,7 @@ This should setup your local Maven repository with the cassandra-all.jar artifac
 
 ### Building the Agent
 
-As of this writing, Cassandra trunk sits at version 5.1-SNAPSHOT. To build the agent, you will need to specify the `trunk`
+As of this writing, Cassandra trunk sits at version 6.0-alpha1-SNAPSHOT. To build the agent, you will need to specify the `trunk`
 Maven profile, as this agent is not built by default:
 
 ```sh
@@ -55,7 +55,7 @@ mvn package -P trunk
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:5.1
+    k8ssandra/cass-management-api:6.0
 
 ### Building Images Locally for Cassandra trunk
 
@@ -73,6 +73,6 @@ The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.1
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:6.0
 ```
 

@@ -1,6 +1,6 @@
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=5.1-SNAPSHOT
+ARG CASSANDRA_VERSION=6.0-alpha1-SNAPSHOT
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG CASSANDRA_VERSION
@@ -12,7 +12,6 @@ ENV CASSANDRA_HOME=/opt/cassandra
 RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update -y && rm -rf /var/cache/yum \
 # Install packages needed during install process
     && microdnf install -y tar gzip unzip && microdnf clean all
 
@@ -32,9 +31,15 @@ RUN mkdir -m 775 ${CDC_AGENT_PATH} && \
   chmod -R g+w ${CDC_AGENT_PATH}
 
 #############################################################
+FROM --platform=$BUILDPLATFORM maven:3-eclipse-temurin-11 AS cass-builder-base
+WORKDIR /build
+RUN set -x \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends git ant ant-optional make python3
+
 
 # Build and extract Cassandra
-FROM --platform=$BUILDPLATFORM maven:3-eclipse-temurin-11 AS cass-builder
+FROM --platform=$BUILDPLATFORM cass-builder-base AS cass-builder
 ARG CASSANDRA_VERSION
 ARG COMMITSHA="HEAD"
 ARG CASSANDRA_BRANCH="trunk"
@@ -42,8 +47,6 @@ ENV CASSANDRA_PATH=/opt/cassandra
 ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 WORKDIR /build
 RUN set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends git ant ant-optional make python3 \
     && git clone -b ${CASSANDRA_BRANCH} --single-branch https://github.com/apache/cassandra.git \
     && cd cassandra \
     && git checkout $(git rev-parse --short ${COMMITSHA}) \
@@ -74,7 +77,7 @@ COPY management-api-agent-common/pom.xml /tmp/management-api-agent-common/pom.xm
 COPY management-api-agent-4.x/pom.xml /tmp/management-api-agent-4.x/pom.xml
 COPY management-api-agent-4.1.x/pom.xml /tmp/management-api-agent-4.1.x/pom.xml
 COPY management-api-agent-5.0.x/pom.xml /tmp/management-api-agent-5.0.x/pom.xml
-COPY management-api-agent-5.1.x/pom.xml /tmp/management-api-agent-5.1.x/pom.xml
+COPY management-api-agent-6.0.x/pom.xml /tmp/management-api-agent-6.0.x/pom.xml
 COPY management-api-common/pom.xml /tmp/management-api-common/pom.xml
 COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 COPY management-api-test/pom.xml /tmp/management-api-test/pom.xml
@@ -87,7 +90,7 @@ COPY management-api-agent-common /tmp/management-api-agent-common
 COPY management-api-agent-4.x /tmp/management-api-agent-4.x
 COPY management-api-agent-4.1.x /tmp/management-api-agent-4.1.x
 COPY management-api-agent-5.0.x /tmp/management-api-agent-5.0.x
-COPY management-api-agent-5.1.x /tmp/management-api-agent-5.1.x
+COPY management-api-agent-6.0.x /tmp/management-api-agent-6.0.x
 COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
@@ -101,7 +104,7 @@ RUN mkdir -m 775 ${MAAC_PATH} \
     && rm ${MAAC_PATH}/datastax-mgmtapi-*common* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-*test* \
     && cd ${MAAC_PATH} \
-    && ln -s datastax-mgmtapi-agent-5.1.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
+    && ln -s datastax-mgmtapi-agent-6.0.x-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar \
     && ln -s datastax-mgmtapi-agent-0.1.0-SNAPSHOT.jar datastax-mgmtapi-agent.jar \
     && ln -s datastax-mgmtapi-server-0.1.0-SNAPSHOT.jar datastax-mgmtapi-server.jar && \
     chmod -R g+w ${MAAC_PATH}
