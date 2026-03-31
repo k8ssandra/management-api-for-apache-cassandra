@@ -199,7 +199,12 @@ if [ "$USE_MGMT_API" = "true" ] && [ -d "$MAAC_PATH" ] ; then
     fi
 
     # some uses of these images require /tmp/dse.sock to exist, symlink it here
-    ln -s /tmp/cassandra.sock /tmp/dse.sock
+    if [ ! -e /tmp/dse.sock ] && [ ! -L /tmp/dse.sock ]; then
+        echo "Symlinking /tmp/dse.sock to /tmp/cassandra.sock"
+        ln -s /tmp/cassandra.sock /tmp/dse.sock
+    else
+        echo "/tmp/dse.sock already exists or is already symlinked"
+    fi
 
     echo "Running" ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
     ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
