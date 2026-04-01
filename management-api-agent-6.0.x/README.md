@@ -12,7 +12,7 @@ set to the latest published version (`6.0-alpha1-SNAPSHOT` as of this writing). 
 published version, for example `6.0.1` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra6.version=5.1.1
+mvn package -Dcassandra6.version=6.0.1
 ```
 
 ## Building Against Cassandra Trunk
