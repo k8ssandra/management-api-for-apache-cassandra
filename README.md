@@ -309,7 +309,7 @@ To build an image based on DSE, see the [DSE README](management-api-agent-dse-6.
 
 ### Cassandra trunk
 
-For building an image based on the latest from Cassandra trunk, see this [README](management-api-agent-5.0.x/README.md).
+For building an image based on the latest from Cassandra trunk, see this [README](management-api-agent-6.0.x/README.md).
 
 ### DSE 6.8.x/6.9.x
 
