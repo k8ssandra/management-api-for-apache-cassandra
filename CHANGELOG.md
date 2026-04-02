@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.115 [2026-04-02]
 * [FEATURE] [#727](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/727) Add Cassandra 5.0.7, 4.1.11 and 4.0.20 to build matrix
 * [BUGFIX] [#730](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/730) If dse.sock exist, do not try to relink cassandra.sock to it.
 * [CHANGE] [#729](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/729) Update Cassandra Trunk builds to 6.0-alpha1
