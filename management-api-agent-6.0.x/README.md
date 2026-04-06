@@ -1,14 +1,14 @@
 # Management API for Cassandra trunk
 
 This Maven sub-module if for building a Management API agent that works with Cassandra trunk. Currently,
-the version in trunk is 6.0-alpha1-SNAPSHOT, and the artifacts produced by this project work with the 6.0-alpha1-SNAPSHOT
+the version in trunk is 6.0-alpha2-SNAPSHOT, and the artifacts produced by this project work with the 6.0-alpha2-SNAPSHOT
 version of Cassandra in trunk.
 
 ## Building Against Published Cassandra Artifacts
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`6.0-alpha1-SNAPSHOT` as of this writing). If you wish to build for a different
+set to the latest published version (`6.0-alpha2-SNAPSHOT` as of this writing). If you wish to build for a different
 published version, for example `6.0.1` when it is released, specify the version:
 
 ```sh
@@ -44,7 +44,7 @@ This should setup your local Maven repository with the cassandra-all.jar artifac
 
 ### Building the Agent
 
-As of this writing, Cassandra trunk sits at version 6.0-alpha1-SNAPSHOT. To build the agent, you will need to specify the `trunk`
+As of this writing, Cassandra trunk sits at version 6.0-alpha2-SNAPSHOT. To build the agent, you will need to specify the `trunk`
 Maven profile, as this agent is not built by default:
 
 ```sh

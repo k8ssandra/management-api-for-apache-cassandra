@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-6.0.x</artifactId>
   <properties>
-    <cassandra6.version>6.0-alpha1-SNAPSHOT</cassandra6.version>
+    <cassandra6.version>6.0-alpha2-SNAPSHOT</cassandra6.version>
     <netty.http.codec.version>4.1.118.Final</netty.http.codec.version>
   </properties>
   <dependencies>
