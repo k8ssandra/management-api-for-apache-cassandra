@@ -30,7 +30,7 @@
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
     <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version>
-    <jackson-dataformat.version>2.18.6</jackson-dataformat.version>
+    <jackson-dataformat.version>2.21.2</jackson-dataformat.version>
     <coveo.format.version>2.9</coveo.format.version>
     <xml.format.version>4.1.0</xml.format.version>
     <mycila.license.version>4.1</mycila.license.version>
