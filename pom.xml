@@ -31,6 +31,15 @@
     <!-- This old version is used by Cassandra 4.x -->
     <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version>
     <jackson-dataformat.version>2.21.2</jackson-dataformat.version>
+    <!-- server and test dependnecies that are shared -->
+    <guava.version>33.5.0-jre</guava.version>
+    <airline.version>3.0.0</airline.version>
+    <jaxrs.version>2.2.45</jaxrs.version>
+    <resteasy.version>6.2.15.Final</resteasy.version>
+    <awaitility.version>4.3.0</awaitility.version>
+    <assertj.version>3.27.7</assertj.version>
+    <servelet.version>6.1.0</servelet.version>
+    <commons.io.version>2.21.0</commons.io.version>
     <coveo.format.version>2.9</coveo.format.version>
     <xml.format.version>4.1.0</xml.format.version>
     <mycila.license.version>4.1</mycila.license.version>
