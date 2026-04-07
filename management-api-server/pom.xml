@@ -18,7 +18,7 @@
   <properties>
     <guava.version>33.5.0-jre</guava.version>
     <airline.version>3.0.0</airline.version>
-    <jaxrs.version>2.2.44</jaxrs.version>
+    <jaxrs.version>2.2.45</jaxrs.version>
     <resteasy.version>6.2.15.Final</resteasy.version>
     <awaitility.version>4.3.0</awaitility.version>
     <assertj.version>3.27.7</assertj.version>
@@ -154,6 +154,10 @@
         <exclusion>
           <groupId>jakarta.validation</groupId>
           <artifactId>jakarta.validation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
