@@ -15,16 +15,6 @@
   </parent>
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-test</artifactId>
-  <properties>
-    <guava.version>30.1.1-jre</guava.version>
-    <airline.version>2.7.0</airline.version>
-    <jaxrs.version>2.2.19</jaxrs.version>
-    <resteasy.version>6.2.10.Final</resteasy.version>
-    <awaitility.version>4.0.3</awaitility.version>
-    <assertj.version>3.17.2</assertj.version>
-    <servelet.version>6.1.0</servelet.version>
-    <commons.io.version>2.17.0</commons.io.version>
-  </properties>
   <dependencies>
     <dependency>
       <groupId>io.k8ssandra</groupId>
@@ -85,6 +75,12 @@
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <version>${resteasy.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <resources>
@@ -96,7 +92,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <phase>initialize</phase>
@@ -110,7 +105,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

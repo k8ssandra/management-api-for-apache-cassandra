@@ -16,14 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-server</artifactId>
   <properties>
-    <guava.version>33.5.0-jre</guava.version>
-    <airline.version>3.0.0</airline.version>
-    <jaxrs.version>2.2.45</jaxrs.version>
-    <resteasy.version>6.2.15.Final</resteasy.version>
-    <awaitility.version>4.3.0</awaitility.version>
-    <assertj.version>3.27.7</assertj.version>
-    <servelet.version>6.1.0</servelet.version>
-    <commons.io.version>2.21.0</commons.io.version>
+    <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.commons.lang3.version>3.20.0</apache.commons.lang3.version>
     <jakarta.activation.version>2.1.4</jakarta.activation.version>
     <jakarta.validation.version>3.1.1</jakarta.validation.version>
@@ -162,19 +155,28 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.jboss.resteasy</groupId>
-      <artifactId>resteasy-netty4</artifactId>
-      <version>${resteasy.version}</version>
+      <groupId>dev.resteasy.netty</groupId>
+      <artifactId>resteasy-embedded-server</artifactId>
+      <version>1.0.0.Final</version>
       <exclusions>
         <exclusion>
-          <groupId>jakarta.validation</groupId>
-          <artifactId>jakarta.validation-api</artifactId>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-core</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.resteasy</groupId>
+          <artifactId>resteasy-core-spi</artifactId>
         </exclusion>
         <exclusion>
           <groupId>io.netty</groupId>
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>${apache.httpcore.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.resteasy</groupId>
@@ -196,6 +198,14 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.module</groupId>
           <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jakarta.validation</groupId>
+          <artifactId>jakarta.validation-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.logging</groupId>
+          <artifactId>jboss-logging</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -286,6 +296,12 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <version>${resteasy.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
