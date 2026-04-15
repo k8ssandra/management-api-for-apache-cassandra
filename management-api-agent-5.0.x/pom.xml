@@ -17,7 +17,15 @@
   <artifactId>datastax-mgmtapi-agent-5.0.x</artifactId>
   <properties>
     <cassandra5.version>5.0.7</cassandra5.version>
-    <netty.http.codec.version>4.1.96.Final</netty.http.codec.version>
+    <!--
+    The version here needs to match the Netty version from Cassandra upstream.
+    So when the version above changes, this may need to change to stay in sync.
+    Cassandra 5 explicitly excludes some Netty libraries from its netty-all
+    dependnecy, but the Metrics endpoint relies on netty-http-codec, so we must
+    explicitly bring it back in, but keep the version the same as the transitive
+    netty-all that we get from Cassandra
+    -->
+    <netty.http.codec.version>4.1.130.Final</netty.http.codec.version>
   </properties>
   <dependencies>
     <!-- Need to explicitly declare SLF4J as "provided" to avoid it being bundled into the resulting agent jarfile -->
@@ -37,6 +45,7 @@
       <artifactId>datastax-mgmtapi-agent-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <!-- We need this explicitly added back in for the Metrics endpoint -->
     <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
