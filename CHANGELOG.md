@@ -13,6 +13,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [BUGFIX] [#739](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/739) Fix Metrics endpoint for HCD 2.0/CC5 Agent
 * [FEATURE] [#741](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/741) Add Cassandra 5.0.8 to the build matrix
 * [ENHANCEMENT] [#737](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/737) Update Jackson to 2.21.2
+* [BUGFIX] [#742](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/742) Update Cassandra trunk builds to 7.0-SNAPSHOT
 
 ## v0.1.115 [2026-04-02]
 * [FEATURE] [#727](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/727) Add Cassandra 5.0.7, 4.1.11 and 4.0.20 to build matrix

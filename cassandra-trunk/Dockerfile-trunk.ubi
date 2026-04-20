@@ -1,6 +1,6 @@
 ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=6.0-alpha2-SNAPSHOT
+ARG CASSANDRA_VERSION=7.0-SNAPSHOT
 FROM registry.access.redhat.com/ubi${UBI_MAJOR}/ubi-minimal:${UBI_BASETAG} AS builder
 
 ARG CASSANDRA_VERSION
@@ -83,7 +83,7 @@ COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 COPY management-api-test/pom.xml /tmp/management-api-test/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P trunk && rm -rf target
+RUN cd /tmp && mvn -q -ff -T 1C package -Dskip.surefire.tests -DskipTests -DskipOpenApi -Dcassandra.version=7.0-SNAPSHOT -P trunk && rm -rf target
 
 COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
 COPY management-api-agent-common /tmp/management-api-agent-common
@@ -95,7 +95,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P trunk \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -Dcassandra.version=7.0-SNAPSHOT -P trunk \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \
