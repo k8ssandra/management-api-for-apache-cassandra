@@ -420,9 +420,9 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        cassandra-version: [5.0.1, 5.0.2, 5.0.3, 5.0.4, 5.0.5, 5.0.6, 5.0.7]
+        cassandra-version: [5.0.1, 5.0.2, 5.0.3, 5.0.4, 5.0.5, 5.0.6, 5.0.7, 5.0.8]
         include:
-          - cassandra-version: 5.0.7
+          - cassandra-version: 5.0.8
             latest: true
     runs-on: ubuntu-latest
     steps:
