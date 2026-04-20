@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-5.0.x</artifactId>
   <properties>
-    <cassandra5.version>5.0.7</cassandra5.version>
+    <cassandra5.version>5.0.8</cassandra5.version>
     <!--
     The version here needs to match the Netty version from Cassandra upstream.
     So when the version above changes, this may need to change to stay in sync.
