@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-6.0.x</artifactId>
   <properties>
-    <cassandra6.version>6.0-alpha2-SNAPSHOT</cassandra6.version>
+    <cassandra.version>6.0-alpha2-SNAPSHOT</cassandra.version>
     <!--
     The version here needs to match the Netty version from Cassandra upstream.
     So when the version above changes, this may need to change to stay in sync.
@@ -91,7 +91,7 @@
         <dependency>
           <groupId>org.apache.cassandra</groupId>
           <artifactId>cassandra-all</artifactId>
-          <version>${cassandra6.version}</version>
+          <version>${cassandra.version}</version>
           <exclusions>
             <exclusion>
               <groupId>commons-codec</groupId>
