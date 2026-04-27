@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.117 [2026-04-27]
 * [ENHANCEMENT] [#749](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/749) Update netty-codec-http to 4.1.132.Final for CC5
 
 ## v0.1.116 [2026-04-20]
