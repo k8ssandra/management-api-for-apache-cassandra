@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-hcd-cc5</artifactId>
   <properties>
-    <cassandra5.version>5.0.6.0-3ba7eb526aaf</cassandra5.version>
+    <cassandra5.version>5.0.7.0-e4706e140fc8</cassandra5.version>
     <!--
     The version here needs to match the Netty version from HCD/CC5 upstream.
     So when the version above changes, this may need to change to stay in sync.
@@ -25,7 +25,7 @@
     explicitly bring it back in, but keep the version the same as the transitive
     netty-all that we get from Cassandra
     -->
-    <netty.http.codec.version>4.1.130.Final</netty.http.codec.version>
+    <netty.http.codec.version>4.1.132.Final</netty.http.codec.version>
   </properties>
   <repositories>
     <repository>
