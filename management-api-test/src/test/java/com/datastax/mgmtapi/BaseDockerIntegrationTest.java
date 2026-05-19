@@ -6,6 +6,15 @@
 package com.datastax.mgmtapi;
 
 import static io.netty.util.CharsetUtil.UTF_8;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_READ;
+import static java.nio.file.attribute.PosixFilePermission.OTHERS_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -25,8 +34,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
@@ -43,6 +56,8 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runners.Parameterized;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseDockerIntegrationTest {
   protected static final String BASE_PATH = "http://localhost:8080/api/v0";
@@ -50,6 +65,7 @@ public abstract class BaseDockerIntegrationTest {
   protected static final String BASE_PATH_V2 = "http://localhost:8080/api/v2";
   protected static final URL BASE_URL;
   protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  private static final Logger LOGGER = LoggerFactory.getLogger(BaseDockerIntegrationTest.class);
 
   static {
     try {
@@ -98,7 +114,7 @@ public abstract class BaseDockerIntegrationTest {
         }
       };
 
-  @ClassRule public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @ClassRule public static TemporaryFolder temporaryFolder = new _TemporaryFolder();
 
   protected final String version;
   protected static DockerHelper docker;
@@ -128,8 +144,6 @@ public abstract class BaseDockerIntegrationTest {
 
     // If run without forking we need to start a new version
     if (docker != null) {
-      temporaryFolder.delete();
-      temporaryFolder.create();
       docker.startManagementAPI(version, getEnvironmentVars(), getUser(), getImageBuildArgs());
     }
   }
@@ -137,21 +151,16 @@ public abstract class BaseDockerIntegrationTest {
   @BeforeClass
   public static void setup() throws InterruptedException {
     try {
-      temporaryFolder.create();
       docker = new DockerHelper(getTempDir());
       docker.removeExistingCntainers();
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new IOError(e);
     }
   }
 
   @AfterClass
   public static void teardown() {
-    try {
-      docker.stopManagementAPI();
-    } finally {
-      // temporaryFolder.delete();
-    }
+    docker.stopManagementAPI();
   }
 
   @Before
@@ -195,11 +204,6 @@ public abstract class BaseDockerIntegrationTest {
     if (os.equalsIgnoreCase("mac os x")) {
       tempDir = new File("/private", tempDir.getPath());
     }
-
-    tempDir.setWritable(true, false);
-    tempDir.setReadable(true, false);
-    tempDir.setExecutable(true, false);
-
     return tempDir;
   }
 
@@ -305,5 +309,42 @@ public abstract class BaseDockerIntegrationTest {
     }
 
     assertTrue(ready);
+  }
+
+  private static class _TemporaryFolder extends TemporaryFolder {
+    private Path tmpFolder;
+
+    private _TemporaryFolder() {
+      super();
+    }
+
+    @Override
+    public void create() throws IOException {
+      super.create();
+      tmpFolder = getRoot().toPath();
+      LOGGER.info("Test temp directory for mounting /var/log/cassandra: " + tmpFolder.toString());
+      // set permissions
+      Files.setPosixFilePermissions(
+          tmpFolder,
+          EnumSet.of(
+              OWNER_READ,
+              OWNER_WRITE,
+              OWNER_EXECUTE,
+              GROUP_READ,
+              GROUP_WRITE,
+              GROUP_EXECUTE,
+              OTHERS_READ,
+              OTHERS_WRITE,
+              OTHERS_EXECUTE));
+      LOGGER.debug(
+          "TMPDIR permissions: "
+              + Files.getPosixFilePermissions(tmpFolder, LinkOption.NOFOLLOW_LINKS));
+    }
+
+    @Override
+    public void delete() {
+      // don't delete until the TestWatcher determines the test has passed
+      LOGGER.debug("SKIP Deleting TMPDIR until test has passed: " + tmpFolder);
+    }
   }
 }

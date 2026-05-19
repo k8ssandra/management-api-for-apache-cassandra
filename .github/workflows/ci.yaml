@@ -428,6 +428,13 @@ jobs:
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+      - name: Archive failed test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.itTest }}.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          path: /tmp/junit**
+          retention-days: 3
 
   test-oss-41:
     # This job is inetnded to run the various versiosn of Cassandra 4.1 where internal changes to OSS code
@@ -499,6 +506,13 @@ jobs:
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=Lifecycle41${{ matrix.minor-version }}IT -DfailIfNoTests=false
+      - name: Archive failed test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: Lifecycle41${{ matrix.minor-version }}IT.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          path: /tmp/junit**
+          retention-days: 3
 
   test-oss-nodetool:
     # This job is inetnded to run a version of Cassandra (4.0.1) that requires a JDK fix for nodetool JDK-8278972
@@ -570,7 +584,14 @@ jobs:
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=NodetoolIT -DfailIfNoTests=false
-          
+      - name: Archive failed test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: NodetoolIT.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          path: /tmp/junit**
+          retention-days: 3
+
   test-oss-trunk:
     name: Run Cassandra ${{ matrix.itTest }} [trunk, ubi]
     needs: build-trunk-docker-images
@@ -622,6 +643,13 @@ jobs:
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -DruntrunktestsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
+      - name: Archive failed test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.itTest }}.trunk.ubi
+          path: /tmp/junit**
+          retention-days: 3
 
   test-dse:
     name: Run DSE ${{ matrix.itTest }} [${{ matrix.dse-version }}, ${{ matrix.base-platform }}]
@@ -690,6 +718,13 @@ jobs:
         run: |
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml -P dse -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false \
           -DrunDSE${{ matrix.dse-version }}testsUBI
+      - name: Archive failed test logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.itTest }}.${{ matrix.dse-version }}.${{ matrix.base-platform }}
+          path: /tmp/junit**
+          retention-days: 3
 
   publish-oss:
     name: Publish ${{ matrix.cassandra-version }} Cassandra image

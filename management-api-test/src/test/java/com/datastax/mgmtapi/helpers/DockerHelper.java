@@ -10,6 +10,8 @@ import com.github.dockerjava.api.async.ResultCallback.Adapter;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.ListContainersCmd;
 import com.github.dockerjava.api.command.ListImagesCmd;
+import com.github.dockerjava.api.model.AccessMode;
+import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Frame;
@@ -17,6 +19,8 @@ import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.SELContext;
+import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
@@ -296,18 +300,24 @@ public class DockerHelper {
 
     CreateContainerResponse containerResponse;
 
-    logger.warn(
-        "Binding a local temp directory to /var/log/cassandra can cause permissions issues on startup. Skipping volume bindings.");
+    logger.debug(
+        "Binding a local temp directory to /var/log/cassandra can cause permissions issues on startup.");
+    Bind logBind =
+        new Bind(
+            dataDir.getAbsolutePath(),
+            new Volume("/var/log/cassandra"),
+            AccessMode.rw,
+            SELContext.single);
     containerResponse =
         DOCKER_CLIENT
             .createContainerCmd(imageName)
             .withEnv(config.envList)
             .withExposedPorts(tcpPorts)
             .withHostConfig(
-                new HostConfig().withPortBindings(portBindings).withPublishAllPorts(true)
-                // don't bind /var/log/cassandra, it causes permissions issues with startup
-                // .withBinds(volumeBindList)
-                )
+                new HostConfig()
+                    .withPortBindings(portBindings)
+                    .withPublishAllPorts(true)
+                    .withBinds(logBind))
             .withName(CONTAINER_NAME)
             .withUser(config.user)
             .exec();
