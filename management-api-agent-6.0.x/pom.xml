@@ -17,15 +17,6 @@
   <artifactId>datastax-mgmtapi-agent-6.0.x</artifactId>
   <properties>
     <cassandra.version>6.0-alpha2-SNAPSHOT</cassandra.version>
-    <!--
-    The version here needs to match the Netty version from Cassandra upstream.
-    So when the version above changes, this may need to change to stay in sync.
-    Cassandra 5 explicitly excludes some Netty libraries from its netty-all
-    dependnecy, but the Metrics endpoint relies on netty-http-codec, so we must
-    explicitly bring it back in, but keep the version the same as the transitive
-    netty-all that we get from Cassandra
-    -->
-    <netty.http.codec.version>4.1.130.Final</netty.http.codec.version>
   </properties>
   <dependencies>
     <!-- Need to explicitly declare SLF4J as "provided" to avoid it being bundled into the resulting agent jarfile -->
@@ -56,9 +47,29 @@
       <version>${bytebuddy.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.cassandra</groupId>
+      <artifactId>cassandra-all</artifactId>
+      <version>${cassandra.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>provided</scope>
+    </dependency>
+    <!-- We need this explicitly added back in for the Metrics endpoint -->
+    <!-- Scope is "provided" to exclude from agent JAR (avoid CVE scans) -->
+    <!-- Docker images must add this JAR to Cassandra's lib directory -->
+    <dependency>
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
-      <version>${netty.http.codec.version}</version>
+      <version>${netty.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

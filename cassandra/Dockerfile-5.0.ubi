@@ -39,6 +39,36 @@ COPY --from=cassandra-base /etc/cassandra /etc/cassandra
 COPY --from=cassandra-base ${CASSANDRA_HOME} ${CASSANDRA_HOME}
 
 #############################################################
+# Get netty-codec-http which is excluded from cassandra-all
+FROM --platform=$BUILDPLATFORM maven:3-eclipse-temurin-11 AS netty-extra
+
+ARG CASSANDRA_VERSION
+
+WORKDIR /
+
+# Copy netty-all*.jar from the Cassandra lib directory from tha base Cassandra layer
+# This will let us know what version of Netty libs comes with Cassandra
+COPY --from=cassandra-base /opt/cassandra/lib/netty-all*.jar /
+
+# Use bash explicitly to allow process substitution
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -x \
+    # Determine the Netty version from the netty-all library we copied over
+    && NETTY_VERSION=$(basename /netty-all-*.jar | sed -E 's/netty-all-(.*)\.jar/\1/') \
+    # Fetch netty-codec-http into a local repo
+    && mvn -q dependency:get \
+        -DgroupId=io.netty \
+        -DartifactId=netty-codec-http \
+        -Dversion=$NETTY_VERSION \
+        -Dtransitive=false \
+        -Dmaven.repo.local=/netty/netty-codec-http/ \
+    # make the directory where we want to copy netty-codec-http jarfile
+    && mkdir -p /opt/cassandra/lib \
+    # Copy netty-codec-http
+    && cp "/netty/netty-codec-http/io/netty/netty-codec-http/$NETTY_VERSION/netty-codec-http-$NETTY_VERSION.jar" /opt/cassandra/lib/
+
+#############################################################
 # Copy Management API
 FROM --platform=$BUILDPLATFORM alpine:latest AS mgmtapi-setup
 
@@ -99,6 +129,7 @@ COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}
 COPY --from=builder --chown=cassandra:root ${CASSANDRA_PATH}/LICENSE.txt /licenses/
 COPY --from=builder --chown=cassandra:root ${CDC_AGENT_PATH} ${CDC_AGENT_PATH}
 COPY --from=mgmtapi-setup --chown=cassandra:root ${MAAC_PATH} ${MAAC_PATH}
+COPY --from=netty-extra --chown=cassandra:root ${CASSANDRA_PATH}/lib ${CASSANDRA_PATH}/lib
 
 # Create directories
 RUN (for dir in ${CASSANDRA_DATA_DIR} \

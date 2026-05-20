@@ -43,6 +43,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.datastax.dse</groupId>
+      <artifactId>dse-db-all</artifactId>
+      <version>${cassandra5.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-codec</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
@@ -62,28 +74,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>dse-db-all</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>com.datastax.dse</groupId>
-          <artifactId>dse-db-all</artifactId>
-          <version>${cassandra5.version}</version>
-          <exclusions>
-            <exclusion>
-              <groupId>commons-codec</groupId>
-              <artifactId>*</artifactId>
-            </exclusion>
-          </exclusions>
-          <scope>provided</scope>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
   <build>
     <resources>
       <resource>
