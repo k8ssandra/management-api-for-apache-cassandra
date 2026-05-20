@@ -432,7 +432,7 @@ jobs:
   test-oss-41:
     # This job is inetnded to run the various versiosn of Cassandra 4.1 where internal changes to OSS code
     # require Java refelction tricks in the Agent code.
-    name: Run Cassandra [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.base-platform }}]
+    name: Run Cassandra 4.1 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.base-platform }}]
     needs: build-oss-docker-images
     runs-on: ubuntu-latest
     strategy:
@@ -485,7 +485,7 @@ jobs:
           docker buildx build --load \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }}.${{ matrix.minor-version }} \
             --tag mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest \
-            --file cassandra/Dockerfile-${{ matrix.cassandra-version }} \
+            --file cassandra/Dockerfile-${{ matrix.cassandra-version }}.ubi \
             --target cassandra .
       - name: Build with Maven and run tests Ubuntu
         if: ${{ matrix.base-platform == 'ubuntu' }}
@@ -556,7 +556,7 @@ jobs:
           docker buildx build --load \
             --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }}.${{ matrix.minor-version }} \
             --tag mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest \
-            --file cassandra/Dockerfile-${{ matrix.cassandra-version }} \
+            --file cassandra/Dockerfile-${{ matrix.cassandra-version }}.ubi \
             --target cassandra .
       - name: Build with Maven and run tests Ubuntu
         if: ${{ matrix.base-platform == 'ubuntu' }}
@@ -570,7 +570,61 @@ jobs:
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
           -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=NodetoolIT -DfailIfNoTests=false
-          
+
+  test-oss-50:
+    # This job is inetnded to run the various versiosn of Cassandra 5.0 where Netty version conflicts
+    # with the Metrics endpoint hve caused issues (see https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/755)
+    name: Run Cassandra 5.0 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}]
+    needs: build-oss-docker-images
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix:
+        cassandra-version: ['5.0']
+        minor-version : ['2']
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK 11
+        uses: actions/setup-java@v5
+        with:
+          java-version: 11
+          distribution: 'zulu'
+      - name: Cache Maven packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Restore Cassandra Download for tests
+        uses: actions/cache/restore@v5
+        with:
+          path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
+          key: cassandra-download-${{ github.sha }}
+      - name: Build artifacts
+        run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+        with:
+          image: tonistiigi/binfmt:qemu-v7.0.0-28
+      - name: Setup Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+        with:
+          version: latest
+      - name: Build Docker test image UBI
+        run: |
+          docker buildx build --load \
+            --build-arg CASSANDRA_VERSION=${{ matrix.cassandra-version }}.${{ matrix.minor-version }} \
+            --tag mgmtapi-dockerfile-${{ matrix.cassandra-version }}.ubi-test:latest \
+            --file cassandra/Dockerfile-${{ matrix.cassandra-version }}.ubi \
+            --target cassandra .
+      - name: Build with Maven and run tests UBI
+        run: |
+          mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
+          -Drun${{ matrix.cassandra-version }}testsUBI \
+          -Dit.test=Metrics50${{ matrix.minor-version }}IT -DfailIfNoTests=false
+
   test-oss-trunk:
     name: Run Cassandra ${{ matrix.itTest }} [trunk, ubi]
     needs: build-trunk-docker-images

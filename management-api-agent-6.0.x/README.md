@@ -71,6 +71,8 @@ You can replace the tag `cass-trunk` with whatever you like.
 
 ## Known Limitations
 
+### MCAC Agent
+
 The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-cassandra) does not work with Cassandra trunk.
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
@@ -78,3 +80,22 @@ If you want to use this image with Docker, you must set the environment variable
 docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:7.0
 ```
 
+### Netty libraries for Metrics
+
+Cassandra 5.0 and newer releases have excluded `netty-codec-http` from its `netty-all` dependency. Unfortunately,
+the Metrics endpoint implementation in this project (that comes with all of the Agents) relies on this library.
+
+Normally, solving this problem would be to explicitly include `netty-codec-http` in the Agent uber jar. This creates
+a problem however in that the Agent would have to include the specific `netty-codec-http` version that matches the
+version of Netty libraries Cassandra ships with. The Cassandra Netty version is not static across all releases in a
+given `major`.`minor`, further complicating the issue.
+
+The solution is:
+- Explicitly include `netty-codec-http` in the Agent pom.xml
+- Mark `netty-codec-http` as "provided" even though it's not in all versions of Cassandra
+- Update the Docker image build to include the necessary `netty-codec-http` artifact in /opt/cassandra/lib
+
+This solution works for the images provided by this repository. However, the Agent jarfiles that are published at
+release will no longer contain this library. That means that if you use just the published Agent jarfile (and do
+not use the published Docker images), the Metrics endpoint will not work unless you also add the missing
+`netty-codec-http` library.

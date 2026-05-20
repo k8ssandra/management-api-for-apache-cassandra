@@ -45,7 +45,6 @@ ARG COMMITSHA="HEAD"
 ARG CASSANDRA_BRANCH="trunk"
 ENV CASSANDRA_PATH=/opt/cassandra
 ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
-WORKDIR /build
 RUN set -x \
     && git clone -b ${CASSANDRA_BRANCH} --single-branch https://github.com/apache/cassandra.git \
     && cd cassandra \
@@ -60,6 +59,24 @@ RUN set -x \
     && rm -rf ${CASSANDRA_PATH}/javadoc ${CASSANDRA_PATH}/doc \
     && chmod -R g+w ${CASSANDRA_PATH}
 COPY cassandra-trunk/files ${CASSANDRA_FILES_PATH}
+
+# Get netty-codec-http which is excluded from cassandra-all
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN set -x \
+    # Determine the Netty version from netty-all
+    && NETTY_VERSION=$(basename /opt/cassandra/lib/netty-all-*.jar | sed -E 's/netty-all-(.*)\.jar/\1/') \
+    # Fetch netty-codec-http into a local repo
+    && mvn -q dependency:get \
+        -DgroupId=io.netty \
+        -DartifactId=netty-codec-http \
+        -Dversion=$NETTY_VERSION \
+        -Dtransitive=false \
+        -Dmaven.repo.local=/netty/netty-codec-http/ \
+    # make the directory where we want to copy netty-codec-http jarfile
+    && mkdir -p /opt/cassandra/lib \
+    # Copy netty-codec-http
+    && cp "/netty/netty-codec-http/io/netty/netty-codec-http/$NETTY_VERSION/netty-codec-http-$NETTY_VERSION.jar" /opt/cassandra/lib/
 
 #############################################################
 # Build the Management API

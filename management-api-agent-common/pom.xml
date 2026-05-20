@@ -49,6 +49,22 @@
           </exclusions>
           <scope>provided</scope>
         </dependency>
+        <!-- Explicity declaring netty-codec-http as some server versions
+             exclude it from netty-all (Cassandra 5.0 and newer). We are
+             using the netty.version from the parent pom, since we have
+             to specify a version. We are also marking it "provided" so
+             we don't have it bundled into the Agent jarfile as that
+             could break thinsg if the version here doesn't match the
+             Netty version of the rest of the libraris provided by
+             Cassandra. For images we build, we will have to add this
+             artifiact in manually when Cassandra doesn't actually
+             provide it. -->
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-codec-http</artifactId>
+          <version>${netty.version}</version>
+          <scope>provided</scope>
+        </dependency>
         <dependency>
           <groupId>org.apache.cassandra</groupId>
           <artifactId>java-driver-query-builder</artifactId>

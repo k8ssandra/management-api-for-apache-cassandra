@@ -1,78 +1,54 @@
 # Management API for Cassandra 5.0
 
-This Maven sub-module if for building a Management API agent that works with Cassandra 5.0. Currently,
-the version in trunk is 5.1-SNAPSHOT, and the artifacts produced by this project work with 5.0.x, as well
-as the 5.1-SNAPSHOT version of Cassandra in trunk.
+This Maven sub-module if for building a Management API agent that works with Cassandra 5.0.
+For building the Agent for the latest trunk versions of Cassandra, see the README in
+management-api-agent-6.0.x.
 
 ## Building Against Published Cassandra Artifacts
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`5.0.2` as of this writing). If you wish to build for a different
-published version, for example `5.0.3` when it is released, specify the version:
+set to the latest published version (`5.0.8` as of this writing). If you wish to build for a different
+published version, for example `5.0.9` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra5.version=5.0.3
-```
-
-## Building Against Cassandra Trunk
-
-To build the agent against the latest trunk, you will need to build the Cassandra 5 Maven artifacts first and
-install them locally. This may or may not be necessary in some cases, depending on what changes have occurred
-in the Cassandra code base since the latest published version of Cassandra artifacts.
-
-### Build Prerequisites
-
-In order to build this module, you must have Cassandra trunk artifacts compiled and installed in your
-local Maven repository. Luckily, Cassandra's build has a target that will do just that: `mvn-install`.
-To setup the artifacts:
-
-1. Clone the Apache Cassandra repo locally
-
-```sh
-git clone https://github.com/apache/cassandra.git
-```
-
-2. Run the `mvn-install` target
-
-```sh
-cd cassandra
-ant mvn-install
-```
-
-This should setup your local Maven repository with the cassandra-all.jar artifacts that you will need to build the Agent.
-
-### Building the Agent
-
-As of this writing, Cassandra trunk sits at version 5.1-SNAPSHOT. So if you have followed the previous Cassandra build
-steps, you will need to override the `cassandra5.version` property when building the agent:
-
-```sh
-mvn package -Dcassandra5.version=5.1-SNAPSHOT
+mvn package -Dcassandra5.version=5.0.9
 ```
 
 ## Docker image builds
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:5.0.2
-
-### Building Images Locally for Cassandra trunk
-
-To build a Docker image for yourself, execute the following from the root of the project:
-
-```sh
-docker buildx build --load --progress plain --tag cass-trunk --file cassandra-trunk/Dockerfile.ubi --target cass-trunk --platform linux/amd64 .
-```
-
-You can replace the tag `cass-trunk` with whatever you like.
+    k8ssandra/cass-management-api:5.0.8
 
 ## Known Limitations
+
+### MCAC Agent
 
 The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-cassandra) does not work with Cassandra trunk.
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.2
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.8
 ```
+
+### Netty libraries for Metrics
+
+Cassandra 5.0 and newer releases have excluded `netty-codec-http` from its `netty-all` dependency. Unfortunately,
+the Metrics endpoint implementation in this project (that comes with all of the Agents) relies on this library.
+
+Normally, solving this problem would be to explicitly include `netty-codec-http` in the Agent uber jar. This creates
+a problem however in that the Agent would have to include the specific `netty-codec-http` version that matches the
+version of Netty libraries Cassandra ships with. The Cassandra Netty version is not static across all releases in a
+given `major`.`minor`, further complicating the issue.
+
+The solution is:
+- Explicitly include `netty-codec-http` in the Agent pom.xml
+- Mark `netty-codec-http` as "provided" even though it's not in all versions of Cassandra
+- Update the Docker image build to include the necessary `netty-codec-http` artifact in /opt/cassandra/lib
+
+This solution works for the images provided by this repository. However, the Agent jarfiles that are published at
+release will no longer contain this library. That means that if you use just the published Agent jarfile (and do
+not use the published Docker images), the Metrics endpoint will not work unless you also add the missing
+`netty-codec-http` library.
 
