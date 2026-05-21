@@ -12,7 +12,7 @@ on:
 jobs:
   run-unit-tests:
     name: Run Unit tests
-    runs-on: ubuntu-24.04-arm
+    runs-on: macos-latest
     steps:
       - name: Check out source code
         uses: actions/checkout@v6
@@ -76,7 +76,7 @@ jobs:
 
   build-oss-docker-images:
     name: Build Cassandra images
-    runs-on: ubuntu-24.04-arm
+    runs-on: macos-latest
     needs: run-unit-tests
     strategy:
       fail-fast: false
@@ -148,7 +148,7 @@ jobs:
   test-oss:
     name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}]
     needs: build-oss-docker-images
-    runs-on: ubuntu-24.04-arm
+    runs-on: macos-latest
     strategy:
       fail-fast: false
       max-parallel: 16

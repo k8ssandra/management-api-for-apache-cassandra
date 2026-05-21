@@ -18,6 +18,7 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueDomainSocketChannel;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 import java.io.File;
@@ -57,6 +58,8 @@ public class IPCController {
       boolean isClient) {
     if (Epoll.isAvailable() && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
       throw new IllegalArgumentException("eventLoopGroup must be epoll based under Linux");
+    } else if (KQueue.isAvailable() && !(eventLoopGroup instanceof KQueueEventLoopGroup)) {
+      throw new IllegalArgumentException("eventLoopGroup must be kqueue based under MacOS");
     }
 
     AbstractBootstrap b = isClient ? new Bootstrap() : new ServerBootstrap();
