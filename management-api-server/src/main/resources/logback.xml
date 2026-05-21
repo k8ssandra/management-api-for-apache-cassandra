@@ -14,9 +14,10 @@
       <pattern>%-5level [%thread] %date{ISO8601} %F:%L - %msg%n</pattern>
     </encoder>
     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-      <level>INFO</level>
+      <level>DEBUG</level>
     </filter>
   </appender>
+  <logger name="io.netty" level="DEBUG"/>
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>

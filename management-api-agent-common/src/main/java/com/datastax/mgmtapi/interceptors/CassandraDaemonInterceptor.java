@@ -15,6 +15,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.nio.file.Paths;
@@ -59,12 +60,13 @@ public class CassandraDaemonInterceptor {
 
       NodeOpsProvider.instance.get().register();
 
-      if (!Epoll.isAvailable() || !KQueue.isAvailable())
+      if (!Epoll.isAvailable() && !KQueue.isAvailable())
         throw new RuntimeException("Event loop needed");
 
       File unixSock = Paths.get(socketFileStr).toFile();
 
-      final EventLoopGroup group = new EpollEventLoopGroup(8);
+      final EventLoopGroup group =
+          Epoll.isAvailable() ? new EpollEventLoopGroup(8) : new KQueueEventLoopGroup(8);
       final Server.ConnectionTracker connectionTracker = getTracker();
 
       IPCController controller =
