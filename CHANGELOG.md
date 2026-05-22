@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#757](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/757) Add DSE 6.8.64 to the build matrix
 
 ## v0.1.118 [2026-05-20]
 * [ENHANCEMENT] [#752](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/752) Update Netty to 4.1.133.Final
