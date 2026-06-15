@@ -145,7 +145,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
 
     boolean ready = false;
-    NettyHttpClient client = null;
+    NettyHttpClient client;
     try {
       client = getClient();
 
@@ -190,18 +190,16 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
 
       try {
         // verify that we can't login with user cassandra/cassandra
-        CqlSession session =
-            new TestgCqlSessionBuilder()
-                .withConfigLoader(
-                    DriverConfigLoader.programmaticBuilder()
-                        .withString(
-                            AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
-                        .withString(AUTH_PROVIDER_USER_NAME, "cassandra")
-                        .withString(AUTH_PROVIDER_PASSWORD, "cassandra")
-                        .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
-                        .build())
-                .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-                .build();
+        new TestgCqlSessionBuilder()
+            .withConfigLoader(
+                DriverConfigLoader.programmaticBuilder()
+                    .withString(AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
+                    .withString(AUTH_PROVIDER_USER_NAME, "cassandra")
+                    .withString(AUTH_PROVIDER_PASSWORD, "cassandra")
+                    .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
+                    .build())
+            .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
+            .build();
 
         fail("Session builder should fail with AuthenticationException");
       } catch (Exception e) {
@@ -235,7 +233,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
       assertThat(roleList.getRight()).contains("\"name\":\"authtest\"");
 
       // verify that we can login with user authtest/authtest
-      CqlSession session =
+      try (CqlSession session =
           new TestgCqlSessionBuilder()
               .withConfigLoader(
                   DriverConfigLoader.programmaticBuilder()
@@ -246,18 +244,18 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
                       .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
                       .build())
               .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-              .build();
+              .build()) {
+        for (String systemKeyspace :
+            Arrays.asList("system_auth", "system_distributed", "system_traces")) {
+          ResultSet rs =
+              session.execute(
+                  String.format(
+                      "select replication from system_schema.keyspaces where keyspace_name='%s'",
+                      systemKeyspace));
 
-      for (String systemKeyspace :
-          Arrays.asList("system_auth", "system_distributed", "system_traces")) {
-        ResultSet rs =
-            session.execute(
-                String.format(
-                    "select replication from system_schema.keyspaces where keyspace_name='%s'",
-                    systemKeyspace));
-
-        Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
-        assertEquals("1", params.get("dc1"));
+          Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
+          assertEquals("1", params.get("dc1"));
+        }
       }
 
       // dropRole
@@ -271,14 +269,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
       assertTrue(roleDropped);
 
     } finally {
-      // Stop before next test starts
-      boolean stopped =
-          client
-              .post(URI.create("http://localhost/api/v0/lifecycle/stop").toURL(), null)
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
-
-      assertTrue(stopped);
+      // Stop already called after each test ends
     }
   }
 
@@ -287,7 +278,7 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
     assumeTrue(IntegrationTestUtils.shouldRun());
 
     boolean ready = false;
-    NettyHttpClient client = null;
+    NettyHttpClient client;
     try {
       client = getClient();
 
@@ -329,21 +320,20 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
       assertTrue(ready);
 
       // addRole
-      boolean roleAdded =
-          client
-              .post(
-                  URI.create(
-                          BASE_PATH
-                              + "/ops/auth/role?username=dcrftest&password=dcrftest&is_superuser=true&can_login=true")
-                      .toURL(),
-                  null)
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
+      client
+          .post(
+              URI.create(
+                      BASE_PATH
+                          + "/ops/auth/role?username=dcrftest&password=dcrftest&is_superuser=true&can_login=true")
+                  .toURL(),
+              null)
+          .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
+          .join();
 
       // sometimes we need to wait a little before creating the CQLSession
       Uninterruptibles.sleepUninterruptibly(3, TimeUnit.SECONDS);
 
-      // create a session
+      try ( // create a session
       CqlSession session =
           new TestgCqlSessionBuilder()
               .withConfigLoader(
@@ -355,28 +345,21 @@ public class LifecycleIT extends BaseDockerIsolatedIntegrationTest {
                       .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
                       .build())
               .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-              .build();
+              .build()) {
+        for (String systemKeyspace :
+            Arrays.asList("system_auth", "system_distributed", "system_traces")) {
+          ResultSet rs =
+              session.execute(
+                  String.format(
+                      "select replication from system_schema.keyspaces where keyspace_name='%s'",
+                      systemKeyspace));
 
-      for (String systemKeyspace :
-          Arrays.asList("system_auth", "system_distributed", "system_traces")) {
-        ResultSet rs =
-            session.execute(
-                String.format(
-                    "select replication from system_schema.keyspaces where keyspace_name='%s'",
-                    systemKeyspace));
-
-        Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
-        assertEquals("1", params.get("dc1"));
+          Map<String, String> params = rs.one().getMap("replication", String.class, String.class);
+          assertEquals("1", params.get("dc1"));
+        }
       }
     } finally {
-      // Stop before next test starts
-      boolean stopped =
-          client
-              .post(URI.create("http://localhost/api/v0/lifecycle/stop").toURL(), null)
-              .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
-              .join();
-
-      assertTrue(stopped);
+      // Stop already called after each test ends
     }
   }
 }

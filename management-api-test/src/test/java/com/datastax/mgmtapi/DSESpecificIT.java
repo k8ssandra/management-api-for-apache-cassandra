@@ -87,25 +87,26 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
     assertThat(actual).containsExactly(tableName);
     // try to create an index on the table
     try {
-      CqlSession session =
+      try (CqlSession session =
           new TestgCqlSessionBuilder()
               .withConfigLoader(
                   DriverConfigLoader.programmaticBuilder()
                       .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
                       .build())
               .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-              .build();
-      ResultSet rs =
-          session.execute(
-              String.format(
-                  "create custom index on \"%s\".\"%s\"(v) using 'StorageAttachedIndex'",
-                  ks, tableName));
-      assertTrue("Creating SAI failed", rs.wasApplied());
-      // wait a while to make sure the server did not crash
-      Thread.sleep(5000);
-      rs = session.execute(String.format("select * from \"%s\".\"%s\"", ks, tableName));
-      assertTrue(
-          "SAI table does not contain column \"v\"", rs.getColumnDefinitions().contains("v"));
+              .build()) {
+        ResultSet rs =
+            session.execute(
+                String.format(
+                    "create custom index on \"%s\".\"%s\"(v) using 'StorageAttachedIndex'",
+                    ks, tableName));
+        assertTrue("Creating SAI failed", rs.wasApplied());
+        // wait a while to make sure the server did not crash
+        Thread.sleep(5000);
+        rs = session.execute(String.format("select * from \"%s\".\"%s\"", ks, tableName));
+        assertTrue(
+            "SAI table does not contain column \"v\"", rs.getColumnDefinitions().contains("v"));
+      }
     } catch (Exception e) {
       e.printStackTrace();
       fail("Creating SAI caused a server exception: " + e.getLocalizedMessage());
