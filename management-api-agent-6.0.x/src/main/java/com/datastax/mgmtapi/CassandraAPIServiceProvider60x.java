@@ -5,13 +5,13 @@
  */
 package com.datastax.mgmtapi;
 
-import com.datastax.mgmtapi.shim.CassandraAPI51x;
+import com.datastax.mgmtapi.shim.CassandraAPI60x;
 import com.datastax.mgmtapi.shims.CassandraAPI;
 
-public class CassandraAPIServiceProvider51x implements CassandraAPIServiceProvider {
+public class CassandraAPIServiceProvider60x implements CassandraAPIServiceProvider {
 
   @Override
   public CassandraAPI getCassandraAPI() {
-    return new CassandraAPI51x();
+    return new CassandraAPI60x();
   }
 }

@@ -153,6 +153,11 @@ jobs:
     name: Build Cassandra trunk image
     runs-on: ubuntu-latest
     needs: run-unit-tests
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        cassandra-version: ['6.0', 'trunk']
     steps:
       - name: Restore build workspace
         uses: actions/cache/restore@v5
@@ -177,29 +182,29 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: k8ssandra/cass-management-api
-          tags: type=sha,format=long,prefix=trunk-ubi-
+          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-ubi-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
         with:
           image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      - name: Build Cassandra Trunk UBI8
+      - name: Build Cassandra ${{ matrix.cassandra-version }} UBI
         id: docker_build_trunk
         uses: docker/build-push-action@v7
         with:
-          file: cassandra-trunk/Dockerfile-trunk.ubi
+          file: cassandra-trunk/Dockerfile-${{ matrix.cassandra-version }}.ubi
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.trunk.ubi.tar
-      - name: Upload Docker Image for Cassandra Trunk UBI8
+          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
+      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }} UBI
         uses: actions/upload-artifact@v7
         with:
-          name: cassandra.trunk.ubi
-          path: /tmp/cassandra.trunk.ubi.tar
+          name: cassandra.${{ matrix.cassandra-version }}.ubi
+          path: /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
           retention-days: 3
           
   build-dse-ubuntu-docker-images:
@@ -626,13 +631,14 @@ jobs:
           -Dit.test=Metrics50${{ matrix.minor-version }}IT -DfailIfNoTests=false
 
   test-oss-trunk:
-    name: Run Cassandra ${{ matrix.itTest }} [trunk, ubi]
+    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ubi]
     needs: build-trunk-docker-images
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
+        cassandra-version: ['6.0', 'trunk']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
     steps:
       - uses: actions/checkout@v6
@@ -664,17 +670,17 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.trunk.ubi
+          name: cassandra.${{ matrix.cassandra-version }}.ubi
           path: /tmp
-      - name: Load Docker trunk-ubi image
+      - name: Load Docker ${{ matrix.cassandra-version }}-ubi image
         run: |
-          docker load --input /tmp/cassandra.trunk.ubi.tar
-          docker tag k8ssandra/cass-management-api:trunk-ubi-${{ github.sha }} mgmtapi-dockerfile-trunk.ubi-test:latest
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.ubi-test:latest
           docker image ls -a
       - name: Build with Maven and run tests
         run: |
           mvn -B -q verify -Dskip.surefire.tests --file pom.xml \
-          -DruntrunktestsUBI \
+          -Drun${{ matrix.cassandra-version }}testsUBI \
           -Dit.test=${{ matrix.itTest }} -DfailIfNoTests=false
 
   test-dse:
@@ -782,6 +788,10 @@ jobs:
     if: ${{ github.ref == 'refs/heads/master' && github.event_name == 'push'}}
     needs: test-oss-trunk
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 2
+      matrix:
+        cassandra-version: ['6.0', 'trunk']
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
@@ -793,13 +803,13 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.trunk.ubi
+          name: cassandra.${{ matrix.cassandra-version }}.ubi
           path: /tmp
-      - name: Load Docker trunk-ubi image
+      - name: Load Docker ${{ matrix.cassandra-version }}-ubi image
         run: |
-          docker load --input /tmp/cassandra.trunk.ubi.tar
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
           docker image ls -a
-          docker push k8ssandra/cass-management-api:trunk-ubi-${{ github.sha }}
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }}
 
   publish-dse:
     name: Publish DSE 6.x Ubuntu image

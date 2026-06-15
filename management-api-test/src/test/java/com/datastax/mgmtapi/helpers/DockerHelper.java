@@ -452,6 +452,14 @@ public class DockerHelper {
               Lists.newArrayList(
                   "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
           break;
+        case "6_0_ubi":
+          config.dockerFile =
+              Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile-6.0.ubi").toFile();
+          config.target = "cassandra";
+          config.envList =
+              Lists.newArrayList(
+                  "MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M", "MGMT_API_DISABLE_MCAC=true");
+          break;
         case "trunk_ubi":
           config.dockerFile =
               Paths.get(config.baseDir.getPath(), "cassandra-trunk", "Dockerfile-trunk.ubi")

@@ -1,6 +1,6 @@
 ARG UBI_MAJOR=10
 ARG UBI_BASETAG=latest
-ARG CASSANDRA_VERSION=7.0-SNAPSHOT
+ARG CASSANDRA_VERSION=6.0-alpha2-SNAPSHOT
 ARG JDK_MAJOR=17
 ARG JDK_VERSION=${JDK_MAJOR}.0.19
 ARG JDK_BUILD=10
@@ -33,6 +33,7 @@ ARG JDK_BUILD
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 ENV CASSANDRA_HOME=/opt/cassandra
+ENV JAVA_HOME=/opt/jdk
 
 # Update base layer
 RUN microdnf install -y --nodocs shadow-utils \
@@ -75,7 +76,7 @@ RUN set -x \
 FROM --platform=$BUILDPLATFORM cass-builder-base AS cass-builder
 ARG CASSANDRA_VERSION
 ARG COMMITSHA="HEAD"
-ARG CASSANDRA_BRANCH="trunk"
+ARG CASSANDRA_BRANCH="cassandra-6.0"
 ENV CASSANDRA_PATH=/opt/cassandra
 ENV CASSANDRA_FILES_PATH=/opt/cassandra_files
 RUN set -x \
@@ -133,7 +134,7 @@ COPY management-api-server/pom.xml /tmp/management-api-server/pom.xml
 COPY management-api-test/pom.xml /tmp/management-api-test/pom.xml
 # this duplicates work done in the next steps, but this should provide
 # a solid cache layer that only gets reset on pom.xml changes
-RUN cd /tmp && mvn -q -ff -T 1C package -Dskip.surefire.tests -DskipTests -DskipOpenApi -Dcassandra.version=7.0-SNAPSHOT -P trunk && rm -rf target
+RUN cd /tmp && mvn -q -ff -T 1C package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P trunk && rm -rf target
 
 COPY management-api-agent-shaded-libs /tmp/management-api-agent-shaded-libs
 COPY management-api-agent-common /tmp/management-api-agent-common
@@ -145,7 +146,7 @@ COPY management-api-common /tmp/management-api-common
 COPY management-api-server /tmp/management-api-server
 RUN mkdir -m 775 ${MAAC_PATH} \
     && cd /tmp \
-    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -Dcassandra.version=7.0-SNAPSHOT -P trunk \
+    && mvn -q -ff package -Dskip.surefire.tests -DskipTests -DskipOpenApi -P trunk \
     && find /tmp -type f -name "datastax-*.jar" -exec mv -t ${MAAC_PATH} -i '{}' + \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.x* \
     && rm ${MAAC_PATH}/datastax-mgmtapi-agent-4.1.x* \

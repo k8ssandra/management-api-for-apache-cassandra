@@ -114,6 +114,7 @@ public abstract class BaseDockerIntegrationTest {
     if (Boolean.getBoolean("run4.1tests")) versions.add("4_1");
     if (Boolean.getBoolean("run4.1testsUBI")) versions.add("4_1_ubi");
     if (Boolean.getBoolean("run5.0testsUBI")) versions.add("5_0_ubi");
+    if (Boolean.getBoolean("run6.0testsUBI")) versions.add("6_0_ubi");
     if (Boolean.getBoolean("runtrunktestsUBI")) versions.add("trunk_ubi");
     if (Boolean.getBoolean("runDSE6.8tests")) versions.add("dse-68");
     if (Boolean.getBoolean("runDSE6.8testsUBI")) versions.add("dse-68_ubi");

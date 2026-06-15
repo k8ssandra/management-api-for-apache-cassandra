@@ -49,7 +49,7 @@ import org.apache.cassandra.locator.Endpoints;
 import org.apache.cassandra.locator.EndpointsForRange;
 import org.apache.cassandra.locator.IEndpointSnitch;
 import org.apache.cassandra.locator.InetAddressAndPort;
-import org.apache.cassandra.locator.K8SeedProvider51x;
+import org.apache.cassandra.locator.K8SeedProvider60x;
 import org.apache.cassandra.locator.ReplicaPlans;
 import org.apache.cassandra.locator.SeedProvider;
 import org.apache.cassandra.schema.KeyspaceMetadata;
@@ -65,17 +65,17 @@ import org.apache.cassandra.tcm.compatibility.TokenRingUtils;
 import org.apache.cassandra.tcm.membership.Location;
 import org.apache.cassandra.tcm.membership.NodeId;
 import org.apache.cassandra.transport.Server;
-import org.apache.cassandra.transport.UnixSocketServer51x;
+import org.apache.cassandra.transport.UnixSocketServer60x;
 import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CassandraAPI51x implements CassandraAPI {
-  private static final Logger logger = LoggerFactory.getLogger(CassandraAPI51x.class);
+public class CassandraAPI60x implements CassandraAPI {
+  private static final Logger logger = LoggerFactory.getLogger(CassandraAPI60x.class);
 
   private static final Supplier<SeedProvider> seedProvider =
-      Suppliers.memoize(() -> new K8SeedProvider51x());
+      Suppliers.memoize(() -> new K8SeedProvider60x());
 
   @Override
   public void enableFullQuerylog() {
@@ -308,7 +308,7 @@ public class CassandraAPI51x implements CassandraAPI {
   @Override
   public ChannelInitializer<Channel> makeSocketInitializer(
       Server.ConnectionTracker connectionTracker) {
-    return UnixSocketServer51x.makeSocketInitializer(connectionTracker);
+    return UnixSocketServer60x.makeSocketInitializer(connectionTracker);
   }
 
   @Override
@@ -418,7 +418,7 @@ public class CassandraAPI51x implements CassandraAPI {
 
   @Override
   public RpcStatementShim makeRpcStatement(String method, String[] params) {
-    return new RpcStatement51x(method, params);
+    return new RpcStatement60x(method, params);
   }
 
   @Override
