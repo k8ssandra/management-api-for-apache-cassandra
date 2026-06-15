@@ -1,4 +1,4 @@
-ARG UBI_MAJOR=10
+ARG UBI_MAJOR=9
 ARG UBI_BASETAG=latest
 ARG CASSANDRA_VERSION=6.0-alpha2-SNAPSHOT
 ARG JDK_MAJOR=17
@@ -194,13 +194,15 @@ ENV JAVA_HOME=/opt/jdk
 RUN microdnf install -y --nodocs shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
-    && microdnf update -y && rm -rf /var/cache/yum \
+    && rm -rf /var/cache/yum \
 # Install packages needed during install process
-    && microdnf install -y --nodocs tzdata-java python3.12 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
+    && microdnf install -y --nodocs tzdata-java python3.11 zlib findutils which hostname iproute procps util-linux glibc-langpack-en wget tar \
     && microdnf clean all -y \
     # Setup JDK
     && update-alternatives --install /usr/bin/java java ${JAVA_HOME}/bin/java 100 \
-    && update-alternatives --set java ${JAVA_HOME}/bin/java
+    && update-alternatives --set java ${JAVA_HOME}/bin/java \
+    # Lynk Python
+    && ln -sT /usr/bin/python3.11 /usr/bin/python
 
 # Copy trimmed installation
 COPY --from=cass-builder --chown=cassandra:root ${CASSANDRA_PATH} ${CASSANDRA_PATH}

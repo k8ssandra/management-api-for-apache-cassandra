@@ -408,18 +408,6 @@ public class DockerHelper {
         String version, List<String> envVars, String user, List<String> buildVars) {
       DockerBuildConfig config = new DockerBuildConfig();
       switch (version) {
-        case "3_11":
-          config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11").toFile();
-          config.target = "cassandra";
-          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-          break;
-        case "3_11_ubi":
-          config.dockerFile =
-              Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-3.11.ubi").toFile();
-          config.target = "cassandra";
-          config.envList = Lists.newArrayList("MAX_HEAP_SIZE=500M", "HEAP_NEWSIZE=100M");
-          break;
         case "4_0":
           config.dockerFile =
               Paths.get(config.baseDir.getPath(), "cassandra", "Dockerfile-4.0").toFile();

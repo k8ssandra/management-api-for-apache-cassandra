@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cassandra-version: ['6.0']
+        cassandra-version: ['6.0', '7.0']
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Cassandra
@@ -89,7 +89,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
-        if: ${{ github.event_name == 'schedule' }}
+        if: ${{ github.event_name == 'schedule' && matrix.cassandra-version == '7.0'}}
         id: docker_build_schedule
         uses: docker/build-push-action@v7
         with:
@@ -99,12 +99,35 @@ jobs:
           tags: ${{ steps.meta_schedule.outputs.tags }}
           platforms: linux/amd64,linux/arm64
           target: cassandra
+      - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
+        if: ${{ github.event_name == 'schedule' && matrix.cassandra-version == '6.0'}}
+        id: docker_build_schedule
+        uses: docker/build-push-action@v7
+        with:
+          file: cassandra-trunk/Dockerfile-6.0.ubi
+          context: .
+          push: true
+          tags: ${{ steps.meta_schedule.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: cassandra
       - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_dispatch' && matrix.cassandra-version == '7.0'}}
         id: docker_build_on_demand
         uses: docker/build-push-action@v7
         with:
           file: cassandra-trunk/Dockerfile-trunk.ubi
+          context: .
+          push: true
+          tags: ${{ steps.meta_on_demand.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          target: cassandra
+          build-args: COMMITSHA=${{ env.COMMITSHA }}, CASSANDRA_BRANCH=${{ env.CASSANDRA_BRANCH }}
+      - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
+        if: ${{ github.event_name == 'workflow_dispatch' && matrix.cassandra-version == '6.0'}}
+        id: docker_build_on_demand
+        uses: docker/build-push-action@v7
+        with:
+          file: cassandra-trunk/Dockerfile-6.0.ubi
           context: .
           push: true
           tags: ${{ steps.meta_on_demand.outputs.tags }}

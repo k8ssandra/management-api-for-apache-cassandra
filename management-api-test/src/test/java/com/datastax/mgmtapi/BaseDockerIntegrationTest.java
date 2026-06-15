@@ -107,8 +107,6 @@ public abstract class BaseDockerIntegrationTest {
   public static List<String> testVersions() {
     List<String> versions = new ArrayList<>(4);
 
-    if (Boolean.getBoolean("run3.11tests")) versions.add("3_11");
-    if (Boolean.getBoolean("run3.11testsUBI")) versions.add("3_11_ubi");
     if (Boolean.getBoolean("run4.0tests")) versions.add("4_0");
     if (Boolean.getBoolean("run4.0testsUBI")) versions.add("4_0_ubi");
     if (Boolean.getBoolean("run4.1tests")) versions.add("4_1");
@@ -245,9 +243,6 @@ public abstract class BaseDockerIntegrationTest {
   }
 
   protected int getNumTokenRanges() {
-    if (this.version.startsWith("3")) {
-      return 256;
-    }
     if (this.version.startsWith("dse")) {
       return 1;
     }
@@ -255,6 +250,9 @@ public abstract class BaseDockerIntegrationTest {
       return 16;
     }
     if (this.version.startsWith("5")) {
+      return 16;
+    }
+    if (this.version.startsWith("6")) {
       return 16;
     }
     if (this.version.startsWith("trunk")) {
