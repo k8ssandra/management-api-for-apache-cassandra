@@ -13,6 +13,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [FEATURE] [#763](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/763) Add DSE 6.9.23 to the build matrix
 * [ENHANCEMENT] [#761](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/761) Remove Cassandra 3.11 files
 * [ENHANCEMENT] [#759](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/759) Update Netty to 4.1.135.Final
+* [BUGFIX] [#746](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/746) Fix Agent for Cassandra trunk
 
 ## v0.1.119
 * [FEATURE] [#757](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/757) Add DSE 6.8.64 to the build matrix

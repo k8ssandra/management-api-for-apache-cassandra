@@ -36,7 +36,7 @@ import org.apache.cassandra.utils.JVMStabilityInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UnixSocketServer51x {
+public class UnixSocketServer60x {
   private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
 
   // Names of handlers used in pre-V5 pipelines

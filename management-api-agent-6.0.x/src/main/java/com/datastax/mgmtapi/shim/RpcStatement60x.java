@@ -13,11 +13,11 @@ import org.apache.cassandra.service.QueryState;
 import org.apache.cassandra.transport.Dispatcher;
 import org.apache.cassandra.transport.messages.ResultMessage;
 
-public class RpcStatement51x implements RpcStatementShim {
+public class RpcStatement60x implements RpcStatementShim {
   private final String method;
   private final String[] params;
 
-  public RpcStatement51x(String method, String[] params) {
+  public RpcStatement60x(String method, String[] params) {
     this.method = method;
     this.params = params;
   }

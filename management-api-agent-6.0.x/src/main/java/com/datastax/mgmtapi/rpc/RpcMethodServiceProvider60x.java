@@ -7,10 +7,10 @@ package com.datastax.mgmtapi.rpc;
 
 import java.lang.reflect.Method;
 
-public class RpcMethodServiceProvider51x implements RpcMethodServiceProvider {
+public class RpcMethodServiceProvider60x implements RpcMethodServiceProvider {
 
   @Override
   public RpcMethod getRpcMethod(Method method, RpcObject rpcObject) {
-    return new RpcMethod51x(method, rpcObject);
+    return new RpcMethod60x(method, rpcObject);
   }
 }

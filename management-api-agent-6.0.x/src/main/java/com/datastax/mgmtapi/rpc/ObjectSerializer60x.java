@@ -25,7 +25,7 @@ import org.apache.cassandra.db.marshal.ByteBufferAccessor;
 import org.apache.cassandra.db.marshal.TupleType;
 import org.apache.cassandra.db.marshal.ValueAccessor;
 
-public class ObjectSerializer51x<T> implements ObjectSerializer<T> {
+public class ObjectSerializer60x<T> implements ObjectSerializer<T> {
   public final ImmutableSortedMap<String, FieldSerializer> serializers;
 
   public class FieldSerializer {
@@ -64,11 +64,11 @@ public class ObjectSerializer51x<T> implements ObjectSerializer<T> {
    * the double types. Also, this will only serialize **PUBLIC** fields (perhaps this should be
    * changed; it's not totally clear). Tag accordingly.
    */
-  public ObjectSerializer51x(Class<T> clazz, Type genericType) {
+  public ObjectSerializer60x(Class<T> clazz, Type genericType) {
     serializers =
-        GenericSerializer51x.simpleType(genericType)
+        GenericSerializer60x.simpleType(genericType)
             ? ImmutableSortedMap.<String, FieldSerializer>of(
-                "result", new FieldSerializer(GenericSerializer51x.getType(genericType), x -> x))
+                "result", new FieldSerializer(GenericSerializer60x.getType(genericType), x -> x))
             : ImmutableSortedMap.copyOf(
                 Arrays.stream(clazz.getFields())
                     .collect(
@@ -76,11 +76,11 @@ public class ObjectSerializer51x<T> implements ObjectSerializer<T> {
                             field -> field.getName(),
                             field ->
                                 new FieldSerializer(
-                                    GenericSerializer51x.getType(field.getGenericType()), field))));
+                                    GenericSerializer60x.getType(field.getGenericType()), field))));
     // currently not recursive; multiple ways to do it
   }
 
-  public ObjectSerializer51x(Class<T> clazz) {
+  public ObjectSerializer60x(Class<T> clazz) {
     this(clazz, clazz);
   }
 
@@ -103,7 +103,10 @@ public class ObjectSerializer51x<T> implements ObjectSerializer<T> {
                             new ColumnIdentifier(e.getKey(), true),
                             e.getValue().type))
                 .collect(Collectors.toList())),
-        Lists.<List<ByteBuffer>>newArrayList(toByteBufferList(obj)));
+        Lists.<List<byte[]>>newArrayList(
+            toByteBufferList(obj).stream()
+                .map(bb -> bb == null ? null : bb.array())
+                .collect(Collectors.toList())));
   }
 
   /**
@@ -125,7 +128,13 @@ public class ObjectSerializer51x<T> implements ObjectSerializer<T> {
                             new ColumnIdentifier(e.getKey(), true),
                             e.getValue().type))
                 .collect(Collectors.toList())),
-        obj.stream().map(this::toByteBufferList).collect(Collectors.toList()));
+        obj.stream()
+            .map(
+                o ->
+                    toByteBufferList(o).stream()
+                        .map(bb -> bb == null ? null : bb.array())
+                        .collect(Collectors.toList()))
+            .collect(Collectors.toList()));
   }
 
   public List<ByteBuffer> toByteBufferList(T obj) {
