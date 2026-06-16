@@ -90,7 +90,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'schedule' && matrix.cassandra-version == '7.0'}}
-        id: docker_build_schedule
         uses: docker/build-push-action@v7
         with:
           file: cassandra-trunk/Dockerfile-trunk.ubi
@@ -101,7 +100,6 @@ jobs:
           target: cassandra
       - name: Publish scheduled ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'schedule' && matrix.cassandra-version == '6.0'}}
-        id: docker_build_schedule
         uses: docker/build-push-action@v7
         with:
           file: cassandra-trunk/Dockerfile-6.0.ubi
@@ -112,7 +110,6 @@ jobs:
           target: cassandra
       - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' && matrix.cassandra-version == '7.0'}}
-        id: docker_build_on_demand
         uses: docker/build-push-action@v7
         with:
           file: cassandra-trunk/Dockerfile-trunk.ubi
@@ -124,7 +121,6 @@ jobs:
           build-args: COMMITSHA=${{ env.COMMITSHA }}, CASSANDRA_BRANCH=${{ env.CASSANDRA_BRANCH }}
       - name: Publish on-demand ${{ matrix.cassandra-version }} to Registry
         if: ${{ github.event_name == 'workflow_dispatch' && matrix.cassandra-version == '6.0'}}
-        id: docker_build_on_demand
         uses: docker/build-push-action@v7
         with:
           file: cassandra-trunk/Dockerfile-6.0.ubi
