@@ -83,7 +83,7 @@ jobs:
 
   build-oss-docker-images:
     name: Build Cassandra images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     needs: run-unit-tests
     strategy:
       fail-fast: false
@@ -91,6 +91,7 @@ jobs:
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
         base-platform: ['ubuntu', 'ubi']
+        arch: ['amd64', 'arm64']
         exclude:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
@@ -118,10 +119,10 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: k8ssandra/cass-management-api
-          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-
+          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}
         if: ${{ matrix.base-platform == 'ubuntu' }}
         id: docker_build_ubuntu
         uses: docker/build-push-action@v7
@@ -130,10 +131,10 @@ jobs:
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}.tar
+      - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}
         if: ${{ matrix.base-platform != 'ubuntu' }}
         id: docker_build_ubi
         uses: docker/build-push-action@v7
@@ -142,25 +143,26 @@ jobs:
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
+          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}.tar
+      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}
         uses: actions/upload-artifact@v7
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
-          path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
+          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}
+          path: /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}.tar
           retention-days: 3
 
   build-trunk-docker-images:
     name: Build Cassandra trunk image
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     needs: run-unit-tests
     strategy:
       fail-fast: false
       max-parallel: 2
       matrix:
         cassandra-version: ['6.0', 'trunk']
+        arch: ['amd64', 'arm64']
     steps:
       - name: Restore build workspace
         uses: actions/cache/restore@v5
@@ -185,10 +187,10 @@ jobs:
         uses: docker/metadata-action@v6
         with:
           images: k8ssandra/cass-management-api
-          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-ubi-
+          tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-ubi-${{ matrix.arch }}-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
-      - name: Build Cassandra ${{ matrix.cassandra-version }} UBI
+      - name: Build Cassandra ${{ matrix.cassandra-version }} UBI ${{ matrix.arch }}
         id: docker_build_trunk
         uses: docker/build-push-action@v7
         with:
@@ -196,14 +198,14 @@ jobs:
           context: .
           push: false
           tags: ${{ steps.meta.outputs.tags }}
-          platforms: linux/amd64
+          platforms: linux/${{ matrix.arch }}
           target: cassandra
-          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
-      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }} UBI
+          outputs: type=docker,dest=/tmp/cassandra.${{ matrix.cassandra-version }}.ubi.${{ matrix.arch }}.tar
+      - name: Upload Docker Image for Cassandra ${{ matrix.cassandra-version }} UBI ${{ matrix.arch }}
         uses: actions/upload-artifact@v7
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.ubi
-          path: /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
+          name: cassandra.${{ matrix.cassandra-version }}.ubi.${{ matrix.arch }}
+          path: /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.${{ matrix.arch }}.tar
           retention-days: 3
           
   build-dse-ubuntu-docker-images:
@@ -355,15 +357,16 @@ jobs:
           retention-days: 3
 
   test-oss:
-    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}]
+    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ${{ matrix.base-platform }}, ${{ matrix.arch }}]
     needs: build-oss-docker-images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       max-parallel: 16
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
         base-platform: ['ubuntu', 'ubi']
+        arch: ['amd64', 'arm64']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
         exclude:
           - cassandra-version: '5.0'
@@ -394,19 +397,19 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}
           path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }} image
         if: ${{ matrix.base-platform == 'ubuntu' }}
         run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}-test:latest
           docker image ls -a
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }} image
         if: ${{ matrix.base-platform != 'ubuntu' }}
         run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.${{ matrix.arch }}.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ matrix.arch }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.${{ matrix.base-platform }}-test:latest
           docker image ls -a
       - name: Build with Maven and run tests
         if: ${{ matrix.base-platform == 'ubuntu' }}
@@ -424,15 +427,16 @@ jobs:
   test-oss-41:
     # This job is inetnded to run the various versiosn of Cassandra 4.1 where internal changes to OSS code
     # require Java refelction tricks in the Agent code.
-    name: Run Cassandra 4.1 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.base-platform }}]
+    name: Run Cassandra 4.1 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.base-platform }}, ${{ matrix.arch }}]
     needs: build-oss-docker-images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       max-parallel: 16
       matrix:
         cassandra-version: ['4.1']
         base-platform: ['ubuntu', 'ubi']
+        arch: ['amd64', 'arm64']
         minor-version : ['2', '5']
     steps:
       - uses: actions/checkout@v6
@@ -493,13 +497,14 @@ jobs:
     # require Java refelction tricks in the Agent code.
     name: Run Cassandra Nodetool test
     needs: run-unit-tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       max-parallel: 16
       matrix:
         cassandra-version: ['4.0']
         base-platform: ['ubuntu', 'ubi']
+        arch: ['amd64', 'arm64']
         minor-version : ['1']
     steps:
       - uses: actions/checkout@v6
@@ -558,14 +563,15 @@ jobs:
   test-oss-50:
     # This job is inetnded to run the various versiosn of Cassandra 5.0 where Netty version conflicts
     # with the Metrics endpoint hve caused issues (see https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/755)
-    name: Run Cassandra 5.0 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}]
+    name: Run Cassandra 5.0 Specific Tests [${{ matrix.cassandra-version }}.${{ matrix.minor-version }}, ${{ matrix.arch }}]
     needs: build-oss-docker-images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       max-parallel: 16
       matrix:
         cassandra-version: ['5.0']
+        arch: ['amd64', 'arm64']
         minor-version : ['2']
     steps:
       - uses: actions/checkout@v6
@@ -606,14 +612,15 @@ jobs:
           -Dit.test=Metrics50${{ matrix.minor-version }}IT -DfailIfNoTests=false
 
   test-oss-trunk:
-    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ubi]
+    name: Run Cassandra ${{ matrix.itTest }} [${{ matrix.cassandra-version }}, ubi, ${{ matrix.arch }}]
     needs: build-trunk-docker-images
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
         cassandra-version: ['6.0', 'trunk']
+        arch: ['amd64', 'arm64']
         itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
     steps:
       - uses: actions/checkout@v6
@@ -641,12 +648,12 @@ jobs:
       - name: Download Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.ubi
+          name: cassandra.${{ matrix.cassandra-version }}.ubi.${{ matrix.arch }}
           path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-ubi image
+      - name: Load Docker ${{ matrix.cassandra-version }}-ubi-${{ matrix.arch }} image
         run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
-          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.ubi-test:latest
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.${{ matrix.arch }}.tar
+          docker tag k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ matrix.arch }}-${{ github.sha }} mgmtapi-dockerfile-${{ matrix.cassandra-version }}.ubi-test:latest
           docker image ls -a
       - name: Build with Maven and run tests
         run: |
