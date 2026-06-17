@@ -12,7 +12,11 @@ on:
 jobs:
   run-unit-tests:
     name: Run Unit tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: ['amd64', 'arm64']
     steps:
       - name: Check out source code
         uses: actions/checkout@v6
@@ -58,16 +62,19 @@ jobs:
         if: github.repository_owner != 'k8ssandra'
         run: mvn -B -q package --file pom.xml
       - name: Save Maven cache
+        if: matrix.arch == 'amd64'
         uses: actions/cache/save@v5
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Save Maven build artifacts
+        if: matrix.arch == 'amd64'
         uses: actions/cache/save@v5
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra
           key: ${{ runner.os }}-workspace-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Save Cassandra Download for tests
+        if: matrix.arch == 'amd64'
         uses: actions/cache/save@v5
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
