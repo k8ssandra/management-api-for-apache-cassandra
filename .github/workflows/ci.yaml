@@ -746,16 +746,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Download Docker image
+      - name: Download AMD64 Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}
+          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.amd64
           path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-${{ matrix.base-platform }} image
+      - name: Download ARM64 Docker image
+        uses: actions/download-artifact@v8
+        with:
+          name: cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.arm64
+          path: /tmp
+      - name: Load and push AMD64 image
         run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.tar
-          docker image ls -a
-          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }}
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.amd64.tar
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-amd64-${{ github.sha }}
+      - name: Load and push ARM64 image
+        run: |
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.${{ matrix.base-platform }}.arm64.tar
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-arm64-${{ github.sha }}
+      - name: Create and push multi-arch manifest
+        run: |
+          docker manifest create k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }} \
+            k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-amd64-${{ github.sha }} \
+            k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-arm64-${{ github.sha }}
+          docker manifest push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-${{ github.sha }}
 
   publish-trunk:
     name: Publish Cassandra Trunk image
@@ -774,16 +788,30 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-      - name: Download Docker image
+      - name: Download AMD64 Docker image
         uses: actions/download-artifact@v8
         with:
-          name: cassandra.${{ matrix.cassandra-version }}.ubi
+          name: cassandra.${{ matrix.cassandra-version }}.ubi.amd64
           path: /tmp
-      - name: Load Docker ${{ matrix.cassandra-version }}-ubi image
+      - name: Download ARM64 Docker image
+        uses: actions/download-artifact@v8
+        with:
+          name: cassandra.${{ matrix.cassandra-version }}.ubi.arm64
+          path: /tmp
+      - name: Load and push AMD64 image
         run: |
-          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.tar
-          docker image ls -a
-          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }}
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.amd64.tar
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-amd64-${{ github.sha }}
+      - name: Load and push ARM64 image
+        run: |
+          docker load --input /tmp/cassandra.${{ matrix.cassandra-version }}.ubi.arm64.tar
+          docker push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-arm64-${{ github.sha }}
+      - name: Create and push multi-arch manifest
+        run: |
+          docker manifest create k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }} \
+            k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-amd64-${{ github.sha }} \
+            k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-arm64-${{ github.sha }}
+          docker manifest push k8ssandra/cass-management-api:${{ matrix.cassandra-version }}-ubi-${{ github.sha }}
 
   publish-dse:
     name: Publish DSE 6.x Ubuntu image
