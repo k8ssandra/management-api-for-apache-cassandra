@@ -112,10 +112,6 @@ jobs:
         with:
           images: k8ssandra/cass-management-api
           tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-${{ matrix.base-platform }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Build Cassandra ${{ matrix.cassandra-version }}-${{ matrix.base-platform }}
@@ -183,10 +179,6 @@ jobs:
         with:
           images: k8ssandra/cass-management-api
           tags: type=sha,format=long,prefix=${{ matrix.cassandra-version }}-ubi-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Build Cassandra ${{ matrix.cassandra-version }} UBI
@@ -245,10 +237,6 @@ jobs:
         with:
           images: datastax/dse-mgmtapi-6_8
           tags: type=sha,format=long,prefix=${{ matrix.dse-version }}-${{ matrix.base-platform }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
       - name: Login to DockerHub
@@ -320,10 +308,6 @@ jobs:
         with:
           images: datastax/dse-mgmtapi-6_8
           tags: type=sha,format=long,prefix=${{ matrix.dse-version }}-${{ matrix.base-platform }}-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
         # buildx needs this to see local registry
@@ -395,10 +379,6 @@ jobs:
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
           key: cassandra-download-${{ github.sha }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
@@ -467,10 +447,6 @@ jobs:
           key: cassandra-download-${{ github.sha }}
       - name: Build artifacts
         run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
@@ -538,10 +514,6 @@ jobs:
           key: cassandra-download-${{ github.sha }}
       - name: Build artifacts
         run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
@@ -608,10 +580,6 @@ jobs:
           key: cassandra-download-${{ github.sha }}
       - name: Build artifacts
         run: mvn -B -q package -DskipTests -Dskip.surefire.tests -DskipOpenApi
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
@@ -658,10 +626,6 @@ jobs:
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
           key: cassandra-download-${{ github.sha }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
@@ -718,10 +682,6 @@ jobs:
         with:
           path: /home/runner/work/management-api-for-apache-cassandra/management-api-for-apache-cassandra/management-api-server/.cassandra-bin
           key: cassandra-download-${{ github.sha }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v4
-        with:
-          image: tonistiigi/binfmt:qemu-v7.0.0-28
       - name: Setup Buildx
         id: buildx
         uses: docker/setup-buildx-action@v4
