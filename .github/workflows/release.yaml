@@ -148,7 +148,7 @@ jobs:
         with:
           version: latest
       - id: docker-login-icr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: iamapikey
           password: ${{ secrets.PRIVATE_ICR_API_KEY }}
@@ -275,7 +275,7 @@ jobs:
         with:
           version: latest
       - id: docker-login-icr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: iamapikey
           password: ${{ secrets.PRIVATE_ICR_API_KEY }}
@@ -656,7 +656,7 @@ jobs:
         with:
           version: latest
       - id: docker-login-icr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: iamapikey
           password: ${{ secrets.PRIVATE_ICR_API_KEY }}
@@ -742,7 +742,7 @@ jobs:
         with:
           version: latest
       - id: docker-login-icr
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: iamapikey
           password: ${{ secrets.PRIVATE_ICR_API_KEY }}
