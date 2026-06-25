@@ -11,6 +11,10 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.121 [2026-06-16]
+* [CHANGE] Relocate DSE images publishing to icr.io
+
+
 ## v0.1.120 [2026-06-16]
 * [FEATURE] [#763](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/763) Add DSE 6.9.23 to the build matrix
 * [ENHANCEMENT] [#761](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/761) Remove Cassandra 3.11 files
