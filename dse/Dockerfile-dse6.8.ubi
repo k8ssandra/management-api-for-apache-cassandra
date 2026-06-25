@@ -1,7 +1,7 @@
 ARG DSE_VERSION=6.8.64
 ARG UBI_MAJOR=8
 ARG UBI_BASETAG=latest
-ARG DSE_BASE_IMAGE=datastax/dse-mgmtapi-6_8:${DSE_VERSION}
+ARG DSE_BASE_IMAGE=icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${DSE_VERSION}
 
 FROM ${DSE_BASE_IMAGE} AS dse-server-base
 

@@ -152,17 +152,23 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - id: docker-login-icr
+        uses: docker/login-action@v4
+        with:
+          username: iamapikey
+          password: ${{ secrets.PRIVATE_ICR_API_KEY }}
+          registry: icr.io
       - if: ${{ matrix.latest && matrix.image-base == 'jdk8' }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:6.8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -172,9 +178,9 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -184,10 +190,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -197,8 +203,8 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -278,18 +284,24 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - id: docker-login-icr
+        uses: docker/login-action@v4
+        with:
+          username: iamapikey
+          password: ${{ secrets.PRIVATE_ICR_API_KEY }}
+          registry: icr.io
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.dse-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:6.8-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.8-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.8-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -299,10 +311,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.8.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -658,16 +670,22 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - id: docker-login-icr
+        uses: docker/login-action@v4
+        with:
+          username: iamapikey
+          password: ${{ secrets.PRIVATE_ICR_API_KEY }}
+          registry: icr.io
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.dse-version }} (${{ matrix.image-base }}) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:6.9 \
-            --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.9 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -677,8 +695,8 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -743,18 +761,24 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+      - id: docker-login-icr
+        uses: docker/login-action@v4
+        with:
+          username: iamapikey
+          password: ${{ secrets.PRIVATE_ICR_API_KEY }}
+          registry: icr.io
       - if: ${{ matrix.latest }}
         name: Publish ${{ matrix.dse-version }} (ubi) to Registry
         run: |
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:6.9-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.9-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:6.9-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
@@ -764,10 +788,10 @@ jobs:
           RELEASE_VERSION="${GITHUB_REF##*/}"
           docker buildx build --push \
             --build-arg DSE_VERSION=${{ matrix.dse-version }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
-            --tag datastax/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }} \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8 \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-${{ matrix.image-base }}-$RELEASE_VERSION \
+            --tag icr.io/ds-mission-control-private/dse-mgmtapi-6_8:${{ matrix.dse-version }}-ubi8-$RELEASE_VERSION \
             --file dse/Dockerfile-dse6.9.${{ matrix.image-base }} \
             --target dse \
             --platform linux/amd64 .
