@@ -10,6 +10,11 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [BUGFIX] [#770](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/770) Use Public Datastax repos
+
+## v0.1.122 [2026-07-03]
+* [CHANGE] Rename the dse images from dse-mgmtapi-6_8 to dse-mgmtapi
+
 
 ## v0.1.121 [2026-06-16]
 * [CHANGE] Relocate DSE images publishing to icr.io
