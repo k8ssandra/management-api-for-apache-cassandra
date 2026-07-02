@@ -40,7 +40,11 @@ to DockerHub at:
 Images built from this repo are for testing changes to Management API prior to releasing new versions and integrating them into
 official DSE images. Images built from this repo will be published to DockerHub at:
 
-    datastax/dse-mgmtapi-6_8
+    icr.io/ds-mission-control-private/dse-mgmtapi
+
+Upon promotion, they will be available through the IBM entitled registry:
+
+    cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi
 
 ### Building DSE images locally
 
