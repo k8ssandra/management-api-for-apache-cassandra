@@ -309,7 +309,7 @@ jobs:
           file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}
           context: .
           push: false
-          tags: localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          tags: localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
           platforms: linux/amd64
           target: dse
           outputs: type=docker
@@ -317,7 +317,7 @@ jobs:
       - name: Push base image to local registry for UBI build
         if: ${{ matrix.base-platform == 'ubi' }}
         run: |
-          docker push localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          docker push localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
       
       - name: Build DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         if: ${{ matrix.base-platform == 'ubi' }}
@@ -326,13 +326,13 @@ jobs:
           file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
           context: .
           build-contexts: |
-            builder=docker-image://localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+            builder=docker-image://localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
           push: false
           load: true
           tags: mgmtapi-dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}-test:latest
           platforms: linux/amd64
           target: dse
-          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
       
       # Run tests
       - name: Setup Maven settings.xml
@@ -793,7 +793,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6
         with:
-          images: icr.io/ds-mission-control-private/dse-mgmtapi-6_8
+          images: icr.io/ds-mission-control-private/dse-mgmtapi
           tags: type=sha,format=long,prefix=${{ matrix.dse-version }}-${{ matrix.base-platform }}-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -836,7 +836,7 @@ jobs:
           file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}
           context: .
           push: false
-          tags: localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          tags: localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
           platforms: linux/amd64
           target: dse
           outputs: type=docker
@@ -844,7 +844,7 @@ jobs:
       - name: Push base image to local registry for UBI build
         if: ${{ matrix.base-platform == 'ubi' }}
         run: |
-          docker push localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          docker push localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
       
       - name: Build and push DSE ${{ matrix.dse-version }}-${{ matrix.base-platform }}
         if: ${{ matrix.base-platform == 'ubi' }}
@@ -853,9 +853,9 @@ jobs:
           file: dse/Dockerfile-dse${{ matrix.dse-version }}.${{ matrix.base-platform }}
           context: .
           build-contexts: |
-            builder=docker-image://localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+            builder=docker-image://localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64
           target: dse
-          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-6_8-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}
+          build-args: DSE_BASE_IMAGE=localhost:5000/dse-mgmtapi-${{ matrix.dse-version }}-${{ matrix.dse-version == '6.8' && 'jdk8' || 'jdk11' }}-${{ github.sha }}

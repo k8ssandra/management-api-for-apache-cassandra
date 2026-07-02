@@ -168,33 +168,33 @@ Example for Cassandra 4.0.10
 
 For all JDK 8 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_8:<version>
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>
 
 Example for DSE 6.8.31
 
-      datastax/dse-mgmtapi-6_8:6.8.31
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:6.8.31
 
 For all JDK 11 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_8:<version>-jdk11
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-jdk11
 
 Example for DSE 6.8.31
 
-      datastax/dse-mgmtapi-6_8:6.8.31-jdk11
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:6.8.31-jdk11
 
 #### RedHat UBI based images (DSE 6.8)
 
 For all RedHat UBI based DSE 6.8.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_8:<version>-ubi
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-ubi
 
 For legacy tagging conventions, the image is also tagged as:
 
-      datastax/dse-mgmtapi-6_8:<version>-ubi8
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-ubi8
 
 Example for DSE 6.8.31
 
-      datastax/dse-mgmtapi-6_8:6.8.31-ubi
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:6.8.31-ubi
 
 ### Docker coordinates for DSE 6.9.x images
 
@@ -202,27 +202,27 @@ Example for DSE 6.8.31
 
 For all JDK 11 Ubuntu based DSE 6.8.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_8:<version>-jdk11
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-jdk11
 
 Example for DSE 6.9.0
 
-      datastax/dse-mgmtapi-6_8:6.9.0-jdk11
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:6.9.0-jdk11
 
 #### RedHat UBI based images (DSE 6.9)
 
 For all RedHat UBI based DSE 6.9.x images, the Docker coordinates are as follows:
 
-      datastax/dse-mgmtapi-6_8:<version>-ubi
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-ubi
 
 For legacy tagging conventions, the image is also tagged as:
 
-      datastax/dse-mgmtapi-6_8:<version>-ubi8
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:<version>-ubi8
 
 Example for DSE 6.9.0
 
-      datastax/dse-mgmtapi-6_8:6.9.0-ubi
+      cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi:6.9.0-ubi
 
-** NOTE 1: The docker repo is not a typo, it really is `datastax/dse-mgmtapi-6_8` for 6.9 images
+** NOTE 1: The docker repo is not a typo, it really is `cp.icr.io/cp/ibm-ds-mission-control/dse-mgmtapi` for 6.9 images
 ** NOTE 2: While the Legacy tagging uses `ubi8`, the image as of v0.1.108 is actually UBI 9 based
 
 ### Docker coordinates for HCD 1.1.x/1.2.x images
