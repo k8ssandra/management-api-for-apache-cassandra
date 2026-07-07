@@ -22,11 +22,11 @@
     </repository>
     <repository>
       <id>artifactory-snapshots</id>
-      <url>https://repo.datastax.com/datastax-snapshots-local</url>
+      <url>https://repo.datastax.com/dse</url>
     </repository>
     <repository>
       <id>artifactory-releases</id>
-      <url>https://repo.datastax.com/datastax-releases-local</url>
+      <url>https://repo.datastax.com/dse</url>
     </repository>
   </repositories>
   <properties>
