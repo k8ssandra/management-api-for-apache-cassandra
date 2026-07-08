@@ -142,6 +142,40 @@ public class DockerHelper {
     }
   }
 
+  public String runCommandWithOutput(String... commandAndArgs)
+      throws IOException, InterruptedException {
+    if (container == null) throw new IllegalStateException("Container not started");
+    // prefix the command arguments with "docker exec mgmtapi"
+    final ProcessBuilder pb = new ProcessBuilder("docker", "exec", CONTAINER_NAME);
+    pb.command().addAll(Arrays.asList(commandAndArgs));
+    final Process process = pb.start();
+    final int exitCode = process.waitFor();
+    if (exitCode != 0) {
+      logger.error("Command had a non-zero exit code: " + exitCode);
+      new BufferedReader(new InputStreamReader(process.getInputStream()))
+          .lines()
+          .forEach(
+              line -> {
+                logger.error("Command output stream: " + line);
+              });
+      new BufferedReader(new InputStreamReader(process.getErrorStream()))
+          .lines()
+          .forEach(
+              line -> {
+                logger.error("Command error stream: " + line);
+              });
+      throw new IOException("Command was not successful: " + Arrays.toString(commandAndArgs));
+    }
+    StringBuilder strBuilder = new StringBuilder();
+    new BufferedReader(new InputStreamReader(process.getInputStream()))
+        .lines()
+        .forEach(
+            line -> {
+              strBuilder.append(line).append("\n");
+            });
+    return strBuilder.toString();
+  }
+
   public void tailSystemLog(int numberOfLines) {
     if (container == null) throw new IllegalStateException("Container not started");
 

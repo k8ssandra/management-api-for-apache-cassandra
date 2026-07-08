@@ -6,7 +6,6 @@
 package com.datastax.mgmtapi.shim;
 
 import com.datastax.mgmtapi.shims.RpcStatementShim;
-import org.apache.cassandra.audit.AuditLogContext;
 import org.apache.cassandra.cql3.QueryOptions;
 import org.apache.cassandra.service.ClientState;
 import org.apache.cassandra.service.QueryState;
@@ -46,11 +45,6 @@ public class RpcStatement implements RpcStatementShim {
   @Override
   public ResultMessage executeLocally(QueryState queryState, QueryOptions queryOptions) {
     return new ResultMessage.Void();
-  }
-
-  @Override
-  public AuditLogContext getAuditLogContext() {
-    return null;
   }
 
   @Override

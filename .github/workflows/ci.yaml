@@ -223,7 +223,17 @@ jobs:
       matrix:
         dse-version: ['6.8', '6.9']
         base-platform: ['jdk8', 'jdk11', 'ubi']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'DSESpecificIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        itTest :
+          - 'LifecycleIT'
+          - 'KeepAliveIT'
+          - 'NonDestructiveOpsIT'
+          - 'DestructiveOpsIT'
+          - 'DSESpecificIT'
+          - 'NonDestructiveOpsResourcesV2IT'
+          - 'DockerImageIT'
+          - 'AsyncRepairIT'
+          - 'PortOverrideIT'
+          - 'MetricsIT'
         exclude:
           - dse-version: '6.9'
             base-platform: 'jdk8'
@@ -359,7 +369,17 @@ jobs:
       matrix:
         cassandra-version: ['4.0', '4.1', '5.0']
         base-platform: ['ubuntu', 'ubi']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        itTest :
+          - 'LifecycleIT'
+          - 'KeepAliveIT'
+          - 'NonDestructiveOpsIT'
+          - 'DestructiveOpsIT'
+          - 'NonDestructiveOpsResourcesV2IT'
+          - 'DockerImageIT'
+          - 'AsyncRepairIT'
+          - 'PortOverrideIT'
+          - 'MetricsIT'
+          - 'AuditLogIT'
         exclude:
           - cassandra-version: '5.0'
             base-platform: 'ubuntu'
@@ -625,7 +645,17 @@ jobs:
       max-parallel: 4
       matrix:
         cassandra-version: ['6.0', 'trunk']
-        itTest : ['LifecycleIT', 'KeepAliveIT', 'NonDestructiveOpsIT', 'DestructiveOpsIT', 'NonDestructiveOpsResourcesV2IT', 'DockerImageIT', 'AsyncRepairIT', 'PortOverrideIT', 'MetricsIT']
+        itTest :
+          - 'LifecycleIT'
+          - 'KeepAliveIT'
+          - 'NonDestructiveOpsIT'
+          - 'DestructiveOpsIT'
+          - 'NonDestructiveOpsResourcesV2IT'
+          - 'DockerImageIT'
+          - 'AsyncRepairIT'
+          - 'PortOverrideIT'
+          - 'MetricsIT'
+          - 'AuditLogIT'
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 11
