@@ -34,7 +34,6 @@ public class DockerImageIT extends BaseDockerIntegrationTest {
     try {
       docker.runCommand("which", "curl");
     } catch (Throwable t) {
-      // this is expected, ensure the message indicates a process error code
       fail(
           "\"curl\" was not found in the image. Please ensure it has been added to the Dockerfile");
     }
