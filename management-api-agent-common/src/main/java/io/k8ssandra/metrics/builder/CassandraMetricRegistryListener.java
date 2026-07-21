@@ -108,13 +108,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
 
     cache.put(dropwizardName, metricName);
 
-    RefreshableMetricFamilySamples familySamples;
-    if (!familyCache.containsKey(metricName)) {
-      familyCache.put(metricName, prototype);
-    } else {
-      familySamples = familyCache.get(metricName);
-      prototype.getDefinitions().forEach(familySamples::addDefinition);
-    }
+    familyCache.compute(
+        metricName,
+        (name, familySamples) -> {
+          if (familySamples == null) {
+            return prototype;
+          }
+          prototype.getDefinitions().forEach(familySamples::addDefinition);
+          return familySamples;
+        });
   }
 
   public void removeFromCache(String dropwizardName) {
