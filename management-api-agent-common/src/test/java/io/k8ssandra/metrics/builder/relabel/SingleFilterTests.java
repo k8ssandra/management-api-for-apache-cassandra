@@ -198,7 +198,10 @@ public class SingleFilterTests {
 
     CassandraMetricDefinition hasTableLabel =
         new CassandraMetricDefinition(
-            "has_table_label", "HasTableLabel", Lists.newArrayList("table"), Lists.newArrayList("value"));
+            "has_table_label",
+            "HasTableLabel",
+            Lists.newArrayList("table"),
+            Lists.newArrayList("value"));
     parser.replace("", hasTableLabel);
     assertFalse(hasTableLabel.isKeep());
 
@@ -210,7 +213,10 @@ public class SingleFilterTests {
 
     CassandraMetricDefinition hasOtherLabels =
         new CassandraMetricDefinition(
-            "has_table_label", "Has.Table.Label", Lists.newArrayList("keyspace"), Lists.newArrayList("value"));
+            "has_table_label",
+            "Has.Table.Label",
+            Lists.newArrayList("keyspace"),
+            Lists.newArrayList("value"));
     parser.replace("", hasOtherLabels);
     assertTrue(hasOtherLabels.isKeep());
   }

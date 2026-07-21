@@ -67,7 +67,8 @@ public class MultiFilterTest {
         new CassandraMetricDefinition(
             "jvm_classes_loaded_total",
             "jvm.classes.loaded.total",
-            Lists.newArrayList(), Lists.newArrayList());
+            Lists.newArrayList(),
+            Lists.newArrayList());
 
     List<CassandraMetricDefinition> definitions =
         Lists.newArrayList(tableDefinition, keyspaceDefinition, jvmDefinition);

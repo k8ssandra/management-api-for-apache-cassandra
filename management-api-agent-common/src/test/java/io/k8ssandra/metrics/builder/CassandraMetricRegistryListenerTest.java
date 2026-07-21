@@ -5,19 +5,29 @@
  */
 package io.k8ssandra.metrics.builder;
 
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.INF_BUCKET;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS_TEXT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Snapshot;
+import com.codahale.metrics.Timer;
 import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.prometheus.client.Collector;
+import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +43,50 @@ public class CassandraMetricRegistryListenerTest {
   private static final String KEYSPACE_NAME = "KeyspaceName";
   private static final String TABLE_NAME = "TableName";
   private static final String SIBLING_TABLE_NAME = "SiblingTable";
+
+  @Test
+  public void exportsEveryConfiguredTimerBucket() throws Exception {
+    ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache =
+        new ConcurrentHashMap<>();
+    CassandraMetricRegistryListener listener =
+        new CassandraMetricRegistryListener(familyCache, new Configuration());
+    int offsetFactor = latencyOffsetFactor(listener);
+    listener.onTimerAdded(
+        "test.timer",
+        new FixedSnapshotTimer(
+            new DecayingEstimatedHistogramSnapshot(
+                scaledOffsets(
+                    offsetFactor, 40, 70, 200, 600, 2_000, 10_000, 100_000, 1_000_000),
+                new long[] {2, 3, 5, 7, 11, 13, 17, 19})));
+
+    RefreshableMetricFamilySamples family = familyCache.get("test_timer");
+    assertNotNull("Timer metric family should be registered", family);
+    family.refreshSamples();
+
+    Map<String, Double> buckets = new HashMap<>();
+    for (Collector.MetricFamilySamples.Sample sample : family.samples) {
+      if ("test_timer_bucket".equals(sample.name)) {
+        buckets.put(sample.labelValues.get(sample.labelValues.size() - 1), sample.value);
+      }
+    }
+
+    assertEquals(LATENCY_OFFSETS.length + 1, buckets.size());
+    for (String offset : LATENCY_OFFSETS_TEXT) {
+      assertTrue("Missing timer bucket " + offset, buckets.containsKey(offset));
+    }
+    assertTrue("Missing +Inf timer bucket", buckets.containsKey(INF_BUCKET));
+
+    assertBucketValue(buckets, "35", 0);
+    assertBucketValue(buckets, "60", 2);
+    assertBucketValue(buckets, "103", 5);
+    assertBucketValue(buckets, "310", 10);
+    assertBucketValue(buckets, "924", 17);
+    assertBucketValue(buckets, "2759", 28);
+    assertBucketValue(buckets, "14237", 41);
+    assertBucketValue(buckets, "126934", 58);
+    assertBucketValue(buckets, "1131752", 77);
+    assertBucketValue(buckets, INF_BUCKET, 77);
+  }
 
   @Test
   public void concurrentlyRegistersTableMetricsInSameFamily() throws Exception {
@@ -73,8 +127,7 @@ public class CassandraMetricRegistryListenerTest {
 
     RefreshableMetricFamilySamples family = familyCache.get(PROMETHEUS_METRIC_NAME);
     assertNotNull("Shared table metric family should be registered", family);
-    assertEquals(
-        "Both table definitions should be retained", 2, family.getDefinitions().size());
+    assertEquals("Both table definitions should be retained", 2, family.getDefinitions().size());
   }
 
   @Test
@@ -196,5 +249,93 @@ public class CassandraMetricRegistryListenerTest {
   private String labelValue(Collector.MetricFamilySamples.Sample sample, String labelName) {
     int index = sample.labelNames.indexOf(labelName);
     return index < 0 ? null : sample.labelValues.get(index);
+  }
+
+  private void assertBucketValue(
+      Map<String, Double> buckets, String upperBound, double expectedValue) {
+    assertEquals(
+        "Unexpected value for timer bucket " + upperBound,
+        expectedValue,
+        buckets.get(upperBound),
+        0.0);
+  }
+
+  private int latencyOffsetFactor(CassandraMetricRegistryListener listener) throws Exception {
+    Field field = CassandraMetricRegistryListener.class.getDeclaredField("microLatencyBuckets");
+    field.setAccessible(true);
+    return field.getBoolean(listener) ? 1 : 1000;
+  }
+
+  private long[] scaledOffsets(int factor, long... offsets) {
+    long[] scaled = new long[offsets.length];
+    for (int i = 0; i < offsets.length; i++) {
+      scaled[i] = offsets[i] * factor;
+    }
+    return scaled;
+  }
+
+  private static class FixedSnapshotTimer extends Timer {
+    private final Snapshot snapshot;
+
+    private FixedSnapshotTimer(Snapshot snapshot) {
+      this.snapshot = snapshot;
+    }
+
+    @Override
+    public Snapshot getSnapshot() {
+      return snapshot;
+    }
+  }
+
+  public static class DecayingEstimatedHistogramSnapshot extends Snapshot {
+    private final long[] offsets;
+    private final long[] values;
+
+    public DecayingEstimatedHistogramSnapshot(long[] offsets, long[] values) {
+      this.offsets = offsets;
+      this.values = values;
+    }
+
+    public long[] getOffsets() {
+      return offsets;
+    }
+
+    @Override
+    public double getValue(double quantile) {
+      return 0;
+    }
+
+    @Override
+    public long[] getValues() {
+      return values;
+    }
+
+    @Override
+    public int size() {
+      return values.length;
+    }
+
+    @Override
+    public long getMax() {
+      return 0;
+    }
+
+    @Override
+    public double getMean() {
+      return 0;
+    }
+
+    @Override
+    public long getMin() {
+      return 0;
+    }
+
+    @Override
+    public double getStdDev() {
+      return 0;
+    }
+
+    @Override
+    public void dump(OutputStream output) {}
   }
 }
