@@ -8,6 +8,7 @@ package com.datastax.mgmtapi.util;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.cassandra.utils.progress.ProgressEventType;
 
 public class Job {
@@ -19,17 +20,17 @@ public class Job {
 
   private String jobId;
   private String jobType;
-  private JobStatus status;
+  private volatile JobStatus status;
   private long submitTime;
-  private long startTime;
-  private long finishedTime;
-  private Throwable error;
+  private volatile long startTime;
+  private volatile long finishedTime;
+  private volatile Throwable error;
 
-  public class StatusChange {
-    ProgressEventType status;
-    long changeTime;
+  public static final class StatusChange {
+    private final ProgressEventType status;
+    private final long changeTime;
 
-    String message;
+    private final String message;
 
     public StatusChange(ProgressEventType type, String message) {
       changeTime = System.currentTimeMillis();
@@ -50,14 +51,14 @@ public class Job {
     }
   }
 
-  private List<StatusChange> statusChanges;
+  private final CopyOnWriteArrayList<StatusChange> statusChanges;
 
   public Job(String jobType, String jobId) {
     this.jobType = jobType;
     this.jobId = jobId;
     submitTime = System.currentTimeMillis();
     status = JobStatus.WAITING;
-    statusChanges = new ArrayList<>();
+    statusChanges = new CopyOnWriteArrayList<>();
   }
 
   @VisibleForTesting
@@ -87,7 +88,7 @@ public class Job {
   }
 
   public List<StatusChange> getStatusChanges() {
-    return statusChanges;
+    return new ArrayList<>(statusChanges);
   }
 
   public long getSubmitTime() {
