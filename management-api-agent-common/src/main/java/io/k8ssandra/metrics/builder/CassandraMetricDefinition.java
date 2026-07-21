@@ -18,6 +18,7 @@ public class CassandraMetricDefinition
   private final List<String> labelNames;
   private final List<String> labelValues;
   private String metricName;
+  private String dropWizardName;
   private Supplier<Double> valueGetter;
 
   private boolean keep = true;
@@ -25,10 +26,11 @@ public class CassandraMetricDefinition
   private Consumer<List<Collector.MetricFamilySamples.Sample>> filler;
 
   public CassandraMetricDefinition(
-      String metricName, List<String> labelNames, List<String> labelValues) {
+      String metricName, String dropWizardName, List<String> labelNames, List<String> labelValues) {
     this.labelNames = labelNames;
     this.labelValues = labelValues;
     this.metricName = metricName;
+    this.dropWizardName = dropWizardName;
   }
 
   public List<String> getLabelNames() {
@@ -41,6 +43,10 @@ public class CassandraMetricDefinition
 
   public String getMetricName() {
     return metricName;
+  }
+
+  public String getDropWizardName() {
+    return dropWizardName;
   }
 
   void setValueGetter(Supplier<Double> valueGetter) {
@@ -82,7 +88,8 @@ public class CassandraMetricDefinition
     return keep == that.keep
         && Objects.equals(labelNames, that.labelNames)
         && Objects.equals(labelValues, that.labelValues)
-        && Objects.equals(metricName, that.metricName);
+        && Objects.equals(metricName, that.metricName)
+        && Objects.equals(dropWizardName, that.dropWizardName);
   }
 
   @Override
@@ -112,6 +119,11 @@ public class CassandraMetricDefinition
   @Override
   public int compareTo(CassandraMetricDefinition o) {
     int compareValue = metricName.compareTo(o.metricName);
+    if (compareValue != 0) {
+      return compareValue;
+    }
+
+    compareValue = dropWizardName.compareTo(o.dropWizardName);
     if (compareValue != 0) {
       return compareValue;
     }

@@ -102,14 +102,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     // Filter unwanted definitions
     prototype.getDefinitions().removeIf(next -> !next.isKeep());
 
-    if (prototype.getDefinitions().size() < 1) {
+    if (prototype.getDefinitions().isEmpty()) {
       return;
     }
+
+    cache.put(dropwizardName, metricName);
 
     RefreshableMetricFamilySamples familySamples;
     if (!familyCache.containsKey(metricName)) {
       familyCache.put(metricName, prototype);
-      cache.put(dropwizardName, metricName);
     } else {
       familySamples = familyCache.get(metricName);
       prototype.getDefinitions().forEach(familySamples::addDefinition);
@@ -128,14 +129,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         .getDefinitions()
         .removeIf(
             cmd ->
-                cmd.getMetricName().equals(metricName)
+                (cmd.getMetricName().equals(metricName)
                     || cmd.getMetricName().equals(metricName + "_count")
-                    || cmd.getMetricName().equals(metricName + "_total"));
+                    || cmd.getMetricName().equals(metricName + "_total"))
+        && cmd.getDropWizardName().equals(dropwizardName));
 
     if (familySampler.getDefinitions().isEmpty()) {
       this.familyCache.remove(metricName);
-      cache.remove(dropwizardName);
     }
+    cache.remove(dropwizardName);
   }
 
   private void setGaugeHistogramFiller(Gauge gauge, CassandraMetricDefinition proto) {

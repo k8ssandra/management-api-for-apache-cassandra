@@ -45,6 +45,7 @@ public class MultiFilterTest {
     CassandraMetricDefinition tableDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.cassandra.metrics.Table.RangeLatency.system.peers_v2",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -57,13 +58,16 @@ public class MultiFilterTest {
     CassandraMetricDefinition keyspaceDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.cassandra.metrics.Keyspace.RangeLatency.system",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
 
     CassandraMetricDefinition jvmDefinition =
         new CassandraMetricDefinition(
-            "jvm_classes_loaded_total", Lists.newArrayList(), Lists.newArrayList());
+            "jvm_classes_loaded_total",
+            "jvm.classes.loaded.total",
+            Lists.newArrayList(), Lists.newArrayList());
 
     List<CassandraMetricDefinition> definitions =
         Lists.newArrayList(tableDefinition, keyspaceDefinition, jvmDefinition);
@@ -98,6 +102,7 @@ public class MultiFilterTest {
     CassandraMetricDefinition tableDefinitionTest =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.Cassandra.Metrics.RangeLatencyCount.system.peers_v2",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -110,6 +115,7 @@ public class MultiFilterTest {
     CassandraMetricDefinition tableDefinitionProd =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.Cassandra.Metrics.RangeLatencyCount.system.system_schema",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -122,6 +128,7 @@ public class MultiFilterTest {
     CassandraMetricDefinition keyspaceDefinitionProd =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.Cassandra.Metrics.RangeLatencyCount.system",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "production", "dc1", "rack1", "system"));
@@ -129,6 +136,7 @@ public class MultiFilterTest {
     CassandraMetricDefinition keyspaceDefinitionTest =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.Cassandra.Metrics.RangeLatencyCount.system",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
