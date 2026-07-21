@@ -12,6 +12,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 * [BUGFIX] [#770](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/770) Use Public Datastax repos
 * [BUGFIX] [#309](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/309) Set default AuditLogContext for the RpcStatements that is by default hidden
+* [BUGFIX] [#774](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/774) When table (or other similar metric batch) is removed, correctly clean the cached metrics references in case the metrics get recreated with same name.
 
 ## v0.1.122 [2026-07-03]
 * [CHANGE] Rename the dse images from dse-mgmtapi-6_8 to dse-mgmtapi
