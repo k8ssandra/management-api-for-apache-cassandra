@@ -55,8 +55,7 @@ public class CassandraMetricRegistryListenerTest {
         "test.timer",
         new FixedSnapshotTimer(
             new DecayingEstimatedHistogramSnapshot(
-                scaledOffsets(
-                    offsetFactor, 40, 70, 200, 600, 2_000, 10_000, 100_000, 1_000_000),
+                scaledOffsets(offsetFactor, 40, 70, 200, 600, 2_000, 10_000, 100_000, 1_000_000),
                 new long[] {2, 3, 5, 7, 11, 13, 17, 19})));
 
     RefreshableMetricFamilySamples family = familyCache.get("test_timer");
