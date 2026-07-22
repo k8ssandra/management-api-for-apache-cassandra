@@ -23,15 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Centralises Netty transport selection: epoll (Linux), kqueue (macOS), or NIO (fallback).
+ * Centralises Netty transport selection: epoll (Linux), kqueue (macOS), or NIO (last resort).
+ *
+ * <p>Epoll is the preferred transport. Falling back to kqueue or NIO results in degraded
+ * performance and a warning log. The warning is emitted once at class load time, then suppressed on
+ * subsequent calls to avoid log spam.
  *
  * <p>Unix-domain-socket channels ({@link #nativeDomainSocketChannelClass()}, {@link
- * #nativeServerDomainSocketChannelClass()}, {@link #nativeEventLoopGroup(int)}) require a native
- * transport and will throw if neither epoll nor kqueue is available.
+ * #nativeServerDomainSocketChannelClass()}, {@link #nativeEventLoopGroup(int)}) require native
+ * transport (epoll or kqueue) and will throw {@link UnsupportedOperationException} if neither is
+ * available, because there is no NIO equivalent for Unix domain sockets.
  *
  * <p>TCP channels ({@link #tcpEventLoopGroup(int)}, {@link #tcpServerSocketChannelClass()}) fall
- * back to Java NIO when no native transport is available. A warning is logged in that case because
- * NIO has lower performance and is only suitable for development/testing/lab environments.
+ * back to NIO when no native transport is available.
  */
 public final class NativeTransport {
 
@@ -40,11 +44,21 @@ public final class NativeTransport {
   private static final boolean EPOLL_AVAILABLE = Epoll.isAvailable();
   private static final boolean KQUEUE_AVAILABLE = KQueue.isAvailable();
 
-  static final String NIO_FALLBACK_WARNING =
-      "Neither epoll nor kqueue is available. Falling back to Java NIO for TCP connections. "
-          + "This results in degraded performance and should only be acceptable in "
-          + "development, testing, or lab environments. Unix domain socket communication "
-          + "requires native transport and will not be available.";
+  // Warn once at class-load time whenever epoll is not the active transport.
+  static {
+    if (!EPOLL_AVAILABLE && KQUEUE_AVAILABLE) {
+      logger.warn(
+          "Epoll is not available; falling back to kqueue. This results in degraded performance "
+              + "compared to epoll and should only be acceptable in development, testing, or lab "
+              + "environments.");
+    } else if (!EPOLL_AVAILABLE) {
+      logger.warn(
+          "Neither epoll nor kqueue is available. Falling back to Java NIO for TCP connections. "
+              + "This results in degraded performance and should only be acceptable in "
+              + "development, testing, or lab environments. Unix domain socket communication "
+              + "requires native transport and will not be available.");
+    }
+  }
 
   private NativeTransport() {}
 
@@ -56,8 +70,9 @@ public final class NativeTransport {
   /**
    * Returns a native {@link EventLoopGroup} suitable for Unix domain socket communication.
    *
-   * <p>Uses epoll on Linux and kqueue on macOS/BSD. Throws {@link UnsupportedOperationException} if
-   * neither is available, as Unix domain sockets have no NIO fallback.
+   * <p>Prefers epoll; falls back to kqueue on macOS/BSD. Throws {@link
+   * UnsupportedOperationException} if neither is available, as Unix domain sockets have no NIO
+   * fallback.
    *
    * @param nThreads number of threads in the event loop group
    */
@@ -110,8 +125,8 @@ public final class NativeTransport {
   /**
    * Returns an {@link EventLoopGroup} for TCP socket connections.
    *
-   * <p>Prefers native transport (epoll/kqueue) when available. Falls back to Java NIO, logging a
-   * warning that this is only appropriate for development/testing environments.
+   * <p>Prefers epoll; falls back to kqueue or NIO. The fallback warning is logged once at class
+   * load time.
    *
    * @param nThreads number of threads in the event loop group
    */
@@ -122,14 +137,13 @@ public final class NativeTransport {
     if (KQUEUE_AVAILABLE) {
       return new KQueueEventLoopGroup(nThreads);
     }
-    logger.warn(NIO_FALLBACK_WARNING);
     return new NioEventLoopGroup(nThreads);
   }
 
   /**
    * Returns the server socket channel class for TCP connections.
    *
-   * <p>Prefers native transport when available, falls back to {@link NioServerSocketChannel}.
+   * <p>Prefers epoll; falls back to kqueue or {@link NioServerSocketChannel}.
    */
   public static Class<? extends ServerChannel> tcpServerSocketChannelClass() {
     if (EPOLL_AVAILABLE) {
