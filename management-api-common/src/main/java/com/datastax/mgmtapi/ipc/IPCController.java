@@ -12,13 +12,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDomainSocketChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.epoll.EpollServerDomainSocketChannel;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDomainSocketChannel;
-import io.netty.channel.kqueue.KQueueServerDomainSocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 import java.io.File;
 import java.net.SocketAddress;
@@ -55,10 +48,6 @@ public class IPCController {
       Map<ChannelOption, Object> channelOptions,
       ChannelInitializer<Channel> channelPipeline,
       boolean isClient) {
-    if (Epoll.isAvailable() && !(eventLoopGroup instanceof EpollEventLoopGroup)) {
-      throw new IllegalArgumentException("eventLoopGroup must be epoll based under Linux");
-    }
-
     AbstractBootstrap b = isClient ? new Bootstrap() : new ServerBootstrap();
     b.group(eventLoopGroup);
 
@@ -70,24 +59,12 @@ public class IPCController {
       }
     }
 
+    // Unix domain sockets require native transport; NativeTransport throws with a clear
+    // message if neither epoll nor kqueue is available.
     if (isClient) {
-      if (Epoll.isAvailable()) {
-        b = b.channel(EpollDomainSocketChannel.class);
-      } else if (KQueue.isAvailable()) {
-        b = b.channel(KQueueDomainSocketChannel.class);
-      } else {
-        throw new RuntimeException(
-            "Neither epoll nor kqueue was found. Unable to initialize channel pipeline");
-      }
+      b = b.channel(NativeTransport.nativeDomainSocketChannelClass());
     } else {
-      if (Epoll.isAvailable()) {
-        b = b.channel(EpollServerDomainSocketChannel.class);
-      } else if (KQueue.isAvailable()) {
-        b = b.channel(KQueueServerDomainSocketChannel.class);
-      } else {
-        throw new RuntimeException(
-            "Neither epoll nor kqueue was found. Unable to initialize server channel pipeline");
-      }
+      b = b.channel(NativeTransport.nativeServerDomainSocketChannelClass());
     }
 
     return isClient

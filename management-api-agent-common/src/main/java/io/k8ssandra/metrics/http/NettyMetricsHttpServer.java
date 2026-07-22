@@ -5,13 +5,13 @@
  */
 package io.k8ssandra.metrics.http;
 
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.config.EndpointConfiguration;
 import io.k8ssandra.metrics.config.TLSConfiguration;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
@@ -42,7 +42,7 @@ public class NettyMetricsHttpServer {
     ServerBootstrap channel =
         b.group(group)
             .childHandler(new NettyHttpInitializer(sslCtx))
-            .channel(EpollServerSocketChannel.class);
+            .channel(NativeTransport.tcpServerSocketChannelClass());
 
     int port = DEFAULT_METRICS_PORT;
     String host = null;

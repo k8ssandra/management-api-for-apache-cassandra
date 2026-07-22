@@ -8,16 +8,13 @@ package com.datastax.mgmtapi;
 import static org.jboss.resteasy.test.TestPortProvider.generateURL;
 
 import com.datastax.mgmtapi.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
@@ -192,21 +189,11 @@ public class NettyHttpOverIPCTest {
   }
 
   private static boolean shouldRun() {
-    return Epoll.isAvailable() || KQueue.isAvailable();
+    return NativeTransport.isNativeTransportAvailable();
   }
 
   private EventLoopGroup eventLoop() {
-    if (Epoll.isAvailable()) {
-      Epoll.ensureAvailability();
-      return new EpollEventLoopGroup(1);
-    }
-
-    if (KQueue.isAvailable()) {
-      KQueue.ensureAvailability();
-      return new KQueueEventLoopGroup(1);
-    }
-
-    throw new RuntimeException();
+    return NativeTransport.nativeEventLoopGroup(1);
   }
 
   @Path("/")
