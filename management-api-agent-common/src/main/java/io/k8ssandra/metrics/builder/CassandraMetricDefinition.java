@@ -94,26 +94,20 @@ public class CassandraMetricDefinition
 
   @Override
   public int hashCode() {
-    return Objects.hash(labelNames, labelValues, metricName);
+    return Objects.hash(labelNames, labelValues, metricName, dropWizardName);
   }
 
   @Override
   public String toString() {
-    return "CassandraMetricDefinition{"
-        + "labelNames="
-        + labelNames
-        + ", labelValues="
-        + labelValues
-        + ", metricName='"
-        + metricName
-        + '\''
-        + ", valueGetter="
-        + valueGetter
-        + ", keep="
-        + keep
-        + ", filler="
-        + filler
-        + '}';
+    return "CassandraMetricDefinition{" +
+        "labelNames=" + labelNames +
+        ", labelValues=" + labelValues +
+        ", metricName='" + metricName + '\'' +
+        ", dropWizardName='" + dropWizardName + '\'' +
+        ", valueGetter=" + valueGetter +
+        ", keep=" + keep +
+        ", filler=" + filler +
+        '}';
   }
 
   @Override
