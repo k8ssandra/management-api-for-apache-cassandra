@@ -99,15 +99,24 @@ public class CassandraMetricDefinition
 
   @Override
   public String toString() {
-    return "CassandraMetricDefinition{" +
-        "labelNames=" + labelNames +
-        ", labelValues=" + labelValues +
-        ", metricName='" + metricName + '\'' +
-        ", dropWizardName='" + dropWizardName + '\'' +
-        ", valueGetter=" + valueGetter +
-        ", keep=" + keep +
-        ", filler=" + filler +
-        '}';
+    return "CassandraMetricDefinition{"
+        + "labelNames="
+        + labelNames
+        + ", labelValues="
+        + labelValues
+        + ", metricName='"
+        + metricName
+        + '\''
+        + ", dropWizardName='"
+        + dropWizardName
+        + '\''
+        + ", valueGetter="
+        + valueGetter
+        + ", keep="
+        + keep
+        + ", filler="
+        + filler
+        + '}';
   }
 
   @Override
