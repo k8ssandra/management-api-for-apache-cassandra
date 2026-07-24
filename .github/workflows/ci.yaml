@@ -52,10 +52,10 @@ jobs:
           </settings>
           EOF
       - name: Build with Maven and run unit tests (k8ssandra repo)
-        if: github.repository_owner == 'k8ssandra'
+        if: ${{ github.event.pull_request.head.repo.full_name == 'k8ssandra/management-api-for-apache-cassandra' }}
         run: mvn -B -q package --file pom.xml -P dse,hcd
-      - name: Build with Maven and run unit tests (3rd party repo)
-        if: github.repository_owner != 'k8ssandra'
+      - name: Build with Maven and run unit tests (forked repo)
+        if: ${{ github.event.pull_request.head.repo.full_name != 'k8ssandra/management-api-for-apache-cassandra' }}
         run: mvn -B -q package --file pom.xml
       - name: Save Maven cache
         uses: actions/cache/save@v5
@@ -208,6 +208,7 @@ jobs:
           retention-days: 3
           
   build-and-test-dse:
+    if: ${{ github.event.pull_request.head.repo.full_name == 'k8ssandra/management-api-for-apache-cassandra' }}
     name: Build and Test DSE ${{ matrix.itTest }} [${{ matrix.dse-version }}, ${{ matrix.base-platform }}]
     runs-on: ubuntu-latest
     needs: run-unit-tests
