@@ -102,18 +102,21 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
     // Filter unwanted definitions
     prototype.getDefinitions().removeIf(next -> !next.isKeep());
 
-    if (prototype.getDefinitions().size() < 1) {
+    if (prototype.getDefinitions().isEmpty()) {
       return;
     }
 
-    RefreshableMetricFamilySamples familySamples;
-    if (!familyCache.containsKey(metricName)) {
-      familyCache.put(metricName, prototype);
-      cache.put(dropwizardName, metricName);
-    } else {
-      familySamples = familyCache.get(metricName);
-      prototype.getDefinitions().forEach(familySamples::addDefinition);
-    }
+    cache.put(dropwizardName, metricName);
+
+    familyCache.compute(
+        metricName,
+        (name, familySamples) -> {
+          if (familySamples == null) {
+            return prototype;
+          }
+          prototype.getDefinitions().forEach(familySamples::addDefinition);
+          return familySamples;
+        });
   }
 
   public void removeFromCache(String dropwizardName) {
@@ -128,14 +131,15 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
         .getDefinitions()
         .removeIf(
             cmd ->
-                cmd.getMetricName().equals(metricName)
-                    || cmd.getMetricName().equals(metricName + "_count")
-                    || cmd.getMetricName().equals(metricName + "_total"));
+                (cmd.getMetricName().equals(metricName)
+                        || cmd.getMetricName().equals(metricName + "_count")
+                        || cmd.getMetricName().equals(metricName + "_total"))
+                    && cmd.getDropWizardName().equals(dropwizardName));
 
     if (familySampler.getDefinitions().isEmpty()) {
       this.familyCache.remove(metricName);
-      cache.remove(dropwizardName);
     }
+    cache.remove(dropwizardName);
   }
 
   private void setGaugeHistogramFiller(Gauge gauge, CassandraMetricDefinition proto) {
@@ -418,25 +422,26 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
           long cumulativeCount = 0;
           for (int i = 0; i < buckets.length; i++) {
             int offsetFix = microLatencyBuckets ? 1 : 1000;
-            if (outputIndex < LATENCY_OFFSETS.length
+            while (outputIndex < LATENCY_OFFSETS.length
                 && buckets[i] > (LATENCY_OFFSETS[outputIndex] * offsetFix)) {
               List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
               int j = 0;
               for (; j < bucket.getLabelValues().size(); j++) {
                 labelValues.add(j, bucket.getLabelValues().get(j));
               }
-              labelValues.add(j, LATENCY_OFFSETS_TEXT[outputIndex++]);
+              labelValues.add(j, LATENCY_OFFSETS_TEXT[outputIndex]);
               Collector.MetricFamilySamples.Sample sample =
                   new Collector.MetricFamilySamples.Sample(
                       bucket.getMetricName(), bucket.getLabelNames(), labelValues, cumulativeCount);
               samples.add(sample);
+              outputIndex++;
             }
 
             cumulativeCount += values[i];
           }
 
           // Add any remaining buckets that didn't have any values
-          while (outputIndex++ < LATENCY_OFFSETS.length) {
+          while (outputIndex < LATENCY_OFFSETS.length) {
             List<String> labelValues = new ArrayList<>(bucket.getLabelValues().size() + 1);
             int j = 0;
             for (; j < bucket.getLabelValues().size(); j++) {
@@ -447,6 +452,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
                 new Collector.MetricFamilySamples.Sample(
                     bucket.getMetricName(), bucket.getLabelNames(), labelValues, cumulativeCount);
             samples.add(sample);
+            outputIndex++;
           }
 
           // Last bucket must be +Inf and same as _count
