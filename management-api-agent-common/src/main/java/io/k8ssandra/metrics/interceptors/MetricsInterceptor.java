@@ -5,6 +5,7 @@
  */
 package io.k8ssandra.metrics.interceptors;
 
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
 import io.k8ssandra.metrics.http.NettyMetricsHttpServer;
@@ -12,7 +13,6 @@ import io.k8ssandra.metrics.prometheus.CassandraDropwizardExports;
 import io.k8ssandra.metrics.prometheus.CassandraTasksExports;
 import io.k8ssandra.metrics.prometheus.JvmExports;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import java.util.concurrent.Callable;
 import net.bytebuddy.agent.builder.AgentBuilder.Transformer;
 import net.bytebuddy.description.type.TypeDescription;
@@ -79,7 +79,7 @@ public class MetricsInterceptor {
       }
 
       // Create /metrics handler. Note, this doesn't support larger than nThreads=1
-      final EventLoopGroup httpGroup = new EpollEventLoopGroup(1);
+      final EventLoopGroup httpGroup = NativeTransport.tcpEventLoopGroup(1);
 
       // Share them from HTTP server
       NettyMetricsHttpServer server = new NettyMetricsHttpServer(config);
