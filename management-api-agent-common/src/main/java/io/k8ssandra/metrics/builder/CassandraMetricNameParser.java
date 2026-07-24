@@ -79,7 +79,7 @@ public class CassandraMetricNameParser {
         removeDoubleUnderscore(Collector.sanitizeMetricName(this.clean(dropwizardName)));
 
     CassandraMetricDefinition metricDef =
-        new CassandraMetricDefinition(metricName, labelNames, labelValues);
+        new CassandraMetricDefinition(metricName, dropwizardName, labelNames, labelValues);
 
     // Process replace rules here
     replace(dropwizardName, metricDef);

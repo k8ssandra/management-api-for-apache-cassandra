@@ -37,6 +37,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition tableDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.cassandra.metrics.Table.RangeLatency.system.peers_v2",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -52,6 +53,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition keyspaceDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.cassandra.metrics.Keyspace.RangeLatencyCount.system",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
@@ -82,6 +84,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition tableDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.cassandra.metrics.Table.RangeLatency.system.peers_v2",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -96,6 +99,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition tableDefinitionKeep =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_estimated_partition_size_histogram",
+            "org.apache.Cassandra.Metrics.TableEstimatedPartitionSize.system.dropped_columns",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -110,6 +114,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition keyspaceDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.cassandra.metrics.Keyspace.RangeLatencyCount.system.peers",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
@@ -143,6 +148,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition tableDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_range_latency_count",
+            "org.apache.cassandra.metrics.Table.RangeLatencyCount.system.peers_v2",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -157,6 +163,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition tableDefinitionKeep =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_table_estimated_partition_size_histogram",
+            "org.apache.cassandra.metrics.Table.EstimatedPartitionSize.system.dropped_columns",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace", "table"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3",
@@ -171,6 +178,7 @@ public class SingleFilterTests {
     CassandraMetricDefinition keyspaceDefinition =
         new CassandraMetricDefinition(
             "org_apache_cassandra_metrics_keyspace_range_latency_count",
+            "org.apache.cassandra.metrics.Keyspace.RangeLatencyCount.system",
             Lists.newArrayList("host", "cluster", "datacenter", "rack", "keyspace"),
             Lists.newArrayList(
                 "6cc2e5ce-e73f-4592-8d02-fd5e17a070e3", "Test Cluster", "dc1", "rack1", "system"));
@@ -190,19 +198,25 @@ public class SingleFilterTests {
 
     CassandraMetricDefinition hasTableLabel =
         new CassandraMetricDefinition(
-            "has_table_label", Lists.newArrayList("table"), Lists.newArrayList("value"));
+            "has_table_label",
+            "HasTableLabel",
+            Lists.newArrayList("table"),
+            Lists.newArrayList("value"));
     parser.replace("", hasTableLabel);
     assertFalse(hasTableLabel.isKeep());
 
     CassandraMetricDefinition hasNoLabels =
         new CassandraMetricDefinition(
-            "has_table_label", Lists.newArrayList(), Lists.newArrayList());
+            "has_table_label", "HasTableLabel", Lists.newArrayList(), Lists.newArrayList());
     parser.replace("", hasNoLabels);
     assertTrue(hasNoLabels.isKeep());
 
     CassandraMetricDefinition hasOtherLabels =
         new CassandraMetricDefinition(
-            "has_table_label", Lists.newArrayList("keyspace"), Lists.newArrayList("value"));
+            "has_table_label",
+            "Has.Table.Label",
+            Lists.newArrayList("keyspace"),
+            Lists.newArrayList("value"));
     parser.replace("", hasOtherLabels);
     assertTrue(hasOtherLabels.isKeep());
   }
