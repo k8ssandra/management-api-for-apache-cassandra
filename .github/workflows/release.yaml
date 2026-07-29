@@ -640,9 +640,10 @@ jobs:
           - 6.9.21
           - 6.9.22
           - 6.9.23
+          - 6.9.24
         image-base: [jdk11]
         include:
-          - dse-version: 6.9.23
+          - dse-version: 6.9.24
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -731,9 +732,10 @@ jobs:
           - 6.9.21
           - 6.9.22
           - 6.9.23
+          - 6.9.24
         image-base: [ubi]
         include:
-          - dse-version: 6.9.23
+          - dse-version: 6.9.24
             latest: true
     runs-on: ubuntu-latest
     steps:
