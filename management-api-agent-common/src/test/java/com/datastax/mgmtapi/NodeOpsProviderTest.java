@@ -77,6 +77,20 @@ public class NodeOpsProviderTest {
   }
 
   @Test
+  public void testAddIdentityToRole() {
+    nodeOpsProvider.addIdentityToRole("spiffe://example.test/user/1", "schema_reader");
+
+    verify(cassandraApi).addIdentityToRole("spiffe://example.test/user/1", "schema_reader");
+  }
+
+  @Test
+  public void testDeleteIdentityToRole() {
+    nodeOpsProvider.deleteIdentityToRole("spiffe://example.test/user/1");
+
+    verify(cassandraApi).deleteIdentityToRole("spiffe://example.test/user/1");
+  }
+
+  @Test
   public void testFullRepair() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;

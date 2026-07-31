@@ -167,6 +167,17 @@ public class NodeOpsProvider {
     return ShimLoader.instance.get().getStorageService().getReleaseVersion();
   }
 
+  @Rpc(name = "addIdentityToRole")
+  public void addIdentityToRole(
+      @RpcParam(name = "identity") String identity, @RpcParam(name = "role") String role) {
+    ShimLoader.instance.get().addIdentityToRole(identity, role);
+  }
+
+  @Rpc(name = "deleteIdentityToRole")
+  public void deleteIdentityToRole(@RpcParam(name = "identity") String identity) {
+    ShimLoader.instance.get().deleteIdentityToRole(identity);
+  }
+
   @Rpc(name = "decommission")
   public String decommission(
       @RpcParam(name = "force") boolean force, @RpcParam(name = "async") boolean async)

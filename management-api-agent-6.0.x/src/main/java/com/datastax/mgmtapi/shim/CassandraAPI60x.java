@@ -29,8 +29,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.cassandra.auth.CassandraAuthorizer;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.Keyspace;
 import org.apache.cassandra.db.compaction.CompactionManager;
@@ -429,5 +431,22 @@ public class CassandraAPI60x implements CassandraAPI {
   @Override
   public Collection<Token> getTokens() {
     return ClusterMetadataService.instance().metadata().tokenMap.tokens();
+  }
+
+  @Override
+  public void addIdentityToRole(String identity, String role) {
+    QueryProcessor.execute(
+        "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?)",
+        CassandraAuthorizer.authWriteConsistencyLevel(),
+        identity,
+        role);
+  }
+
+  @Override
+  public void deleteIdentityToRole(String identity) {
+    QueryProcessor.execute(
+        "DELETE FROM system_auth.identity_to_role WHERE identity = ?",
+        CassandraAuthorizer.authWriteConsistencyLevel(),
+        identity);
   }
 }
