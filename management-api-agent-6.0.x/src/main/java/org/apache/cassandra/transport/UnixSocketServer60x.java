@@ -82,6 +82,7 @@ public class UnixSocketServer60x {
         throws Exception {
       final Message.Response response;
       final UnixSocketConnection connection;
+      final Envelope.Header requestHeader = request.getSource().header;
       long queryStartNanoTime = System.nanoTime();
 
       try {
@@ -92,9 +93,7 @@ public class UnixSocketServer60x {
 
         QueryState qstate =
             connection.validateNewMessage(
-                request.type, connection.getVersion(), request.getStreamId());
-        // logger.info("Executing {} {} {}", request, connection.getVersion(),
-        // request.getStreamId());
+                request.type, connection.getVersion(), requestHeader.streamId);
 
         Message.Response r =
             request.execute(qstate, Dispatcher.RequestTime.forImmediateExecution());
@@ -102,7 +101,6 @@ public class UnixSocketServer60x {
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
 
-        response.setStreamId(request.getStreamId());
         response.setWarnings(ClientWarn.instance.getWarnings());
         response.attach(connection);
         connection.applyStateTransition(request.type, response.type);
@@ -112,14 +110,15 @@ public class UnixSocketServer60x {
         ExceptionHandlers.UnexpectedChannelExceptionHandler handler =
             new ExceptionHandlers.UnexpectedChannelExceptionHandler(ctx.channel(), true);
         ctx.writeAndFlush(
-            ErrorMessage.fromException(t, handler).setStreamId(request.getStreamId()));
+            ErrorMessage.fromExceptionNoStreamId(t, handler)
+                .encode(requestHeader.version, requestHeader.streamId));
         request.getSource().release();
         return;
       } finally {
         ClientWarn.instance.resetWarnings();
       }
 
-      ctx.writeAndFlush(response);
+      ctx.writeAndFlush(response.encode(requestHeader.version, requestHeader.streamId));
       request.getSource().release();
     }
   }
@@ -239,7 +238,7 @@ public class UnixSocketServer60x {
             supportedOptions.put(
                 StartupMessage.PROTOCOL_VERSIONS, ProtocolVersion.supportedVersions());
             SupportedMessage supported = new SupportedMessage(supportedOptions);
-            outbound = supported.encode(inbound.header.version);
+            outbound = supported.encode(inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound);
             break;
 
@@ -277,7 +276,7 @@ public class UnixSocketServer60x {
             pipeline.addBefore(
                 INITIAL_HANDLER, MESSAGE_DECODER, PreV5Handlers.ProtocolDecoder.instance);
             pipeline.addBefore(
-                INITIAL_HANDLER, MESSAGE_ENCODER, PreV5Handlers.ProtocolEncoder.instance);
+                INITIAL_HANDLER, MESSAGE_ENCODER, PreV5Handlers.EventMessageEncoder.instance);
             pipeline.addBefore(INITIAL_HANDLER, LEGACY_MESSAGE_PROCESSOR, new UnixSockMessage());
             pipeline.remove(INITIAL_HANDLER);
 
@@ -294,19 +293,19 @@ public class UnixSocketServer60x {
               // bypass authentication
               response = new ReadyMessage();
 
-            outbound = response.encode(inbound.header.version);
+            outbound = response.encode(inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound, promise);
             logger.debug("Configured pipeline: {}", ctx.pipeline());
             break;
 
           default:
             ErrorMessage error =
-                ErrorMessage.fromException(
+                ErrorMessage.fromTransportException(
                     new ProtocolException(
                         String.format(
                             "Unexpected message %s, expecting STARTUP or OPTIONS",
                             inbound.header.type)));
-            outbound = error.encode(inbound.header.version);
+            outbound = error.encode(inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound);
         }
       } finally {
