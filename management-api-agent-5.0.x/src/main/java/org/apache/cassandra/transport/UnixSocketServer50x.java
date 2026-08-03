@@ -6,6 +6,7 @@
 package org.apache.cassandra.transport;
 
 import com.datastax.mgmtapi.ipc.IPCController;
+import com.google.common.base.Predicate;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -17,6 +18,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.VoidChannelPromise;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.Attribute;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,12 +34,17 @@ import org.apache.cassandra.transport.messages.ErrorMessage;
 import org.apache.cassandra.transport.messages.ReadyMessage;
 import org.apache.cassandra.transport.messages.StartupMessage;
 import org.apache.cassandra.transport.messages.SupportedMessage;
+import org.apache.cassandra.utils.CassandraVersion;
+import org.apache.cassandra.utils.FBUtilities;
 import org.apache.cassandra.utils.JVMStabilityInspector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UnixSocketServer50x {
   private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
+  private static final CassandraVersion CASSANDRA_21508_VERSION = new CassandraVersion("5.0.9");
+  private static final boolean USE_CASSANDRA_21508_TRANSPORT_API =
+      useCassandra21508TransportApi(FBUtilities.getReleaseVersionString());
 
   // Names of handlers used in pre-V5 pipelines
   private static final String ENVELOPE_DECODER = "envelopeDecoder";
@@ -49,6 +56,62 @@ public class UnixSocketServer50x {
   private static final String LEGACY_MESSAGE_PROCESSOR = "legacyCqlProcessor";
   private static final String INITIAL_HANDLER = "initialHandler";
   private static final String EXCEPTION_HANDLER = "exceptionHandler";
+
+  static boolean useCassandra21508TransportApi(String version) {
+    CassandraVersion currentVersion = new CassandraVersion(version);
+    return currentVersion.compareTo(CASSANDRA_21508_VERSION, true) >= 0;
+  }
+
+  private static int getStreamId(Message.Request request) throws ReflectiveOperationException {
+    if (USE_CASSANDRA_21508_TRANSPORT_API) return request.getSource().header.streamId;
+
+    Method getStreamId = Message.class.getMethod("getStreamId");
+    return (int) getStreamId.invoke(request);
+  }
+
+  static Object responseForWrite(Message.Response response, ProtocolVersion version, int streamId)
+      throws ReflectiveOperationException {
+    if (USE_CASSANDRA_21508_TRANSPORT_API) return encode(response, version, streamId);
+
+    Method setStreamId = Message.class.getMethod("setStreamId", int.class);
+    setStreamId.invoke(response, streamId);
+    return response;
+  }
+
+  static Envelope encode(Message message, ProtocolVersion version, int streamId)
+      throws ReflectiveOperationException {
+    Method encode =
+        USE_CASSANDRA_21508_TRANSPORT_API
+            ? Message.class.getMethod("encode", ProtocolVersion.class, int.class)
+            : Message.class.getMethod("encode", ProtocolVersion.class);
+    return (Envelope)
+        (USE_CASSANDRA_21508_TRANSPORT_API
+            ? encode.invoke(message, version, streamId)
+            : encode.invoke(message, version));
+  }
+
+  static ErrorMessage errorFromException(
+      Throwable throwable, Predicate<Throwable> unexpectedExceptionHandler)
+      throws ReflectiveOperationException {
+    String methodName =
+        USE_CASSANDRA_21508_TRANSPORT_API ? "fromExceptionNoStreamId" : "fromException";
+    if (unexpectedExceptionHandler == null) {
+      Method fromException = ErrorMessage.class.getMethod(methodName, Throwable.class);
+      return (ErrorMessage) fromException.invoke(null, throwable);
+    }
+
+    Method fromException =
+        ErrorMessage.class.getMethod(methodName, Throwable.class, Predicate.class);
+    return (ErrorMessage) fromException.invoke(null, throwable, unexpectedExceptionHandler);
+  }
+
+  static ChannelHandler protocolEncoder() throws ReflectiveOperationException {
+    String className =
+        USE_CASSANDRA_21508_TRANSPORT_API
+            ? "org.apache.cassandra.transport.PreV5Handlers$EventMessageEncoder"
+            : "org.apache.cassandra.transport.PreV5Handlers$ProtocolEncoder";
+    return (ChannelHandler) Class.forName(className).getField("instance").get(null);
+  }
 
   public static ChannelInitializer<Channel> makeSocketInitializer(
       final Server.ConnectionTracker connectionTracker) {
@@ -82,6 +145,8 @@ public class UnixSocketServer50x {
         throws Exception {
       final Message.Response response;
       final UnixSocketConnection connection;
+      final Envelope.Header requestHeader = request.getSource().header;
+      final int requestStreamId = getStreamId(request);
 
       try {
         assert request.connection() instanceof UnixSocketConnection;
@@ -90,10 +155,7 @@ public class UnixSocketServer50x {
           ClientWarn.instance.captureWarnings();
 
         QueryState qstate =
-            connection.validateNewMessage(
-                request.type, connection.getVersion(), request.getStreamId());
-        // logger.info("Executing {} {} {}", request, connection.getVersion(),
-        // request.getStreamId());
+            connection.validateNewMessage(request.type, connection.getVersion(), requestStreamId);
 
         Message.Response r =
             request.execute(qstate, Dispatcher.RequestTime.forImmediateExecution());
@@ -101,7 +163,6 @@ public class UnixSocketServer50x {
         // UnixSocket has no auth
         response = r instanceof AuthenticateMessage ? new ReadyMessage() : r;
 
-        response.setStreamId(request.getStreamId());
         response.setWarnings(ClientWarn.instance.getWarnings());
         response.attach(connection);
         connection.applyStateTransition(request.type, response.type);
@@ -111,14 +172,15 @@ public class UnixSocketServer50x {
         ExceptionHandlers.UnexpectedChannelExceptionHandler handler =
             new ExceptionHandlers.UnexpectedChannelExceptionHandler(ctx.channel(), true);
         ctx.writeAndFlush(
-            ErrorMessage.fromException(t, handler).setStreamId(request.getStreamId()));
+            responseForWrite(
+                errorFromException(t, handler), requestHeader.version, requestStreamId));
         request.getSource().release();
         return;
       } finally {
         ClientWarn.instance.resetWarnings();
       }
 
-      ctx.writeAndFlush(response);
+      ctx.writeAndFlush(responseForWrite(response, requestHeader.version, requestStreamId));
       request.getSource().release();
     }
   }
@@ -238,7 +300,7 @@ public class UnixSocketServer50x {
             supportedOptions.put(
                 StartupMessage.PROTOCOL_VERSIONS, ProtocolVersion.supportedVersions());
             SupportedMessage supported = new SupportedMessage(supportedOptions);
-            outbound = supported.encode(inbound.header.version);
+            outbound = encode(supported, inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound);
             break;
 
@@ -275,8 +337,7 @@ public class UnixSocketServer50x {
             pipeline.addBefore(INITIAL_HANDLER, MESSAGE_COMPRESSOR, Envelope.Compressor.instance);
             pipeline.addBefore(
                 INITIAL_HANDLER, MESSAGE_DECODER, PreV5Handlers.ProtocolDecoder.instance);
-            pipeline.addBefore(
-                INITIAL_HANDLER, MESSAGE_ENCODER, PreV5Handlers.ProtocolEncoder.instance);
+            pipeline.addBefore(INITIAL_HANDLER, MESSAGE_ENCODER, protocolEncoder());
             pipeline.addBefore(INITIAL_HANDLER, LEGACY_MESSAGE_PROCESSOR, new UnixSockMessage());
             pipeline.remove(INITIAL_HANDLER);
 
@@ -293,19 +354,20 @@ public class UnixSocketServer50x {
               // bypass authentication
               response = new ReadyMessage();
 
-            outbound = response.encode(inbound.header.version);
+            outbound = encode(response, inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound, promise);
             logger.debug("Configured pipeline: {}", ctx.pipeline());
             break;
 
           default:
             ErrorMessage error =
-                ErrorMessage.fromException(
+                errorFromException(
                     new ProtocolException(
                         String.format(
                             "Unexpected message %s, expecting STARTUP or OPTIONS",
-                            inbound.header.type)));
-            outbound = error.encode(inbound.header.version);
+                            inbound.header.type)),
+                    null);
+            outbound = encode(error, inbound.header.version, inbound.header.streamId);
             ctx.writeAndFlush(outbound);
         }
       } finally {
