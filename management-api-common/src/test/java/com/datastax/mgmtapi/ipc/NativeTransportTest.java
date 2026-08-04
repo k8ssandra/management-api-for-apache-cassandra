@@ -25,10 +25,6 @@ import org.junit.Test;
 
 /**
  * Unit tests for {@link NativeTransport}.
- *
- * <p>Each test uses {@code assumeTrue(isNativeTransportAvailable())} so it is skipped gracefully
- * when the test JVM cannot load the native library (e.g. CI environments that restrict {@code
- * setAccessible}). On a normal Linux or macOS developer machine all tests run.
  */
 public class NativeTransportTest {
 

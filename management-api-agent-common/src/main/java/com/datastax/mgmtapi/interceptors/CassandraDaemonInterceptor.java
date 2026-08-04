@@ -58,11 +58,7 @@ public class CassandraDaemonInterceptor {
       NodeOpsProvider.instance.get().register();
 
       if (!NativeTransport.isNativeTransportAvailable()) {
-        logger.warn(
-            "Native transport (epoll/kqueue) is not available. The Management API IPC server "
-                + "over Unix domain socket cannot start. This is only acceptable in "
-                + "development, testing, or lab environments.");
-        return;
+        throw new RuntimeException("Event loop needed");
       }
 
       File unixSock = Paths.get(socketFileStr).toFile();
