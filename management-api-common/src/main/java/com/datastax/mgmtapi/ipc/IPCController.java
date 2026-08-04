@@ -59,8 +59,6 @@ public class IPCController {
       }
     }
 
-    // Unix domain sockets require native transport; NativeTransport throws with a clear
-    // message if neither epoll nor kqueue is available.
     if (isClient) {
       b = b.channel(NativeTransport.nativeDomainSocketChannelClass());
     } else {

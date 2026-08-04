@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi.ipc;
 
+import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
 import io.netty.channel.epoll.Epoll;
@@ -19,15 +20,11 @@ import io.netty.channel.kqueue.KQueueServerDomainSocketChannel;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Centralises Netty transport selection: epoll (Linux), kqueue (macOS), or NIO (last resort).
  *
- * <p>Epoll is the preferred transport. Falling back to kqueue or NIO results in degraded
- * performance and a warning log. The warning is emitted once at class load time, then suppressed on
- * subsequent calls to avoid log spam.
+ * <p>Epoll is the preferred transport. Falling back to kqueue or NIO if available.
  *
  * <p>Unix-domain-socket channels ({@link #nativeDomainSocketChannelClass()}, {@link
  * #nativeServerDomainSocketChannelClass()}, {@link #nativeEventLoopGroup(int)}) require native
@@ -39,26 +36,8 @@ import org.slf4j.LoggerFactory;
  */
 public final class NativeTransport {
 
-  private static final Logger logger = LoggerFactory.getLogger(NativeTransport.class);
-
   private static final boolean EPOLL_AVAILABLE = Epoll.isAvailable();
   private static final boolean KQUEUE_AVAILABLE = KQueue.isAvailable();
-
-  // Warn once at class-load time whenever epoll is not the active transport.
-  static {
-    if (!EPOLL_AVAILABLE && KQUEUE_AVAILABLE) {
-      logger.warn(
-          "Epoll is not available; falling back to kqueue. This results in degraded performance "
-              + "compared to epoll and should only be acceptable in development, testing, or lab "
-              + "environments.");
-    } else if (!EPOLL_AVAILABLE) {
-      logger.warn(
-          "Neither epoll nor kqueue is available. Falling back to Java NIO for TCP connections. "
-              + "This results in degraded performance and should only be acceptable in "
-              + "development, testing, or lab environments. Unix domain socket communication "
-              + "requires native transport and will not be available.");
-    }
-  }
 
   private NativeTransport() {}
 
@@ -83,50 +62,43 @@ public final class NativeTransport {
     if (KQUEUE_AVAILABLE) {
       return new KQueueEventLoopGroup(nThreads);
     }
-    throw new UnsupportedOperationException(
-        "Neither epoll nor kqueue is available. Unix domain socket communication requires "
-            + "native transport (epoll on Linux, kqueue on macOS/BSD).");
+    throw new UnsupportedOperationException("Neither epoll nor kqueue is available.");
   }
 
   /**
-   * Returns the native {@link io.netty.channel.Channel} class for a Unix domain socket client.
+   * Returns the native {@link Channel} class for a Unix domain socket client.
    *
    * <p>Throws {@link UnsupportedOperationException} if native transport is unavailable.
    */
-  public static Class<? extends io.netty.channel.Channel> nativeDomainSocketChannelClass() {
+  public static Class<? extends Channel> nativeDomainSocketChannelClass() {
     if (EPOLL_AVAILABLE) {
       return EpollDomainSocketChannel.class;
     }
     if (KQUEUE_AVAILABLE) {
       return KQueueDomainSocketChannel.class;
     }
-    throw new UnsupportedOperationException(
-        "Neither epoll nor kqueue is available. Unix domain socket channels require native "
-            + "transport.");
+    throw new UnsupportedOperationException("Neither epoll nor kqueue is available.");
   }
 
   /**
-   * Returns the native {@link io.netty.channel.Channel} class for a Unix domain socket server.
+   * Returns the native {@link Channel} class for a Unix domain socket server.
    *
    * <p>Throws {@link UnsupportedOperationException} if native transport is unavailable.
    */
-  public static Class<? extends io.netty.channel.Channel> nativeServerDomainSocketChannelClass() {
+  public static Class<? extends Channel> nativeServerDomainSocketChannelClass() {
     if (EPOLL_AVAILABLE) {
       return EpollServerDomainSocketChannel.class;
     }
     if (KQUEUE_AVAILABLE) {
       return KQueueServerDomainSocketChannel.class;
     }
-    throw new UnsupportedOperationException(
-        "Neither epoll nor kqueue is available. Unix domain socket server channels require "
-            + "native transport.");
+    throw new UnsupportedOperationException("Neither epoll nor kqueue is available.");
   }
 
   /**
    * Returns an {@link EventLoopGroup} for TCP socket connections.
    *
-   * <p>Prefers epoll; falls back to kqueue or NIO. The fallback warning is logged once at class
-   * load time.
+   * <p>Prefers epoll; falls back to kqueue or {@link NioEventLoopGroup}.
    *
    * @param nThreads number of threads in the event loop group
    */

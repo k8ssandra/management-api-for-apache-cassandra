@@ -291,11 +291,8 @@ public class Cli implements Runnable {
     }
 
     if (!NativeTransport.isNativeTransportAvailable()) {
-      logger.warn(
-          "Native transport (epoll on Linux, kqueue on macOS/BSD) is not available. "
-              + "Falling back to Java NIO for TCP connections. Unix domain socket "
-              + "communication with Cassandra will not be available. "
-              + "This fallback is only acceptable in development, testing, or lab environments.");
+      logger.error("Native transport is not available.");
+      System.exit(3);
     }
   }
 
