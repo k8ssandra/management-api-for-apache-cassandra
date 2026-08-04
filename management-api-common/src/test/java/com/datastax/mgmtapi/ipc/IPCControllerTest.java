@@ -10,10 +10,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
@@ -145,20 +141,10 @@ public class IPCControllerTest {
   }
 
   private static boolean shouldRun() {
-    return Epoll.isAvailable() || KQueue.isAvailable();
+    return NativeTransport.isNativeTransportAvailable();
   }
 
   private EventLoopGroup eventLoop() {
-    if (Epoll.isAvailable()) {
-      Epoll.ensureAvailability();
-      return new EpollEventLoopGroup(1);
-    }
-
-    if (KQueue.isAvailable()) {
-      KQueue.ensureAvailability();
-      return new KQueueEventLoopGroup(1);
-    }
-
-    throw new RuntimeException();
+    return NativeTransport.nativeEventLoopGroup(1);
   }
 }

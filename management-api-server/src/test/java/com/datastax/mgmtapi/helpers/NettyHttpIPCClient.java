@@ -8,16 +8,13 @@ package com.datastax.mgmtapi.helpers;
 import static org.junit.Assert.fail;
 
 import com.datastax.mgmtapi.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -176,16 +173,6 @@ public class NettyHttpIPCClient {
   }
 
   private EventLoopGroup eventLoop() {
-    if (Epoll.isAvailable()) {
-      Epoll.ensureAvailability();
-      return new EpollEventLoopGroup(1);
-    }
-
-    if (KQueue.isAvailable()) {
-      KQueue.ensureAvailability();
-      return new KQueueEventLoopGroup(1);
-    }
-
-    throw new RuntimeException();
+    return NativeTransport.nativeEventLoopGroup(1);
   }
 }

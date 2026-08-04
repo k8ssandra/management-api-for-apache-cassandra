@@ -8,12 +8,11 @@ package com.datastax.mgmtapi.interceptors;
 import com.datastax.mgmtapi.NodeOpsProvider;
 import com.datastax.mgmtapi.ShimLoader;
 import com.datastax.mgmtapi.ipc.IPCController;
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import com.google.common.collect.ImmutableMap;
 import io.k8ssandra.metrics.interceptors.MetricsInterceptor;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.nio.file.Paths;
@@ -58,11 +57,13 @@ public class CassandraDaemonInterceptor {
 
       NodeOpsProvider.instance.get().register();
 
-      if (!Epoll.isAvailable()) throw new RuntimeException("Event loop needed");
+      if (!NativeTransport.isNativeTransportAvailable()) {
+        throw new RuntimeException("Event loop needed");
+      }
 
       File unixSock = Paths.get(socketFileStr).toFile();
 
-      final EventLoopGroup group = new EpollEventLoopGroup(8);
+      final EventLoopGroup group = NativeTransport.nativeEventLoopGroup(8);
       final Server.ConnectionTracker connectionTracker = getTracker();
 
       IPCController controller =
