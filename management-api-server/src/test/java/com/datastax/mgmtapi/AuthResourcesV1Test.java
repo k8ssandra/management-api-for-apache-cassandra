@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,7 +53,26 @@ public class AuthResourcesV1Test {
     assertEquals("OK", response.getContentAsString());
     verify(cqlService)
         .executePreparedStatement(
-            any(), eq("CALL NodeOps.addIdentityToRole(?, ?)"), eq(IDENTITY), eq(ROLE));
+            any(), eq("CALL NodeOps.addIdentityToRole(?, ?, ?)"), eq(IDENTITY), eq(ROLE), isNull());
+  }
+
+  @Test
+  public void createsIdentityToRoleMappingWithTtl() throws Exception {
+    mockReleaseVersion("6.0.0");
+    MockHttpRequest request =
+        MockHttpRequest.post(PATH)
+            .contentType("application/json")
+            .content(
+                ("{\"identity\":\"" + IDENTITY + "\",\"role\":\"" + ROLE + "\",\"ttl\":3600}")
+                    .getBytes());
+
+    MockHttpResponse response = invoke(request);
+
+    assertEquals(HttpStatus.SC_OK, response.getStatus());
+    assertEquals("OK", response.getContentAsString());
+    verify(cqlService)
+        .executePreparedStatement(
+            any(), eq("CALL NodeOps.addIdentityToRole(?, ?, ?)"), eq(IDENTITY), eq(ROLE), eq(3600));
   }
 
   @Test

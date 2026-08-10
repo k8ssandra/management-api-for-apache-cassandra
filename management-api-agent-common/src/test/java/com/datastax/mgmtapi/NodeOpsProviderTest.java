@@ -78,9 +78,9 @@ public class NodeOpsProviderTest {
 
   @Test
   public void testAddIdentityToRole() {
-    nodeOpsProvider.addIdentityToRole("spiffe://example.test/user/1", "schema_reader");
+    nodeOpsProvider.addIdentityToRole("spiffe://example.test/user/1", "schema_reader", 3600);
 
-    verify(cassandraApi).addIdentityToRole("spiffe://example.test/user/1", "schema_reader");
+    verify(cassandraApi).addIdentityToRole("spiffe://example.test/user/1", "schema_reader", 3600);
   }
 
   @Test

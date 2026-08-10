@@ -2324,6 +2324,11 @@
           },
           "role" : {
             "type" : "string"
+          },
+          "ttl" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Time-to-live in seconds"
           }
         },
         "required" : [ "identity", "role" ]

@@ -68,9 +68,10 @@ public class AuthResources extends BaseResources {
 
           app.cqlService.executePreparedStatement(
               app.dbUnixSocketFile,
-              "CALL NodeOps.addIdentityToRole(?, ?)",
+              "CALL NodeOps.addIdentityToRole(?, ?, ?)",
               request.identity,
-              request.role);
+              request.role,
+              request.ttl);
           return Response.ok("OK").build();
         });
   }

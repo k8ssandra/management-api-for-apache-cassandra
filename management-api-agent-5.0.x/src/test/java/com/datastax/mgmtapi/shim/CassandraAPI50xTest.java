@@ -25,7 +25,7 @@ public class CassandraAPI50xTest {
           .when(CassandraAuthorizer::authWriteConsistencyLevel)
           .thenReturn(ConsistencyLevel.LOCAL_QUORUM);
 
-      new CassandraAPI50x().addIdentityToRole(IDENTITY, ROLE);
+      new CassandraAPI50x().addIdentityToRole(IDENTITY, ROLE, null);
 
       queryProcessor.verify(
           () ->
@@ -34,6 +34,27 @@ public class CassandraAPI50xTest {
                   ConsistencyLevel.LOCAL_QUORUM,
                   IDENTITY,
                   ROLE));
+    }
+  }
+
+  @Test
+  public void addsIdentityToRoleWithTtlUsingAuthWriteConsistency() {
+    try (MockedStatic<CassandraAuthorizer> authorizer = mockStatic(CassandraAuthorizer.class);
+        MockedStatic<QueryProcessor> queryProcessor = mockStatic(QueryProcessor.class)) {
+      authorizer
+          .when(CassandraAuthorizer::authWriteConsistencyLevel)
+          .thenReturn(ConsistencyLevel.LOCAL_QUORUM);
+
+      new CassandraAPI50x().addIdentityToRole(IDENTITY, ROLE, 3600);
+
+      queryProcessor.verify(
+          () ->
+              QueryProcessor.execute(
+                  "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?) USING TTL ?",
+                  ConsistencyLevel.LOCAL_QUORUM,
+                  IDENTITY,
+                  ROLE,
+                  3600));
     }
   }
 

@@ -353,12 +353,21 @@ public class CassandraAPI50x implements CassandraAPI {
   }
 
   @Override
-  public void addIdentityToRole(String identity, String role) {
-    QueryProcessor.execute(
-        "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?)",
-        CassandraAuthorizer.authWriteConsistencyLevel(),
-        identity,
-        role);
+  public void addIdentityToRole(String identity, String role, Integer ttl) {
+    if (ttl == null) {
+      QueryProcessor.execute(
+          "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?)",
+          CassandraAuthorizer.authWriteConsistencyLevel(),
+          identity,
+          role);
+    } else {
+      QueryProcessor.execute(
+          "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?) USING TTL ?",
+          CassandraAuthorizer.authWriteConsistencyLevel(),
+          identity,
+          role,
+          ttl);
+    }
   }
 
   @Override

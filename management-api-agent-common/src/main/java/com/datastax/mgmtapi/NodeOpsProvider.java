@@ -169,8 +169,10 @@ public class NodeOpsProvider {
 
   @Rpc(name = "addIdentityToRole")
   public void addIdentityToRole(
-      @RpcParam(name = "identity") String identity, @RpcParam(name = "role") String role) {
-    ShimLoader.instance.get().addIdentityToRole(identity, role);
+      @RpcParam(name = "identity") String identity,
+      @RpcParam(name = "role") String role,
+      @RpcParam(name = "ttl") Integer ttl) {
+    ShimLoader.instance.get().addIdentityToRole(identity, role, ttl);
   }
 
   @Rpc(name = "deleteIdentityToRole")
