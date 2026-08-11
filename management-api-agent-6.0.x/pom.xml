@@ -16,7 +16,7 @@
   <version>${revision}</version>
   <artifactId>datastax-mgmtapi-agent-6.0.x</artifactId>
   <properties>
-    <cassandra.version>6.0-alpha2-SNAPSHOT</cassandra.version>
+    <cassandra.version>6.0-alpha3-SNAPSHOT</cassandra.version>
   </properties>
   <dependencies>
     <!-- Need to explicitly declare SLF4J as "provided" to avoid it being bundled into the resulting agent jarfile -->
