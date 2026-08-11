@@ -28,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.cassandra.auth.CassandraAuthorizer;
 import org.apache.cassandra.auth.IRoleManager;
 import org.apache.cassandra.config.DatabaseDescriptor;
+import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
 import org.apache.cassandra.db.Keyspace;
 import org.apache.cassandra.db.compaction.CompactionManager;
@@ -348,5 +350,31 @@ public class CassandraAPI50x implements CassandraAPI {
   @Override
   public HintsService getHintsService() {
     return HintsService.instance;
+  }
+
+  @Override
+  public void addIdentityToRole(String identity, String role, Integer ttl) {
+    if (ttl == null) {
+      QueryProcessor.execute(
+          "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?)",
+          CassandraAuthorizer.authWriteConsistencyLevel(),
+          identity,
+          role);
+    } else {
+      QueryProcessor.execute(
+          "INSERT INTO system_auth.identity_to_role (identity, role) VALUES (?, ?) USING TTL ?",
+          CassandraAuthorizer.authWriteConsistencyLevel(),
+          identity,
+          role,
+          ttl);
+    }
+  }
+
+  @Override
+  public void deleteIdentityToRole(String identity) {
+    QueryProcessor.execute(
+        "DELETE FROM system_auth.identity_to_role WHERE identity = ?",
+        CassandraAuthorizer.authWriteConsistencyLevel(),
+        identity);
   }
 }

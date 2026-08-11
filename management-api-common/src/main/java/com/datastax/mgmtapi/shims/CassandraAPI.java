@@ -125,4 +125,14 @@ public interface CassandraAPI {
   default Collection<Token> getTokens() {
     return StorageService.instance.getTokenMetadata().sortedTokens();
   }
+
+  default void addIdentityToRole(String identity, String role, Integer ttl) {
+    throw new UnsupportedOperationException(
+        "Identity-to-role operations are only supported on HCD CC5 and Cassandra 5.0 or newer");
+  }
+
+  default void deleteIdentityToRole(String identity) {
+    throw new UnsupportedOperationException(
+        "Identity-to-role operations are only supported on HCD CC5 and Cassandra 5.0 or newer");
+  }
 }

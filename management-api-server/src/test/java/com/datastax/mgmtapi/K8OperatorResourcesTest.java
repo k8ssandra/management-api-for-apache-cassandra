@@ -97,6 +97,10 @@ public class K8OperatorResourcesTest {
         new ManagementApplication(null, null, null, context.cqlService, null);
 
     context.dispatcher.getRegistry().addSingletonResource(new AuthResources(app));
+    context
+        .dispatcher
+        .getRegistry()
+        .addSingletonResource(new com.datastax.mgmtapi.resources.v1.AuthResources(app));
     context.dispatcher.getRegistry().addSingletonResource(new K8OperatorResources(app));
     context.dispatcher.getRegistry().addSingletonResource(new KeyspaceOpsResources(app));
     context

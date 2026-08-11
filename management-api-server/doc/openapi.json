@@ -1550,6 +1550,68 @@
         "summary" : "Indicates whether the Cassandra service is ready to service requests"
       }
     },
+    "/api/v1/ops/auth/identity_to_role" : {
+      "delete" : {
+        "operationId" : "deleteIdentityToRole",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IdentityRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Identity-to-role mapping deleted"
+          },
+          "400" : {
+            "description" : "Invalid input or unsupported Cassandra version"
+          }
+        },
+        "summary" : "Deletes an identity-to-role mapping"
+      },
+      "post" : {
+        "operationId" : "addIdentityToRole",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/IdentityToRoleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "text/plain" : {
+                "example" : "OK",
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "Identity-to-role mapping created"
+          },
+          "400" : {
+            "description" : "Invalid input or unsupported Cassandra version"
+          }
+        },
+        "summary" : "Creates or updates an identity-to-role mapping"
+      }
+    },
     "/api/v1/ops/keyspace/cleanup" : {
       "post" : {
         "operationId" : "cleanup_v1",
@@ -2244,6 +2306,32 @@
             "type" : "string"
           }
         }
+      },
+      "IdentityRequest" : {
+        "type" : "object",
+        "properties" : {
+          "identity" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "identity" ]
+      },
+      "IdentityToRoleRequest" : {
+        "type" : "object",
+        "properties" : {
+          "identity" : {
+            "type" : "string"
+          },
+          "role" : {
+            "type" : "string"
+          },
+          "ttl" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Time-to-live in seconds"
+          }
+        },
+        "required" : [ "identity", "role" ]
       },
       "Job" : {
         "type" : "object",

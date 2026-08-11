@@ -67,6 +67,7 @@ public class ManagementApplication extends Application {
             new TableOpsResources(this),
             new com.datastax.mgmtapi.resources.v1.TableOpsResources(this),
             new AuthResources(this),
+            new com.datastax.mgmtapi.resources.v1.AuthResources(this),
             new RepairResourcesV2(this),
             new TokenResourcesV2(this),
             new OpenApiResource(),
