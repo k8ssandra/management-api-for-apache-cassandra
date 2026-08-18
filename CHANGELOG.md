@@ -11,6 +11,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [CHANGE] [#787](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/787) Update Netty to 4.1.137.Final
+* [FEATURE] [#783](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/783) Add new endpoints for identity_to_role management
 * [ENHANCEMENT] [#782](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/782) Newer Cassandra patch versions (and trunk) implemented CASSANDRA-21508 that changed method names and parameters for transport layer.
 
 ## v0.1.124 [2026-07-29]
