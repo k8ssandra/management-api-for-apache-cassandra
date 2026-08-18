@@ -8,18 +8,18 @@ management-api-agent-6.0.x.
 
 For Cassandra versions that have been publicly released and have Maven artifacts published, you can simply run
 the main project Maven build. The pom.xml file in this sub-module should have the `cassandra5.version` property
-set to the latest published version (`5.0.8` as of this writing). If you wish to build for a different
-published version, for example `5.0.9` when it is released, specify the version:
+set to the latest published version (`5.0.9` as of this writing). If you wish to build for a different
+published version, for example `5.0.10` when it is released, specify the version:
 
 ```sh
-mvn package -Dcassandra5.version=5.0.9
+mvn package -Dcassandra5.version=5.0.10
 ```
 
 ## Docker image builds
 
 As Management API releases are published, a build of this image will be available in DockerHub at:
 
-    k8ssandra/cass-management-api:5.0.8
+    k8ssandra/cass-management-api:5.0.9
 
 ## Known Limitations
 
@@ -29,7 +29,7 @@ The latest [MCAC agent](https://github.com/datastax/metric-collector-for-apache-
 If you want to use this image with Docker, you must set the environment variable `MGMT_API_DISABLE_MCAC` to `true`:
 
 ```sh
-docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.8
+docker run -e MGMT_API_DISABLE_MCAC=true k8ssandra/cass-management-api:5.0.9
 ```
 
 ### Netty libraries for Metrics
