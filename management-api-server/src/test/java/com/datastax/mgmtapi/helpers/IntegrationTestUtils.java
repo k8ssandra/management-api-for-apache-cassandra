@@ -5,9 +5,8 @@
  */
 package com.datastax.mgmtapi.helpers;
 
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import com.google.common.collect.ImmutableList;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.kqueue.KQueue;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -20,22 +19,7 @@ public class IntegrationTestUtils {
   private static final Logger logger = LoggerFactory.getLogger(IntegrationTestUtils.class);
 
   public static boolean shouldRun() {
-    boolean epollAvailable = false;
-    boolean kqueueAvailable = false;
-
-    try {
-      epollAvailable = Epoll.isAvailable();
-    } catch (Exception e) {
-      logger.debug("Epoll is not available", e);
-    }
-
-    try {
-      kqueueAvailable = KQueue.isAvailable();
-    } catch (Exception e) {
-      logger.debug("KQueue is not available", e);
-    }
-
-    return epollAvailable || kqueueAvailable;
+    return NativeTransport.isNativeTransportAvailable();
   }
 
   public static List<String> getExtraArgs(Class testClass, String suffix, File tempDir) {

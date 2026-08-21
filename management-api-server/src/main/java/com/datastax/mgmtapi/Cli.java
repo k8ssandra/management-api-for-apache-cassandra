@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi;
 
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import com.datastax.mgmtapi.util.ShellUtils;
 import com.github.rvesse.airline.HelpOption;
 import com.github.rvesse.airline.SingleCommand;
@@ -28,10 +29,6 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.ssl.ClientAuth;
@@ -293,16 +290,9 @@ public class Cli implements Runnable {
       System.exit(3);
     }
 
-    if (PlatformDependent.isOsx()) {
-      if (!KQueue.isAvailable()) {
-        System.err.println("Missing KQueue netty libraries");
-        System.exit(3);
-      }
-    } else {
-      if (!Epoll.isAvailable()) {
-        System.err.println("Missing Epoll netty libraries");
-        System.exit(3);
-      }
+    if (!NativeTransport.isNativeTransportAvailable()) {
+      logger.error("Native transport is not available.");
+      System.exit(3);
     }
   }
 
@@ -583,8 +573,7 @@ public class Cli implements Runnable {
   }
 
   private NettyJaxrsServer startHTTPService(File socketFile) {
-    EventLoopGroup loopGroup =
-        PlatformDependent.isOsx() ? new KQueueEventLoopGroup(2) : new EpollEventLoopGroup(2);
+    EventLoopGroup loopGroup = NativeTransport.nativeEventLoopGroup(2);
 
     NettyJaxrsServer server = new NettyJaxrsIPCServer(loopGroup, socketFile);
     ResteasyDeployment deployment = new ResteasyDeploymentImpl();

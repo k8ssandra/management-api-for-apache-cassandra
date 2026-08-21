@@ -7,6 +7,7 @@ package com.datastax.mgmtapi;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+import com.datastax.mgmtapi.ipc.NativeTransport;
 import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.CqlSessionBuilder;
@@ -41,12 +42,6 @@ import com.datastax.oss.driver.internal.core.util.collection.SimpleQueryPlan;
 import com.google.common.collect.Maps;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDomainSocketChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
-import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDomainSocketChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.unix.DomainSocketAddress;
 import io.netty.util.concurrent.DefaultPromise;
 import io.netty.util.concurrent.EventExecutorGroup;
@@ -238,9 +233,7 @@ public class UnixSocketCQLAccess {
 
         @Override
         public Class<? extends Channel> channelClass() {
-          return Epoll.isAvailable()
-              ? EpollDomainSocketChannel.class
-              : KQueueDomainSocketChannel.class;
+          return NativeTransport.nativeDomainSocketChannelClass();
         }
 
         @Override
@@ -388,16 +381,6 @@ public class UnixSocketCQLAccess {
   }
 
   private static EventLoopGroup eventLoop() {
-    if (Epoll.isAvailable()) {
-      Epoll.ensureAvailability();
-      return new EpollEventLoopGroup(2);
-    }
-
-    if (KQueue.isAvailable()) {
-      KQueue.ensureAvailability();
-      return new KQueueEventLoopGroup(2);
-    }
-
-    throw new RuntimeException();
+    return NativeTransport.nativeEventLoopGroup(2);
   }
 }
