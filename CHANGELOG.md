@@ -12,6 +12,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ## unreleased
 * [ENHANCEMENT] [#794](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/794) Update Jackson to 2.22.2
 * [ENHANCEMENT] [#795](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/795) Update Netty to 4.1.138.Final
+* [ENHANCEMENT] [#797](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/797) Update Logback to 1.5.36
 
 ## v0.1.125 [2026-08-19]
 * [CHANGE] [#787](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/787) Update Netty to 4.1.137.Final
