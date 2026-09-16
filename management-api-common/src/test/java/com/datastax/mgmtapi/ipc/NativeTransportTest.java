@@ -23,9 +23,7 @@ import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.junit.Test;
 
-/**
- * Unit tests for {@link NativeTransport}.
- */
+/** Unit tests for {@link NativeTransport}. */
 public class NativeTransportTest {
 
   // -------------------------------------------------------------------------
