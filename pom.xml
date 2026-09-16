@@ -30,7 +30,7 @@
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
     <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version>
-    <jackson-dataformat.version>2.21.2</jackson-dataformat.version>
+    <jackson-dataformat.version>2.22.2</jackson-dataformat.version>
     <!-- server and test dependnecies that are shared -->
     <guava.version>33.5.0-jre</guava.version>
     <airline.version>3.0.0</airline.version>
