@@ -30,12 +30,12 @@
     <prometheus.version>0.16.0</prometheus.version>
     <!-- This old version is used by Cassandra 4.x -->
     <dropwizard-metrics.version>3.1.5</dropwizard-metrics.version>
-    <jackson-dataformat.version>2.22.2</jackson-dataformat.version>
+    <jackson-dataformat.version>2.22.3</jackson-dataformat.version>
     <!-- server and test dependnecies that are shared -->
     <guava.version>33.5.0-jre</guava.version>
     <airline.version>3.0.0</airline.version>
     <jaxrs.version>2.2.45</jaxrs.version>
-    <resteasy.version>6.2.15.Final</resteasy.version>
+    <resteasy.version>6.2.19.Final</resteasy.version>
     <awaitility.version>4.3.0</awaitility.version>
     <assertj.version>3.27.7</assertj.version>
     <servelet.version>6.1.0</servelet.version>
