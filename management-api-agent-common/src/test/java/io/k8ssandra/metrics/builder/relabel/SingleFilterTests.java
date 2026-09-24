@@ -5,14 +5,14 @@
  */
 package io.k8ssandra.metrics.builder.relabel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
 import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
 import io.k8ssandra.metrics.config.Configuration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SingleFilterTests {
   /**

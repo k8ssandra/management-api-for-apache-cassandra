@@ -6,6 +6,7 @@
 package com.datastax.mgmtapi;
 
 import static org.jboss.resteasy.test.TestPortProvider.generateURL;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 import com.datastax.mgmtapi.ipc.IPCController;
 import com.datastax.mgmtapi.ipc.NativeTransport;
@@ -36,33 +37,38 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jboss.resteasy.core.ResteasyDeploymentImpl;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.jboss.resteasy.test.TestPortProvider;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class NettyHttpOverIPCTest {
   static String BASE_URI = generateURL("");
 
   static final int IDLE_TIMEOUT = 10;
 
-  @Test(timeout = IDLE_TIMEOUT * 1000 + 10000)
+  @Test
   public void testIdleCloseConnectionNonIPC() throws Exception {
-    NettyJaxrsServer netty = new NettyJaxrsServer();
-    ResteasyDeployment deployment = new ResteasyDeploymentImpl();
-    netty.setDeployment(deployment);
-    netty.setPort(TestPortProvider.getPort());
-    netty.setRootResourcePath("");
-    netty.setSecurityDomain(null);
-    netty.setIdleTimeout(IDLE_TIMEOUT);
-    netty.start();
-    deployment.getRegistry().addSingletonResource(new Resource());
-    callAndIdle();
-    netty.stop();
+    assertTimeoutPreemptively(
+        Duration.ofMillis(IDLE_TIMEOUT * 1000 + 10000),
+        () -> {
+          NettyJaxrsServer netty = new NettyJaxrsServer();
+          ResteasyDeployment deployment = new ResteasyDeploymentImpl();
+          netty.setDeployment(deployment);
+          netty.setPort(TestPortProvider.getPort());
+          netty.setRootResourcePath("");
+          netty.setSecurityDomain(null);
+          netty.setIdleTimeout(IDLE_TIMEOUT);
+          netty.start();
+          deployment.getRegistry().addSingletonResource(new Resource());
+          callAndIdle();
+          netty.stop();
+        });
   }
 
   private void callAndIdle() throws InterruptedException, MalformedURLException {
@@ -84,7 +90,7 @@ public class NettyHttpOverIPCTest {
                             protected void channelRead0(
                                 ChannelHandlerContext ctx, FullHttpResponse msg) {
                               System.out.println("HTTP response from resteasy: " + msg);
-                              Assert.assertEquals(HttpResponseStatus.OK, msg.status());
+                              Assertions.assertEquals(HttpResponseStatus.OK, msg.status());
                             }
                           });
                 }
@@ -156,7 +162,7 @@ public class NettyHttpOverIPCTest {
                                                   0,
                                                   msg.content().readableBytes(),
                                                   Charset.defaultCharset()));
-                                  Assert.assertEquals(HttpResponseStatus.OK, msg.status());
+                                  Assertions.assertEquals(HttpResponseStatus.OK, msg.status());
                                   latch.countDown();
                                 }
                               });

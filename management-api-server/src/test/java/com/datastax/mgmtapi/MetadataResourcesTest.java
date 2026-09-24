@@ -6,8 +6,8 @@
 package com.datastax.mgmtapi;
 
 import static com.datastax.mgmtapi.K8OperatorResourcesTest.setup;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -24,7 +24,7 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MetadataResourcesTest {
   @Test

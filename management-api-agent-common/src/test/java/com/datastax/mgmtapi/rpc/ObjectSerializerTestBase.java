@@ -7,7 +7,7 @@ package com.datastax.mgmtapi.rpc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** A template for ObjectSerializer tests in implementation modules. */
 public abstract class ObjectSerializerTestBase<S extends ObjectSerializer<Example>> {

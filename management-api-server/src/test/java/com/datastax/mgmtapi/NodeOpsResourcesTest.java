@@ -5,6 +5,7 @@
  */
 package com.datastax.mgmtapi;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
@@ -27,8 +28,7 @@ import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
 import org.jboss.resteasy.spi.Dispatcher;
 import org.jboss.resteasy.spi.HttpRequest;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class NodeOpsResourcesTest {
 
@@ -174,7 +174,7 @@ public class NodeOpsResourcesTest {
         MockHttpRequest.post(ROOT_PATH + "/search/rebuildIndex?keyspace=ks&table=t");
     MockHttpResponse response = context.invoke(request);
 
-    Assert.assertEquals(expectedStatus, response.getStatus());
+    assertEquals(expectedStatus, response.getStatus());
   }
 
   private void makeRequestWithExpectedResponseAndBody(
@@ -184,7 +184,8 @@ public class NodeOpsResourcesTest {
         MockHttpRequest.post(ROOT_PATH + "/search/rebuildIndex?keyspace=ks&table=t");
     MockHttpResponse response = context.invoke(request);
 
-    Assert.assertEquals(expectedStatus, response.getStatus());
-    Assert.assertEquals("Response body did not match", body, response.getContentAsString());
+    assertEquals(expectedStatus, response.getStatus());
+    assertEquals(
+        "Rebuilding Search Index is only supported on DSE", body, response.getContentAsString());
   }
 }

@@ -5,12 +5,14 @@
  */
 package com.datastax.mgmtapi;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.condition.OS.WINDOWS;
 
 import java.security.Permission;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
 
 /**
  * Unit tests for {@link Cli#checkNettyDeps()}.
@@ -63,17 +65,18 @@ public class CliCheckNettyDepsTest {
 
   private SecurityManager originalManager;
 
-  @Before
+  @BeforeEach
   public void installNoExitManager() {
     originalManager = System.getSecurityManager();
     System.setSecurityManager(new NoExitSecurityManager(originalManager));
   }
 
-  @After
+  @AfterEach
   public void restoreSecurityManager() {
     System.setSecurityManager(originalManager);
   }
 
+  @DisabledOnOs(WINDOWS)
   @Test
   public void checkNettyDeps_doesNotExitWhenNativeTransportAvailable() {
     try {

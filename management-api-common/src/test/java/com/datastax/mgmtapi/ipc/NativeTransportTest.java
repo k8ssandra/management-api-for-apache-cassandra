@@ -5,10 +5,10 @@
  */
 package com.datastax.mgmtapi.ipc;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
@@ -21,7 +21,7 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.kqueue.KQueueServerDomainSocketChannel;
 import io.netty.channel.kqueue.KQueueServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link NativeTransport}. */
 public class NativeTransportTest {
@@ -46,8 +46,8 @@ public class NativeTransportTest {
     try {
       assertNotNull(group);
       assertTrue(
-          "Expected epoll or kqueue EventLoopGroup",
-          group instanceof EpollEventLoopGroup || group instanceof KQueueEventLoopGroup);
+          group instanceof EpollEventLoopGroup || group instanceof KQueueEventLoopGroup,
+          "Expected epoll or kqueue EventLoopGroup");
     } finally {
       group.shutdownGracefully().sync();
     }
@@ -89,7 +89,7 @@ public class NativeTransportTest {
     EventLoopGroup group = NativeTransport.tcpEventLoopGroup(1);
     try {
       assertNotNull(group);
-      assertFalse("Expected native (not NIO) group", group instanceof NioEventLoopGroup);
+      assertFalse(group instanceof NioEventLoopGroup, "Expected native (not NIO) group");
     } finally {
       group.shutdownGracefully().sync();
     }

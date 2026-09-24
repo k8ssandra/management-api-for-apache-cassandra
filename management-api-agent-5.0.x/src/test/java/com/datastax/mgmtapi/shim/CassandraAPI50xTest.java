@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mockStatic;
 import org.apache.cassandra.auth.CassandraAuthorizer;
 import org.apache.cassandra.cql3.QueryProcessor;
 import org.apache.cassandra.db.ConsistencyLevel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 public class CassandraAPI50xTest {

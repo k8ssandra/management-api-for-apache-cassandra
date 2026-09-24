@@ -5,10 +5,10 @@
  */
 package com.datastax.mgmtapi;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
@@ -34,9 +34,9 @@ import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import org.apache.cassandra.service.StorageService;
 import org.apache.cassandra.utils.progress.ProgressEventType;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -51,7 +51,7 @@ public class JobExecutorTest {
   private NotificationListener repairListener;
   private AutoCloseable mocks;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     mocks = MockitoAnnotations.openMocks(this);
     ShimLoader.instance = () -> cassandraApi;
@@ -68,7 +68,7 @@ public class JobExecutorTest {
     repairListener = listenerCaptor.getValue();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     mocks.close();
   }

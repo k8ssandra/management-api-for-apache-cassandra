@@ -6,10 +6,11 @@
 package com.datastax.mgmtapi;
 
 import static org.jboss.resteasy.test.TestPortProvider.generateURL;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -60,16 +61,15 @@ import org.jboss.resteasy.core.ResteasyDeploymentImpl;
 import org.jboss.resteasy.plugins.server.netty.NettyJaxrsServer;
 import org.jboss.resteasy.spi.ResteasyDeployment;
 import org.jboss.resteasy.test.TestPortProvider;
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 
 public class NettyTlsClientAuthTest {
   static String BASE_URI = generateURL("");
 
-  @ClassRule public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir Path temporaryFolder;
 
   @Test
   public void testHTTP() throws Throwable {
@@ -85,14 +85,24 @@ public class NettyTlsClientAuthTest {
     netty.stop();
   }
 
-  @Test(expected = AssertionError.class)
+  @Test
   public void testHttpsWithNoAuthClient() throws Throwable {
     File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_ca.key");
     File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_ca.pem");
     String serverKeyPassword = null;
-
-    testHTTPS(
-        serverCrtFile, serverKeyFile, serverCrtFile, serverKeyPassword, null, null, null, null);
+    assertThrows(
+        AssertionError.class,
+        () -> {
+          testHTTPS(
+              serverCrtFile,
+              serverKeyFile,
+              serverCrtFile,
+              serverKeyPassword,
+              null,
+              null,
+              null,
+              null);
+        });
   }
 
   @Test
@@ -155,7 +165,7 @@ public class NettyTlsClientAuthTest {
         clientKeyPassword);
   }
 
-  @Test(expected = SSLException.class)
+  @Test
   public void testTrustedChainUntrustedClientCert() throws Throwable {
     File trustCertFile =
         IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
@@ -168,19 +178,22 @@ public class NettyTlsClientAuthTest {
     File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.key");
     File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.crt");
     String clientKeyPassword = null;
-
-    testHTTPS(
-        trustCertFile,
-        serverKeyFile,
-        serverCrtFile,
-        serverKeyPassword,
-        trustFileIntermediate,
-        clientKeyFile,
-        clientCrtFile,
-        clientKeyPassword);
+    assertThrows(
+        SSLException.class,
+        () -> {
+          testHTTPS(
+              trustCertFile,
+              serverKeyFile,
+              serverCrtFile,
+              serverKeyPassword,
+              trustFileIntermediate,
+              clientKeyFile,
+              clientCrtFile,
+              clientKeyPassword);
+        });
   }
 
-  @Test(expected = SSLException.class)
+  @Test
   public void testTrustedChainBadClientCert() throws Throwable {
     File trustCertFile =
         IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
@@ -191,16 +204,19 @@ public class NettyTlsClientAuthTest {
     File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.key");
     File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.crt");
     String clientKeyPassword = null;
-
-    testHTTPS(
-        trustCertFile,
-        serverKeyFile,
-        serverCrtFile,
-        serverKeyPassword,
-        trustCertFile,
-        clientKeyFile,
-        clientCrtFile,
-        clientKeyPassword);
+    assertThrows(
+        SSLException.class,
+        () -> {
+          testHTTPS(
+              trustCertFile,
+              serverKeyFile,
+              serverCrtFile,
+              serverKeyPassword,
+              trustCertFile,
+              clientKeyFile,
+              clientCrtFile,
+              clientKeyPassword);
+        });
   }
 
   public void testHTTPS(
@@ -281,7 +297,7 @@ public class NettyTlsClientAuthTest {
                             protected void channelRead0(
                                 ChannelHandlerContext ctx, FullHttpResponse msg) {
                               System.out.println("HTTP response from resteasy: " + msg);
-                              Assert.assertEquals(HttpResponseStatus.OK, msg.status());
+                              Assertions.assertEquals(HttpResponseStatus.OK, msg.status());
                               latch.countDown();
                             }
                           });
@@ -301,7 +317,7 @@ public class NettyTlsClientAuthTest {
       // Send the HTTP request.
       ch.writeAndFlush(request);
 
-      Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
+      Assertions.assertTrue(latch.await(10, TimeUnit.SECONDS));
 
       if (serverException.get() != null) throw serverException.get();
 
@@ -322,7 +338,7 @@ public class NettyTlsClientAuthTest {
 
     List<String> extraArgs =
         IntegrationTestUtils.getExtraArgs(
-            NettyTlsClientAuthTest.class, "", temporaryFolder.getRoot());
+            NettyTlsClientAuthTest.class, "", temporaryFolder.toFile());
 
     File trustCertFile =
         IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
@@ -414,7 +430,7 @@ public class NettyTlsClientAuthTest {
 
     List<String> extraArgs =
         IntegrationTestUtils.getExtraArgs(
-            NettyTlsClientAuthTest.class, "", temporaryFolder.getRoot());
+            NettyTlsClientAuthTest.class, "", temporaryFolder.toFile());
 
     File trustCertFile =
         IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
@@ -453,56 +469,59 @@ public class NettyTlsClientAuthTest {
     verify(spy, Mockito.timeout(1000)).createSSLContext();
   }
 
-  @Test(expected = SSLException.class)
+  @Test
   public void testSSLHandlerReplace() throws Throwable {
-    EventLoopGroup group = new DefaultEventLoopGroup(1);
-    Channel sc = null;
+    assertThrows(
+        SSLException.class,
+        () -> {
+          EventLoopGroup group = new DefaultEventLoopGroup(1);
+          Channel sc = null;
 
-    SelfSignedCertificate cert = new SelfSignedCertificate();
+          SelfSignedCertificate cert = new SelfSignedCertificate();
 
-    SslContext sslClientCtx =
-        SslContextBuilder.forClient()
-            .trustManager(InsecureTrustManagerFactory.INSTANCE)
-            .keyManager(cert.key(), cert.cert())
-            .build();
+          SslContext sslClientCtx =
+              SslContextBuilder.forClient()
+                  .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                  .keyManager(cert.key(), cert.cert())
+                  .build();
 
-    SslContext sslServerCtx =
-        SslContextBuilder.forServer(cert.key(), cert.cert())
-            .trustManager(InsecureTrustManagerFactory.INSTANCE)
-            .clientAuth(ClientAuth.REQUIRE)
-            .build();
+          SslContext sslServerCtx =
+              SslContextBuilder.forServer(cert.key(), cert.cert())
+                  .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                  .clientAuth(ClientAuth.REQUIRE)
+                  .build();
 
-    File trustCertFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_ca.pem");
-    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
-    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+          File trustCertFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_ca.pem");
+          File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+          File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
 
-    SslContext refreshSslServerCtx =
-        SslContextBuilder.forServer(serverCrtFile, serverKeyFile, null)
-            .clientAuth(ClientAuth.REQUIRE)
-            .trustManager(trustCertFile)
-            .clientAuth(ClientAuth.REQUIRE)
-            .build();
+          SslContext refreshSslServerCtx =
+              SslContextBuilder.forServer(serverCrtFile, serverKeyFile, null)
+                  .clientAuth(ClientAuth.REQUIRE)
+                  .trustManager(trustCertFile)
+                  .clientAuth(ClientAuth.REQUIRE)
+                  .build();
 
-    NettyJaxrsTLSServer netty = new NettyJaxrsTLSServer(sslServerCtx);
-    ResteasyDeployment deployment = new ResteasyDeploymentImpl();
-    netty.setDeployment(deployment);
-    netty.setPort(TestPortProvider.getPort());
-    netty.setRootResourcePath("");
-    netty.setSecurityDomain(null);
-    netty.start();
-    deployment.getRegistry().addSingletonResource(new NettyHttpOverIPCTest.Resource());
+          NettyJaxrsTLSServer netty = new NettyJaxrsTLSServer(sslServerCtx);
+          ResteasyDeployment deployment = new ResteasyDeploymentImpl();
+          netty.setDeployment(deployment);
+          netty.setPort(TestPortProvider.getPort());
+          netty.setRootResourcePath("");
+          netty.setSecurityDomain(null);
+          netty.start();
+          deployment.getRegistry().addSingletonResource(new NettyHttpOverIPCTest.Resource());
 
-    try {
-      clientCall(sslClientCtx);
-    } catch (SSLException e) {
-      fail();
-    }
-
-    try {
-      netty.setSslContext(refreshSslServerCtx);
-      clientCall(sslClientCtx); // Now we should get an exception
-    } finally {
-      netty.stop();
-    }
+          try {
+            clientCall(sslClientCtx);
+          } catch (SSLException e) {
+            fail();
+          }
+          try {
+            netty.setSslContext(refreshSslServerCtx);
+            clientCall(sslClientCtx); // Now we should get an exception
+          } finally {
+            netty.stop();
+          }
+        });
   }
 }

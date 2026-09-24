@@ -5,14 +5,14 @@
  */
 package io.k8ssandra.metrics.builder.relabel;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.CassandraMetricDefinition;
 import io.k8ssandra.metrics.builder.CassandraMetricNameParser;
 import io.k8ssandra.metrics.config.ConfigReader;
 import io.k8ssandra.metrics.config.Configuration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CassandraMetricsTest {
 

@@ -25,8 +25,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +36,10 @@ public class IPCControllerTest {
       PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
 
   private ConcurrentMap<UUID, Consumer<String>> callbacks = new ConcurrentHashMap<>();
+
+  private static boolean shouldRun() {
+    return NativeTransport.isNativeTransportAvailable();
+  }
 
   @Test
   public void clientServerTest() throws IOException, InterruptedException {
@@ -106,19 +110,19 @@ public class IPCControllerTest {
 
     try {
       server.start();
-      Assert.assertTrue(server.isActive());
+      Assertions.assertTrue(server.isActive());
 
       client.start();
-      Assert.assertTrue(client.isActive());
+      Assertions.assertTrue(client.isActive());
 
       Channel c = client.channel().orElseThrow(() -> new AssertionError("Channel not active"));
       for (int i = 0; i < 10; i++) sendAndCheck(c, "test" + i);
     } finally {
       server.stop();
-      Assert.assertFalse(server.channel().isPresent());
+      Assertions.assertFalse(server.channel().isPresent());
 
       client.stop();
-      Assert.assertFalse(client.channel().isPresent());
+      Assertions.assertFalse(client.channel().isPresent());
     }
   }
 
@@ -129,7 +133,7 @@ public class IPCControllerTest {
         id,
         resp -> {
           logger.info("ID {}, Sent {}, Received {}", id, msg, resp);
-          Assert.assertEquals(msg, resp);
+          Assertions.assertEquals(msg, resp);
           latch.countDown();
         });
 
@@ -137,11 +141,7 @@ public class IPCControllerTest {
     logger.info("Client sending: {}", m);
     c.writeAndFlush(m);
     latch.await(10, TimeUnit.SECONDS);
-    Assert.assertTrue(latch.getCount() == 0);
-  }
-
-  private static boolean shouldRun() {
-    return NativeTransport.isNativeTransportAvailable();
+    Assertions.assertTrue(latch.getCount() == 0);
   }
 
   private EventLoopGroup eventLoop() {

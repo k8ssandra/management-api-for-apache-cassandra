@@ -5,8 +5,8 @@
  */
 package io.k8ssandra.metrics.builder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import io.k8ssandra.metrics.builder.relabel.RelabelSpec;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /** https://cassandra.apache.org/doc/latest/cassandra/operating/metrics.html */
 public class MetricsParsingTest {

@@ -6,7 +6,7 @@
 package com.datastax.mgmtapi;
 
 import java.io.IOException;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * This class adds and After method to stop the Management API container after each individual test.
@@ -18,7 +18,7 @@ public abstract class BaseDockerIsolatedIntegrationTest extends BaseDockerIntegr
     super(version);
   }
 
-  @After
+  @AfterEach
   public void after() {
     docker.stopManagementAPI();
   }
