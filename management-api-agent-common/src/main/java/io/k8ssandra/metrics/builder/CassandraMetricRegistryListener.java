@@ -5,7 +5,13 @@
  */
 package io.k8ssandra.metrics.builder;
 
-import static io.k8ssandra.metrics.builder.CassandraMetricsTools.*;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.BUCKET_LABEL_NAME;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.INF_BUCKET;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS_TEXT;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.PRECOMPUTED_QUANTILES;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.PRECOMPUTED_QUANTILES_TEXT;
+import static io.k8ssandra.metrics.builder.CassandraMetricsTools.QUANTILE_LABEL_NAME;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
