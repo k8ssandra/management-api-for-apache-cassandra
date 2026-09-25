@@ -5,14 +5,10 @@
  */
 package com.datastax.mgmtapi;
 
-import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH;
-import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH_V1;
-import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_URL;
-import static com.datastax.mgmtapi.BaseDockerIntegrationTest.JSON_MAPPER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -28,11 +24,12 @@ import java.time.Duration;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}: {0}", allowZeroInvocations = true)
+@MethodSource("testVersions")
 public class AsyncRepairIT extends BaseDockerIntegrationTest {
 
   public AsyncRepairIT(String version) throws IOException {

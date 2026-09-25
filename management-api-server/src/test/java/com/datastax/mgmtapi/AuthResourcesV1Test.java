@@ -5,8 +5,8 @@
  */
 package com.datastax.mgmtapi;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -20,8 +20,8 @@ import org.apache.http.HttpStatus;
 import org.jboss.resteasy.mock.MockHttpRequest;
 import org.jboss.resteasy.mock.MockHttpResponse;
 import org.jboss.resteasy.spi.Dispatcher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AuthResourcesV1Test {
   private static final String PATH = "/api/v1/ops/auth/identity_to_role";
@@ -32,7 +32,7 @@ public class AuthResourcesV1Test {
   private Dispatcher dispatcher;
   private CqlService cqlService;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     K8OperatorResourcesTest.Context context = K8OperatorResourcesTest.setup();
     dispatcher = context.dispatcher;

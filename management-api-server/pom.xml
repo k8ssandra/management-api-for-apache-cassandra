@@ -87,8 +87,8 @@
       <version>${jakarta.validation.version}</version>
     </dependency>
     <!-- the next 3 Jackson dependnecies are here explictly to keep the versions
-    the same as what we use in the common modules. They are normally pulled
-    in transitively by swagger-jaxrs2-jakarta below -->
+        the same as what we use in the common modules. They are normally pulled
+        in transitively by swagger-jaxrs2-jakarta below -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
@@ -302,8 +302,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>

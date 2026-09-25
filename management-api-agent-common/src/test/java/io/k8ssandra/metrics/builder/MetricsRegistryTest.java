@@ -6,8 +6,8 @@
 package io.k8ssandra.metrics.builder;
 
 import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Timer;
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.cassandra.metrics.CassandraMetricsRegistry;
 import org.apache.cassandra.metrics.DefaultNameFactory;
 import org.apache.cassandra.metrics.LatencyMetrics;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class MetricsRegistryTest {
 

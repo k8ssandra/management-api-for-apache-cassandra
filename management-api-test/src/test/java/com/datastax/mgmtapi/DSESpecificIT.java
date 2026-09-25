@@ -12,9 +12,9 @@ import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_P
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.LOAD_BALANCING_LOCAL_DATACENTER;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -47,11 +47,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}: {0}", allowZeroInvocations = true)
+@MethodSource("testVersions")
 public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
 
   public DSESpecificIT(String version) throws IOException {
@@ -100,12 +101,12 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
                 String.format(
                     "create custom index on \"%s\".\"%s\"(v) using 'StorageAttachedIndex'",
                     ks, tableName));
-        assertTrue("Creating SAI failed", rs.wasApplied());
+        assertTrue(rs.wasApplied(), "Creating SAI failed");
         // wait a while to make sure the server did not crash
         Thread.sleep(5000);
         rs = session.execute(String.format("select * from \"%s\".\"%s\"", ks, tableName));
         assertTrue(
-            "SAI table does not contain column \"v\"", rs.getColumnDefinitions().contains("v"));
+            rs.getColumnDefinitions().contains("v"), "SAI table does not contain column \"v\"");
       }
     } catch (Exception e) {
       e.printStackTrace();

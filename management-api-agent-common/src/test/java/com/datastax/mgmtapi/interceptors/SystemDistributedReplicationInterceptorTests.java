@@ -6,10 +6,10 @@
 package com.datastax.mgmtapi.interceptors;
 
 import static com.datastax.mgmtapi.interceptors.SystemDistributedReplicationInterceptor.SYSTEM_DISTRIBUTED_NTS_DC_RF_OVERRIDE_PROPERTY;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SystemDistributedReplicationInterceptorTests {
 

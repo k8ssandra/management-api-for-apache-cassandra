@@ -6,7 +6,7 @@
 package com.datastax.mgmtapi.resources.v2;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.datastax.mgmtapi.BaseDockerIntegrationTest;
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
@@ -17,11 +17,12 @@ import java.net.URI;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}: {0}", allowZeroInvocations = true)
+@MethodSource("testVersions")
 public class NonDestructiveOpsResourcesV2IT extends BaseDockerIntegrationTest {
 
   public NonDestructiveOpsResourcesV2IT(String version) throws IOException {

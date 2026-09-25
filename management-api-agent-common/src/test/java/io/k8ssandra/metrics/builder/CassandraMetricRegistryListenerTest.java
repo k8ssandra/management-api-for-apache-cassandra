@@ -8,10 +8,10 @@ package io.k8ssandra.metrics.builder;
 import static io.k8ssandra.metrics.builder.CassandraMetricsTools.INF_BUCKET;
 import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS;
 import static io.k8ssandra.metrics.builder.CassandraMetricsTools.LATENCY_OFFSETS_TEXT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CassandraMetricRegistryListenerTest {
 
@@ -59,7 +59,7 @@ public class CassandraMetricRegistryListenerTest {
                 new long[] {2, 3, 5, 7, 11, 13, 17, 19})));
 
     RefreshableMetricFamilySamples family = familyCache.get("test_timer");
-    assertNotNull("Timer metric family should be registered", family);
+    assertNotNull(family, "Timer metric family should be registered");
     family.refreshSamples();
 
     Map<String, Double> buckets = new HashMap<>();
@@ -71,9 +71,9 @@ public class CassandraMetricRegistryListenerTest {
 
     assertEquals(LATENCY_OFFSETS.length + 1, buckets.size());
     for (String offset : LATENCY_OFFSETS_TEXT) {
-      assertTrue("Missing timer bucket " + offset, buckets.containsKey(offset));
+      assertTrue(buckets.containsKey(offset), "Missing timer bucket " + offset);
     }
-    assertTrue("Missing +Inf timer bucket", buckets.containsKey(INF_BUCKET));
+    assertTrue(buckets.containsKey(INF_BUCKET), "Missing +Inf timer bucket");
 
     assertBucketValue(buckets, "35", 0);
     assertBucketValue(buckets, "60", 2);
@@ -125,8 +125,8 @@ public class CassandraMetricRegistryListenerTest {
     }
 
     RefreshableMetricFamilySamples family = familyCache.get(PROMETHEUS_METRIC_NAME);
-    assertNotNull("Shared table metric family should be registered", family);
-    assertEquals("Both table definitions should be retained", 2, family.getDefinitions().size());
+    assertNotNull(family, "Shared table metric family should be registered");
+    assertEquals(2, family.getDefinitions().size(), "Both table definitions should be retained");
   }
 
   @Test
@@ -144,8 +144,8 @@ public class CassandraMetricRegistryListenerTest {
 
     List<Collector.MetricFamilySamples> samples = exporter.collect();
     assertNull(
-        "Removed table metric should no longer be exported",
-        findTableSample(samples, KEYSPACE_NAME, TABLE_NAME));
+        findTableSample(samples, KEYSPACE_NAME, TABLE_NAME),
+        "Removed table metric should no longer be exported");
     assertSampleValue(samples, SIBLING_TABLE_NAME, 10.0);
   }
 
@@ -164,8 +164,8 @@ public class CassandraMetricRegistryListenerTest {
 
     List<Collector.MetricFamilySamples> samples = exporter.collect();
     assertNull(
-        "Removed table metric should no longer be exported",
-        findTableSample(samples, KEYSPACE_NAME, TABLE_NAME));
+        findTableSample(samples, KEYSPACE_NAME, TABLE_NAME),
+        "Removed table metric should no longer be exported");
     assertSampleValue(samples, SIBLING_TABLE_NAME, 10.0);
   }
 
@@ -193,8 +193,8 @@ public class CassandraMetricRegistryListenerTest {
     Collector.MetricFamilySamples.Sample sample =
         findTableSample(samples, KEYSPACE_NAME, TABLE_NAME);
 
-    assertNotNull("Re-registered table metric should still be exported", sample);
-    assertEquals("Sample should use the re-registered metric", 2.0, sample.value, 0.0);
+    assertNotNull(sample, "Re-registered table metric should still be exported");
+    assertEquals(2.0, sample.value, 0.0, "Sample should use the re-registered metric");
     assertSampleValue(samples, SIBLING_TABLE_NAME, 10.0);
   }
 
@@ -241,7 +241,7 @@ public class CassandraMetricRegistryListenerTest {
       List<Collector.MetricFamilySamples> samples, String tableName, double expectedValue) {
     Collector.MetricFamilySamples.Sample sample =
         findTableSample(samples, KEYSPACE_NAME, tableName);
-    assertNotNull(tableName + " metric should be exported", sample);
+    assertNotNull(sample, tableName + " metric should be exported");
     assertEquals(expectedValue, sample.value, 0.0);
   }
 
@@ -253,10 +253,10 @@ public class CassandraMetricRegistryListenerTest {
   private void assertBucketValue(
       Map<String, Double> buckets, String upperBound, double expectedValue) {
     assertEquals(
-        "Unexpected value for timer bucket " + upperBound,
         expectedValue,
         buckets.get(upperBound),
-        0.0);
+        0.0,
+        "Unexpected value for timer bucket " + upperBound);
   }
 
   private int latencyOffsetFactor(CassandraMetricRegistryListener listener) throws Exception {

@@ -11,9 +11,9 @@
   <parent>
     <groupId>io.k8ssandra</groupId>
     <artifactId>datastax-mgmtapi</artifactId>
-    <version>${revision}</version>
+    <version>0.1.0-SNAPSHOT</version>
   </parent>
-  <version>${revision}</version>
+  <version>0.1.0-SNAPSHOT</version>
   <artifactId>datastax-mgmtapi-common</artifactId>
   <dependencies>
     <dependency>
@@ -29,8 +29,8 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>

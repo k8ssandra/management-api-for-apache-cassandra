@@ -5,10 +5,9 @@
  */
 package com.datastax.mgmtapi;
 
-import static com.datastax.mgmtapi.BaseDockerIntegrationTest.BASE_PATH;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -18,11 +17,12 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}: {0}", allowZeroInvocations = true)
+@MethodSource("testVersions")
 public class AuditLogIT extends BaseDockerIsolatedIntegrationTest {
 
   public AuditLogIT(String version) throws IOException {

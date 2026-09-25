@@ -5,7 +5,8 @@
  */
 package com.datastax.mgmtapi;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
@@ -19,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 import org.apache.cassandra.repair.messages.RepairOption;
 import org.apache.cassandra.service.StorageService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -33,7 +34,7 @@ public class NodeOpsProviderTest {
 
   private NodeOpsProvider nodeOpsProvider;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     MockitoAnnotations.openMocks(this);
     ShimLoader.instance = () -> cassandraApi;
@@ -337,7 +338,7 @@ public class NodeOpsProviderTest {
     assertEquals("1", jobId);
   }
 
-  @Test(expected = IOException.class)
+  @Test
   public void testRepairWithInvalidThreadCount() throws IOException {
     String keyspace = "testKeyspace";
     List<String> tables = null;
@@ -347,15 +348,18 @@ public class NodeOpsProviderTest {
     List<String> datacenters = null;
     String ringRangeString = null;
     Integer repairThreadCount = 0;
-
-    nodeOpsProvider.repair(
-        keyspace,
-        tables,
-        full,
-        notifications,
-        repairParallelism,
-        datacenters,
-        ringRangeString,
-        repairThreadCount);
+    assertThrows(
+        IOException.class,
+        () -> {
+          nodeOpsProvider.repair(
+              keyspace,
+              tables,
+              full,
+              notifications,
+              repairParallelism,
+              datacenters,
+              ringRangeString,
+              repairThreadCount);
+        });
   }
 }

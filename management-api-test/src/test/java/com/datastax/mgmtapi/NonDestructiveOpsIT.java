@@ -8,14 +8,9 @@ package com.datastax.mgmtapi;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.datastax.mgmtapi.helpers.IntegrationTestUtils;
 import com.datastax.mgmtapi.helpers.NettyHttpClient;
@@ -51,9 +46,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedClass;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +58,8 @@ import org.slf4j.LoggerFactory;
  * this is to speed up testing by starting the Cassandra node once, running all tests, and then
  * stopping rather than a start/stop during each test case.
  */
-@RunWith(Parameterized.class)
+@ParameterizedClass(name = "{index}: {0}", allowZeroInvocations = true)
+@MethodSource("testVersions")
 public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
   private static final Logger logger = LoggerFactory.getLogger(NonDestructiveOpsIT.class);
 
@@ -695,7 +691,7 @@ public class NonDestructiveOpsIT extends BaseDockerIntegrationTest {
             .post(repairUri.toURL(), requestAsJSON)
             .thenApply(r -> r.status().code() == HttpStatus.SC_OK)
             .join();
-    assertTrue("Repair request was not successful", repairSuccessful);
+    assertTrue(repairSuccessful, "Repair request was not successful");
   }
 
   @Test
