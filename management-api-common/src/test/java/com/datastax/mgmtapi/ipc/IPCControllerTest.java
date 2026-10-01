@@ -5,6 +5,10 @@
  */
 package com.datastax.mgmtapi.ipc;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -14,10 +18,6 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
-import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,126 +29,125 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class IPCControllerTest {
-    private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
-    private static final FileAttribute ownerWritable =
-            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
+  private static final Logger logger = LoggerFactory.getLogger(IPCController.class);
+  private static final FileAttribute ownerWritable =
+      PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
 
-    private ConcurrentMap<UUID, Consumer<String>> callbacks = new ConcurrentHashMap<>();
+  private ConcurrentMap<UUID, Consumer<String>> callbacks = new ConcurrentHashMap<>();
 
-    private static boolean shouldRun() {
-        return NativeTransport.isNativeTransportAvailable();
+  private static boolean shouldRun() {
+    return NativeTransport.isNativeTransportAvailable();
+  }
+
+  @Test
+  public void clientServerTest() throws IOException, InterruptedException {
+    if (!shouldRun()) return;
+
+    File socketFile = Files.createTempFile("ipc-test-", ".sock", ownerWritable).toFile();
+    socketFile.delete();
+
+    logger.info("Socket {}", socketFile);
+
+    IPCController server =
+        IPCController.newServer()
+            .withSocketFile(socketFile)
+            .withEventLoop(eventLoop())
+            .withChannelHandler(
+                new ChannelInitializer<Channel>() {
+                  @Override
+                  protected void initChannel(Channel channel) throws Exception {
+                    channel
+                        .pipeline()
+                        .addLast(new LineBasedFrameDecoder(256))
+                        .addLast(new StringDecoder(CharsetUtil.US_ASCII))
+                        .addLast(new StringEncoder(CharsetUtil.US_ASCII))
+                        .addLast(
+                            new SimpleChannelInboundHandler<String>() {
+                              @Override
+                              protected void channelRead0(ChannelHandlerContext ctx, String msg)
+                                  throws Exception {
+                                logger.info("Server read: {}", msg);
+                                ctx.writeAndFlush(msg + "\n");
+                              }
+                            });
+                  }
+                })
+            .build();
+
+    IPCController client =
+        IPCController.newClient()
+            .withSocketFile(socketFile)
+            .withEventLoop(eventLoop())
+            .withChannelHandler(
+                new ChannelInitializer<Channel>() {
+                  @Override
+                  protected void initChannel(Channel channel) throws Exception {
+                    channel
+                        .pipeline()
+                        .addLast(new LineBasedFrameDecoder(256))
+                        .addLast(new StringDecoder(CharsetUtil.US_ASCII))
+                        .addLast(new StringEncoder(CharsetUtil.US_ASCII))
+                        .addLast(
+                            new SimpleChannelInboundHandler<String>() {
+                              @Override
+                              protected void channelRead0(ChannelHandlerContext ctx, String msg)
+                                  throws Exception {
+                                logger.info("Client read: {}", msg);
+
+                                int delim = msg.indexOf(" ");
+
+                                UUID msgId = UUID.fromString(msg.substring(0, delim));
+
+                                Consumer<String> callback = callbacks.remove(msgId);
+                                callback.accept(msg.substring(delim + 1));
+                              }
+                            });
+                  }
+                })
+            .build();
+
+    try {
+      server.start();
+      assertTrue(server.isActive());
+
+      client.start();
+      assertTrue(client.isActive());
+
+      Channel c = client.channel().orElseThrow(() -> new AssertionError("Channel not active"));
+      for (int i = 0; i < 10; i++) sendAndCheck(c, "test" + i);
+    } finally {
+      server.stop();
+      assertFalse(server.channel().isPresent());
+
+      client.stop();
+      assertFalse(client.channel().isPresent());
     }
+  }
 
-    @Test
-    public void clientServerTest() throws IOException, InterruptedException {
-        if (!shouldRun()) return;
+  private void sendAndCheck(Channel c, String msg) throws InterruptedException {
+    UUID id = UUID.randomUUID();
+    CountDownLatch latch = new CountDownLatch(1);
+    callbacks.put(
+        id,
+        resp -> {
+          logger.info("ID {}, Sent {}, Received {}", id, msg, resp);
+          assertEquals(msg, resp);
+          latch.countDown();
+        });
 
-        File socketFile = Files.createTempFile("ipc-test-", ".sock", ownerWritable).toFile();
-        socketFile.delete();
+    String m = id + " " + msg + "\n";
+    logger.info("Client sending: {}", m);
+    c.writeAndFlush(m);
+    latch.await(10, TimeUnit.SECONDS);
+    assertEquals(0, latch.getCount());
+  }
 
-        logger.info("Socket {}", socketFile);
-
-        IPCController server =
-                IPCController.newServer()
-                        .withSocketFile(socketFile)
-                        .withEventLoop(eventLoop())
-                        .withChannelHandler(
-                                new ChannelInitializer<Channel>() {
-                                    @Override
-                                    protected void initChannel(Channel channel) throws Exception {
-                                        channel
-                                                .pipeline()
-                                                .addLast(new LineBasedFrameDecoder(256))
-                                                .addLast(new StringDecoder(CharsetUtil.US_ASCII))
-                                                .addLast(new StringEncoder(CharsetUtil.US_ASCII))
-                                                .addLast(
-                                                        new SimpleChannelInboundHandler<String>() {
-                                                            @Override
-                                                            protected void channelRead0(ChannelHandlerContext ctx, String msg)
-                                                                    throws Exception {
-                                                                logger.info("Server read: {}", msg);
-                                                                ctx.writeAndFlush(msg + "\n");
-                                                            }
-                                                        });
-                                    }
-                                })
-                        .build();
-
-        IPCController client =
-                IPCController.newClient()
-                        .withSocketFile(socketFile)
-                        .withEventLoop(eventLoop())
-                        .withChannelHandler(
-                                new ChannelInitializer<Channel>() {
-                                    @Override
-                                    protected void initChannel(Channel channel) throws Exception {
-                                        channel
-                                                .pipeline()
-                                                .addLast(new LineBasedFrameDecoder(256))
-                                                .addLast(new StringDecoder(CharsetUtil.US_ASCII))
-                                                .addLast(new StringEncoder(CharsetUtil.US_ASCII))
-                                                .addLast(
-                                                        new SimpleChannelInboundHandler<String>() {
-                                                            @Override
-                                                            protected void channelRead0(ChannelHandlerContext ctx, String msg)
-                                                                    throws Exception {
-                                                                logger.info("Client read: {}", msg);
-
-                                                                int delim = msg.indexOf(" ");
-
-                                                                UUID msgId = UUID.fromString(msg.substring(0, delim));
-
-                                                                Consumer<String> callback = callbacks.remove(msgId);
-                                                                callback.accept(msg.substring(delim + 1));
-                                                            }
-                                                        });
-                                    }
-                                })
-                        .build();
-
-        try {
-            server.start();
-            assertTrue(server.isActive());
-
-            client.start();
-            assertTrue(client.isActive());
-
-            Channel c = client.channel().orElseThrow(() -> new AssertionError("Channel not active"));
-            for (int i = 0; i < 10; i++) sendAndCheck(c, "test" + i);
-        } finally {
-            server.stop();
-            assertFalse(server.channel().isPresent());
-
-            client.stop();
-            assertFalse(client.channel().isPresent());
-        }
-    }
-
-    private void sendAndCheck(Channel c, String msg) throws InterruptedException {
-        UUID id = UUID.randomUUID();
-        CountDownLatch latch = new CountDownLatch(1);
-        callbacks.put(
-                id,
-                resp -> {
-                    logger.info("ID {}, Sent {}, Received {}", id, msg, resp);
-                    assertEquals(msg, resp);
-                    latch.countDown();
-                });
-
-        String m = id + " " + msg + "\n";
-        logger.info("Client sending: {}", m);
-        c.writeAndFlush(m);
-        latch.await(10, TimeUnit.SECONDS);
-        assertEquals(0, latch.getCount());
-    }
-
-    private EventLoopGroup eventLoop() {
-        return NativeTransport.nativeEventLoopGroup(1);
-    }
+  private EventLoopGroup eventLoop() {
+    return NativeTransport.nativeEventLoopGroup(1);
+  }
 }

@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [ENHANCEMENT] [Tests] Update the Test suite to JUnit version 5
 
 ## v0.1.126 [2026-09-17]
 * [ENHANCEMENT] [#430](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/430) Use Java NIO as fallback when Netty Epoll/KQueue not available

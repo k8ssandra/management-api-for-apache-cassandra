@@ -14,7 +14,6 @@
   <packaging>pom</packaging>
   <name>DataStax Management API for Apache Cassandra</name>
   <properties>
-    <java.version>11</java.version>
     <build.version.file>build_version.sh</build.version.file>
     <revision>0.1.0-SNAPSHOT</revision>
     <driver.version>4.19.2</driver.version>
@@ -261,7 +260,6 @@
       <plugin>
         <groupId>au.com.acegi</groupId>
         <artifactId>xml-format-maven-plugin</artifactId>
-        <version>4.1.0</version>
         <executions>
           <execution>
             <goals>
