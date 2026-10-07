@@ -123,9 +123,10 @@ jobs:
           - 6.8.63
           - 6.8.64
           - 6.8.65
+          - 6.8.66
         image-base: [jdk8, jdk11]
         include:
-          - dse-version: 6.8.65
+          - dse-version: 6.8.66
             latest: true
     runs-on: ubuntu-latest
     steps:
@@ -256,9 +257,10 @@ jobs:
           - 6.8.63
           - 6.8.64
           - 6.8.65
+          - 6.8.66
         image-base: [ubi]
         include:
-          - dse-version: 6.8.65
+          - dse-version: 6.8.66
             latest: true
     runs-on: ubuntu-latest
     steps:

@@ -16,6 +16,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#801](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/801) Add DSE 6.8.65 to the build matrix
 * [BUGFIX] [#786](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/786) Fix Netty /metrics endpoint TLS hot reload to stop caching the old sslContext
 * [ENHANCEMENT] [#808](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/808) Add DSE 6.9.26 to the build matrix
+* [ENHANCEMENT] [#807](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/807) Add DSE 6.8.66 to the build matrix
 
 ## v0.1.126 [2026-09-17]
 * [ENHANCEMENT] [#430](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/430) Use Java NIO as fallback when Netty Epoll/KQueue not available
