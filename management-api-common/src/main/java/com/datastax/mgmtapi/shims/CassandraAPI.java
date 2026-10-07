@@ -34,6 +34,9 @@ import org.apache.cassandra.transport.Server;
 /** Place to abstract C* apis that change across versions */
 public interface CassandraAPI {
 
+  /** Register job virtual tables on supported runtimes; older Cassandra versions are unchanged. */
+  default void registerJobVirtualTables() {}
+
   public default void enableFullQuerylog() {
     throw new UnsupportedOperationException("FQL is only supported on OSS Cassandra > 4x.");
   }

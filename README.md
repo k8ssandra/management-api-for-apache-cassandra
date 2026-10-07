@@ -374,6 +374,24 @@ the environment variable `MGMT_API_LISTEN_TCP_PORT` and setting it to your desir
 
 The above would run a Cassandra 4.0.15 image with Management API listening on port 9090 (instead of 8080).
 
+### Virtual tables (Cassandra 5.0 and newer)
+
+The agent registers the read-only `management_api.jobs` and `management_api.job_events`
+virtual tables when Cassandra starts. Query them through Cassandra as usual:
+
+```sql
+SELECT * FROM management_api.jobs;
+SELECT * FROM management_api.jobs WHERE job_id = 'repair-123';
+SELECT * FROM management_api.job_events WHERE job_id = 'repair-123';
+```
+
+`jobs` exposes `job_id`, `job_type`, `status`, `submitted_at`, `started_at`, `finished_at`,
+and `error`. Status values are `WAITING`, `COMPLETED`, and `ERROR`. `job_events` exposes the existing status
+history as `job_id`, `event_time`, `event_type`, and `message`, ordered by event time within
+each job. `job_events` are emitted by the repair jobs only at this point.
+
+Both tables read only and only expose data from the local node. Jobs and their events disappear if the cache is full or node is restarted.
+
 ## Usage with DSE
 
 Please see the [DSE 6.8 README](management-api-agent-dse-6.8/README.md) or the

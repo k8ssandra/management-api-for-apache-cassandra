@@ -7,6 +7,7 @@ package com.datastax.mgmtapi.shim;
 
 import com.datastax.mgmtapi.shims.CassandraAPI;
 import com.datastax.mgmtapi.shims.RpcStatementShim;
+import com.datastax.mgmtapi.virtual.ManagementApiVirtualKeyspace;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
@@ -72,6 +73,11 @@ public class CassandraAPI50x implements CassandraAPI {
 
   private static final Supplier<SeedProvider> seedProvider =
       Suppliers.memoize(() -> new K8SeedProvider50x());
+
+  @Override
+  public void registerJobVirtualTables() {
+    ManagementApiVirtualKeyspace.register();
+  }
 
   @Override
   public void enableFullQuerylog() {
