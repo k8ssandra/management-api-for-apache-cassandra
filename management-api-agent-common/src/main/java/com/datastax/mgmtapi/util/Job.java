@@ -95,6 +95,10 @@ public class Job {
     return submitTime;
   }
 
+  public long getStartTime() {
+    return startTime;
+  }
+
   public long getFinishedTime() {
     return finishedTime;
   }

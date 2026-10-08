@@ -56,6 +56,7 @@ public class CassandraDaemonInterceptor {
       logger.info("Starting DataStax Management API Agent for Apache Cassandra {}", apiVersion);
 
       NodeOpsProvider.instance.get().register();
+      ShimLoader.instance.get().registerJobVirtualTables();
 
       if (!NativeTransport.isNativeTransportAvailable()) {
         throw new RuntimeException("Event loop needed");

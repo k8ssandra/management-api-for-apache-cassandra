@@ -8,6 +8,9 @@ package com.datastax.mgmtapi.util;
 import com.datastax.mgmtapi.ShimLoader;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -108,7 +111,12 @@ public class JobExecutor {
     final Job job = createJob(jobType, jobId);
 
     CompletableFuture<Void> submittedJob =
-        CompletableFuture.runAsync(runnable, executorService)
+        CompletableFuture.runAsync(
+                () -> {
+                  job.setStartTime(System.currentTimeMillis());
+                  runnable.run();
+                },
+                executorService)
             .thenAccept(
                 empty -> {
                   job.setStatus(Job.JobStatus.COMPLETED);
@@ -140,6 +148,14 @@ public class JobExecutor {
 
   public Job getJobWithId(String jobId) {
     return jobCache.getIfPresent(jobId);
+  }
+
+  /**
+   * Return a detached, read-only snapshot of cache membership. Jobs retain their live, volatile
+   * state, and their event histories are copied by {@link Job#getStatusChanges()}.
+   */
+  public List<Job> snapshotJobs() {
+    return Collections.unmodifiableList(new ArrayList<>(jobCache.asMap().values()));
   }
 
   public int runningTasks() {

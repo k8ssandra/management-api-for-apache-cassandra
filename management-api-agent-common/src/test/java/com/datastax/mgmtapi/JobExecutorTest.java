@@ -8,6 +8,7 @@ package com.datastax.mgmtapi;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.atLeastOnce;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,6 +35,7 @@ import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import org.apache.cassandra.service.StorageService;
+import org.apache.cassandra.utils.Pair;
 import org.apache.cassandra.utils.progress.ProgressEventType;
 import org.junit.After;
 import org.junit.Before;
@@ -71,6 +74,36 @@ public class JobExecutorTest {
   @After
   public void tearDown() throws Exception {
     mocks.close();
+  }
+
+  @Test
+  public void testSnapshotJobsHasIndependentCacheMembership() {
+    assertTrue(jobExecutor.snapshotJobs().isEmpty());
+    Job first = jobExecutor.createJob("repair", "repair-1");
+    List<Job> snapshot = jobExecutor.snapshotJobs();
+
+    jobExecutor.createJob("repair", "repair-2");
+    assertEquals(Collections.singletonList(first), snapshot);
+    assertEquals(2, jobExecutor.snapshotJobs().size());
+    assertThrows(UnsupportedOperationException.class, snapshot::clear);
+  }
+
+  @Test
+  public void testSubmittedJobRecordsStartTime() throws Exception {
+    Pair<String, CompletableFuture<Void>> submitted = jobExecutor.submit("cleanup", () -> {});
+    submitted.right.get(5, TimeUnit.SECONDS);
+    Job job = jobExecutor.getJobWithId(submitted.left);
+    assertTrue(job.getStartTime() >= job.getSubmitTime());
+    assertTrue(job.getFinishedTime() >= job.getStartTime());
+    assertEquals(Job.JobStatus.COMPLETED, job.getStatus());
+  }
+
+  @Test
+  public void testSnapshotJobsRespectsCacheLimit() {
+    for (int i = 0; i < 1100; i++) {
+      jobExecutor.createJob("repair", "repair-" + i);
+    }
+    assertEquals(1000, jobExecutor.snapshotJobs().size());
   }
 
   @Test
