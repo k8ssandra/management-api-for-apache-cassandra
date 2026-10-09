@@ -10,6 +10,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+
+## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs
 * [ENHANCEMENT] [#800](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/800) Update Jackson to 2.22.3
 * [ENHANCEMENT] [#799](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/799) Update RestEasy to 6.2.19.Final
