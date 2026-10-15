@@ -11,6 +11,8 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+* [BUGFIX] [#815](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/815) Change DSE /endpoints to match the behavior of HCD and Cassandra
+
 ## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs
 * [ENHANCEMENT] [#800](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/800) Update Jackson to 2.22.3
