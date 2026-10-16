@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#174](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/174) Allow restricting TLS client certificates to an allowlist of identities with `--tlsallowedclient` (`MGMT_API_TLS_ALLOWED_CLIENTS`, comma-separated, in the images)
 
 ## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs
