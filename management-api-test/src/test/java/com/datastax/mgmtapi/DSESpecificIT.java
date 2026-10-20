@@ -12,6 +12,7 @@ import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.AUTH_P
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.LOAD_BALANCING_LOCAL_DATACENTER;
 import static com.datastax.oss.driver.api.core.config.DefaultDriverOption.REQUEST_TIMEOUT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -22,6 +23,7 @@ import com.datastax.mgmtapi.helpers.TestgCqlSessionBuilder;
 import com.datastax.mgmtapi.resources.models.CreateOrAlterKeyspaceRequest;
 import com.datastax.mgmtapi.resources.models.CreateTableRequest;
 import com.datastax.mgmtapi.resources.models.ReplicationSetting;
+import com.datastax.oss.driver.api.core.AllNodesFailedException;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
@@ -41,7 +43,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
@@ -88,13 +92,11 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
     // try to create an index on the table
     try {
       try (CqlSession session =
-          new TestgCqlSessionBuilder()
-              .withConfigLoader(
+          connectWithRetry(
+              () ->
                   DriverConfigLoader.programmaticBuilder()
                       .withString(LOAD_BALANCING_LOCAL_DATACENTER, "dc1")
-                      .build())
-              .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-              .build()) {
+                      .build())) {
         ResultSet rs =
             session.execute(
                 String.format(
@@ -290,8 +292,8 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
 
     // login with as the role above
     CqlSession session =
-        new TestgCqlSessionBuilder()
-            .withConfigLoader(
+        connectWithRetry(
+            () ->
                 DriverConfigLoader.programmaticBuilder()
                     .withString(AUTH_PROVIDER_CLASS, PlainTextAuthProvider.class.getCanonicalName())
                     .withString(AUTH_PROVIDER_USER_NAME, username)
@@ -300,11 +302,25 @@ public class DSESpecificIT extends BaseDockerIsolatedIntegrationTest {
                     // creating the search index can take longer than the default 2 second request
                     // timeout
                     .withString(REQUEST_TIMEOUT, "30s")
-                    .build())
-            .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
-            .build();
+                    .build());
 
     session.execute(String.format("CREATE SEARCH INDEX ON %s.%s", keyspaceName, tableName));
     session.close();
+  }
+
+  // The readiness probe only checks CQL over the unix socket, so the native transport on 9042 can
+  // still be coming up (especially with DSE Search enabled). Retry until the driver can connect.
+  private static CqlSession connectWithRetry(Supplier<DriverConfigLoader> configLoader) {
+    return await()
+        .atMost(60, TimeUnit.SECONDS)
+        .pollInterval(2, TimeUnit.SECONDS)
+        .ignoreException(AllNodesFailedException.class)
+        .until(
+            () ->
+                new TestgCqlSessionBuilder()
+                    .withConfigLoader(configLoader.get())
+                    .addContactPoint(new InetSocketAddress("127.0.0.1", 9042))
+                    .build(),
+            Objects::nonNull);
   }
 }

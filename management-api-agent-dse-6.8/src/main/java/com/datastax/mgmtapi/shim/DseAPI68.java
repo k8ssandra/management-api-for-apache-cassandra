@@ -211,8 +211,9 @@ public class DseAPI68 implements CassandraAPI {
 
     IPartitioner partitioner = DatabaseDescriptor.getPartitioner();
 
-    for (InetAddress endpoint : Gossiper.instance.getAllEndpoints()) {
-      EndpointState state = Gossiper.instance.getEndpointStateForEndpoint(endpoint);
+    for (Map.Entry<InetAddress, EndpointState> entry : Gossiper.instance.getEndpointStates()) {
+      InetAddress endpoint = entry.getKey();
+      EndpointState state = entry.getValue();
       Map<String, String> states = new HashMap<>();
       for (Map.Entry<ApplicationState, VersionedValue> s : state.states()) {
         String value =
