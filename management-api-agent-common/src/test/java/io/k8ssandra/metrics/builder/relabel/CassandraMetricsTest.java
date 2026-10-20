@@ -101,6 +101,24 @@ public class CassandraMetricsTest {
     assertEquals("Path", tpcThreadPoolMetricSlash.getLabelValues().get(0));
     assertEquals("Thread/Pool/Name", tpcThreadPoolMetricSlash.getLabelValues().get(1));
 
+    // Repair executors are named "Repair#<cmd>", so pool_name must keep the '#'. Truncating it
+    // collapses concurrent repairs onto one label set and produces duplicate samples.
+    CassandraMetricDefinition repairThreadPoolMetric =
+        parser.parseDropwizardMetric(
+            "org.apache.cassandra.metrics.ThreadPools.MetricName.Path.Repair#1",
+            "",
+            Lists.newArrayList(),
+            Lists.newArrayList());
+    assertEquals(
+        "org_apache_cassandra_metrics_thread_pools_metric_name",
+        repairThreadPoolMetric.getMetricName());
+    assertEquals(2, repairThreadPoolMetric.getLabelNames().size());
+    assertEquals(2, repairThreadPoolMetric.getLabelValues().size());
+    assertEquals("pool_type", repairThreadPoolMetric.getLabelNames().get(0));
+    assertEquals("pool_name", repairThreadPoolMetric.getLabelNames().get(1));
+    assertEquals("Path", repairThreadPoolMetric.getLabelValues().get(0));
+    assertEquals("Repair#1", repairThreadPoolMetric.getLabelValues().get(1));
+
     // Client Request Metrics
     CassandraMetricDefinition clientRequestMetric =
         parser.parseDropwizardMetric(
