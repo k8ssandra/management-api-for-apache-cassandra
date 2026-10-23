@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#174](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/174) Allow restricting TLS client certificates to an allowlist of identities with `--tlsallowedclient` (`MGMT_API_TLS_ALLOWED_CLIENTS`, comma-separated, in the images)
 
 * [BUGFIX] [#815](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/815) Change DSE /endpoints to match the behavior of HCD and Cassandra
 * [BUGFIX] [#818](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/818) ThreadPools pool_name is truncated at `#`, collapsing concurrent repair executors into duplicate series
