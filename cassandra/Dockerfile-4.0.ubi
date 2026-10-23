@@ -114,7 +114,7 @@ ENV CASSANDRA_DATA_DIR=/var/lib/cassandra
 COPY cassandra/rh-repos/adoptium.repo /etc/yum.repos.d/adoptium.repo
 
 # Update base layer
-RUN microdnf install -y --nodocs shadow-utils \
+RUN microdnf install -y --nodocs numactl shadow-utils \
     && groupadd -r cassandra --gid=999 \
     && useradd -m -d "$CASSANDRA_HOME" -r -g cassandra -G root --uid=999 cassandra \
     && rm -rf /var/cache/yum \
