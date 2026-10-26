@@ -27,7 +27,10 @@ ENV HOME=$DSE_HOME
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 
 # Install runtime dependencies and updates
-RUN rm -rf /var/cache/yum \
+COPY dse/files/almalinux-numactl.repo /etc/yum.repos.d/almalinux-numactl.repo
+COPY dse/files/RPM-GPG-KEY-AlmaLinux-8 /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-8
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-8 \
+    && rm -rf /var/cache/yum \
     && microdnf install --nodocs -y java-1.8.0-openjdk-headless java-1.8.0-openjdk-devel java-11-openjdk-headless python2 zlib libaio numactl which findutils hostname iproute shadow-utils procps util-linux glibc-langpack-en wget tar && microdnf clean all
 
 WORKDIR $HOME
