@@ -55,11 +55,22 @@ public class UnixCmds {
     return UnixCmds.findDbProcessWithMatchingArg("-Ddb.unix_socket_file=" + socketFilePath);
   }
 
+  /**
+   * Checks if the process with the exact given pid exists and has not exited. A zombie process
+   * (exited, but not yet reaped by its parent) is not considered running.
+   */
   public static boolean isPidRunning(int pid) throws IOException {
-    ProcessBuilder psListPb = new ProcessBuilder(PS_CMD, "-eo", "pid");
+    // ps exits with non-zero if the pid does not exist
+    ProcessBuilder psPb = new ProcessBuilder(PS_CMD, "-o", "stat=", "-p", String.valueOf(pid));
     return ShellUtils.executeWithHandlers(
-        psListPb,
-        (input, err) -> input.anyMatch(x -> x.contains(String.valueOf(pid))),
+        psPb,
+        (input, err) ->
+            input
+                .map(String::trim)
+                .filter(stat -> !stat.isEmpty())
+                .findFirst()
+                .map(stat -> !stat.startsWith("Z"))
+                .orElse(false),
         (exitCode, err) -> false);
   }
 
