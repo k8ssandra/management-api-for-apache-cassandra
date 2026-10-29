@@ -62,12 +62,16 @@ public class K8OperatorResources extends BaseResources {
               examples = @ExampleObject(value = "OK")))
   public Response checkLiveness() {
     if (app.getRequestedState() == STARTED) {
-      // Verify it is still running
+      // /start has been called, so the process must still be running. If it has crashed (for
+      // example during a long startup), fail the probe so the Pod gets restarted.
       try {
         Optional<Integer> pid = UnixCmds.findPid(app.dbUnixSocketFile.getAbsolutePath());
         if (pid.isPresent() && UnixCmds.isPidRunning(pid.get())) {
           return Response.ok("OK").build();
         }
+        logger.warn(
+            "Liveness check failed, start was requested but the database process is not running (pid: {})",
+            pid.map(String::valueOf).orElse("not found"));
       } catch (IOException e) {
         // NOOP
         logger.error("Unable to read the pid file, " + e.getMessage(), e);
