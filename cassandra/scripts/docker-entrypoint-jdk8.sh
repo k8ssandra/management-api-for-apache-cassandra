@@ -177,6 +177,17 @@ if [ "$1" = 'mgmtapi' ]; then
         MGMT_API_TLS_KEY_FILE="--tlskey $MGMT_API_TLS_KEY_FILE"
         MGMT_API_ARGS="$MGMT_API_ARGS $MGMT_API_TLS_KEY_FILE"
     fi
+    # Kept out of MGMT_API_ARGS because identities may contain spaces or glob characters
+    MGMT_API_TLS_ALLOWED_CLIENT_ARGS=()
+    if [ ! -z "$MGMT_API_TLS_ALLOWED_CLIENTS" ]; then
+        # read only consumes one line, so treat newlines in multi-line values as separators too
+        IFS=',' read -r -a MGMT_API_TLS_ALLOWED_CLIENT_LIST <<< "${MGMT_API_TLS_ALLOWED_CLIENTS//$'\n'/,}"
+        for MGMT_API_TLS_ALLOWED_CLIENT in "${MGMT_API_TLS_ALLOWED_CLIENT_LIST[@]}"; do
+            if [ ! -z "$MGMT_API_TLS_ALLOWED_CLIENT" ]; then
+                MGMT_API_TLS_ALLOWED_CLIENT_ARGS+=(--tlsallowedclient "$MGMT_API_TLS_ALLOWED_CLIENT")
+            fi
+        done
+    fi
 
     if [ ! -z "$MGMT_API_PID_FILE" ]; then
         MGMT_API_PID_FILE="--pidfile $MGMT_API_PID_FILE"
@@ -211,8 +222,8 @@ if [ "$1" = 'mgmtapi' ]; then
             JAVA11_JAVA=${JAVA11_HOME}/bin/java
         fi
     fi
-    echo "Running" ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
-    ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS
+    echo "Running" ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS "${MGMT_API_TLS_ALLOWED_CLIENT_ARGS[@]}"
+    ${JAVA11_JAVA} ${MGMT_API_JAVA_OPTS} -Xms${MGMT_API_HEAP_SIZE} -Xmx${MGMT_API_HEAP_SIZE} -jar "$MGMT_API_JAR" $MGMT_API_ARGS "${MGMT_API_TLS_ALLOWED_CLIENT_ARGS[@]}"
 fi
 
 exec "$@"
