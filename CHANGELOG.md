@@ -18,6 +18,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#831](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/831) Update Guava to 33.8.0-jre
 * [ENHANCEMENT] [#832](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/832) Update Netty to 4.1.141.Final
 * [ENHANCEMENT] [#833](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/833) Update Logback to 1.6.6
+* [BUGFIX] [#789](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/789) excludeCurrentVersion was inverted in upgradeSSTables (v0 and v1) and now defaults to true
 
 ## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs
