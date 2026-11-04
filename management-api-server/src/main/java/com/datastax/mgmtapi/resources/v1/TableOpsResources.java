@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -113,7 +114,8 @@ public class TableOpsResources extends BaseResources {
           "Rewrite sstables (for the requested tables) that are not on the current version (thus upgrading them to said current version). This operation is asynchronous and returns immediately.",
       operationId = "upgradeSSTables")
   public Response upgradeSSTables(
-      @QueryParam(value = "excludeCurrentVersion") boolean excludeCurrentVersion,
+      @QueryParam(value = "excludeCurrentVersion") @DefaultValue("true")
+          boolean excludeCurrentVersion,
       KeyspaceRequest keyspaceRequest) {
     return handle(
         () -> {
@@ -133,7 +135,7 @@ public class TableOpsResources extends BaseResources {
                       app.cqlService,
                       "CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)",
                       keyspaceName,
-                      !excludeCurrentVersion,
+                      excludeCurrentVersion,
                       keyspaceRequest.jobs,
                       tables,
                       true))
