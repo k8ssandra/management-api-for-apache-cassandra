@@ -1442,7 +1442,8 @@
           "in" : "query",
           "name" : "excludeCurrentVersion",
           "schema" : {
-            "type" : "boolean"
+            "type" : "boolean",
+            "default" : true
           }
         } ],
         "requestBody" : {
@@ -1978,7 +1979,8 @@
           "in" : "query",
           "name" : "excludeCurrentVersion",
           "schema" : {
-            "type" : "boolean"
+            "type" : "boolean",
+            "default" : true
           }
         } ],
         "requestBody" : {
