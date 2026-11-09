@@ -673,6 +673,79 @@ public class K8OperatorResourcesTest {
   }
 
   @Test
+  public void testUpgradeSSTables_ExcludeCurrentVersion() throws Exception {
+    verifyUpgradeSSTablesExcludeCurrentVersion("?excludeCurrentVersion=true", true);
+    verifyUpgradeSSTablesExcludeCurrentVersion("?excludeCurrentVersion=false", false);
+  }
+
+  private void verifyUpgradeSSTablesExcludeCurrentVersion(String query, boolean expected)
+      throws Exception {
+    KeyspaceRequest keyspaceRequest =
+        new KeyspaceRequest(1, "keyspace", Arrays.asList("table1", "table2"));
+
+    Context context = setup();
+
+    String keyspaceRequestAsJSON =
+        WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    MockHttpResponse response =
+        postWithBody("/ops/tables/sstables/upgrade" + query, keyspaceRequestAsJSON, context);
+
+    Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+
+    verify(context.cqlService)
+        .executePreparedStatement(
+            any(),
+            eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)"),
+            eq(keyspaceRequest.keyspaceName),
+            eq(expected),
+            eq(keyspaceRequest.jobs),
+            any(),
+            eq(false));
+  }
+
+  @Test
+  public void testUpgradeSSTablesV1() throws Exception {
+    verifyUpgradeSSTablesV1ExcludeCurrentVersion("", true);
+    verifyUpgradeSSTablesV1ExcludeCurrentVersion("?excludeCurrentVersion=true", true);
+    verifyUpgradeSSTablesV1ExcludeCurrentVersion("?excludeCurrentVersion=false", false);
+  }
+
+  private void verifyUpgradeSSTablesV1ExcludeCurrentVersion(String query, boolean expected)
+      throws Exception {
+    KeyspaceRequest keyspaceRequest =
+        new KeyspaceRequest(1, "keyspace", Arrays.asList("table1", "table2"));
+
+    Context context = setup();
+
+    ResultSet mockResultSet = mock(ResultSet.class);
+    Row mockRow = mock(Row.class);
+
+    when(context.cqlService.executePreparedStatement(
+            any(), anyString(), any(), any(), any(), any(), any()))
+        .thenReturn(mockResultSet);
+
+    when(mockResultSet.one()).thenReturn(mockRow);
+    when(mockRow.getString(0)).thenReturn("0fe65b47-98c2-47d8-9c3c-5810c9988e10");
+
+    String requestAsJSON = WriterUtility.asString(keyspaceRequest, MediaType.APPLICATION_JSON);
+    MockHttpResponse response =
+        postWithBodyFullPath("/api/v1/ops/tables/sstables/upgrade" + query, requestAsJSON, context);
+
+    Assert.assertEquals(HttpStatus.SC_ACCEPTED, response.getStatus());
+    assertEquals("0fe65b47-98c2-47d8-9c3c-5810c9988e10", response.getContentAsString());
+
+    verify(context.cqlService)
+        .executePreparedStatement(
+            any(),
+            eq("CALL NodeOps.upgradeSSTables(?, ?, ?, ?, ?)"),
+            eq(keyspaceRequest.keyspaceName),
+            eq(expected),
+            eq(keyspaceRequest.jobs),
+            any(),
+            eq(true));
+  }
+
+  @Test
   public void testJobStatus() throws Exception {
     Context context = setup();
 
