@@ -13,6 +13,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 * [BUGFIX] [#815](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/815) Change DSE /endpoints to match the behavior of HCD and Cassandra
 * [BUGFIX] [#818](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/818) ThreadPools pool_name is truncated at `#`, collapsing concurrent repair executors into duplicate series
+* [BUGFIX] [#823](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/823) /probes/liveness kept returning OK after Cassandra crashed post /start due to a partial pid match
 
 ## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs

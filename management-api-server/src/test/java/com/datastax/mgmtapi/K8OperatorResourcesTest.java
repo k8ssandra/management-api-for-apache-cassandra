@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -52,6 +53,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.ws.rs.core.MediaType;
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -61,6 +63,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpStatus;
 import org.jboss.resteasy.core.messagebody.WriterUtility;
@@ -71,6 +74,7 @@ import org.jboss.resteasy.spi.Dispatcher;
 import org.jboss.resteasy.spi.HttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 
 public class K8OperatorResourcesTest {
 
@@ -80,6 +84,7 @@ public class K8OperatorResourcesTest {
 
     Dispatcher dispatcher;
     CqlService cqlService;
+    ManagementApplication app;
 
     MockHttpResponse invoke(HttpRequest request) {
       MockHttpResponse response = new MockHttpResponse();
@@ -94,7 +99,9 @@ public class K8OperatorResourcesTest {
     context.cqlService = mock(CqlService.class);
 
     ManagementApplication app =
-        new ManagementApplication(null, null, null, context.cqlService, null);
+        new ManagementApplication(
+            null, null, new File("/tmp/mgmtapi-test-db.sock"), context.cqlService, null);
+    context.app = app;
 
     context.dispatcher.getRegistry().addSingletonResource(new AuthResources(app));
     context
@@ -135,6 +142,61 @@ public class K8OperatorResourcesTest {
 
     Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
     Assert.assertTrue(response.getContentAsString().contains("OK"));
+  }
+
+  @Test
+  public void testLivenessBeforeStartDoesNotCheckProcess() throws Exception {
+    Context context = setup();
+
+    try (MockedStatic<UnixCmds> unixCmds = mockStatic(UnixCmds.class)) {
+      for (ManagementApplication.STATE state :
+          new ManagementApplication.STATE[] {
+            ManagementApplication.STATE.UNKNOWN, ManagementApplication.STATE.STOPPED
+          }) {
+        context.app.setRequestedState(state);
+        MockHttpResponse response =
+            context.invoke(MockHttpRequest.get(ROOT_PATH + "/probes/liveness"));
+        Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+      }
+      unixCmds.verifyNoInteractions();
+    }
+  }
+
+  @Test
+  public void testLivenessAfterStartWhileProcessRunning() throws Exception {
+    Context context = setup();
+    context.app.setRequestedState(ManagementApplication.STATE.STARTED);
+
+    try (MockedStatic<UnixCmds> unixCmds = mockStatic(UnixCmds.class)) {
+      unixCmds.when(() -> UnixCmds.findPid(anyString())).thenReturn(Optional.of(1234));
+      unixCmds.when(() -> UnixCmds.isPidRunning(1234)).thenReturn(true);
+
+      MockHttpResponse response =
+          context.invoke(MockHttpRequest.get(ROOT_PATH + "/probes/liveness"));
+      Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
+    }
+  }
+
+  @Test
+  public void testLivenessFailsWhenProcessCrashedAfterStart() throws Exception {
+    Context context = setup();
+    context.app.setRequestedState(ManagementApplication.STATE.STARTED);
+
+    try (MockedStatic<UnixCmds> unixCmds = mockStatic(UnixCmds.class)) {
+      // Stale pid file left behind by the crashed process
+      unixCmds.when(() -> UnixCmds.findPid(anyString())).thenReturn(Optional.of(1234));
+      unixCmds.when(() -> UnixCmds.isPidRunning(1234)).thenReturn(false);
+
+      MockHttpResponse response =
+          context.invoke(MockHttpRequest.get(ROOT_PATH + "/probes/liveness"));
+      Assert.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
+
+      // Process gone and pid file removed
+      unixCmds.when(() -> UnixCmds.findPid(anyString())).thenReturn(Optional.empty());
+
+      response = context.invoke(MockHttpRequest.get(ROOT_PATH + "/probes/liveness"));
+      Assert.assertEquals(HttpStatus.SC_INTERNAL_SERVER_ERROR, response.getStatus());
+    }
   }
 
   @Test
