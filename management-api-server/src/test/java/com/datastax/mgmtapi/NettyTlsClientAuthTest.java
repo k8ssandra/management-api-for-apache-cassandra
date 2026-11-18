@@ -203,6 +203,88 @@ public class NettyTlsClientAuthTest {
         clientKeyPassword);
   }
 
+  @Test
+  public void testAllowedClient() throws Throwable {
+    File trustCertFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
+    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+    File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.key");
+    File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.crt");
+
+    SslContext serverSslCtx =
+        Cli.buildSslContext(
+            trustCertFile,
+            serverCrtFile,
+            serverKeyFile,
+            Lists.newArrayList("SomeOtherClient", "NettyTestClient"));
+
+    testHTTPS(serverSslCtx, trustCertFile, clientKeyFile, clientCrtFile, null);
+  }
+
+  @Test(expected = SSLException.class)
+  public void testTrustedButNotAllowedClient() throws Throwable {
+    File trustCertFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
+    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+    File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.key");
+    File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.crt");
+
+    SslContext serverSslCtx =
+        Cli.buildSslContext(
+            trustCertFile, serverCrtFile, serverKeyFile, Lists.newArrayList("NettyTestServer"));
+
+    testHTTPS(serverSslCtx, trustCertFile, clientKeyFile, clientCrtFile, null);
+  }
+
+  @Test(expected = SSLException.class)
+  public void testAllowedClientWithUntrustedCert() throws Throwable {
+    File trustCertFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
+    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+    File clientTrustFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client_cert_chain.pem");
+    File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.key");
+    File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_invalid_client.crt");
+
+    SslContext serverSslCtx =
+        Cli.buildSslContext(
+            trustCertFile,
+            serverCrtFile,
+            serverKeyFile,
+            Lists.newArrayList("NettyTestInvalidClient"));
+
+    testHTTPS(serverSslCtx, clientTrustFile, clientKeyFile, clientCrtFile, null);
+  }
+
+  @Test(expected = SSLException.class)
+  public void testCliAppliesAllowedClients() throws Throwable {
+    File trustCertFile =
+        IntegrationTestUtils.getFile(getClass(), "mutual_auth_client_cert_chain.pem");
+    File serverKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.key");
+    File serverCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_server.crt");
+    File clientKeyFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.key");
+    File clientCrtFile = IntegrationTestUtils.getFile(getClass(), "mutual_auth_client.crt");
+
+    Cli cli =
+        new Cli(
+            Lists.newArrayList(BASE_URI),
+            null,
+            null,
+            false,
+            Lists.newArrayList(),
+            trustCertFile.getAbsolutePath(),
+            serverCrtFile.getAbsolutePath(),
+            serverKeyFile.getAbsolutePath(),
+            Lists.newArrayList("NettyTestServer"));
+    cli.checkTLSDeps();
+    cli.createSSLContext();
+
+    testHTTPS(cli.getSslContext(), trustCertFile, clientKeyFile, clientCrtFile, null);
+  }
+
   public void testHTTPS(
       File servertTrustCrtFile,
       File serverKeyFile,
@@ -222,6 +304,16 @@ public class NettyTlsClientAuthTest {
             .sessionTimeout(0)
             .build();
 
+    testHTTPS(serverSslCtx, clientTrustCrtFile, clientKeyFile, clientCrtFile, clientKeyPassword);
+  }
+
+  private void testHTTPS(
+      SslContext serverSslCtx,
+      File clientTrustCrtFile,
+      File clientKeyFile,
+      File clientCrtFile,
+      String clientKeyPassword)
+      throws Throwable {
     SslContext clientSslCtx =
         clientCrtFile == null
             ? null
