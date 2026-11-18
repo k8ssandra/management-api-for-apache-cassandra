@@ -204,6 +204,14 @@
           <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
         </exclusion>
         <exclusion>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-jsr310</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.datatype</groupId>
+          <artifactId>jackson-datatype-jdk8</artifactId>
+        </exclusion>
+        <exclusion>
           <groupId>jakarta.validation</groupId>
           <artifactId>jakarta.validation-api</artifactId>
         </exclusion>
