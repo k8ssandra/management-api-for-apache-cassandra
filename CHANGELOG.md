@@ -11,6 +11,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.129 [2026-11-19]
 * [ENHANCEMENT] [#828](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/828) Update Jackson to 2.22.4
 * [BUGFIX] [#815](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/815) Change DSE /endpoints to match the behavior of HCD and Cassandra
 * [BUGFIX] [#818](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/818) ThreadPools pool_name is truncated at `#`, collapsing concurrent repair executors into duplicate series
@@ -19,6 +20,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 * [ENHANCEMENT] [#832](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/832) Update Netty to 4.1.141.Final
 * [ENHANCEMENT] [#833](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/833) Update Logback to 1.6.6
 * [BUGFIX] [#789](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/789) excludeCurrentVersion was inverted in upgradeSSTables (v0 and v1) and now defaults to true
+
+## v0.1.128 [2026-10-29]
+(No changes, only image location updates. This is effectively the same asthe 0.1.127 release)
 
 ## v0.1.127 [2026-10-09]
 * [FEATURE] [#793](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/793) Provide VirtualTable to query the status of node's jobs
