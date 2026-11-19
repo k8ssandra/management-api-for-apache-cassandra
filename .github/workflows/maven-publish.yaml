@@ -5,8 +5,8 @@ on:
       - 'v*.*.*'
   workflow_dispatch:
     inputs:
-      release_version:
-        description: 'Release Version to publish'
+      tag:
+        description: 'Existing release tag to build and publish (e.g. v0.1.129)'
         required: true
         type: string
       publish_repo:
@@ -18,10 +18,22 @@ on:
           - 'GitHub'
           - 'CloudsmithIO'
           - 'Datastax'
+          - 'IBMTaaS'
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate release tag
+        env:
+          # Manual runs validate the supplied tag input. Tag pushes validate the
+          # pushed tag name.
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+[0-9A-Za-z.-]*$ ]]; then
+            echo "Invalid tag '$TAG'. Expected a release tag such as v0.1.129."
+            exit 1
+          fi
+
       - name: Generate GH API token
         id: generate-token
         uses: actions/create-github-app-token@v3
@@ -42,6 +54,11 @@ jobs:
           GH_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       - uses: actions/checkout@v6
+        with:
+          # Manual runs build the requested tag (refs/tags/ prefix ensures a
+          # branch with the same name can never be selected). Tag pushes build
+          # the pushed tag.
+          ref: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
       - name: Set up JDK 11
         uses: actions/setup-java@v5
         with:
@@ -50,7 +67,9 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          # Only cache the local repository. ~/.m2/settings.xml contains
+          # credentials and must never be saved in the cache.
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Github Package Registry
@@ -91,6 +110,11 @@ jobs:
                 <username>${{ secrets.JFROG_USERNAME }}</username>
                 <password>${{ secrets.JFROG_PASSWORD }}</password>
               </server>
+              <server>
+                <id>ibm-taas</id>
+                <username>${{ secrets.IBM_TAAS_USERNAME }}</username>
+                <password>${{ secrets.IBM_TAAS_PASSWORD }}</password>
+              </server>
            </servers>
           </settings>
           EOF
@@ -102,8 +126,10 @@ jobs:
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
       - name: Setup release version
         if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          TAG: ${{ inputs.tag }}
         run: |
-          echo "RELEASE_VERSION=${{ inputs.release_version }}" >> $GITHUB_ENV
+          echo "RELEASE_VERSION=${TAG#v}" >> $GITHUB_ENV
       - name: Update pom with release version
         run: |
           mvn versions:set -DnewVersion=${{ env.RELEASE_VERSION }}
@@ -127,7 +153,7 @@ jobs:
       - name: Deploy Artifacts to Cloudsmith.io Artifactory
         if: |-
           ${{
-            github.event_name != 'workflow_dispatch' ||
+            github.event_name == 'workflow_dispatch' &&
             inputs.publish_repo == 'CloudsmithIO'
           }}
         run: |
@@ -142,11 +168,26 @@ jobs:
       - name: Deploy Artifacts to JFrog Artifactory
         if: |-
           ${{
-            github.event_name != 'workflow_dispatch' ||
+            github.event_name == 'workflow_dispatch' &&
             inputs.publish_repo == 'Datastax'
           }}
         run: |
           REPO="datastax-jfrog::default::https://repo.datastax.com/artifactory/github-k8ssandra-management-api-local/"
+          mvn -B deploy \
+          -P dse,hcd \
+          -Dskip.surefire.tests \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
+
+      - name: Deploy Artifacts to IBM TaaS
+        if: |-
+          ${{
+            github.event_name != 'workflow_dispatch' ||
+            inputs.publish_repo == 'IBMTaaS'
+          }}
+        run: |
+          REPO="ibm-taas::default::https://na.artifactory.swg-devops.com/artifactory/datastax-team-nosql-k8ssandra-mgmt-api-maven-local/"
           mvn -B deploy \
           -P dse,hcd \
           -Dskip.surefire.tests \
@@ -172,7 +213,7 @@ jobs:
       - name: Deploy OpenAPI client to Cloudsmith.io Artifactory
         if: |-
           ${{
-            github.event_name != 'workflow_dispatch' ||
+            github.event_name == 'workflow_dispatch' &&
             inputs.publish_repo == 'CloudsmithIO'
           }}
         run: |
@@ -187,11 +228,26 @@ jobs:
       - name: Deploy OpenAPI client to JFrog Artifactory
         if: |-
           ${{
-            github.event_name != 'workflow_dispatch' ||
+            github.event_name == 'workflow_dispatch' &&
             inputs.publish_repo == 'Datastax'
           }}
         run: |
           REPO="datastax-jfrog::default::https://repo.datastax.com/artifactory/github-k8ssandra-management-api-local/"
+          mvn -B deploy \
+          -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
+          -Dskip.surefire.tests \
+          -DskipTests \
+          -DaltDeploymentRepository="${REPO}" \
+          -DaltSnapshotDeploymentRepository="${REPO}"
+
+      - name: Deploy OpenAPI client to IBM TaaS
+        if: |-
+          ${{
+            github.event_name != 'workflow_dispatch' ||
+            inputs.publish_repo == 'IBMTaaS'
+          }}
+        run: |
+          REPO="ibm-taas::default::https://na.artifactory.swg-devops.com/artifactory/datastax-team-nosql-k8ssandra-mgmt-api-maven-local/"
           mvn -B deploy \
           -f management-api-server/target/generated-sources/openapi/java-client/pom.xml \
           -Dskip.surefire.tests \
