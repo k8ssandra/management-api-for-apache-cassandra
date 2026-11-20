@@ -21,7 +21,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Setup release version
         run: |
@@ -59,7 +59,7 @@ jobs:
       - name: Save Maven cache
         uses: actions/cache/save@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Save Maven build artifacts
         uses: actions/cache/save@v5
@@ -138,7 +138,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -272,7 +272,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -363,7 +363,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -483,7 +483,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -600,7 +600,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -707,7 +707,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -801,7 +801,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
