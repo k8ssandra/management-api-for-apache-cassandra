@@ -24,7 +24,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-hcd-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Maven settings file
@@ -60,7 +60,7 @@ jobs:
       - name: Save Maven cache
         uses: actions/cache/save@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
       - name: Save Maven build artifacts
         uses: actions/cache/save@v5
@@ -101,7 +101,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       # Setup metadata based on the commit/tag that will be used for tagging the image
@@ -172,7 +172,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       # Setup metadata based on the commit/tag that will be used for tagging the image
@@ -249,7 +249,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Maven settings file
@@ -393,7 +393,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Restore Cassandra Download for tests
@@ -463,7 +463,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Restore Cassandra Download for tests
@@ -534,7 +534,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Restore Cassandra Download for tests
@@ -604,7 +604,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Restore Cassandra Download for tests
@@ -666,7 +666,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Restore Cassandra Download for tests
@@ -790,7 +790,7 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v5
         with:
-          path: ~/.m2
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ github.sha }}-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Setup Maven settings file
