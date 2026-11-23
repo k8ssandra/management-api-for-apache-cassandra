@@ -11,6 +11,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.130 [2026-11-23]
+* [CHANGE] (no ticket) This release simply changes the Maven Publishing locations. By default, Maven artifacts are now only published to GitHub Packages and IBM TaaS.
+
 ## v0.1.129 [2026-11-19]
 * [ENHANCEMENT] [#828](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/828) Update Jackson to 2.22.4
 * [BUGFIX] [#815](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/815) Change DSE /endpoints to match the behavior of HCD and Cassandra
