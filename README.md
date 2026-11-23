@@ -375,6 +375,18 @@ the environment variable `MGMT_API_LISTEN_TCP_PORT` and setting it to your desir
 
 The above would run a Cassandra 4.0.15 image with Management API listening on port 9090 (instead of 8080).
 
+### Restricting TLS clients
+
+When TLS is enabled with `MGMT_API_TLS_CA_CERT_FILE`, `MGMT_API_TLS_CERT_FILE` and `MGMT_API_TLS_KEY_FILE`, any client
+certificate signed by the CA is accepted. To only accept specific clients, set `MGMT_API_TLS_ALLOWED_CLIENTS` to a
+comma-separated list of identities, each matched against the client certificate subject CN and its DNS/URI/email/IP
+subject alternative names (see `--tlsallowedclient` below). For example:
+
+    > docker run -e USE_MGMT_API=true -e MGMT_API_TLS_CA_CERT_FILE=/certs/ca.crt -e MGMT_API_TLS_CERT_FILE=/certs/tls.crt \
+        -e MGMT_API_TLS_KEY_FILE=/certs/tls.key -e MGMT_API_TLS_ALLOWED_CLIENTS="cass-operator,Reaper Client" ...
+
+Spaces inside an identity are kept, so do not put spaces around the commas.
+
 ### Virtual tables (Cassandra 5.0 and newer)
 
 The agent registers the read-only `management_api.jobs` and `management_api.job_events`
@@ -674,6 +686,7 @@ Once the tag is pushed, the release process will start and build the Docker imag
                     [ {-K | --no-keep-alive} <no_keep_alive> ]
                     [ {-p | --pidfile} <pidfile> ]
                     {-S | --cassandra-socket | --db-socket} <db_unix_socket_file>
+                    [ --tlsallowedclient <tls_allowed_clients>... ]
                     [ --tlscacert <tls_ca_cert_file> ]
                     [ --tlscert <tls_cert_file> ] [ --tlskey <tls_key_file> ]
 
@@ -714,6 +727,13 @@ Once the tag is pushed, the release process will start and build the Docker imag
                 This options value must be a path on the file system that must be
                 readable and writable.
 
+
+            --tlsallowedclient <tls_allowed_clients>
+                Only accept TLS clients whose certificate subject CN or a
+                DNS/URI/email/IP subject alternative name matches this value,
+                can be repeated. DNS names match case-insensitively and IP
+                addresses in any notation, everything else must match exactly.
+                If not set, any client certificate signed by the CA is accepted
 
             --tlscacert <tls_ca_cert_file>
                 Path to trust certs signed only by this CA

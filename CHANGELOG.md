@@ -10,6 +10,7 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 ```
 
 ## unreleased
+* [FEATURE] [#174](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/174) Allow restricting TLS client certificates to an allowlist of identities with `--tlsallowedclient` (`MGMT_API_TLS_ALLOWED_CLIENTS`, comma-separated, in the images)
 
 ## v0.1.129 [2026-11-19]
 * [ENHANCEMENT] [#828](https://github.com/k8ssandra/management-api-for-apache-cassandra/issues/828) Update Jackson to 2.22.4

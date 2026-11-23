@@ -51,6 +51,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -166,6 +167,13 @@ public class Cli implements Runnable {
 
   private File tlsKey;
 
+  @Option(
+      name = {"--tlsallowedclient"},
+      arity = 1,
+      description =
+          "Only accept TLS clients whose certificate subject CN or a DNS/URI/email/IP subject alternative name matches this value, can be repeated. DNS names match case-insensitively and IP addresses in any notation, everything else must match exactly. If not set, any client certificate signed by the CA is accepted")
+  private List<String> tls_allowed_clients = new ArrayList<>();
+
   private boolean useTls = false;
   private File dbUnixSocketFile = null;
   private File dbHomeDir = null;
@@ -199,6 +207,29 @@ public class Cli implements Runnable {
       String caCertFile,
       String certFile,
       String certKeyFile) {
+    this(
+        listenAddresses,
+        dbHomeDir,
+        dbUnixSocketFile,
+        keepAlive,
+        dbExtraArgs,
+        caCertFile,
+        certFile,
+        certKeyFile,
+        Collections.emptyList());
+  }
+
+  @VisibleForTesting
+  public Cli(
+      List<String> listenAddresses,
+      String dbHomeDir,
+      String dbUnixSocketFile,
+      boolean keepAlive,
+      Collection<String> dbExtraArgs,
+      String caCertFile,
+      String certFile,
+      String certKeyFile,
+      List<String> allowedClients) {
     this.listen_address = listenAddresses;
     this.db_home = dbHomeDir;
     this.db_unix_socket_file = dbUnixSocketFile;
@@ -207,6 +238,7 @@ public class Cli implements Runnable {
     this.tls_ca_cert_file = caCertFile;
     this.tls_cert_file = certFile;
     this.tls_key_file = certKeyFile;
+    this.tls_allowed_clients = new ArrayList<>(allowedClients);
   }
 
   @Override
@@ -457,6 +489,11 @@ public class Cli implements Runnable {
       tlsKey = new File(tls_key_file);
     }
 
+    if (!tls_allowed_clients.isEmpty() && !hasAny) {
+      logger.error("TLS CA Cert, Cert and Key files are required when allowed clients are set");
+      System.exit(17);
+    }
+
     useTls = hasAny;
   }
 
@@ -469,12 +506,31 @@ public class Cli implements Runnable {
 
   @VisibleForTesting
   void createSSLContext() throws SSLException {
-    this.sslContext =
-        SslContextBuilder.forServer(tlsCert, tlsKey)
-            .trustManager(tlsCaCert)
-            .clientAuth(ClientAuth.REQUIRE)
-            .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
-            .build();
+    this.sslContext = buildSslContext(tlsCaCert, tlsCert, tlsKey, tls_allowed_clients);
+  }
+
+  @VisibleForTesting
+  SslContext getSslContext() {
+    return sslContext;
+  }
+
+  @VisibleForTesting
+  static SslContext buildSslContext(File caCert, File cert, File key, List<String> allowedClients)
+      throws SSLException {
+    SslContextBuilder builder = SslContextBuilder.forServer(cert, key);
+    if (allowedClients.isEmpty()) {
+      builder.trustManager(caCert);
+    } else {
+      try {
+        builder.trustManager(AllowedClientsTrustManager.forCaFile(caCert, allowedClients));
+      } catch (GeneralSecurityException | IOException e) {
+        throw new SSLException("Unable to load CA certificates from " + caCert, e);
+      }
+    }
+    return builder
+        .clientAuth(ClientAuth.REQUIRE)
+        .ciphers(null, IdentityCipherSuiteFilter.INSTANCE)
+        .build();
   }
 
   @VisibleForTesting
