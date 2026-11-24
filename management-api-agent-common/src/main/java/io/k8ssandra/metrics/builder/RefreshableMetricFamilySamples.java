@@ -9,12 +9,8 @@ import io.prometheus.client.Collector;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RefreshableMetricFamilySamples extends Collector.MetricFamilySamples {
-  private static final Logger logger =
-      LoggerFactory.getLogger(RefreshableMetricFamilySamples.class);
   private final Set<CassandraMetricDefinition> definitions;
 
   public RefreshableMetricFamilySamples(
@@ -27,12 +23,7 @@ public class RefreshableMetricFamilySamples extends Collector.MetricFamilySample
     // Fetch all linked metricDefinitions
     samples.clear();
     for (CassandraMetricDefinition definition : definitions) {
-      try {
-        definition.accept(samples);
-      } catch (RuntimeException e) {
-        logger.warn(
-            "Failed to collect samples for metric definition {}", definition.getMetricName(), e);
-      }
+      definition.accept(samples);
     }
   }
 

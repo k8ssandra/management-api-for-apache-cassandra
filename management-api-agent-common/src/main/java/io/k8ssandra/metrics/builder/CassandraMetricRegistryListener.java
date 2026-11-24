@@ -170,14 +170,8 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
               labelValues.add(j, proto.getLabelValues().get(j));
             }
             labelValues.add(j, PRECOMPUTED_QUANTILES_TEXT[i]);
-            double quantileValue = Double.NaN;
-            if (!overflowed) {
-              try {
-                quantileValue = hist.percentile(PRECOMPUTED_QUANTILES[i]);
-              } catch (IllegalStateException e) {
-                logger.trace("Failed to compute percentile for {}", proto.getMetricName(), e);
-              }
-            }
+            double quantileValue =
+                overflowed ? Double.NaN : hist.percentile(PRECOMPUTED_QUANTILES[i]);
             Collector.MetricFamilySamples.Sample sample =
                 new Collector.MetricFamilySamples.Sample(
                     proto.getMetricName(), proto.getLabelNames(), labelValues, quantileValue);
