@@ -238,6 +238,67 @@ public class CassandraMetricRegistryListenerTest {
     assertEquals(CassandraMetricsTools.PRECOMPUTED_QUANTILES.length, quantileCount);
   }
 
+  @Test
+  public void refreshSamplesContinuesWhenSingleDefinitionThrows() {
+    RefreshableMetricFamilySamples family =
+        new RefreshableMetricFamilySamples(
+            "test_family", Collector.Type.SUMMARY, "", new java.util.ArrayList<>());
+
+    CassandraMetricDefinition faulty =
+        new CassandraMetricDefinition(
+            "test_family_faulty", "dw_faulty", Collections.emptyList(), Collections.emptyList());
+    faulty.setFiller(
+        samples -> {
+          throw new RuntimeException("Simulated unexpected failure");
+        });
+
+    CassandraMetricDefinition healthy =
+        new CassandraMetricDefinition(
+            "test_family_healthy", "dw_healthy", Collections.emptyList(), Collections.emptyList());
+    healthy.setFiller(
+        samples -> {
+          samples.add(
+              new Collector.MetricFamilySamples.Sample(
+                  "test_family_healthy", Collections.emptyList(), Collections.emptyList(), 1.0));
+        });
+
+    family.addDefinition(faulty);
+    family.addDefinition(healthy);
+
+    // Should not throw exception
+    family.refreshSamples();
+    assertEquals(1, family.samples.size());
+    assertEquals(1.0, family.samples.get(0).value, 0.001);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void collectContinuesWhenSingleFamilyThrows() throws Exception {
+    CassandraDropwizardExports exporter =
+        new CassandraDropwizardExports(new MetricRegistry(), new Configuration());
+    Field cacheField = CassandraDropwizardExports.class.getDeclaredField("familyCache");
+    cacheField.setAccessible(true);
+    ConcurrentHashMap<String, RefreshableMetricFamilySamples> cache =
+        (ConcurrentHashMap<String, RefreshableMetricFamilySamples>) cacheField.get(exporter);
+
+    cache.put(
+        "faulty_family",
+        new RefreshableMetricFamilySamples(
+            "faulty_family", Collector.Type.SUMMARY, "", new java.util.ArrayList<>()) {
+          @Override
+          public void refreshSamples() {
+            throw new RuntimeException("Simulated unexpected failure");
+          }
+        });
+    cache.put(
+        "healthy_family",
+        new RefreshableMetricFamilySamples(
+            "healthy_family", Collector.Type.SUMMARY, "", new java.util.ArrayList<>()));
+
+    // Must not throw, and must still return every family
+    assertEquals(2, exporter.collect().size());
+  }
+
   private String tableMetricName(String tableName) {
     return String.format(
         "org.apache.cassandra.metrics.Table.MetricName.%s.%s", KEYSPACE_NAME, tableName);
