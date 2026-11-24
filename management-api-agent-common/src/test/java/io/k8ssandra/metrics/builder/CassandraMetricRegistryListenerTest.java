@@ -198,6 +198,46 @@ public class CassandraMetricRegistryListenerTest {
     assertSampleValue(samples, SIBLING_TABLE_NAME, 10.0);
   }
 
+  @Test
+  public void exportsGaugeHistogramWithOverflowWithoutThrowing() throws Exception {
+    ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache =
+        new ConcurrentHashMap<>();
+    CassandraMetricRegistryListener listener =
+        new CassandraMetricRegistryListener(familyCache, tableMetricConfiguration());
+
+    // EstimatedHistogram default offsets length is 90 buckets + 1 overflow bucket = 91 elements
+    long[] overflowedBuckets = new long[91];
+    overflowedBuckets[0] = 5;
+    overflowedBuckets[90] = 3; // Overflow bucket has non-zero count
+
+    listener.onGaugeAdded(
+        "org.apache.cassandra.metrics.Table.TombstoneScannedHistogram.Keyspace1.Table1",
+        () -> overflowedBuckets);
+
+    assertEquals(1, familyCache.size());
+    RefreshableMetricFamilySamples family = familyCache.values().iterator().next();
+    assertNotNull("Gauge histogram metric family should be registered", family);
+
+    // invokes the filler lambda; threw IllegalStateException before the fix
+    family.refreshSamples();
+
+    boolean foundCount = false;
+    int quantileCount = 0;
+    for (Collector.MetricFamilySamples.Sample sample : family.samples) {
+      if (sample.name.endsWith("_count")) {
+        foundCount = true;
+        assertEquals(8.0, sample.value, 0.001);
+      } else {
+        quantileCount++;
+        assertTrue(
+            "Quantile value should be NaN when histogram is overflowed",
+            Double.isNaN(sample.value));
+      }
+    }
+    assertTrue("Should have collected _count sample", foundCount);
+    assertEquals(CassandraMetricsTools.PRECOMPUTED_QUANTILES.length, quantileCount);
+  }
+
   private String tableMetricName(String tableName) {
     return String.format(
         "org.apache.cassandra.metrics.Table.MetricName.%s.%s", KEYSPACE_NAME, tableName);

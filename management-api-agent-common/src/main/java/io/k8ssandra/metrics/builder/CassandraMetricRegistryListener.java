@@ -157,6 +157,12 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
           }
 
           final EstimatedHistogram hist = new EstimatedHistogram(inputValues);
+          final boolean overflowed = hist.isOverflowed();
+          if (overflowed) {
+            logger.debug(
+                "EstimatedHistogram for {} is overflowed, emitting NaN for quantiles",
+                proto.getMetricName());
+          }
           for (int i = 0; i < PRECOMPUTED_QUANTILES.length; i++) {
             List<String> labelValues = new ArrayList<>(proto.getLabelValues().size() + 1);
             int j = 0;
@@ -164,12 +170,17 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
               labelValues.add(j, proto.getLabelValues().get(j));
             }
             labelValues.add(j, PRECOMPUTED_QUANTILES_TEXT[i]);
+            double quantileValue = Double.NaN;
+            if (!overflowed) {
+              try {
+                quantileValue = hist.percentile(PRECOMPUTED_QUANTILES[i]);
+              } catch (IllegalStateException e) {
+                logger.trace("Failed to compute percentile for {}", proto.getMetricName(), e);
+              }
+            }
             Collector.MetricFamilySamples.Sample sample =
                 new Collector.MetricFamilySamples.Sample(
-                    proto.getMetricName(),
-                    proto.getLabelNames(),
-                    labelValues,
-                    hist.percentile(PRECOMPUTED_QUANTILES[i]));
+                    proto.getMetricName(), proto.getLabelNames(), labelValues, quantileValue);
             samples.add(sample);
           }
         });
