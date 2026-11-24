@@ -29,9 +29,9 @@ public class RefreshableMetricFamilySamples extends Collector.MetricFamilySample
     for (CassandraMetricDefinition definition : definitions) {
       try {
         definition.accept(samples);
-      } catch (Throwable t) {
+      } catch (RuntimeException e) {
         logger.warn(
-            "Failed to collect samples for metric definition {}", definition.getMetricName(), t);
+            "Failed to collect samples for metric definition {}", definition.getMetricName(), e);
       }
     }
   }

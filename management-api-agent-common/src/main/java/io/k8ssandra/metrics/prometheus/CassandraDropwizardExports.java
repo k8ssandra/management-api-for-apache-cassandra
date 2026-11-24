@@ -47,8 +47,8 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
     for (RefreshableMetricFamilySamples value : familyCache.values()) {
       try {
         value.refreshSamples();
-      } catch (Throwable t) {
-        logger.warn("Failed to refresh metric family {}", value.name, t);
+      } catch (RuntimeException e) {
+        logger.warn("Failed to refresh metric family {}", value.name, e);
       }
     }
 
