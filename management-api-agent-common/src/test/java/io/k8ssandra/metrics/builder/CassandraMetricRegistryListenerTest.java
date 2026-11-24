@@ -198,6 +198,83 @@ public class CassandraMetricRegistryListenerTest {
     assertSampleValue(samples, SIBLING_TABLE_NAME, 10.0);
   }
 
+  @Test
+  public void exportsGaugeHistogramWithOverflowWithoutThrowing() throws Exception {
+    ConcurrentHashMap<String, RefreshableMetricFamilySamples> familyCache =
+        new ConcurrentHashMap<>();
+    CassandraMetricRegistryListener listener =
+        new CassandraMetricRegistryListener(familyCache, tableMetricConfiguration());
+
+    // EstimatedHistogram default offsets length is 90 buckets + 1 overflow bucket = 91 elements
+    long[] overflowedBuckets = new long[91];
+    overflowedBuckets[0] = 5;
+    overflowedBuckets[90] = 3; // Overflow bucket has non-zero count
+
+    listener.onGaugeAdded(
+        "org.apache.cassandra.metrics.Table.TombstoneScannedHistogram.Keyspace1.Table1",
+        () -> overflowedBuckets);
+
+    assertEquals(1, familyCache.size());
+    RefreshableMetricFamilySamples family = familyCache.values().iterator().next();
+    assertNotNull("Gauge histogram metric family should be registered", family);
+
+    // invokes the filler lambda; threw IllegalStateException before the fix
+    family.refreshSamples();
+
+    boolean foundCount = false;
+    int quantileCount = 0;
+    for (Collector.MetricFamilySamples.Sample sample : family.samples) {
+      if (sample.name.endsWith("_count")) {
+        foundCount = true;
+        assertEquals(8.0, sample.value, 0.001);
+      } else {
+        quantileCount++;
+        assertTrue(
+            "Quantile value should be NaN when histogram is overflowed",
+            Double.isNaN(sample.value));
+      }
+    }
+    assertTrue("Should have collected _count sample", foundCount);
+    assertEquals(CassandraMetricsTools.PRECOMPUTED_QUANTILES.length, quantileCount);
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void collectSkipsWholeFamilyWhenRefreshFails() throws Exception {
+    CassandraDropwizardExports exporter =
+        new CassandraDropwizardExports(new MetricRegistry(), new Configuration());
+    Field cacheField = CassandraDropwizardExports.class.getDeclaredField("familyCache");
+    cacheField.setAccessible(true);
+    ConcurrentHashMap<String, RefreshableMetricFamilySamples> cache =
+        (ConcurrentHashMap<String, RefreshableMetricFamilySamples>) cacheField.get(exporter);
+
+    // A family whose definition adds a sample and then fails would otherwise expose partial data
+    RefreshableMetricFamilySamples faulty =
+        new RefreshableMetricFamilySamples(
+            "faulty_family", Collector.Type.SUMMARY, "", new java.util.ArrayList<>());
+    CassandraMetricDefinition faultyDefinition =
+        new CassandraMetricDefinition(
+            "faulty_family", "dw_faulty", Collections.emptyList(), Collections.emptyList());
+    faultyDefinition.setFiller(
+        samples -> {
+          samples.add(
+              new Collector.MetricFamilySamples.Sample(
+                  "faulty_family", Collections.emptyList(), Collections.emptyList(), 1.0));
+          throw new RuntimeException("Simulated unexpected failure");
+        });
+    faulty.addDefinition(faultyDefinition);
+    cache.put("faulty_family", faulty);
+    cache.put(
+        "healthy_family",
+        new RefreshableMetricFamilySamples(
+            "healthy_family", Collector.Type.SUMMARY, "", new java.util.ArrayList<>()));
+
+    // Must not throw; the failing family is omitted entirely, the healthy one is kept
+    List<Collector.MetricFamilySamples> families = exporter.collect();
+    assertEquals(1, families.size());
+    assertEquals("healthy_family", families.get(0).name);
+  }
+
   private String tableMetricName(String tableName) {
     return String.format(
         "org.apache.cassandra.metrics.Table.MetricName.%s.%s", KEYSPACE_NAME, tableName);

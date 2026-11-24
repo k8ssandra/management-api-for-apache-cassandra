@@ -44,16 +44,18 @@ public class CassandraDropwizardExports extends Collector implements Collector.D
 
   @Override
   public List<MetricFamilySamples> collect() {
-    try {
-      for (RefreshableMetricFamilySamples value : familyCache.values()) {
+    List<MetricFamilySamples> families = new ArrayList<>(familyCache.size());
+    for (RefreshableMetricFamilySamples value : familyCache.values()) {
+      try {
         value.refreshSamples();
+        families.add(value);
+      } catch (RuntimeException e) {
+        // Skip the whole family: a partially refreshed histogram would produce wrong values
+        logger.warn("Failed to refresh metric family {}, skipping it", value.name, e);
       }
-
-      return new ArrayList<>(familyCache.values());
-    } catch (Exception e) {
-      logger.error("Failed to parse metrics", e);
-      throw new RuntimeException(e);
     }
+
+    return families;
   }
 
   @Override
