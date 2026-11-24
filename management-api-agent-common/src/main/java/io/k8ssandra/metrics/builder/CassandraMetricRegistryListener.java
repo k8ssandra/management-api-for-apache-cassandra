@@ -159,7 +159,7 @@ public class CassandraMetricRegistryListener implements MetricRegistryListener {
           final EstimatedHistogram hist = new EstimatedHistogram(inputValues);
           final boolean overflowed = hist.isOverflowed();
           if (overflowed) {
-            logger.debug(
+            logger.warn(
                 "EstimatedHistogram for {} is overflowed, emitting NaN for quantiles",
                 proto.getMetricName());
           }
