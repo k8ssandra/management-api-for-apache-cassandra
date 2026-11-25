@@ -11,6 +11,9 @@ Changelog for Management API, new PRs should update the `main / unreleased` sect
 
 ## unreleased
 
+## v0.1.131 [2026-11-25]
+* [CHANGE] Handle histogram overflows without breaking the whole metrics scrape
+
 ## v0.1.130 [2026-11-23]
 * [CHANGE] (no ticket) This release simply changes the Maven Publishing locations. By default, Maven artifacts are now only published to GitHub Packages and IBM TaaS.
 
